@@ -7,9 +7,10 @@ image_resource:
 params:
   ROUTING_CF_CLIENT_SECRET:
 run:
-  path: git-kubo-deployment/ci/scripts/pod-to-pod.sh
+  path: git-kubo-ci/scripts/pod-to-pod.sh
 
 inputs:
+  - name: git-kubo-ci
   - name: git-kubo-deployment
   - name: s3-service-creds
   - name: s3-bosh-creds

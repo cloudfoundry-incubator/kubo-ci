@@ -8,10 +8,10 @@ params:
   PR_STATUS:
   PR_REPO: kubo-release
 run:
-  path: git-kubo-deployment/ci/scripts/generate-pr-message.sh
+  path: git-kubo-ci/scripts/generate-pr-message.sh
 
 inputs:
-- name: git-kubo-deployment
+- name: git-kubo-ci
 - name: git-kubo-release
 outputs:
 - name: pr-slack-message

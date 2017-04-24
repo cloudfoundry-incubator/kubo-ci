@@ -10,6 +10,6 @@ export BOSH_ENVIRONMENT="$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" -
 export BOSH_CA_CERT="$(bosh-cli int "${creds_path}" --path=/director_ssl/ca)"
 
 export BOSH_LOG_LEVEL=debug
-export BOSH_LOG_PATH="${KUBO_DEPLOYMENT_DIR}/bosh.log"
+export BOSH_LOG_PATH="$PWD/bosh.log"
 
 bosh-cli -d ci-service -n delete-deployment

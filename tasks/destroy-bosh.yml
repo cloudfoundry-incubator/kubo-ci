@@ -7,9 +7,10 @@ image_resource:
 params:
   GCP_SERVICE_ACCOUNT: 
 run:
-  path: git-kubo-deployment/ci/scripts/destroy-bosh.sh
+  path: git-kubo-ci/scripts/destroy-bosh.sh
 
 inputs:
+  - name: git-kubo-ci
   - name: git-kubo-deployment
   - name: s3-bosh-state
   - name: s3-bosh-creds

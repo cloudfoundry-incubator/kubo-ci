@@ -102,12 +102,12 @@ jobs:
       path: git-kubo-release
       status: pending
   - task: run-unit-tests
-    file: git-kubo-deployment/ci/tasks/run-release-unit-tests.yml
+    file: git-kubo-ci/tasks/run-release-unit-tests.yml
     on_failure: &on_failure
       aggregate:
       - do:
         - task: alert-text
-          file: git-kubo-deployment/ci/tasks/generate-release-pr-messages.yml
+          file: git-kubo-ci/tasks/generate-release-pr-messages.yml
           params:
             PR_STATUS: failed
         - put: slack-alert
@@ -149,7 +149,7 @@ jobs:
     trigger: true
     passed: [ 'claim-lock' ]
   - task: install
-    file: git-kubo-deployment/ci/tasks/install-bosh.yml
+    file: git-kubo-ci/tasks/install-bosh.yml
     params:
       GCP_SERVICE_ACCOUNT: {{gcp-service-account}}
     on_failure: *on_failure
@@ -179,7 +179,7 @@ jobs:
     - get: s3-bosh-state
       passed: [ 'install-bosh' ]
   - task: build-kubo-release
-    file: git-kubo-deployment/ci/tasks/build-kubo-release.yml
+    file: git-kubo-ci/tasks/build-kubo-release.yml
     on_failure: *on_failure
   - put: s3-kubo-release-tarball
     params:
@@ -203,7 +203,7 @@ jobs:
     - get: s3-kubo-release-tarball
       passed: [ 'build-kubo-release' ]
   - task: deploy
-    file: git-kubo-deployment/ci/tasks/deploy-k8s-instance.yml
+    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
       ROUTING_CF_CLIENT_SECRET: {{routing_cf_client_secret}}
       ROUTING_CF_NATS_PASSWORD: {{routing_cf_nats_password}}
@@ -230,10 +230,10 @@ jobs:
     - get: git-kubo-release
       passed: [ 'deploy-k8s' ]
   - task: workload
-    file: git-kubo-deployment/ci/tasks/deploy-k8s-workload.yml
+    file: git-kubo-ci/tasks/deploy-k8s-workload.yml
     on_failure: *on_failure
   - task: pod-to-pod
-    file: git-kubo-deployment/ci/tasks/pod-to-pod.yml
+    file: git-kubo-ci/tasks/pod-to-pod.yml
     on_failure: *on_failure
 
 - name: destroy-k8s
@@ -252,7 +252,7 @@ jobs:
     - get: git-kubo-release
       passed: [ 'deploy-workload' ]
   - task: destroy-k8s
-    file: git-kubo-deployment/ci/tasks/destroy-k8s-instance.yml
+    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     on_failure: *on_failure
 
 - name: destroy-bosh
@@ -271,7 +271,7 @@ jobs:
     - get: git-kubo-release
       passed: [ 'destroy-k8s' ]
   - task: destroy
-    file: git-kubo-deployment/ci/tasks/destroy-bosh.yml
+    file: git-kubo-ci/tasks/destroy-bosh.yml
     params:
       GCP_SERVICE_ACCOUNT: {{gcp-service-account}}
     on_failure: *on_failure
@@ -279,7 +279,7 @@ jobs:
   - put: kubo-lock
     params: { release: kubo-lock }
   - task: alert-text
-    file: git-kubo-deployment/ci/tasks/generate-release-pr-messages.yml
+    file: git-kubo-ci/tasks/generate-release-pr-messages.yml
     params:
       PR_STATUS: succeeded
   - put: slack-alert

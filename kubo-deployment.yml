@@ -13,12 +13,17 @@ resources:
     uri: git@github.com:pivotal-cf-experimental/kubo-deployment
     branch: master
 
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci
+    branch: master
+
 - name: git-kubo-release
   type: git
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-release
     branch: master
-    private_key: {{git-ssh-key}}
 
 - name: kubo-lock
   type: pool
@@ -129,7 +134,7 @@ jobs:
   - get: git-kubo-release
     trigger: true
   - task: run-release-unit-tests
-    file: git-kubo-deployment/ci/tasks/run-release-unit-tests.yml
+    file: git-kubo-ci/tasks/run-release-unit-tests.yml
     on_failure:
       put: slack-alert
       params:
@@ -139,7 +144,7 @@ jobs:
           Kubo release unit tests failed:
           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: run-deployment-unit-tests
-    file: git-kubo-deployment/ci/tasks/run-deployment-unit-tests.yml
+    file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
     on_failure:
       put: slack-alert
       params:
@@ -178,7 +183,7 @@ jobs:
   - get: kubo-version
     passed: [ 'claim-lock' ]
   - task: install
-    file: git-kubo-deployment/ci/tasks/install-bosh.yml
+    file: git-kubo-ci/tasks/install-bosh.yml
     params:
       GCP_SERVICE_ACCOUNT: {{gcp-service-account}}
     on_failure:
@@ -215,7 +220,7 @@ jobs:
     - get: s3-bosh-state
       passed: [ 'install-bosh' ]
   - task: build-kubo-release
-    file: git-kubo-deployment/ci/tasks/build-kubo-release.yml
+    file: git-kubo-ci/tasks/build-kubo-release.yml
     on_failure:
       put: slack-alert
       params:
@@ -249,7 +254,7 @@ jobs:
       passed: [ 'build-kubo-release' ]
   - task: deploy
     input_mapping: {s3-kubo-release-tarball: s3-kubo-release-tarball-tmp}
-    file: git-kubo-deployment/ci/tasks/deploy-k8s-instance.yml
+    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
       ROUTING_CF_CLIENT_SECRET: {{routing_cf_client_secret}}
       ROUTING_CF_NATS_PASSWORD: {{routing_cf_nats_password}}
@@ -287,7 +292,7 @@ jobs:
     - get: s3-kubo-release-tarball-tmp
       passed: [ 'deploy-k8s' ]
   - task: workload
-    file: git-kubo-deployment/ci/tasks/deploy-k8s-workload.yml
+    file: git-kubo-ci/tasks/deploy-k8s-workload.yml
     on_failure:
       put: slack-alert
       params:
@@ -297,7 +302,7 @@ jobs:
           Deploy K8s Workload failed:
           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: pod-to-pod
-    file: git-kubo-deployment/ci/tasks/pod-to-pod.yml
+    file: git-kubo-ci/tasks/pod-to-pod.yml
     on_failure:
       put: slack-alert
       params:
@@ -325,7 +330,7 @@ jobs:
     - get: s3-kubo-release-tarball-tmp
       passed: [ 'deploy-workload' ]
   - task: destroy-k8s
-    file: git-kubo-deployment/ci/tasks/destroy-k8s-instance.yml
+    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     on_failure:
       put: slack-alert
       params:
@@ -354,7 +359,7 @@ jobs:
     - get: s3-kubo-release-tarball-tmp
       passed: [ 'destroy-k8s' ]
   - task: destroy
-    file: git-kubo-deployment/ci/tasks/destroy-bosh.yml
+    file: git-kubo-ci/tasks/destroy-bosh.yml
     params:
       GCP_SERVICE_ACCOUNT: {{gcp-service-account}}
     on_failure:
@@ -377,7 +382,7 @@ jobs:
       passed: [ destroy-bosh ]
       trigger: true
   - task: create-kubo-deployment-tarball
-    file: git-kubo-deployment/ci/tasks/create-kubo-deployment-tarball.yml
+    file: git-kubo-ci/tasks/create-kubo-deployment-tarball.yml
   - aggregate:
     - put: s3-kubo-deployment-tarball
       params:

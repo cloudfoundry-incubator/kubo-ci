@@ -3,22 +3,22 @@
 . "$(dirname "$0")/lib/environment.sh"
 
 export BOSH_LOG_LEVEL=debug
-export BOSH_LOG_PATH="${KUBO_DEPLOYMENT_DIR}/bosh.log"
+export BOSH_LOG_PATH="$PWD/bosh.log"
 export DEBUG=1
 
 cp "$PWD/s3-service-creds/ci-service-creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 cp "$PWD/s3-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 
 credhub login -u credhub-user -p \
-  "$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path="/credhub_user_password" | xargs echo -n)" \
-  -s "https://$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_ip" | xargs echo -n):8844" --skip-tls-validation
+  "$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path="/credhub_user_password")" \
+  -s "https://$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_ip"):8844" --skip-tls-validation
 
 
 export nginx_port=$(expr $(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/external-kubo-port") + 1000)
 export nginx_name="nginx-$(basename "${KUBO_ENVIRONMENT_DIR}")"
 
-"${KUBO_DEPLOYMENT_DIR}/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
-kubectl create -f "${KUBO_DEPLOYMENT_DIR}/ci/specs/nginx.yml"
+"git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
+kubectl create -f "git-kubo-ci/specs/nginx.yml"
 kubectl label services nginx http-route-sync=${nginx_name}
 kubectl label services nginx tcp-route-sync=${nginx_port}
 # wait for deployment to finish
