@@ -6,6 +6,11 @@ resource_types:
     repository: cfcommunity/slack-notification-resource
     tag: latest
 
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
 resources:
 - name: git-kubo-ci
   type: git
@@ -107,6 +112,7 @@ resources:
 jobs:
 - name: run-unit-tests
   plan:
+  - get: git-kubo-ci
   - get: git-kubo-deployment
     version: every
   - get: git-kubo-release
