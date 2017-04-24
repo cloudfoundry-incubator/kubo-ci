@@ -11,6 +11,12 @@ resource_types:
     repository: jtarchie/pr
 
 resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci
+    branch: master
+
 - name: git-kubo-deployment
   type: pull-request
   source:
@@ -77,6 +83,7 @@ jobs:
   plan:
   - get: git-kubo-deployment
     version: every
+  - get: git-kubo-ci
   - task: run-deployment-unit-tests
     file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
     on_failure: &on_failure
@@ -123,6 +130,7 @@ jobs:
 - name: install-bosh
   plan:
   - aggregate:
+    - get: git-kubo-ci
     - get: git-kubo-deployment
       passed: [ 'claim-lock' ]
     - get: kubo-lock
@@ -145,6 +153,7 @@ jobs:
 - name: deploy-k8s
   plan:
   - aggregate:
+    - get: git-kubo-ci
     - get: kubo-lock
       version: every
       trigger: true
@@ -171,6 +180,7 @@ jobs:
 - name: deploy-workload
   plan:
   - aggregate:
+    - get: git-kubo-ci
     - get: kubo-lock
       version: every
       trigger: true
@@ -194,6 +204,7 @@ jobs:
 - name: destroy-k8s
   plan:
   - aggregate:
+    - get: git-kubo-ci
     - get: kubo-lock
       version: every
       trigger: true
@@ -211,6 +222,7 @@ jobs:
 - name: destroy-bosh
   plan:
   - aggregate:
+    - get: git-kubo-ci
     - get: git-kubo-deployment
       passed: [ 'destroy-k8s' ]
     - get: kubo-lock

@@ -129,6 +129,7 @@ resources:
 jobs:
 - name: run-unit-tests
   plan:
+  - get: git-kubo-ci
   - get: git-kubo-deployment
     trigger: true
   - get: git-kubo-release
@@ -172,6 +173,7 @@ jobs:
 
 - name: install-bosh
   plan:
+  - get: git-kubo-ci
   - get: git-kubo-deployment
     passed: [ 'claim-lock' ]
   - get: git-kubo-release
@@ -205,6 +207,7 @@ jobs:
 - name: build-kubo-release
   plan:
   - aggregate:
+    - get: git-kubo-ci
     - get: kubo-lock
       version: every
       trigger: true
@@ -236,6 +239,7 @@ jobs:
 - name: deploy-k8s
   plan:
   - aggregate:
+    - get: git-kubo-ci
     - get: kubo-lock
       version: every
       trigger: true
@@ -273,6 +277,7 @@ jobs:
 - name: deploy-workload
   plan:
   - aggregate:
+    - get: git-kubo-ci
     - get: kubo-lock
       version: every
       trigger: true
@@ -315,6 +320,7 @@ jobs:
 - name: destroy-k8s
   plan:
   - aggregate:
+    - get: git-kubo-ci
     - get: kubo-lock
       version: every
       trigger: true
@@ -344,6 +350,7 @@ jobs:
 - name: destroy-bosh
   plan:
   - aggregate:
+    - get: git-kubo-ci
     - get: git-kubo-deployment
       passed: [ 'destroy-k8s' ]
     - get: kubo-lock
@@ -376,6 +383,7 @@ jobs:
 - name: upload-kubo-deployment
   plan:
   - aggregate:
+    - get: git-kubo-ci
     - get: git-kubo-deployment
       passed: [ destroy-bosh ]
     - get: kubo-version
