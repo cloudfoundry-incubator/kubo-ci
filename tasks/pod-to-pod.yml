@@ -12,6 +12,6 @@ run:
 inputs:
   - name: git-kubo-ci
   - name: git-kubo-deployment
-  - name: s3-service-creds
-  - name: s3-bosh-creds
+  - name: gcs-service-creds
+  - name: gcs-bosh-creds
   - name: kubo-lock

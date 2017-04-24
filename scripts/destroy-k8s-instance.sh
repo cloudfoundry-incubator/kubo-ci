@@ -1,7 +1,7 @@
 #!/bin/sh -ex
 
 
-creds_path="${PWD}/s3-bosh-creds/creds.yml"
+creds_path="${PWD}/gcs-bosh-creds/creds.yml"
 . "$(dirname "$0")/lib/environment.sh"
 
 export BOSH_CLIENT="bosh_admin"

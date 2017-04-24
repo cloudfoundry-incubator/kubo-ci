@@ -34,43 +34,32 @@ resources:
     private_key: {{git-ssh-key}}
     pool: kubo-deployment
 
-- name: s3-bosh-state
-  type: s3
+- name: gcs-bosh-state
+  type: gcs
   source:
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
-    endpoint: s3-eu-west-1.amazonaws.com
-    region_name: eu-west-1
     versioned_file: bosh/state.json
 
-- name: s3-bosh-creds
-  type: s3
+- name: gcs-bosh-creds
+  type: gcs
   source:
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
-    endpoint: s3-eu-west-1.amazonaws.com
-    region_name: eu-west-1
     versioned_file: bosh/creds.yml
 
-- name: s3-service-creds
-  type: s3
+- name: gcs-service-creds
+  type: gcs
   source:
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
-    endpoint: s3-eu-west-1.amazonaws.com
-    region_name: eu-west-1
     versioned_file: bosh/ci-service-creds.yml
 
-- name: s3-kubo-release-tarball
-  type: s3
+- name: gcs-kubo-release-tarball
+  type: gcs
   source:
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    json_key: {{gcs-json-key}}
     bucket: kubo-public
-    endpoint: s3.amazonaws.com
     versioned_file: kubo-release-latest.tgz
 
 - name: slack-alert
@@ -143,10 +132,10 @@ jobs:
       GCP_SERVICE_ACCOUNT: {{gcp-service-account}}
     on_failure: *on_failure
   - aggregate:
-    - put: s3-bosh-creds
+    - put: gcs-bosh-creds
       params:
         file: bosh-creds/creds.yml
-    - put: s3-bosh-state
+    - put: gcs-bosh-state
       params:
         file: bosh-state/state.json
 
@@ -160,10 +149,10 @@ jobs:
       passed: [ 'install-bosh' ]
     - get: git-kubo-deployment
       passed: [ 'install-bosh' ]
-    - get: s3-kubo-release-tarball
-    - get: s3-bosh-state
+    - get: gcs-kubo-release-tarball
+    - get: gcs-bosh-state
       passed: [ 'install-bosh' ]
-    - get: s3-bosh-creds
+    - get: gcs-bosh-creds
       passed: [ 'install-bosh' ]
   - task: deploy
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
@@ -173,7 +162,7 @@ jobs:
     on_failure: *on_failure
 
   - aggregate:
-    - put: s3-service-creds
+    - put: gcs-service-creds
       params:
         file: service-creds/ci-service-creds.yml
 
@@ -187,11 +176,11 @@ jobs:
       passed: [ 'deploy-k8s' ]
     - get: git-kubo-deployment
       passed: [ 'deploy-k8s' ]
-    - get: s3-bosh-state
+    - get: gcs-bosh-state
       passed: [ 'deploy-k8s' ]
-    - get: s3-bosh-creds
+    - get: gcs-bosh-creds
       passed: [ 'deploy-k8s' ]
-    - get: s3-service-creds
+    - get: gcs-service-creds
       passed: [ 'deploy-k8s' ]
   - task: workload
     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
@@ -211,9 +200,9 @@ jobs:
       passed: [ 'deploy-workload' ]
     - get: git-kubo-deployment
       passed: [ 'deploy-workload' ]
-    - get: s3-bosh-state
+    - get: gcs-bosh-state
       passed: [ 'deploy-workload' ]
-    - get: s3-bosh-creds
+    - get: gcs-bosh-creds
       passed: [ 'deploy-workload' ]
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
@@ -229,9 +218,9 @@ jobs:
       version: every
       trigger: true
       passed: [ 'destroy-k8s' ]
-    - get: s3-bosh-state
+    - get: gcs-bosh-state
       passed: [ 'destroy-k8s' ]
-    - get: s3-bosh-creds
+    - get: gcs-bosh-creds
       passed: [ 'destroy-k8s' ]
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml

@@ -6,6 +6,11 @@ resource_types:
     repository: cfcommunity/slack-notification-resource
     tag: latest
 
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
 resources:
 - name: git-kubo-deployment
   type: git
@@ -33,93 +38,71 @@ resources:
     private_key: {{git-ssh-key}}
     pool: kubo-deployment
 
-- name: s3-bosh-state
-  type: s3
+- name: gcs-bosh-state
+  type: gcs
   source:
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
-    endpoint: s3-eu-west-1.amazonaws.com
-    region_name: eu-west-1
     versioned_file: bosh/state.json
 
-- name: s3-bosh-creds
-  type: s3
+- name: gcs-bosh-creds
+  type: gcs
   source:
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
-    endpoint: s3-eu-west-1.amazonaws.com
-    region_name: eu-west-1
     versioned_file: bosh/creds.yml
 
-- name: s3-service-creds
-  type: s3
+- name: gcs-service-creds
+  type: gcs
   source:
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
-    endpoint: s3-eu-west-1.amazonaws.com
-    region_name: eu-west-1
     versioned_file: bosh/ci-service-creds.yml
 
-- name: s3-kubo-release-tarball-tmp
-  type: s3
+- name: gcs-kubo-release-tarball-untested
+  type: gcs
   source:
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
-    endpoint: s3-eu-west-1.amazonaws.com
-    region_name: eu-west-1
     regexp: kubo-release-(.*).tgz
 
-- name: s3-kubo-releases
-  type: s3
+- name: gcs-kubo-releases
+  type: gcs
   source:
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    json_key: {{gcs-json-key}}
     bucket: kubo-releases
-    endpoint: s3-eu-west-1.amazonaws.com
-    region_name: eu-west-1
     regexp: kubo-release-(.*).tgz
 
-- name: s3-kubo-deployments
-  type: s3
+- name: gcs-kubo-deployments
+  type: gcs
   source:
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    json_key: {{gcs-json-key}}
     bucket: kubo-releases
-    endpoint: s3-eu-west-1.amazonaws.com
-    region_name: eu-west-1
     regexp: kubo-deployment-(.*).tgz
 
-- name: s3-kubo-release-tarball
-  type: s3
+- name: gcs-kubo-release-tarball
+  type: gcs
   source:
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    json_key: {{gcs-json-key}}
     bucket: kubo-public
-    endpoint: s3.amazonaws.com
     versioned_file: kubo-release-latest.tgz
 
-- name: s3-kubo-deployment-tarball
-  type: s3
+- name: gcs-kubo-deployment-tarball
+  type: gcs
   source:
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    json_key: {{gcs-json-key}}
     bucket: kubo-public
-    endpoint: s3.amazonaws.com
     versioned_file: kubo-deployment-latest.tgz
 
 - name: kubo-version
   type: semver
   source:
     key: kubo-version
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    access_key_id: {{gcs-access-key-id}}
+    secret_access_key: {{gcs-secret-access-key}}
     bucket: kubo-pipeline-store
-    endpoint: s3-eu-west-1.amazonaws.com
-    region_name: eu-west-1
+    region_name: us-east1
+    endpoint: storage.googleapis.com
 
 - name: slack-alert
   type: slack-notification
@@ -197,10 +180,10 @@ jobs:
           Deploy BOSH failed:
           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - aggregate:
-    - put: s3-bosh-creds
+    - put: gcs-bosh-creds
       params:
         file: bosh-creds/creds.yml
-    - put: s3-bosh-state
+    - put: gcs-bosh-state
       params:
         file: bosh-state/state.json
 
@@ -218,9 +201,9 @@ jobs:
       passed: [ 'install-bosh' ]
     - get: git-kubo-release
       passed: [ 'install-bosh' ]
-    - get: s3-bosh-creds
+    - get: gcs-bosh-creds
       passed: [ 'install-bosh' ]
-    - get: s3-bosh-state
+    - get: gcs-bosh-state
       passed: [ 'install-bosh' ]
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
@@ -232,7 +215,7 @@ jobs:
         text: |
           Kubo release build failed:
           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-  - put: s3-kubo-release-tarball-tmp
+  - put: gcs-kubo-release-tarball-untested
     params:
       file: kubo-release/kubo-release-*.tgz
 
@@ -250,14 +233,14 @@ jobs:
       passed: [ 'build-kubo-release' ]
     - get: kubo-version
       passed: [ 'build-kubo-release' ]
-    - get: s3-bosh-state
+    - get: gcs-bosh-state
       passed: [ 'build-kubo-release' ]
-    - get: s3-bosh-creds
+    - get: gcs-bosh-creds
       passed: [ 'build-kubo-release' ]
-    - get: s3-kubo-release-tarball-tmp
+    - get: gcs-kubo-release-tarball-untested
       passed: [ 'build-kubo-release' ]
   - task: deploy
-    input_mapping: {s3-kubo-release-tarball: s3-kubo-release-tarball-tmp}
+    input_mapping: {gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested}
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
       ROUTING_CF_CLIENT_SECRET: {{routing_cf_client_secret}}
@@ -270,7 +253,7 @@ jobs:
         text: |
           Deploy K8s failed:
           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-  - put: s3-service-creds
+  - put: gcs-service-creds
     params:
       file: service-creds/ci-service-creds.yml
 
@@ -284,17 +267,17 @@ jobs:
       passed: [ 'deploy-k8s' ]
     - get: git-kubo-deployment
       passed: [ 'deploy-k8s' ]
-    - get: s3-bosh-state
+    - get: gcs-bosh-state
       passed: [ 'deploy-k8s' ]
-    - get: s3-bosh-creds
+    - get: gcs-bosh-creds
       passed: [ 'deploy-k8s' ]
     - get: kubo-version
       passed: [ 'deploy-k8s' ]
     - get: git-kubo-release
       passed: [ 'deploy-k8s' ]
-    - get: s3-service-creds
+    - get: gcs-service-creds
       passed: [ 'deploy-k8s' ]
-    - get: s3-kubo-release-tarball-tmp
+    - get: gcs-kubo-release-tarball-untested
       passed: [ 'deploy-k8s' ]
   - task: workload
     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
@@ -329,11 +312,11 @@ jobs:
       passed: [ 'deploy-workload' ]
     - get: git-kubo-deployment
       passed: [ 'deploy-workload' ]
-    - get: s3-bosh-state
+    - get: gcs-bosh-state
       passed: [ 'deploy-workload' ]
-    - get: s3-bosh-creds
+    - get: gcs-bosh-creds
       passed: [ 'deploy-workload' ]
-    - get: s3-kubo-release-tarball-tmp
+    - get: gcs-kubo-release-tarball-untested
       passed: [ 'deploy-workload' ]
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
@@ -359,11 +342,11 @@ jobs:
       passed: [ 'destroy-k8s' ]
     - get: kubo-version
       passed: [ 'destroy-k8s' ]
-    - get: s3-bosh-state
+    - get: gcs-bosh-state
       passed: [ 'destroy-k8s' ]
-    - get: s3-bosh-creds
+    - get: gcs-bosh-creds
       passed: [ 'destroy-k8s' ]
-    - get: s3-kubo-release-tarball-tmp
+    - get: gcs-kubo-release-tarball-untested
       passed: [ 'destroy-k8s' ]
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml
@@ -392,10 +375,10 @@ jobs:
   - task: create-kubo-deployment-tarball
     file: git-kubo-ci/tasks/create-kubo-deployment-tarball.yml
   - aggregate:
-    - put: s3-kubo-deployment-tarball
+    - put: gcs-kubo-deployment-tarball
       params:
         file: tarballs/kubo-deployment-*.tgz
-    - put: s3-kubo-deployments
+    - put: gcs-kubo-deployments
       params:
         file: tarballs/kubo-deployment-*.tgz
 
@@ -403,18 +386,18 @@ jobs:
 - name: upload-kubo-release
   plan:
   - aggregate:
-    - get: s3-kubo-release-tarball-tmp
+    - get: gcs-kubo-release-tarball-untested
       passed: [ destroy-bosh ]
     - get: kubo-version
       passed: [ destroy-bosh ]
       trigger: true
   - aggregate:
-    - put: s3-kubo-release-tarball
+    - put: gcs-kubo-release-tarball
       params:
-        file: s3-kubo-release-tarball-tmp/kubo-release-*.tgz
-    - put: s3-kubo-releases
+        file: gcs-kubo-release-tarball-untested/kubo-release-*.tgz
+    - put: gcs-kubo-releases
       params:
-        file: s3-kubo-release-tarball-tmp/kubo-release-*.tgz
+        file: gcs-kubo-release-tarball-untested/kubo-release-*.tgz
 
 - name: success-notification
   plan:

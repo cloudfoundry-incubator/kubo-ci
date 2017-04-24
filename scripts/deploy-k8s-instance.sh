@@ -6,9 +6,9 @@ export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 export DEBUG=1
 
-tarball_name=$(ls $PWD/s3-kubo-release-tarball/kubo-release*.tgz | head -n1)
+tarball_name=$(ls $PWD/gcs-kubo-release-tarball/kubo-release*.tgz | head -n1)
 
-cp "$PWD/s3-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 
 cp "$tarball_name" "git-kubo-deployment/../kubo-release.tgz"
 

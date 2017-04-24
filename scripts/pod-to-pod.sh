@@ -6,8 +6,8 @@ export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 export DEBUG=1
 
-cp "s3-service-creds/ci-service-creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
-cp "s3-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+cp "gcs-service-creds/ci-service-creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+cp "gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 
 bosh_ca_cert=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/default_ca/ca)
 client_secret=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/bosh_admin_client_secret)
