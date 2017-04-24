@@ -114,9 +114,7 @@ jobs:
   plan:
   - get: git-kubo-ci
   - get: git-kubo-deployment
-    version: every
   - get: git-kubo-release
-    version: every
   - task: run-release-unit-tests
     file: git-kubo-ci/tasks/run-release-unit-tests.yml
     on_failure:
