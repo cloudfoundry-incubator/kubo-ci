@@ -99,6 +99,7 @@ resources:
 jobs:
 
 - name: claim-lock
+  serial_groups: [airgap]
   max_in_flight: 1
   plan:
   - aggregate:
@@ -119,6 +120,7 @@ jobs:
     params: { release: kubo-lock }
 
 - name: install-bosh
+  serial_groups: [airgap]
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -171,6 +173,7 @@ jobs:
         file: bosh-state/state.json
 
 - name: manual-bosh-cleanup
+  serial_groups: [airgap]
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -190,6 +193,7 @@ jobs:
 #
 #
 # - name: deploy-k8s
+#  serial_groups: [airgap]
 #   plan:
 #   - aggregate:
 #     - get: git-kubo-ci
@@ -225,6 +229,7 @@ jobs:
 #       file: service-creds/ci-service-creds.yml
 #
 # - name: deploy-workload
+#  serial_groups: [airgap]
 #   plan:
 #   - aggregate:
 #     - get: git-kubo-ci
@@ -268,6 +273,7 @@ jobs:
 #           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 #
 # - name: destroy-k8s
+#  serial_groups: [airgap]
 #   plan:
 #   - aggregate:
 #     - get: git-kubo-ci
@@ -298,6 +304,7 @@ jobs:
 #
 #
 # - name: destroy-bosh
+#  serial_groups: [airgap]
 #   plan:
 #   - aggregate:
 #     - get: git-kubo-ci
@@ -329,6 +336,7 @@ jobs:
 #     params: { release: kubo-lock }
 #
 # - name: upload-kubo-deployment
+#  serial_groups: [airgap]
 #   plan:
 #   - aggregate:
 #     - get: git-kubo-ci
@@ -349,6 +357,7 @@ jobs:
 #
 #
 # - name: upload-kubo-release
+#  serial_groups: [airgap]
 #   plan:
 #   - aggregate:
 #     - get: gcs-kubo-release-tarball-untested
@@ -365,6 +374,8 @@ jobs:
 #         file: gcs-kubo-release-tarball-untested/kubo-release-*.tgz
 #
 # - name: success-notification
+#  serial_groups: [airgap]
+
 #   plan:
 #   - aggregate:
 #     - get: kubo-version
