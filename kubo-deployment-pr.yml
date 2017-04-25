@@ -19,7 +19,7 @@ resources:
 - name: git-kubo-ci
   type: git
   source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-ci
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
     branch: master
 
 - name: git-kubo-deployment
@@ -75,9 +75,9 @@ resources:
 jobs:
 - name: run-unit-tests
   plan:
+  - get: git-kubo-ci
   - get: git-kubo-deployment
     version: every
-  - get: git-kubo-ci
   - task: run-deployment-unit-tests
     file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
     on_failure: &on_failure
@@ -133,8 +133,6 @@ jobs:
       passed: [ 'claim-lock' ]
   - task: install
     file: git-kubo-ci/tasks/install-bosh.yml
-    params:
-      GCP_SERVICE_ACCOUNT: {{gcp-service-account}}
     on_failure: *on_failure
   - aggregate:
     - put: gcs-bosh-creds
@@ -161,9 +159,6 @@ jobs:
       passed: [ 'install-bosh' ]
   - task: deploy
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-    params:
-      ROUTING_CF_CLIENT_SECRET: {{routing_cf_client_secret}}
-      ROUTING_CF_NATS_PASSWORD: {{routing_cf_nats_password}}
     on_failure: *on_failure
 
   - aggregate:
@@ -229,8 +224,6 @@ jobs:
       passed: [ 'destroy-k8s' ]
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    params:
-      GCP_SERVICE_ACCOUNT: {{gcp-service-account}}
     on_failure: *on_failure
   - put: kubo-lock
     params: { release: kubo-lock }

@@ -8,6 +8,7 @@ export DEBUG=1
 
 cp "$PWD/gcs-service-creds/ci-service-creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 
 credhub login -u credhub-user -p \
   "$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path="/credhub_user_password")" \

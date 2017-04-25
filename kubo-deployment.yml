@@ -169,8 +169,6 @@ jobs:
     passed: [ 'claim-lock' ]
   - task: install
     file: git-kubo-ci/tasks/install-bosh.yml
-    params:
-      GCP_SERVICE_ACCOUNT: {{gcp-service-account}}
     on_failure:
       put: slack-alert
       params:
@@ -200,8 +198,6 @@ jobs:
       passed: [ 'install-bosh' ]
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    params:
-      GCP_SERVICE_ACCOUNT: {{gcp-service-account}}
   - put: kubo-lock
     params: { release: kubo-lock }
 
@@ -261,9 +257,6 @@ jobs:
   - task: deploy
     input_mapping: {gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested}
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-    params:
-      ROUTING_CF_CLIENT_SECRET: {{routing_cf_client_secret}}
-      ROUTING_CF_NATS_PASSWORD: {{routing_cf_nats_password}}
     on_failure:
       put: slack-alert
       params:
@@ -369,8 +362,6 @@ jobs:
       passed: [ 'destroy-k8s' ]
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    params:
-      GCP_SERVICE_ACCOUNT: {{gcp-service-account}}
     on_failure:
       put: slack-alert
       params:
