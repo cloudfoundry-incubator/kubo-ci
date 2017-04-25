@@ -6,10 +6,10 @@ variable "latest_ubuntu" {
 provider "google" {
   project = "${var.projectid}"
   region = "${var.region}"
-  credentials = "${var.service_account_key}"
+  credentials = "${file("${path.cwd}/${var.service_account_key_path}")}"
 }
 
-variable "service_account_key" { }
+variable "service_account_key_path" { }
 
 variable "projectid" { }
 
@@ -46,7 +46,7 @@ resource "google_compute_instance" "tinyproxy" {
   apt-get update
   apt-get install -y tinyproxy
   sed -i 's#Allow 127.0.0.1#Allow 0.0.0.0/0#g' /etc/tinyproxy.conf
-  service tinyproxy start
+  service tinyproxy restart
   EOT
 }
 
