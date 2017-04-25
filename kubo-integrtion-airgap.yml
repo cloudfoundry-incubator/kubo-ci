@@ -10,7 +10,7 @@ resource_types:
   type: docker-image
   source:
     repository: ljfranklin/terraform-resource
-    
+
 - name: gcs
   type: docker-image
   source:
@@ -31,21 +31,21 @@ resources:
     private_key: {{git-ssh-key}}
     pool: kubo-deployment
 
-# - name: gcs-bosh-state
-#   type: gcs
-#   source:
-#     json_key: {{gcs-json-key}}
-#     bucket: kubo-pipeline-store
-#     versioned_file: bosh/state.json
+- name: gcs-bosh-state
+  type: gcs
+  source:
+    json_key: {{gcs-json-key}}
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/state.json
 
 
 # Creds
-# - name: gcs-bosh-creds
-#   type: gcs
-#   source:
-#     json_key: {{gcs-json-key}}
-#     bucket: kubo-pipeline-store
-#     versioned_file: bosh/creds.yml
+- name: gcs-bosh-creds
+  type: gcs
+  source:
+    json_key: {{gcs-json-key}}
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/creds.yml
 #
 # - name: gcs-service-creds
 #   type: gcs
@@ -118,53 +118,75 @@ jobs:
   - put: kubo-lock
     params: { release: kubo-lock }
 
-#
-# - name: install-bosh
-#   plan:
-#   - get: git-kubo-ci
-#   - get: git-kubo-deployment
-#     passed: [ 'claim-lock' ]
-#   - get: git-kubo-release
-#     passed: [ 'claim-lock' ]
-#   - get: kubo-lock
-#     version: every
-#     trigger: true
-#     passed: [ 'claim-lock' ]
-#   - get: kubo-version
-#     passed: [ 'claim-lock' ]
-#   - task: install
-#     file: git-kubo-ci/tasks/install-bosh.yml
-#     on_failure:
-#       put: slack-alert
-#       params:
-#         silent: true
-#         icon_emoji: ":thumbsdown:"
-#         text: |
-#           Deploy BOSH failed:
-#           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-#   - aggregate:
-#     - put: gcs-bosh-creds
-#       params:
-#         file: bosh-creds/creds.yml
-#     - put: gcs-bosh-state
-#       params:
-#         file: bosh-state/state.json
-#
-# - name: manual-bosh-cleanup
-#   plan:
-#   - aggregate:
-#     - get: git-kubo-ci
-#     - get: git-kubo-deployment
-#     - get: kubo-lock
-#       passed: [ 'install-bosh' ]
-#     - get: gcs-bosh-state
-#       passed: [ 'install-bosh' ]
-#     - get: gcs-bosh-creds
-#       passed: [ 'install-bosh' ]
-#   - task: destroy
-#     file: git-kubo-ci/tasks/destroy-bosh.yml
-#   - put: kubo-lock
-#     params: { release: kubo-lock }
+- name: install-bosh
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+      passed: [ 'claim-lock' ]
+    - get: gcs-kubo-release-pre
+      passed: [ 'claim-lock' ]
+    - get: gcs-kubo-deployment-pre
+      passed: [ 'claim-lock' ]
+    - get: kubo-lock
+      version: every
+      trigger: true
+      passed: [ 'claim-lock' ]
+
+  - task: unpack-tarballs
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      run:
+        path: /bin/bash
+        args:
+        - -exc
+        - |
+          tar -xzf  gcs-kubo-deployment-pre/kubo-deployment-latest.tgz -C git-kubo-deployment/
+          mv git-kubo-deployment/kubo-deployment/* git-kubo-deployment/
+      inputs:
+      - name: gcs-kubo-deployment-pre
+      outputs:
+      - name: git-kubo-deployment
+
+  - task: install
+    file: git-kubo-ci/tasks/install-bosh.yml
+    # on_failure:
+    #   put: slack-alert
+    #   params:
+    #     silent: true
+    #     icon_emoji: ":thumbsdown:"
+    #     text: |
+    #       Deploy BOSH failed:
+    #       https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+
+- name: manual-bosh-cleanup
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+      passed: [ 'claim-lock' ]
+    - get: gcs-kubo-deployment-pre
+      passed: [ 'claim-lock' ]
+    - get: kubo-lock
+      passed: [ 'install-bosh' ]
+    - get: gcs-bosh-state
+      passed: [ 'install-bosh' ]
+    - get: gcs-bosh-creds
+      passed: [ 'install-bosh' ]
+  - task: destroy
+    file: git-kubo-ci/tasks/destroy-bosh.yml
+  - put: kubo-lock
+    params: { release: kubo-lock }
 #
 #
 # - name: deploy-k8s
