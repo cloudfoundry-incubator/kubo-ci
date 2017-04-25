@@ -1,0 +1,357 @@
+---
+resource_types:
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+- name: terraform
+  type: docker-image
+  source:
+    repository: ljfranklin/terraform-resource
+    
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+
+- name: kubo-lock
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: {{git-ssh-key}}
+    pool: kubo-deployment
+
+# - name: gcs-bosh-state
+#   type: gcs
+#   source:
+#     json_key: {{gcs-json-key}}
+#     bucket: kubo-pipeline-store
+#     versioned_file: bosh/state.json
+
+
+# Creds
+# - name: gcs-bosh-creds
+#   type: gcs
+#   source:
+#     json_key: {{gcs-json-key}}
+#     bucket: kubo-pipeline-store
+#     versioned_file: bosh/creds.yml
+#
+# - name: gcs-service-creds
+#   type: gcs
+#   source:
+#     json_key: {{gcs-json-key}}
+#     bucket: kubo-pipeline-store
+#     versioned_file: bosh/ci-service-creds.yml
+
+
+# Source Artifacts - to be tested
+- name: gcs-kubo-release-pre
+  type: gcs
+  source:
+    json_key: {{gcs-json-key}}
+    bucket: kubo-public
+    versioned_file: kubo-release-latest.tgz
+
+- name: gcs-kubo-deployment-pre
+  type: gcs
+  source:
+    json_key: {{gcs-json-key}}
+    bucket: kubo-public
+    versioned_file: kubo-deployment-latest.tgz
+
+
+# Target Artifacts - to be uploaded
+# - name: gcs-kubo-release-pass-airgap
+#   type: gcs
+#   source:
+#     json_key: {{gcs-json-key}}
+#     bucket: kubo-public
+#     regexp: kubo-release-(.*).tgz
+#
+# - name: gcs-kubo-deployment-pass-airgap
+#   type: gcs
+#   source:
+#     json_key: {{gcs-json-key}}
+#     bucket: kubo-public
+#     regexp: kubo-deployment-(.*).tgz
+
+
+# - name: slack-alert
+#   type: slack-notification
+#   source:
+#     url: {{slack-url}}
+
+
+############################################
+# Jobs
+############################################
+jobs:
+
+- name: claim-lock
+  max_in_flight: 1
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: gcs-kubo-release-pre
+      trigger: true
+    - get: gcs-kubo-deployment-pre
+      trigger: true
+  - put: kubo-lock
+    params: { acquire: true }
+
+- name: manual-release-lock
+  max_in_flight: 1
+  plan:
+  - get: kubo-lock
+    passed: [claim-lock]
+  - put: kubo-lock
+    params: { release: kubo-lock }
+
+#
+# - name: install-bosh
+#   plan:
+#   - get: git-kubo-ci
+#   - get: git-kubo-deployment
+#     passed: [ 'claim-lock' ]
+#   - get: git-kubo-release
+#     passed: [ 'claim-lock' ]
+#   - get: kubo-lock
+#     version: every
+#     trigger: true
+#     passed: [ 'claim-lock' ]
+#   - get: kubo-version
+#     passed: [ 'claim-lock' ]
+#   - task: install
+#     file: git-kubo-ci/tasks/install-bosh.yml
+#     on_failure:
+#       put: slack-alert
+#       params:
+#         silent: true
+#         icon_emoji: ":thumbsdown:"
+#         text: |
+#           Deploy BOSH failed:
+#           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#   - aggregate:
+#     - put: gcs-bosh-creds
+#       params:
+#         file: bosh-creds/creds.yml
+#     - put: gcs-bosh-state
+#       params:
+#         file: bosh-state/state.json
+#
+# - name: manual-bosh-cleanup
+#   plan:
+#   - aggregate:
+#     - get: git-kubo-ci
+#     - get: git-kubo-deployment
+#     - get: kubo-lock
+#       passed: [ 'install-bosh' ]
+#     - get: gcs-bosh-state
+#       passed: [ 'install-bosh' ]
+#     - get: gcs-bosh-creds
+#       passed: [ 'install-bosh' ]
+#   - task: destroy
+#     file: git-kubo-ci/tasks/destroy-bosh.yml
+#   - put: kubo-lock
+#     params: { release: kubo-lock }
+#
+#
+# - name: deploy-k8s
+#   plan:
+#   - aggregate:
+#     - get: git-kubo-ci
+#     - get: kubo-lock
+#       version: every
+#       trigger: true
+#       passed: [ 'build-kubo-release' ]
+#     - get: git-kubo-deployment
+#       passed: [ 'build-kubo-release' ]
+#     - get: git-kubo-release
+#       passed: [ 'build-kubo-release' ]
+#     - get: kubo-version
+#       passed: [ 'build-kubo-release' ]
+#     - get: gcs-bosh-state
+#       passed: [ 'build-kubo-release' ]
+#     - get: gcs-bosh-creds
+#       passed: [ 'build-kubo-release' ]
+#     - get: gcs-kubo-release-tarball-untested
+#       passed: [ 'build-kubo-release' ]
+#   - task: deploy
+#     input_mapping: {gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested}
+#     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+#     on_failure:
+#       put: slack-alert
+#       params:
+#         silent: true
+#         icon_emoji: ":thumbsdown:"
+#         text: |
+#           Deploy K8s failed:
+#           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#   - put: gcs-service-creds
+#     params:
+#       file: service-creds/ci-service-creds.yml
+#
+# - name: deploy-workload
+#   plan:
+#   - aggregate:
+#     - get: git-kubo-ci
+#     - get: kubo-lock
+#       version: every
+#       trigger: true
+#       passed: [ 'deploy-k8s' ]
+#     - get: git-kubo-deployment
+#       passed: [ 'deploy-k8s' ]
+#     - get: gcs-bosh-state
+#       passed: [ 'deploy-k8s' ]
+#     - get: gcs-bosh-creds
+#       passed: [ 'deploy-k8s' ]
+#     - get: kubo-version
+#       passed: [ 'deploy-k8s' ]
+#     - get: git-kubo-release
+#       passed: [ 'deploy-k8s' ]
+#     - get: gcs-service-creds
+#       passed: [ 'deploy-k8s' ]
+#     - get: gcs-kubo-release-tarball-untested
+#       passed: [ 'deploy-k8s' ]
+#   - task: workload
+#     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
+#     on_failure:
+#       put: slack-alert
+#       params:
+#         silent: true
+#         icon_emoji: ":thumbsdown:"
+#         text: |
+#           Deploy K8s Workload failed:
+#           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#   - task: pod-to-pod
+#     file: git-kubo-ci/tasks/pod-to-pod.yml
+#     on_failure:
+#       put: slack-alert
+#       params:
+#         silent: true
+#         icon_emoji: ":thumbsdown:"
+#         text: |
+#           Pod to pod communication failed:
+#           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#
+# - name: destroy-k8s
+#   plan:
+#   - aggregate:
+#     - get: git-kubo-ci
+#     - get: kubo-lock
+#       version: every
+#       trigger: true
+#       passed: [ 'deploy-workload' ]
+#     - get: kubo-version
+#       passed: [ 'deploy-workload' ]
+#     - get: git-kubo-deployment
+#       passed: [ 'deploy-workload' ]
+#     - get: gcs-bosh-state
+#       passed: [ 'deploy-workload' ]
+#     - get: gcs-bosh-creds
+#       passed: [ 'deploy-workload' ]
+#     - get: gcs-kubo-release-tarball-untested
+#       passed: [ 'deploy-workload' ]
+#   - task: destroy-k8s
+#     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+#     on_failure:
+#       put: slack-alert
+#       params:
+#         silent: true
+#         icon_emoji: ":thumbsdown:"
+#         text: |
+#           Destroy K8s failed:
+#           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#
+#
+# - name: destroy-bosh
+#   plan:
+#   - aggregate:
+#     - get: git-kubo-ci
+#     - get: git-kubo-deployment
+#       passed: [ 'destroy-k8s' ]
+#     - get: kubo-lock
+#       version: every
+#       trigger: true
+#       passed: [ 'destroy-k8s' ]
+#     - get: kubo-version
+#       passed: [ 'destroy-k8s' ]
+#     - get: gcs-bosh-state
+#       passed: [ 'destroy-k8s' ]
+#     - get: gcs-bosh-creds
+#       passed: [ 'destroy-k8s' ]
+#     - get: gcs-kubo-release-tarball-untested
+#       passed: [ 'destroy-k8s' ]
+#   - task: destroy
+#     file: git-kubo-ci/tasks/destroy-bosh.yml
+#     on_failure:
+#       put: slack-alert
+#       params:
+#         silent: true
+#         icon_emoji: ":thumbsdown:"
+#         text: |
+#           Destroy BOSH failed:
+#           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#   - put: kubo-lock
+#     params: { release: kubo-lock }
+#
+# - name: upload-kubo-deployment
+#   plan:
+#   - aggregate:
+#     - get: git-kubo-ci
+#     - get: git-kubo-deployment
+#       passed: [ destroy-bosh ]
+#     - get: kubo-version
+#       passed: [ destroy-bosh ]
+#       trigger: true
+#   - task: create-kubo-deployment-tarball
+#     file: git-kubo-ci/tasks/create-kubo-deployment-tarball.yml
+#   - aggregate:
+#     - put: gcs-kubo-deployment-tarball
+#       params:
+#         file: tarballs/kubo-deployment-*.tgz
+#     - put: gcs-kubo-deployments
+#       params:
+#         file: tarballs/kubo-deployment-*.tgz
+#
+#
+# - name: upload-kubo-release
+#   plan:
+#   - aggregate:
+#     - get: gcs-kubo-release-tarball-untested
+#       passed: [ destroy-bosh ]
+#     - get: kubo-version
+#       passed: [ destroy-bosh ]
+#       trigger: true
+#   - aggregate:
+#     - put: gcs-kubo-release-tarball
+#       params:
+#         file: gcs-kubo-release-tarball-untested/kubo-release-*.tgz
+#     - put: gcs-kubo-releases
+#       params:
+#         file: gcs-kubo-release-tarball-untested/kubo-release-*.tgz
+#
+# - name: success-notification
+#   plan:
+#   - aggregate:
+#     - get: kubo-version
+#       passed: [ upload-kubo-release, upload-kubo-deployment ]
+#       trigger: true
+#   - put: slack-alert
+#     params:
+#       silent: true
+#       icon_emoji: ":frog:"
+#       text: |
+#         I am green and it'll do fine, it's beautiful
+#         And I think it's what I want to be
