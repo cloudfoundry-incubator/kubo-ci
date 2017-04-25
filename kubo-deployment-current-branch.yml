@@ -180,6 +180,25 @@ jobs:
       params:
         file: bosh-state/state.json
 
+- name: manual-bosh-cleanup
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+    - get: kubo-lock
+      passed: [ 'install-bosh' ]
+    - get: gcs-bosh-state
+      passed: [ 'install-bosh' ]
+    - get: gcs-bosh-creds
+      passed: [ 'install-bosh' ]
+  - task: destroy
+    file: git-kubo-ci/tasks/destroy-bosh.yml
+    params:
+      GCP_SERVICE_ACCOUNT: {{gcp-service-account}}
+  - put: kubo-lock
+    params: { release: kubo-lock }
+
+
 - name: build-kubo-release
   plan:
   - aggregate:

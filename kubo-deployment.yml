@@ -12,22 +12,22 @@ resource_types:
     repository: frodenas/gcs-resource
 
 resources:
-- name: git-kubo-deployment
-  type: git
-  source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-deployment
-    branch: master
-
 - name: git-kubo-ci
   type: git
   source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-ci
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+
+- name: git-kubo-deployment
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-deployment
     branch: master
 
 - name: git-kubo-release
   type: git
   source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-release
+    uri: https://github.com/pivotal-cf-experimental/kubo-release
     branch: master
 
 - name: kubo-lock
@@ -186,6 +186,25 @@ jobs:
     - put: gcs-bosh-state
       params:
         file: bosh-state/state.json
+
+- name: manual-bosh-cleanup
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+    - get: kubo-lock
+      passed: [ 'install-bosh' ]
+    - get: gcs-bosh-state
+      passed: [ 'install-bosh' ]
+    - get: gcs-bosh-creds
+      passed: [ 'install-bosh' ]
+  - task: destroy
+    file: git-kubo-ci/tasks/destroy-bosh.yml
+    params:
+      GCP_SERVICE_ACCOUNT: {{gcp-service-account}}
+  - put: kubo-lock
+    params: { release: kubo-lock }
+
 
 - name: build-kubo-release
   plan:
