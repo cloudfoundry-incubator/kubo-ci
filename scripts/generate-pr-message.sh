@@ -2,7 +2,7 @@
 
 status=${PR_STATUS:-"<<status is missing>>"}
 repo=${PR_REPO:-"<<unspecified repo>>"}
-message_dir="$(cd "$(dirname "$0")/../../../pr-slack-message/"; pwd)"
+message_dir="$(cd "${PWD}/pr-slack-message/"; pwd)"
 cd "git-${repo}"
 pr_number="$(git config --get pullrequest.id)"
 
