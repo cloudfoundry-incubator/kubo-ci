@@ -54,6 +54,8 @@ main() {
     git_username=$(grep  git-author-email  .git/config  | awk -F'=' '{print $2}' | awk -F'@' '{print $1}' | xargs)
     if [ ! -z "$git_username" ]; then
       pipeline_name="${pipeline_name}-${git_username}"
+    else
+      pipeline_name="${pipeline_name}-${RANDOM}"
     fi
   fi
 
