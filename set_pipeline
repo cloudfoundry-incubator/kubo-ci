@@ -51,6 +51,10 @@ main() {
     local current_branch
     current_branch="$(git symbolic-ref -q HEAD)"
     branch_name="${current_branch##refs/heads/}"
+    git_username=$(grep  git-author-email  .git/config  | awk -F'=' '{print $2}' | awk -F'@' '{print $1}' | xargs)
+    if [ ! -z "$git_username" ]; then
+      pipeline_name="${pipeline_name}-${git_username}"
+    fi
   fi
 
   local ssh_key service_account slack_url github_token
@@ -64,6 +68,7 @@ main() {
   echo "---" > "${ci_dir}/secrets.yml"
   lpass show "Shared-Kubo/CI/kubo-ci" --notes >> "${ci_dir}/secrets.yml"
   lpass show "Shared-Kubo/CI/CF" --notes >> "${ci_dir}/secrets.yml"
+
 
   fly --target kubo sync > /dev/null
   fly --target kubo set-pipeline --pipeline "${pipeline_name}" \
