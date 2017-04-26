@@ -12,4 +12,4 @@ cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}"
 cp  "$PWD/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}"
 
-"git-kubo-deployment/bin/destroy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key.json"
+"${KUBO_DEPLOYMENT_LOCATION}/bin/destroy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key.json"
