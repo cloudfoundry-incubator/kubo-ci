@@ -50,6 +50,6 @@ resource "google_compute_instance" "tinyproxy" {
   EOT
 }
 
-output "proxy_ip" {
-  value = "${google_compute_instance.tinyproxy.network_interface.0.address}"
+output "proxy_setting" {
+  value = "${google_compute_instance.tinyproxy.network_interface.0.address}:8888"
 }
