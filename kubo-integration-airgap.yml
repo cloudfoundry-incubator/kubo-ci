@@ -71,6 +71,20 @@ resources:
     versioned_file: kubo-deployment-latest.tgz
 
 
+- name: proxy_tf
+  type: terraform
+  source:
+    vars:
+      region: us-east1
+    storage:
+      region_name: eu-west-1
+      bucket: kubo-pipeline-store
+      bucket_path: terraform/airgap/tinyproxy
+      access_key_id: {{aws-access-key-id}}
+      secret_access_key: {{aws-secret-access-key}}
+    # the '//' indicates a sub-directory in a git repo
+    terraform_source: github.com/pivotal-cf-experimental/kubo-ci//terraform
+
 # Target Artifacts - to be uploaded
 # - name: gcs-kubo-release-pass-airgap
 #   type: gcs
@@ -155,6 +169,23 @@ jobs:
       params:
         file: bosh-state/state.json
 
+- name: deploy-proxy
+  plan:
+  - aggregate:
+    - get: kubo-lock
+      version: every
+      trigger: true
+      passed: [ 'claim-lock' ]
+
+  - task: generate-proxy-tfvars
+    file: kubo-ci/tasks/generate-proxy-tfvars.yml
+
+  - put: proxy_tf
+    params:
+      generate_random_name: true
+      delete_on_failure: true
+      var_files: [ tfvars_dir/terraform.tfvars ]
+
 - name: manual-bosh-cleanup
   serial_groups: [airgap]
   plan:
@@ -197,6 +228,8 @@ jobs:
       passed: [ 'install-bosh' ]
     - get: gcs-bosh-creds
       passed: [ 'install-bosh' ]
+    - get: proxy_tf
+      passed: [ 'deploy-proxy' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -278,6 +311,8 @@ jobs:
       passed: [ 'deploy-k8s' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-k8s' ]
+    - get: proxy_tf
+      passed: [ 'deploy-k8s' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -328,6 +363,26 @@ jobs:
     #       https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: kubo-lock
     params: { release: kubo-lock }
+
+
+- name: destroy-proxy
+  plan:
+  - aggregate:
+    - get: kubo-lock
+      version: every
+      trigger: true
+      passed: [ 'deploy-k8s' ]
+    - get: proxy_tf
+      passed: [ 'deploy-k8s' ]
+
+  - task: generate-proxy-tfvars
+    file: kubo-ci/tasks/generate-proxy-tfvars.yml
+
+  - put: proxy_tf
+    params:
+      var_files: [ tfvars_dir/terraform.tfvars ]
+      action: destroy
+
 #
 # - name: upload-kubo-deployment
 #  serial_groups: [airgap]

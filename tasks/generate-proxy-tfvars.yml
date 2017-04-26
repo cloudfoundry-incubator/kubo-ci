@@ -1,0 +1,32 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+    tag: stable
+
+inputs:
+- name: kubo-lock
+outputs:
+- name: tfvars_dir
+
+run:
+  path: /bin/bash
+  args:
+  - -exc
+  - |
+    service_account_json=$(cat kubo-lock/metadata | bosh-cli int - --path='/gcp_service_account')
+    echo "$service_account_json" > "tfvars_dir/gcp_service_account.json"
+    echo "service_account_key_path: tfvars_dir/gcp_service_account.json" >> "tfvars_dir/terraform.tfvars"
+
+    project_id=$(echo "$service_account_json" | jq -r .project_id)
+    echo "projectid: '$project_id'" >> "tfvars_dir/terraform.tfvars"
+
+    zone=$(cat kubo-lock/metadata | bosh-cli int - --path='/zone')
+    echo "zone: '$zone'" >> "tfvars_dir/terraform.tfvars"
+
+    subnetwork=$(cat kubo-lock/metadata | bosh-cli int - --path='/subnetwork')
+    echo "subnetwork: '$subnetwork'" >> "tfvars_dir/terraform.tfvars"
+
+    prefix=$(cat kubo-lock/name)
+    echo "prefix: '$prefix-integration-airgap'" >> "tfvars_dir/terraform.tfvars"
