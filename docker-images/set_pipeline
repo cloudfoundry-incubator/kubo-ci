@@ -1,0 +1,23 @@
+#!/bin/bash -e
+
+[ -z "$DEBUG" ] || set -x
+
+if ! which lpass > /dev/null 2>&1
+then
+  echo "must have lastpass CLI installed" >&2
+  exit 1
+fi
+
+pipeline_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.."; pwd)
+
+echo "---" > "$pipeline_dir/secrets.yml"
+lpass show "Shared-Kubo/Docker Hub" --notes >> "$pipeline_dir/secrets.yml"
+password=$(lpass show "Shared-Kubo/Docker Hub" --password)
+ssh_key="$(lpass show "Shared-Kubo/CI/git-ssh-key" --notes)"
+
+fly --target kubo sync
+fly --target kubo set-pipeline --pipeline docker-image \
+  --config "$pipeline_dir/pipeline.yml" \
+  --load-vars-from "$pipeline_dir/secrets.yml" \
+  --var git-ssh-key="${ssh_key}" \
+  --var docker-hub-password="${password}"
