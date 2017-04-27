@@ -71,7 +71,7 @@ resources:
     versioned_file: kubo-deployment-latest.tgz
 
 
-- name: proxy_tf
+- name: proxy-tf
   type: terraform
   source:
     vars:
@@ -113,8 +113,6 @@ resources:
 jobs:
 
 - name: claim-lock
-  serial_groups: [airgap]
-  max_in_flight: 1
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -126,7 +124,6 @@ jobs:
     params: { acquire: true }
 
 - name: manual-release-lock
-  max_in_flight: 1
   plan:
   - get: kubo-lock
     passed: [claim-lock]
@@ -134,7 +131,6 @@ jobs:
     params: { release: kubo-lock }
 
 - name: install-bosh
-  serial_groups: [airgap]
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -172,22 +168,23 @@ jobs:
 - name: deploy-proxy
   plan:
   - aggregate:
+    - get: git-kubo-ci
+      passed: [ 'claim-lock' ]
     - get: kubo-lock
       version: every
       trigger: true
       passed: [ 'claim-lock' ]
 
   - task: generate-proxy-tfvars
-    file: kubo-ci/tasks/generate-proxy-tfvars.yml
+    file: git-kubo-ci/tasks/generate-proxy-tfvars.yml
 
-  - put: proxy_tf
+  - put: proxy-tf
     params:
-      generate_random_name: true
       delete_on_failure: true
+      env_name_file: kubo-lock/name
       var_files: [ tfvars_dir/terraform.tfvars ]
 
 - name: manual-bosh-cleanup
-  serial_groups: [airgap]
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -211,7 +208,6 @@ jobs:
 
 
 - name: deploy-k8s
-  serial_groups: [airgap]
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -228,11 +224,33 @@ jobs:
       passed: [ 'install-bosh' ]
     - get: gcs-bosh-creds
       passed: [ 'install-bosh' ]
-    - get: proxy_tf
+    - get: proxy-tf
       passed: [ 'deploy-proxy' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+
+  - task: apply-proxy-to-env
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+
+      inputs:
+      - name: kubo-lock
+      - name: proxy-tf
+
+      run:
+        path: /bin/bash
+        args:
+        - -exc
+        - |
+          proxy_setting=$(cat proxy-tf/metadata | jq -r .proxy_setting)
+          echo "http_proxy: $proxy_setting" >> kubo-lock/metadata
+          echo "https_proxy: $proxy_setting" >> kubo-lock/metadata
 
   - task: deploy
     input_mapping: {gcs-kubo-release-tarball: gcs-kubo-release-pre}
@@ -294,7 +312,6 @@ jobs:
 #           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 #
 - name: destroy-k8s
-  serial_groups: [airgap]
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -311,7 +328,7 @@ jobs:
       passed: [ 'deploy-k8s' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-k8s' ]
-    - get: proxy_tf
+    - get: proxy-tf
       passed: [ 'deploy-k8s' ]
 
   - task: unpack-kubo-deployment
@@ -330,7 +347,6 @@ jobs:
 
 
 - name: destroy-bosh
-  serial_groups: [airgap]
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -368,18 +384,21 @@ jobs:
 - name: destroy-proxy
   plan:
   - aggregate:
+    - get: git-kubo-ci
+      passed: [ 'deploy-k8s' ]
     - get: kubo-lock
       version: every
       trigger: true
       passed: [ 'deploy-k8s' ]
-    - get: proxy_tf
+    - get: proxy-tf
       passed: [ 'deploy-k8s' ]
 
   - task: generate-proxy-tfvars
-    file: kubo-ci/tasks/generate-proxy-tfvars.yml
+    file: git-kubo-ci/tasks/generate-proxy-tfvars.yml
 
-  - put: proxy_tf
+  - put: proxy-tf
     params:
+      env_name_file: kubo-lock/name
       var_files: [ tfvars_dir/terraform.tfvars ]
       action: destroy
 
