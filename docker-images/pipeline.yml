@@ -1,0 +1,53 @@
+---
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+    paths:
+    - docker-images/*
+
+- name: kubo-ci-latest
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+    tag: latest
+
+- name: kubo-ci-stable
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+    tag: stable
+
+jobs:
+- name: build-kubo-ci
+  plan:
+  - get: kubo-meta
+    trigger: true
+  - put: kubo-ci-latest
+    params:
+      build: kubo-ci/docker-images
+      cache: true
+  - task: test-docker-image
+    config:
+      platform: linux
+      image: docker:///pcfkubo/kubo-ci#latest
+      inputs:
+      - name: kubo-meta
+      run:
+        path: ginkgo
+        args:
+        - -r
+        - kubo-ci/docker-images/system_tests/
+  - put: kubo-ci-stable
+    params:
+      cache: true
+      pull_repository: pcfkubo/kubo-ci
+      pull_tag: latest
