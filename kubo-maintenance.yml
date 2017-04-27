@@ -85,15 +85,15 @@ jobs:
 
             gcloud auth activate-service-account --key-file=gcp_service_account.json
             gcloud config set project $(cat gcp_service_account.json | jq -r .project_id)
-
-            zone=$(bosh-cli int $lock_file --path='/zone')
-
-            gcloud config set compute/zone "$zone"
+            gcloud config set compute/zone "$(bosh-cli int $lock_file --path='/zone')"
 
             subnetwork=$(bosh-cli int $lock_file --path='/subnetwork')
             subnetLink=$(gcloud compute networks subnets list $subnetwork --format=json | jq -r .[0].selfLink)
-            vm_names=$(gcloud  compute instances list --filter="networkInterfaces.subnetwork=$subnetLink" --format=json | jq -r  .[].name)
-            gcloud compute instances delete $vm_names --delete-disks=all --quiet
+            vm_names=($(gcloud  compute instances list --filter="networkInterfaces.subnetwork=$subnetLink" --format=json | jq -r  .[].name))
+
+            if [ ${#vm_names[@]} -gt 0 ]; then
+              gcloud compute instances delete ${vm_names[@]} --delete-disks=all --quiet
+            fi
           }
 
           delete_s3_tfstate
