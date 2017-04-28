@@ -231,30 +231,7 @@ jobs:
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
 
   - task: apply-proxy-to-env
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pcfkubo/kubo-ci
-          tag: stable
-
-      inputs:
-      - name: kubo-lock
-      - name: git-kubo-ci
-      - name: proxy-tf
-      outputs:
-      - name: kubo-lock-with-proxy
-      run:
-        path: /bin/bash
-        args:
-        - -exc
-        - |
-          cp -r kubo-lock/* kubo-lock-with-proxy/
-          proxy_setting=$(cat proxy-tf/metadata | jq -r .proxy_setting)
-          echo "http_proxy: $proxy_setting" >> kubo-lock-with-proxy/metadata
-          echo "https_proxy: $proxy_setting" >> kubo-lock-with-proxy/metadata
-          bosh-cli interpolate kubo-lock-with-proxy/metadata --ops-file=git-kubo-ci/ops-files/internetless.yml > kubo-lock-with-proxy/metadata
+    file: git-kubo-ci/tasks/apply-proxy-to-env.yml
 
   - task: deploy
     input_mapping:
