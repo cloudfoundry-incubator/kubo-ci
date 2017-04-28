@@ -241,20 +241,27 @@ jobs:
 
       inputs:
       - name: kubo-lock
+      - name: git-kubo-ci
       - name: proxy-tf
-
+      outputs:
+      - name: kubo-lock-with-proxy
       run:
         path: /bin/bash
         args:
         - -exc
         - |
+          cp -r kubo-lock/* kubo-lock-with-proxy/
           proxy_setting=$(cat proxy-tf/metadata | jq -r .proxy_setting)
-          echo "http_proxy: $proxy_setting" >> kubo-lock/metadata
-          echo "https_proxy: $proxy_setting" >> kubo-lock/metadata
+          echo "http_proxy: $proxy_setting" >> kubo-lock-with-proxy/metadata
+          echo "https_proxy: $proxy_setting" >> kubo-lock-with-proxy/metadata
+          bosh-cli interpolate kubo-lock-with-proxy/metadata --ops-file=git-kubo-ci/ops-files/internetless.yml > kubo-lock-with-proxy/metadata
 
   - task: deploy
-    input_mapping: {gcs-kubo-release-tarball: gcs-kubo-release-pre}
+    input_mapping:
+      gcs-kubo-release-tarball: gcs-kubo-release-pre
+      kubo-lock: kubo-lock-with-proxy
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+
     # on_failure:
     #   put: slack-alert
     #   params:
