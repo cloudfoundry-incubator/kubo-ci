@@ -274,49 +274,50 @@ jobs:
     params:
       file: service-creds/ci-service-creds.yml
 
- - name: deploy-workload
+- name: deploy-workload
   serial_groups: [airgap]
-   plan:
-   - aggregate:
-     - get: git-kubo-ci
-     - get: kubo-lock
-       version: every
-       trigger: true
-       passed: [ 'deploy-k8s' ]
-     - get: git-kubo-deployment
-       passed: [ 'deploy-k8s' ]
-     - get: gcs-bosh-state
-       passed: [ 'deploy-k8s' ]
-     - get: gcs-bosh-creds
-       passed: [ 'deploy-k8s' ]
-     - get: kubo-version
-       passed: [ 'deploy-k8s' ]
-     - get: git-kubo-release
-       passed: [ 'deploy-k8s' ]
-     - get: gcs-service-creds
-       passed: [ 'deploy-k8s' ]
-     - get: gcs-kubo-release-tarball-untested
-       passed: [ 'deploy-k8s' ]
-   - task: workload
-     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
-     on_failure:
-       put: slack-alert
-       params:
-         silent: true
-         icon_emoji: ":thumbsdown:"
-         text: |
-           Deploy K8s Workload failed:
-           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-   - task: pod-to-pod
-     file: git-kubo-ci/tasks/pod-to-pod.yml
-     on_failure:
-       put: slack-alert
-       params:
-         silent: true
-         icon_emoji: ":thumbsdown:"
-         text: |
-           Pod to pod communication failed:
-           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      version: every
+      trigger: true
+      passed: [ 'deploy-k8s' ]
+    - get: gcs-bosh-state
+      passed: [ 'deploy-k8s' ]
+    - get: gcs-bosh-creds
+      passed: [ 'deploy-k8s' ]
+    - get: gcs-service-creds
+      passed: [ 'deploy-k8s' ]
+    - get: gcs-kubo-release-pre
+      passed: [ 'deploy-k8s' ]
+    - get: gcs-kubo-deployment-pre
+      passed: [ 'deploy-k8s' ]
+    - get: proxy-tf
+      passed: [ 'deploy-k8s' ]
+
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+  - task: workload
+    file: git-kubo-ci/tasks/deploy-k8s-workload.yml
+    # on_failure:
+    #   put: slack-alert
+    #   params:
+    #     silent: true
+    #     icon_emoji: ":thumbsdown:"
+    #     text: |
+    #       Deploy K8s Workload failed:
+    #       https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+  - task: pod-to-pod
+    file: git-kubo-ci/tasks/pod-to-pod.yml
+    # on_failure:
+    #   put: slack-alert
+    #   params:
+    #     silent: true
+    #     icon_emoji: ":thumbsdown:"
+    #     text: |
+    #       Pod to pod communication failed:
+    #       https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-k8s
   plan:
