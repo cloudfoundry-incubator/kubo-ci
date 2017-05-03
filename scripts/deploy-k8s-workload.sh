@@ -18,7 +18,7 @@ credhub login -u credhub-user -p \
 
 export GOPATH="$PWD/git-kubo-ci"
 export WORKLOAD_TCP_PORT=$(expr $(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/external-kubo-port") + 1000)
-export PATH_TO_KUBECONFIG="~/.kube/config"
+export PATH_TO_KUBECONFIG="$HOME/.kube/config"
 export TCP_ROUTER_DNS_NAME=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/cf-tcp-router-name")
 export CF_APPS_DOMAIN=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing-cf-app-domain-name")
 
