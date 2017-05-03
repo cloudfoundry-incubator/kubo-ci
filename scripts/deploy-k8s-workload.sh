@@ -14,44 +14,12 @@ credhub login -u credhub-user -p \
   "$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path="/credhub_user_password")" \
   -s "https://$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_ip"):8844" --skip-tls-validation
 
-
-export nginx_port=$(expr $(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/external-kubo-port") + 1000)
-export nginx_name="nginx-$(basename "${KUBO_ENVIRONMENT_DIR}")"
-
 "git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
-kubectl create -f "git-kubo-ci/specs/nginx.yml"
-kubectl label services nginx http-route-sync=${nginx_name}
-kubectl label services nginx tcp-route-sync=${nginx_port}
-# wait for deployment to finish
-kubectl rollout status deployment/nginx -w
 
+export GOPATH="$PWD/git-kubo-ci"
+export WORKLOAD_TCP_PORT=$(expr $(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/external-kubo-port") + 1000)
+export PATH_TO_KUBECONFIG="~/.kube/config"
+export TCP_ROUTER_DNS_NAME=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/cf-tcp-router-name")
+export CF_APPS_DOMAIN=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing-cf-app-domain-name")
 
-check_tcp_route() {
-  until wget -O - "http://$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/cf-tcp-router-name"):${nginx_port}"; do
-    sleep 1
-  done
-}
-export -f check_tcp_route
-
-check_http_route() {
-  until wget -O - "http://${nginx_name}.$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing-cf-app-domain-name")"; do
-    sleep 1
-  done
-}
-export -f check_http_route
-
-if timeout '60s' bash -c check_tcp_route
-then
-  echo 'TCP route sync is working'
-else
-  echo 'Nginx TCP route is not exposed :('
-  exit 1
-fi
-
-if timeout '60s' bash -c check_http_route
-then
-  echo 'HTTP route sync is working'
-else
-  echo 'Nginx HTTP route is not exposed :('
-  exit 1
-fi
+ginkgo src/integration-tests
