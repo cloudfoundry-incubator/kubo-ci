@@ -22,4 +22,4 @@ export PATH_TO_KUBECONFIG="~/.kube/config"
 export TCP_ROUTER_DNS_NAME=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/cf-tcp-router-name")
 export CF_APPS_DOMAIN=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing-cf-app-domain-name")
 
-ginkgo src/integration-tests
+ginkgo "$GOPATH/src/integration-tests"
