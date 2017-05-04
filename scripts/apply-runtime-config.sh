@@ -56,10 +56,10 @@ usage() {
 }
 
 target_bosh_director() {
-  export BOSH_ENVIRONMENT=$(bosh int $LOCK_FILE_PATH --path '/internal_ip')
+  export BOSH_ENVIRONMENT=$(bosh-cli int $LOCK_FILE_PATH --path '/internal_ip')
   export BOSH_CLIENT=admin
-  export BOSH_CLIENT_SECRET=$(bosh int $CREDS_FILE_PATH --path '/admin_password')
-  export BOSH_CA_CERT=$(bosh int $CREDS_FILE_PATH --path '/default_ca/ca')
+  export BOSH_CLIENT_SECRET=$(bosh-cli int $CREDS_FILE_PATH --path '/admin_password')
+  export BOSH_CA_CERT=$(bosh-cli int $CREDS_FILE_PATH --path '/default_ca/ca')
 }
 
 upload_etc_hosts_release() {
@@ -73,12 +73,12 @@ upload_etc_hosts_release() {
     echo "$BLOBS_YML" > config/blobs.yml
     touch jobs/etc_hosts/monit
 
-    bosh create-release --version 42 && bosh upload-release
+    bosh-cli create-release --version 42 && bosh-cli upload-release
   popd
 }
 
 update_runtime_config() {
-  bosh -n update-runtime-config <(echo "$RUNTIME_CONFIG_YML")
+  bosh-cli -n update-runtime-config <(echo "$RUNTIME_CONFIG_YML")
 }
 
 LOCK_FILE_PATH="$1"
