@@ -207,7 +207,7 @@ jobs:
     params: { release: kubo-lock }
 
 
-- name: deploy-k8s
+- name: apply-runtime-config
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -226,6 +226,29 @@ jobs:
       passed: [ 'install-bosh' ]
     - get: proxy-tf
       passed: [ 'deploy-proxy' ]
+
+  - task: apply-runtime-config
+    file: git-kubo-ci/tasks/apply-runtime-config.yml
+
+- name: deploy-k8s
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+      passed: [ 'apply-runtime-config' ]
+    - get: kubo-lock
+      version: every
+      trigger: true
+      passed: [ 'apply-runtime-config' ]
+    - get: gcs-kubo-deployment-pre
+      passed: [ 'apply-runtime-config' ]
+    - get: gcs-kubo-release-pre
+      passed: [ 'apply-runtime-config' ]
+    - get: gcs-bosh-state
+      passed: [ 'apply-runtime-config' ]
+    - get: gcs-bosh-creds
+      passed: [ 'apply-runtime-config' ]
+    - get: proxy-tf
+      passed: [ 'apply-runtime-config' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
