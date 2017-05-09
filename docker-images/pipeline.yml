@@ -29,7 +29,7 @@ resources:
 jobs:
 - name: build-kubo-ci
   plan:
-  - get: kubo-meta
+  - get: git-kubo-ci
     trigger: true
   - put: kubo-ci-latest
     params:
@@ -40,7 +40,7 @@ jobs:
       platform: linux
       image: docker:///pcfkubo/kubo-ci#latest
       inputs:
-      - name: kubo-meta
+      - name: git-kubo-ci
       run:
         path: ginkgo
         args:
