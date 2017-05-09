@@ -33,7 +33,7 @@ jobs:
     trigger: true
   - put: kubo-ci-latest
     params:
-      build: kubo-ci/docker-images
+      build: git-kubo-ci/docker-images
       cache: true
   - task: test-docker-image
     config:
@@ -45,7 +45,7 @@ jobs:
         path: ginkgo
         args:
         - -r
-        - kubo-ci/docker-images/system_tests/
+        - git-kubo-ci/docker-images/system_tests/
   - put: kubo-ci-stable
     params:
       cache: true
