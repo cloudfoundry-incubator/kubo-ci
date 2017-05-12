@@ -96,7 +96,7 @@ jobs:
             subnetLink=$(gcloud compute networks subnets list $subnetwork --format=json | bosh-cli int - --path=/0/selfLink)
             vm_names=$(gcloud  compute instances list --filter="networkInterfaces.subnetwork=$subnetLink" --format="table(name)" | tail -n +2 )
 
-            if [ ${#vm_names[@]} -gt 0 ]; then
+            if [ -n "${vm_names}" ]; then
               gcloud compute instances delete ${vm_names[@]} --delete-disks=all --quiet
             fi
           }
