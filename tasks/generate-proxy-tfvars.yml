@@ -19,7 +19,7 @@ run:
     echo "$service_account_json" > "tfvars_dir/gcp_service_account.json"
     echo "service_account_key_path: tfvars_dir/gcp_service_account.json" >> "tfvars_dir/terraform.tfvars"
 
-    project_id=$(echo "$service_account_json" | bosh-cli int - .project_id)
+    project_id=$(echo "$service_account_json" | bosh-cli int - --path='/project_id')
     echo "projectid: '$project_id'" >> "tfvars_dir/terraform.tfvars"
 
     zone=$(cat kubo-lock/metadata | bosh-cli int - --path='/zone')
