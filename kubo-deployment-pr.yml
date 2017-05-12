@@ -78,6 +78,10 @@ jobs:
   - get: git-kubo-ci
   - get: git-kubo-deployment
     version: every
+  - put: git-kubo-deployment
+    params:
+      path: git-kubo-deployment
+      status: pending
   - task: run-deployment-unit-tests
     file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
     on_failure: &on_failure
@@ -107,19 +111,12 @@ jobs:
       passed: ['run-unit-tests' ]
       version: every
       trigger: true
-  - put: kubo-lock
-    params: { acquire: true }
-
-- name: set-pr-pending
-  plan:
-  - get: git-kubo-deployment
-    version: every
-    trigger: true
-    passed: ['claim-lock']
   - put: git-kubo-deployment
     params:
       path: git-kubo-deployment
       status: pending
+  - put: kubo-lock
+    params: { acquire: true }
 
 - name: install-bosh
   plan:
@@ -131,6 +128,10 @@ jobs:
       version: every
       trigger: true
       passed: [ 'claim-lock' ]
+  - put: git-kubo-deployment
+    params:
+      path: git-kubo-deployment
+      status: pending
   - task: install
     file: git-kubo-ci/tasks/install-bosh.yml
     on_failure: *on_failure
@@ -157,6 +158,10 @@ jobs:
       passed: [ 'install-bosh' ]
     - get: gcs-bosh-creds
       passed: [ 'install-bosh' ]
+  - put: git-kubo-deployment
+    params:
+      path: git-kubo-deployment
+      status: pending
   - task: deploy
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     on_failure: *on_failure
@@ -182,6 +187,10 @@ jobs:
       passed: [ 'deploy-k8s' ]
     - get: gcs-service-creds
       passed: [ 'deploy-k8s' ]
+  - put: git-kubo-deployment
+    params:
+      path: git-kubo-deployment
+      status: pending
   - task: workload
     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
     on_failure: *on_failure
@@ -204,6 +213,10 @@ jobs:
       passed: [ 'deploy-workload' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-workload' ]
+  - put: git-kubo-deployment
+    params:
+      path: git-kubo-deployment
+      status: pending
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     on_failure: *on_failure
@@ -222,6 +235,10 @@ jobs:
       passed: [ 'destroy-k8s' ]
     - get: gcs-bosh-creds
       passed: [ 'destroy-k8s' ]
+  - put: git-kubo-deployment
+    params:
+      path: git-kubo-deployment
+      status: pending
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml
     on_failure: *on_failure

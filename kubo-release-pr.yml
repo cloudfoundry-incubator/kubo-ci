@@ -149,6 +149,10 @@ jobs:
       passed: [ 'claim-lock' ]
     - get: git-kubo-release
       passed: [ 'claim-lock' ]
+  - put: git-kubo-release
+    params:
+      path: git-kubo-release
+      status: pending
   - task: install
     file: git-kubo-ci/tasks/install-bosh.yml
     on_failure: *on_failure
@@ -171,6 +175,10 @@ jobs:
     - get: git-kubo-release
       passed: [ 'run-unit-tests' ]
       trigger: true
+  - put: git-kubo-release
+    params:
+      path: git-kubo-release
+      status: pending
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
     on_failure: *on_failure
@@ -196,6 +204,10 @@ jobs:
       passed: [ 'install-bosh' ]
     - get: gcs-kubo-release-tarball
       passed: [ 'build-kubo-release' ]
+  - put: git-kubo-release
+    params:
+      path: git-kubo-release
+      status: pending
   - task: deploy
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     on_failure: *on_failure
@@ -221,6 +233,10 @@ jobs:
       passed: [ 'deploy-k8s' ]
     - get: git-kubo-release
       passed: [ 'deploy-k8s' ]
+  - put: git-kubo-release
+    params:
+      path: git-kubo-release
+      status: pending
   - task: workload
     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
     on_failure: *on_failure
@@ -244,6 +260,10 @@ jobs:
       passed: [ 'deploy-workload' ]
     - get: git-kubo-release
       passed: [ 'deploy-workload' ]
+  - put: git-kubo-release
+    params:
+      path: git-kubo-release
+      status: pending
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     on_failure: *on_failure
@@ -264,6 +284,10 @@ jobs:
       passed: [ 'destroy-k8s' ]
     - get: git-kubo-release
       passed: [ 'destroy-k8s' ]
+  - put: git-kubo-release
+    params:
+      path: git-kubo-release
+      status: pending
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml
     on_failure: *on_failure
