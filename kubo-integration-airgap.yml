@@ -136,7 +136,6 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-      passed: [ 'claim-lock' ]
     - get: gcs-kubo-release-pre
       passed: [ 'claim-lock' ]
     - get: gcs-kubo-deployment-pre
@@ -171,7 +170,6 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-      passed: [ 'claim-lock' ]
     - get: kubo-lock
       version: every
       trigger: true
@@ -190,7 +188,6 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-      passed: [ 'claim-lock' ]
     - get: gcs-kubo-deployment-pre
       passed: [ 'claim-lock' ]
     - get: kubo-lock
@@ -213,7 +210,6 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-      passed: [ 'install-bosh' ]
     - get: kubo-lock
       version: every
       trigger: true
@@ -236,7 +232,6 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-      passed: [ 'apply-runtime-config' ]
     - get: kubo-lock
       version: every
       trigger: true
@@ -325,7 +320,6 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-      passed: [ 'deploy-workload' ]
     - get: kubo-lock
       version: every
       trigger: true
@@ -359,7 +353,6 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-      passed: [ 'deploy-workload' ]
     - get: kubo-lock
       version: every
       trigger: true
@@ -380,7 +373,6 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-      passed: [ 'destroy-k8s' ]
     - get: kubo-lock
       version: every
       trigger: true
