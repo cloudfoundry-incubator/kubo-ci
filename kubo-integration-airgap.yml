@@ -80,8 +80,10 @@ resources:
       region_name: eu-west-1
       bucket: kubo-pipeline-store
       bucket_path: terraform/airgap/tinyproxy
-      access_key_id: {{aws-access-key-id}}
-      secret_access_key: {{aws-secret-access-key}}
+      access_key_id: {{gcs-access-key-id}}
+      secret_access_key: {{gcs-secret-access-key}}
+      region_name: us-east1
+      endpoint: storage.googleapis.com
     # the '//' indicates a sub-directory in a git repo
     terraform_source: github.com/pivotal-cf-experimental/kubo-ci//terraform
 
