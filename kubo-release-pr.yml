@@ -139,15 +139,16 @@ jobs:
 
 - name: install-bosh
   plan:
-  - get: git-kubo-ci
-  - get: git-kubo-deployment
-    passed: [ 'claim-lock' ]
-  - get: git-kubo-release
-    passed: [ 'claim-lock' ]
-  - get: kubo-lock
-    version: every
-    trigger: true
-    passed: [ 'claim-lock' ]
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed: [ 'claim-lock' ]
+    - get: kubo-lock
+      version: every
+      trigger: true
+      passed: [ 'claim-lock' ]
+    - get: git-kubo-release
+      passed: [ 'claim-lock' ]
   - task: install
     file: git-kubo-ci/tasks/install-bosh.yml
     on_failure: *on_failure
@@ -163,20 +164,13 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock
-      version: every
-      trigger: true
-      passed: [ 'install-bosh' ]
     - get: git-kubo-deployment
       trigger: true
-      passed: [ 'install-bosh' ]
+      passed: [ 'run-unit-tests' ]
     - get: kubo-version
     - get: git-kubo-release
-      passed: [ 'install-bosh' ]
-    - get: gcs-bosh-creds
-      passed: [ 'install-bosh' ]
-    - get: gcs-bosh-state
-      passed: [ 'install-bosh' ]
+      passed: [ 'run-unit-tests' ]
+      trigger: true
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
     on_failure: *on_failure
@@ -191,15 +185,15 @@ jobs:
     - get: kubo-lock
       trigger: true
       version: every
-      passed: [ 'build-kubo-release' ]
+      passed: [ 'install-bosh' ]
     - get: git-kubo-deployment
-      passed: [ 'build-kubo-release' ]
+      passed: [ 'build-kubo-release', 'install-bosh' ]
     - get: git-kubo-release
       passed: [ 'build-kubo-release' ]
     - get: gcs-bosh-state
-      passed: [ 'build-kubo-release' ]
+      passed: [ 'install-bosh' ]
     - get: gcs-bosh-creds
-      passed: [ 'build-kubo-release' ]
+      passed: [ 'install-bosh' ]
     - get: gcs-kubo-release-tarball
       passed: [ 'build-kubo-release' ]
   - task: deploy
