@@ -33,21 +33,6 @@ target_bosh_director() {
   export BOSH_CA_CERT=$(bosh-cli int $CREDS_FILE_PATH --path '/default_ca/ca')
 }
 
-upload_etc_hosts_release() {
-  pushd "$(mktemp -d)"
-    mkdir -p config packages src
-    mkdir -p jobs/etc_hosts/templates
-
-    echo "$SPEC" > jobs/etc_hosts/spec
-    echo "$PRE_START_ERB" > jobs/etc_hosts/templates/pre_start.erb
-    echo "$FINAL_YML" > config/final.yml
-    echo "$BLOBS_YML" > config/blobs.yml
-    touch jobs/etc_hosts/monit
-
-    bosh-cli create-release --version 42 && bosh-cli upload-release
-  popd
-}
-
 update_runtime_config() {
   bosh-cli -n update-runtime-config <(echo "$RUNTIME_CONFIG_YML")
 }
@@ -60,8 +45,6 @@ main() {
   [ ! -f "$CREDS_FILE_PATH" ] && usage
 
   target_bosh_director
-
-  upload_etc_hosts_release
 
   update_runtime_config
 }
