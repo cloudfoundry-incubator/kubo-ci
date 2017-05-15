@@ -1,47 +1,18 @@
 #!/bin/bash -exu
 
-SPEC='
----
-name: etc_hosts
-
-templates:
-  pre_start.erb: bin/pre-start
-
-packages: []
-
-properties:
-  etc_hosts:
-    description: "/etc/hosts entries"
-'
-
-PRE_START_ERB='#!/bin/bash -ex
-
-<% p("etc_hosts").each do |entry| %>
-  echo "<%= entry %>" >> /etc/hosts
-<% end %>
-'
-
-FINAL_YML='
-name: etc_hosts
-'
-
-BLOBS_YML='
---- {}
-'
 
 RUNTIME_CONFIG_YML='
 releases:
-- {name: etc_hosts, version: 42}
+- {name: os-conf, version: latest, url: "git+https://github.com/pivotal-jwinters/os-conf-release"}
 
 addons:
 - name: etc_hosts
   jobs:
   - name: etc_hosts
-    release: etc_hosts
+    release: os-conf
   properties:
     etc_hosts: ["1.1.1.1 gcr.io", "1.2.3.4 hub.docker.com"]
 '
-
 
 error() {
   echo "$1"
