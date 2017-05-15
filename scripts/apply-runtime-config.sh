@@ -3,7 +3,7 @@
 
 RUNTIME_CONFIG_YML='
 releases:
-- {name: os-conf, version: latest, url: "https://storage.googleapis.com/kubo-public/os-conf-with-etc-hosts.tgz"}
+- {name: os-conf, version: 42, url: "https://storage.googleapis.com/kubo-public/os-conf-with-etc-hosts.tgz"}
 
 addons:
 - name: etc_hosts
