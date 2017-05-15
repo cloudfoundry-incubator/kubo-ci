@@ -11,6 +11,8 @@ instance_groups:
       postgresql_database: atc
       tls_cert: ((atc-certificate.certificate))
       tls_key: ((atc-certificate.private_key))
+      tls_bind_port: 443
+      bind_port: 80
     release: concourse
   - name: tsa
     properties:
