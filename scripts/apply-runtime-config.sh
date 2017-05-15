@@ -3,7 +3,7 @@
 
 RUNTIME_CONFIG_YML='
 releases:
-- {name: os-conf, version: latest, url: "git+https://github.com/pivotal-jwinters/os-conf-release"}
+- {name: os-conf, version: latest, url: "https://storage.googleapis.com/kubo-public/os-conf-with-etc-hosts.tgz"}
 
 addons:
 - name: etc_hosts
