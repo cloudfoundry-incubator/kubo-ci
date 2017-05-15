@@ -1,4 +1,0 @@
-- type: replace
-  path: /tags
-  value:
-    - internal
