@@ -1,0 +1,118 @@
+instance_groups:
+- azs: [z1, z2, z3]
+  instances: 1
+  jobs:
+  - name: atc
+    properties:
+      allow_self_signed_certificates: true
+      basic_auth_password: ((atc-auth-password))
+      basic_auth_username: admin
+      external_url: https://ci.kubo.sh
+      postgresql_database: atc
+      tls_cert: ((atc-certificate.certificate))
+      tls_key: ((atc-certificate.private_key))
+    release: concourse
+  - name: tsa
+    properties:
+      authorized_keys:
+        - ((worker-key.public_key))
+      host_key: ((atc-host-key.private_key))
+      host_public_key: ((atc-host-key.public_key))
+    release: concourse
+  lifecycle: service
+  name: concourse
+  networks:
+  - default:
+    - dns
+    - gateway
+    name: default
+  persistent_disk_type: large
+  properties: {}
+  stemcell: bosh-google-kvm-ubuntu-trusty-go_agent
+  update:
+    max_in_flight: 1
+  vm_type: default
+- azs: [z1, z2, z3]
+  instances: 1
+  jobs:
+  - name: postgresql
+    release: concourse
+  lifecycle: service
+  name: db
+  networks:
+  - name: default
+  persistent_disk_type: large
+  properties:
+    databases:
+    - name: atc
+      password: ((atc-db-password))
+      role: atc
+  stemcell: bosh-google-kvm-ubuntu-trusty-go_agent
+  update:
+    max_in_flight: 1
+  vm_type: default
+- azs: [z1, z2, z3]
+  instances: 3
+  jobs:
+  - name: groundcrew
+    release: concourse
+  - name: baggageclaim
+    release: concourse
+  - name: garden
+    release: garden-runc
+  lifecycle: service
+  name: worker
+  networks:
+  - name: default
+  properties:
+    garden:
+      listen_address: 0.0.0.0:7777
+      listen_network: tcp
+    tsa:
+      host_public_key: ((atc-host-key.public_key))
+      private_key: ((worker-key.private_key))
+  stemcell: bosh-google-kvm-ubuntu-trusty-go_agent
+  update:
+    max_in_flight: 1
+  vm_type: large
+name: kubo-concourse
+releases:
+- name: concourse
+  version: 2.7.7
+  url: https://github.com/concourse/concourse/releases/download/v2.7.7/concourse-2.7.7.tgz
+  sha1: e440939875688b5662013af0b6917e550000d00c
+- name: garden-runc
+  version: 1.6.0
+  url: https://github.com/concourse/concourse/releases/download/v2.7.7/garden-runc-1.6.0.tgz
+  sha1: 58fbc64aff303e6d76899441241dd5dacef50cb7
+stemcells:
+- alias: bosh-google-kvm-ubuntu-trusty-go_agent
+  os: ubuntu-trusty
+  version: latest
+update:
+  canaries: 1
+  canary_watch_time: 30000-300000
+  max_errors: 2
+  max_in_flight: 1
+  serial: true
+  update_watch_time: 30000-300000
+
+variables:
+- name: atc-db-password
+  type: password
+- name: atc-auth-password
+  type: password
+- name: default_ca
+  type: certificate
+  options:
+    is_ca: true
+    common_name: ca # todo fix
+- name: atc-certificate
+  type: certificate
+  options:
+    ca: default_ca
+    common_name: ci.kubo.sh
+- name: atc-host-key
+  type: rsa
+- name: worker-key
+  type: rsa
