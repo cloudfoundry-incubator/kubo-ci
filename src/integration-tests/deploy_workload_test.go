@@ -31,7 +31,10 @@ var _ = Describe("Deploy workload", func() {
 			Timeout: timeout,
 		}
 		Eventually(func() int {
-			result, _ := httpClient.Get(appUrl)
+			result, err := httpClient.Get(appUrl)
+			if err != nil {
+				return -1
+			}
 			return result.StatusCode
 		}, "120s", "5s").Should(Equal(200))
 
