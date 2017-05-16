@@ -2,11 +2,38 @@ instance_groups:
 - azs: [z1, z2, z3]
   instances: 1
   jobs:
+  - name: postgresql
+    release: concourse
+  lifecycle: service
+  name: db
+  networks:
+  - name: default
+  persistent_disk_type: large
+  properties:
+    databases:
+    - name: atc
+      password: ((atc-db-password))
+      role: atc
+  stemcell: bosh-google-kvm-ubuntu-trusty-go_agent
+  update:
+    max_in_flight: 1
+  vm_type: default
+- azs: [z1, z2, z3]
+  instances: 1
+  jobs:
   - name: atc
     properties:
       allow_self_signed_certificates: true
-      basic_auth_password: ((atc-auth-password))
-      basic_auth_username: admin
+      github_auth:
+        client_id: ((github-client-id))
+        client_secret: ((github-client-secret))
+        authorize:
+          - organization: pivotal-cf-experimental
+            teams: [ pcf-kubo ]
+          - user: johnsonj
+          - user: mkjelland
+          - user: evandbrown
+          - user: erjohnso
       external_url: https://ci.kubo.sh
       postgresql_database: atc
       tls_cert: ((atc-certificate.certificate))
@@ -34,25 +61,8 @@ instance_groups:
   update:
     max_in_flight: 1
   vm_type: default
-- azs: [z1, z2, z3]
-  instances: 1
-  jobs:
-  - name: postgresql
-    release: concourse
-  lifecycle: service
-  name: db
-  networks:
-  - name: default
-  persistent_disk_type: large
-  properties:
-    databases:
-    - name: atc
-      password: ((atc-db-password))
-      role: atc
-  stemcell: bosh-google-kvm-ubuntu-trusty-go_agent
-  update:
-    max_in_flight: 1
-  vm_type: default
+  vm_extensions:
+  - gcp-lb
 - azs: [z1, z2, z3]
   instances: 3
   jobs:
@@ -77,15 +87,15 @@ instance_groups:
   update:
     max_in_flight: 1
   vm_type: large
-name: kubo-concourse
+name: kubo-ci
 releases:
 - name: concourse
-  version: 2.7.7
-  url: https://github.com/concourse/concourse/releases/download/v2.7.7/concourse-2.7.7.tgz
-  sha1: e440939875688b5662013af0b6917e550000d00c
+  version: 3.0.0
+  url: https://bosh.io/d/github.com/concourse/concourse?v=3.0.0
+  sha1: b75190f00ec2825adacad75a3ca078f4254eb19a
 - name: garden-runc
   version: 1.6.0
-  url: https://github.com/concourse/concourse/releases/download/v2.7.7/garden-runc-1.6.0.tgz
+  url: https://github.com/concourse/concourse/releases/download/v3.0.0/garden-runc-1.6.0.tgz
   sha1: 58fbc64aff303e6d76899441241dd5dacef50cb7
 stemcells:
 - alias: bosh-google-kvm-ubuntu-trusty-go_agent
@@ -101,8 +111,6 @@ update:
 
 variables:
 - name: atc-db-password
-  type: password
-- name: atc-auth-password
   type: password
 - name: default_ca
   type: certificate

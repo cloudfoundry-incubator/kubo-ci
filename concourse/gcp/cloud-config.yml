@@ -9,6 +9,14 @@ azs:
   cloud_properties:
     zone: ((zone))
 
+vm_extensions:
+- name: gcp-lb
+  cloud_properties:
+    tags:
+    - concourse-kubo-ci-concourse
+    target_pool: bosh-concourse
+    backend_service: bosh-concourse
+
 vm_types:
 - name: default
   cloud_properties:
@@ -38,7 +46,7 @@ networks:
     cloud_properties:
       network_name: ((network))
       subnetwork_name: ((subnetwork))
-      ephemeral_external_ip: true
+      ephemeral_external_ip: false
       tags: ((tags))
 
 compilation:
