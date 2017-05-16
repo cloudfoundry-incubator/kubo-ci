@@ -1,0 +1,52 @@
+---
+name: concourse-worker
+
+releases:
+- name: concourse
+  version: 3.0.0
+  url: https://github.com/concourse/concourse/releases/download/v3.0.0/concourse-3.0.0.tgz
+  sha1: 53fd3eec1a77363aada2543933a976ec8171507b
+- name: garden-runc
+  version: 1.6.0
+  url: https://github.com/concourse/concourse/releases/download/v3.0.0/garden-runc-1.6.0.tgz
+  sha1: 58fbc64aff303e6d76899441241dd5dacef50cb7
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: latest
+
+instance_groups:
+- name: worker
+  instances: 1
+  # replace with a VM type from your BOSH Director's cloud config
+  vm_type: worker
+  stemcell: trusty
+  azs: [z1]
+  networks: [{name: default}]
+  jobs:
+  - name: groundcrew
+    release: concourse
+    properties:
+      tsa:
+        private_key: ((worker-key.private_key))
+        host: ci.kubo.sh
+        host_public_key: "ssh-rsa MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtjsl9TQqYhL2GUCvXc/BxUpzP4V/iMK2cA69hnO/aEoTAWZF6wVsW23G0A9Z2F4vadrOzt+Eht0CkByTjr8pMYRkoUwDZ3yAHjiCMD9E6/nM+sUewtbZi1jx1VXdhpXmlbM3S4pt0y9BQK37vYR81/AvhQsLqR9MRv8b+oE5zVoY8hEFgQvGciMj/+IkiPAg0TQOxMJd9UWFZpwZdMzTAU9z5ydGPGhCxziiOI/w1DaGEmpLucxcqF/28mYiKLR6vRXXm9P8cj1FiLV8Prl6mO8fOfymLVytEv0Zg/SZczTonBviVrch6D2vzpXPeBIWuJs0pTDdKQz5+QYe87Im+wIDAQAB"
+  - name: baggageclaim
+    release: concourse
+    properties: {}
+  - name: garden
+    release: garden-runc
+    properties:
+      garden:
+        listen_network: tcp
+        listen_address: 0.0.0.0:7777
+update:
+  canaries: 1
+  max_in_flight: 1
+  serial: false
+  canary_watch_time: 1000-60000
+  update_watch_time: 1000-60000
+variables:
+- name: worker-key
+  type: rsa
