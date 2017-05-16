@@ -3,6 +3,7 @@ package integration_tests_test
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -24,8 +25,13 @@ var _ = Describe("Deploy workload", func() {
 
 		httpLabel := fmt.Sprintf("http-route-sync=%s", serviceName)
 		Eventually(runKubectlCommand("label", "services", "nginx", httpLabel), "10s").Should(gexec.Exit(0))
+
+		timeout := time.Duration(5 * time.Second)
+		httpClient := http.Client{
+			Timeout: timeout,
+		}
 		Eventually(func() int {
-			result, _ := http.Get(appUrl)
+			result, _ := httpClient.Get(appUrl)
 			return result.StatusCode
 		}, "120s", "5s").Should(Equal(200))
 
