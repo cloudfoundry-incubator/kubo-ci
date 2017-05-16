@@ -84,7 +84,7 @@ main() {
       --var branch-name="${branch_name}"
   else
     fly --target ${fly_target} set-pipeline --pipeline "${pipeline_name}" \
-      --config "${pipeline_filename}" \
+      --config <(erb "${pipeline_filename}") \
       --load-vars-from "${ci_dir}/secrets.yml" \
       --var git-ssh-key="${ssh_key}" \
       --var gcp-service-account="${service_account}" \
