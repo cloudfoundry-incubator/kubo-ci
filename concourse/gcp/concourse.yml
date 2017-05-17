@@ -42,7 +42,11 @@ instance_groups:
       bind_port: 80
     release: concourse
   - name: tsa
-    properties: {}
+    properties:
+      host_key: ((tsa-host-key.private_key))
+      host_public_key: ((tsa-host-key.public_key))
+      authorized_keys:
+      - ((worker-key.public_key))
     release: concourse
   lifecycle: service
   name: concourse
@@ -64,6 +68,9 @@ instance_groups:
   jobs:
   - name: groundcrew
     release: concourse
+    properties:
+      tsa:
+        private_key: ((worker-key.private_key))
   - name: baggageclaim
     release: concourse
   - name: garden
