@@ -42,11 +42,7 @@ instance_groups:
       bind_port: 80
     release: concourse
   - name: tsa
-    properties:
-      authorized_keys:
-        - ((worker-key.public_key))
-      host_key: ((atc-host-key.private_key))
-      host_public_key: ((atc-host-key.public_key))
+    properties: {}
     release: concourse
   lifecycle: service
   name: concourse
@@ -72,17 +68,14 @@ instance_groups:
     release: concourse
   - name: garden
     release: garden-runc
+    properties:
+      garden:
+        listen_address: 0.0.0.0:7777
+        listen_network: tcp
   lifecycle: service
   name: worker
   networks:
   - name: default
-  properties:
-    garden:
-      listen_address: 0.0.0.0:7777
-      listen_network: tcp
-    tsa:
-      host_public_key: ((atc-host-key.public_key))
-      private_key: ((worker-key.private_key))
   stemcell: bosh-google-kvm-ubuntu-trusty-go_agent
   update:
     max_in_flight: 1
@@ -90,9 +83,9 @@ instance_groups:
 name: kubo-ci
 releases:
 - name: concourse
-  version: 3.0.0
-  url: https://bosh.io/d/github.com/concourse/concourse?v=3.0.0
-  sha1: b75190f00ec2825adacad75a3ca078f4254eb19a
+  version: 3.0.1
+  url: https://bosh.io/d/github.com/concourse/concourse?v=3.0.1
+  sha1: ade4f7b6a939d3a47590006410aa89f69b4dbd1f
 - name: garden-runc
   version: 1.6.0
   url: https://github.com/concourse/concourse/releases/download/v3.0.0/garden-runc-1.6.0.tgz
@@ -122,7 +115,3 @@ variables:
   options:
     ca: default_ca
     common_name: ci.kubo.sh
-- name: atc-host-key
-  type: rsa
-- name: worker-key
-  type: rsa
