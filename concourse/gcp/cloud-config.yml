@@ -10,12 +10,15 @@ azs:
     zone: ((zone))
 
 vm_extensions:
+# To enable automatic load balancing on GCP:
+# - Create a `bosh-concourse` target pool in the appropriate region
+# - Create forwarding rules for ports 80, 443, and 2222 setting
+#   `bosh-concourse` as the target pool
 - name: gcp-lb
   cloud_properties:
     tags:
     - concourse-kubo-ci-concourse
     target_pool: bosh-concourse
-    backend_service: bosh-concourse
 
 vm_types:
 - name: default
@@ -50,7 +53,7 @@ networks:
       tags: ((tags))
 
 compilation:
-  workers: 5
+  workers: 3
   reuse_compilation_vms: true
   az: z1
   vm_type: default
