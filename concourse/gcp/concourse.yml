@@ -69,6 +69,8 @@ instance_groups:
   - name: groundcrew
     release: concourse
     properties:
+      tags:
+        - gcp
       tsa:
         private_key: ((worker-key.private_key))
   - name: baggageclaim
