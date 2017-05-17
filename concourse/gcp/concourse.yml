@@ -64,10 +64,12 @@ instance_groups:
   vm_extensions:
   - gcp-lb
 - azs: [z1, z2, z3]
-  instances: 3
+  instances: 1
   jobs:
   - name: groundcrew
     release: concourse
+    consumes:
+      baggageclaim: {from: bc-gcp}
     properties:
       tags:
         - gcp
@@ -75,6 +77,36 @@ instance_groups:
         private_key: ((worker-key.private_key))
   - name: baggageclaim
     release: concourse
+    provides:
+      baggageclaim: {as: bc-gcp}
+  - name: garden
+    release: garden-runc
+    properties:
+      garden:
+        listen_address: 0.0.0.0:7777
+        listen_network: tcp
+  lifecycle: service
+  name: worker-gcp
+  networks:
+  - name: default
+  stemcell: bosh-google-kvm-ubuntu-trusty-go_agent
+  update:
+    max_in_flight: 1
+  vm_type: large
+- azs: [z1, z2, z3]
+  instances: 2
+  jobs:
+  - name: groundcrew
+    release: concourse
+    consumes:
+      baggageclaim: {from: bc}
+    properties:
+      tsa:
+        private_key: ((worker-key.private_key))
+  - name: baggageclaim
+    release: concourse
+    provides:
+      baggageclaim: {as: bc}
   - name: garden
     release: garden-runc
     properties:

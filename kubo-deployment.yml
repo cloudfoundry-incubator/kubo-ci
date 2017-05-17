@@ -5,36 +5,43 @@
 resource_types:
 - name: slack-notification
   type: docker-image
+  tags: <%= iaas_list %>
   source:
     repository: cfcommunity/slack-notification-resource
     tag: latest
 
 - name: gcs
   type: docker-image
+  tags: <%= iaas_list %>
   source:
     repository: frodenas/gcs-resource
 
 resources:
 - name: git-kubo-ci
   type: git
+  tags: <%= iaas_list %>
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
     branch: master
 
 - name: git-kubo-deployment
   type: git
+  tags: <%= iaas_list %>
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-deployment
     branch: master
 
 - name: git-kubo-release
   type: git
+  tags: <%= iaas_list %>
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-release
     branch: master
 
 - name: kubo-lock-gcp
   type: pool
+  tags: [gcp]
+  tags: <%= iaas_list %>
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
@@ -51,6 +58,7 @@ resources:
 
 - name: gcs-bosh-state
   type: gcs
+  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
@@ -58,6 +66,7 @@ resources:
 
 - name: gcs-bosh-creds
   type: gcs
+  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
@@ -65,6 +74,7 @@ resources:
 
 - name: gcs-service-creds
   type: gcs
+  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
@@ -72,6 +82,7 @@ resources:
 
 - name: gcs-kubo-release-tarball-untested
   type: gcs
+  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
@@ -79,6 +90,7 @@ resources:
 
 - name: gcs-kubo-releases
   type: gcs
+  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-releases
@@ -86,6 +98,7 @@ resources:
 
 - name: gcs-kubo-deployments
   type: gcs
+  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-releases
@@ -93,6 +106,7 @@ resources:
 
 - name: gcs-kubo-release-tarball
   type: gcs
+  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-public
@@ -100,6 +114,7 @@ resources:
 
 - name: gcs-kubo-deployment-tarball
   type: gcs
+  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-public
@@ -107,6 +122,7 @@ resources:
 
 - name: kubo-version
   type: semver
+  tags: <%= iaas_list %>
   source:
     key: kubo-version
     access_key_id: {{gcs-access-key-id}}
@@ -117,6 +133,7 @@ resources:
 
 - name: slack-alert
   type: slack-notification
+  tags: <%= iaas_list %>
   source:
     url: {{slack-url}}
 
@@ -213,6 +230,7 @@ jobs:
   - get: kubo-version
     passed: [ 'claim-lock-<%= iaas %>' ]
   - task: install
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure:
@@ -252,6 +270,7 @@ jobs:
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'install-bosh-<%= iaas %>' ]
   - task: deploy
+    tags: [<%= iaas %>]
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
       kubo-lock: kubo-lock-<%= iaas %>
@@ -291,6 +310,7 @@ jobs:
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'deploy-k8s-<%= iaas %>' ]
   - task: workload
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure:
@@ -302,6 +322,7 @@ jobs:
           Deploy K8s Workload failed:
           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: pod-to-pod
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure:
@@ -332,6 +353,7 @@ jobs:
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'deploy-workload-<%= iaas %>' ]
   - task: destroy-k8s
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure:
@@ -363,6 +385,7 @@ jobs:
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'destroy-k8s-<%= iaas %>' ]
   - task: destroy
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure:
