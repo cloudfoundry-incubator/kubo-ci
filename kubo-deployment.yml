@@ -38,7 +38,8 @@ resources:
     uri: https://github.com/pivotal-cf-experimental/kubo-release
     branch: master
 
-- name: kubo-lock-gcp
+<% iaas_list.each do |iaas| %>
+- name: kubo-lock-<%= iaas %>
   type: pool
   tags: [gcp]
   tags: <%= iaas_list %>
@@ -46,15 +47,8 @@ resources:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: {{git-ssh-key}}
-    pool: kubo-deployment
-
-# - name: kubo-lock-vsphere
-#   type: pool
-#   source:
-#     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-#     branch: master
-#     private_key: {{git-ssh-key}}
-#     pool: kubo-vsphere
+    pool: kubo-<%= iaas == "gcp" ? "deployment" : iaas %>
+<% end %>
 
 - name: gcs-bosh-state
   type: gcs
