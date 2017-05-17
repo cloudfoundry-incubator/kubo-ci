@@ -214,6 +214,7 @@ jobs:
     passed: [ 'claim-lock-<%= iaas %>' ]
   - task: install
     file: git-kubo-ci/tasks/install-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure:
       put: slack-alert
       params:
@@ -251,7 +252,9 @@ jobs:
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'install-bosh-<%= iaas %>' ]
   - task: deploy
-    input_mapping: {gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested}
+    input_mapping:
+      gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
+      kubo-lock: kubo-lock-<%= iaas %>
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     on_failure:
       put: slack-alert
@@ -289,6 +292,7 @@ jobs:
       passed: [ 'deploy-k8s-<%= iaas %>' ]
   - task: workload
     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure:
       put: slack-alert
       params:
@@ -299,6 +303,7 @@ jobs:
           https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: pod-to-pod
     file: git-kubo-ci/tasks/pod-to-pod.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure:
       put: slack-alert
       params:
@@ -328,6 +333,7 @@ jobs:
       passed: [ 'deploy-workload-<%= iaas %>' ]
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure:
       put: slack-alert
       params:
@@ -358,6 +364,7 @@ jobs:
       passed: [ 'destroy-k8s-<%= iaas %>' ]
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure:
       put: slack-alert
       params:
