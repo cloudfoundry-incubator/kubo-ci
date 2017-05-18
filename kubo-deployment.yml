@@ -41,8 +41,7 @@ resources:
 <% iaas_list.each do |iaas| %>
 - name: kubo-lock-<%= iaas %>
   type: pool
-  tags: [gcp]
-  tags: <%= iaas_list %>
+  tags: [<%= iaas %>]
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
