@@ -15,13 +15,13 @@ azs:
 vm_types:
 - name: worker
   cloud_properties:
-    cpu: 2
-    ram: 4096
+    cpu: 4
+    ram: 16_384
     disk: 30_240
 
 disk_types:
 - name: large
-  disk_size: 50_000
+  disk_size: 150_000
 
 networks:
 - name: default
