@@ -16,12 +16,9 @@ vm_types:
 - name: worker
   cloud_properties:
     cpu: 4
-    ram: 16_384
-    disk: 30_240
+    ram:  16_384
+    disk: 66_384   # storage + ram for swap
 
-disk_types:
-- name: large
-  disk_size: 150_000
 
 networks:
 - name: default
