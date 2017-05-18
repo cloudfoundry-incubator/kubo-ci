@@ -1,39 +1,34 @@
 <%
-  iaas_list = ['gcp']
+  iaas_list = ['gcp', 'vsphere']
 %>
 ---
 resource_types:
 - name: slack-notification
   type: docker-image
-  tags: <%= iaas_list %>
   source:
     repository: cfcommunity/slack-notification-resource
     tag: latest
 
 - name: gcs
   type: docker-image
-  tags: <%= iaas_list %>
   source:
     repository: frodenas/gcs-resource
 
 resources:
 - name: git-kubo-ci
   type: git
-  tags: <%= iaas_list %>
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
     branch: master
 
 - name: git-kubo-deployment
   type: git
-  tags: <%= iaas_list %>
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-deployment
     branch: master
 
 - name: git-kubo-release
   type: git
-  tags: <%= iaas_list %>
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-release
     branch: master
@@ -41,7 +36,6 @@ resources:
 <% iaas_list.each do |iaas| %>
 - name: kubo-lock-<%= iaas %>
   type: pool
-  tags: [<%= iaas %>]
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
@@ -51,7 +45,6 @@ resources:
 
 - name: gcs-bosh-state
   type: gcs
-  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
@@ -59,7 +52,6 @@ resources:
 
 - name: gcs-bosh-creds
   type: gcs
-  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
@@ -67,7 +59,6 @@ resources:
 
 - name: gcs-service-creds
   type: gcs
-  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
@@ -75,7 +66,6 @@ resources:
 
 - name: gcs-kubo-release-tarball-untested
   type: gcs
-  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-pipeline-store
@@ -83,7 +73,6 @@ resources:
 
 - name: gcs-kubo-releases
   type: gcs
-  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-releases
@@ -91,7 +80,6 @@ resources:
 
 - name: gcs-kubo-deployments
   type: gcs
-  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-releases
@@ -99,7 +87,6 @@ resources:
 
 - name: gcs-kubo-release-tarball
   type: gcs
-  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-public
@@ -107,7 +94,6 @@ resources:
 
 - name: gcs-kubo-deployment-tarball
   type: gcs
-  tags: <%= iaas_list %>
   source:
     json_key: {{gcs-json-key}}
     bucket: kubo-public
@@ -115,7 +101,6 @@ resources:
 
 - name: kubo-version
   type: semver
-  tags: <%= iaas_list %>
   source:
     key: kubo-version
     access_key_id: {{gcs-access-key-id}}
@@ -126,7 +111,6 @@ resources:
 
 - name: slack-alert
   type: slack-notification
-  tags: <%= iaas_list %>
   source:
     url: {{slack-url}}
 

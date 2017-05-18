@@ -11,7 +11,7 @@ echo ""
 
 print_usage() {
   echo "Usage:"
-  echo "    $0 <pipeline name> [<fly target name>]"
+  echo "    $0 <pipeline name> [<fly target name>] [branch name] "
   echo ""
   echo "    valid pipeline names:"
   for name in ${ci_dir}/*.yml; do
@@ -43,8 +43,7 @@ main() {
   echo "${pipeline_name}"
   local current_branch_regex='-current-branch$'
   if [[ "${pipeline_name}" =~ $current_branch_regex ]]; then
-    local current_branch
-    branch_name="${3:?}"
+    branch_name="${3:branch_name}"
     git_username=$(grep  git-author-email  .git/config  | awk -F'=' '{print $2}' | awk -F'@' '{print $1}' | xargs)
     if [ ! -z "$git_username" ]; then
       pipeline_name="${pipeline_name}-${git_username}"
