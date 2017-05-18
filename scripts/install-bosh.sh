@@ -1,14 +1,13 @@
 #!/bin/sh -e
 
 . "$(dirname "$0")/lib/environment.sh"
-iaas=$(bosh-cli int kubo-lock/metadata --path=/iaas)
-
 
 set -x
 export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 
+iaas=$(bosh-cli int kubo-lock/metadata --path=/iaas)
 if [ "$iaas" = "gcp" ]; then
   set +x
   bosh-cli int kubo-lock/metadata --path=/gcp_service_account > "$PWD/key.json"

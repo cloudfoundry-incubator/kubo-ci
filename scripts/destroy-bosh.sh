@@ -1,7 +1,6 @@
 #!/bin/sh -e
 
 . "$(dirname "$0")/lib/environment.sh"
-bosh-cli int kubo-lock/metadata --path=/gcp_service_account > "$PWD/key.json"
 
 set -x
 export BOSH_LOG_LEVEL=debug
@@ -12,4 +11,13 @@ cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}"
 cp  "$PWD/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}"
 
-"${KUBO_DEPLOYMENT_DIR}/bin/destroy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key.json"
+iaas=$(bosh-cli int kubo-lock/metadata --path=/iaas)
+if [ "$iaas" = "gcp" ]; then
+  set +x
+  bosh-cli int kubo-lock/metadata --path=/gcp_service_account > "$PWD/key.json"
+  set -x
+  "${KUBO_DEPLOYMENT_DIR}/bin/destroy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key.json"
+else
+  "${KUBO_DEPLOYMENT_DIR}/bin/destroy_bosh" "${KUBO_ENVIRONMENT_DIR}"
+fi
+
