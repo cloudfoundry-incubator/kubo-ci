@@ -21,11 +21,6 @@ print_usage() {
   done
 }
 
-if [ $# -ne 1 ] && [ $# -ne 2 ]; then
-  print_usage
-  exit 1
-fi
-
 main() {
   local pipeline_name="$1"
   local fly_target="${2:-kubo}"
@@ -49,8 +44,7 @@ main() {
   local current_branch_regex='-current-branch$'
   if [[ "${pipeline_name}" =~ $current_branch_regex ]]; then
     local current_branch
-    current_branch="$(git symbolic-ref -q HEAD)"
-    branch_name="${current_branch##refs/heads/}"
+    branch_name="${3:?}"
     git_username=$(grep  git-author-email  .git/config  | awk -F'=' '{print $2}' | awk -F'@' '{print $1}' | xargs)
     if [ ! -z "$git_username" ]; then
       pipeline_name="${pipeline_name}-${git_username}"
