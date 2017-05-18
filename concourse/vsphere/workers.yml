@@ -34,6 +34,10 @@ instance_groups:
         private_key: ((worker-key.private_key))
         host: ci.kubo.sh
         host_public_key: ((tsa-host-key.public_key))
+      garden:
+        forward_address: 127.0.0.1:7777
+      baggageclaim:
+        forward_address: 127.0.0.1:7788
   - name: baggageclaim
     release: concourse
     properties: {}
