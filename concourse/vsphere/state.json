@@ -1,38 +1,38 @@
 {
-    "director_id": "62a9bf4f-0fb1-4f59-4293-28ca763ccedb",
-    "installation_id": "a21cf2a7-4c8a-4e83-72fb-1176c2a80f2b",
-    "current_vm_cid": "vm-cd0f7570-6fe6-44c0-bfc1-4b4c12dcbdfe",
-    "current_stemcell_id": "45d461fc-0dea-40c2-42b8-0e102dc11327",
-    "current_disk_id": "380a385e-2e48-42c4-4732-fda5cdb6f289",
+    "director_id": "5166ef5f-9501-4596-5d62-2a58c29ff264",
+    "installation_id": "8cf898f8-7040-4108-5423-f87fd2a68d63",
+    "current_vm_cid": "vm-f92f791f-4936-43e6-8fab-558a38206fe8",
+    "current_stemcell_id": "e7f3c5fd-e6c3-4393-6b6f-fa90f1aeaee4",
+    "current_disk_id": "96466e8e-16e1-4d51-69b8-76665ec6601b",
     "current_release_ids": [
-        "64b9f3b2-6743-4fe0-7b8d-54bc6b452410",
-        "c58831e4-9204-4900-4192-9f5ccf3f53a3"
+        "99f07b5f-efe8-475a-6220-af0a0757c8c7",
+        "d97a2bdd-b37c-4dd7-65be-e85f8343f91e"
     ],
-    "current_manifest_sha": "43d09de7a21f48070c6e5f74ffd166f54f2a5bbd23393fc75a53dd30b94d99f73f1810f6991b1149fd7a26fc5c49c2863c26948aa050d168f1772290b4fa5186",
+    "current_manifest_sha": "5ca5455c0f4fa147b3d8e412d952a8b7c096ba4f564b1ec038969a9ddf31f4476869734fb90a2d0631e9fb7cadf889ed457e4f317528d9d8bb69c3c8b4942fc5",
     "disks": [
         {
-            "id": "380a385e-2e48-42c4-4732-fda5cdb6f289",
-            "cid": "disk-b5e539d7-20d5-4d0f-b891-0936c9fc6847",
+            "id": "96466e8e-16e1-4d51-69b8-76665ec6601b",
+            "cid": "disk-f1a7d25b-42c1-4d2c-ab22-5835e84519ce",
             "size": 32768,
             "cloud_properties": {}
         }
     ],
     "stemcells": [
         {
-            "id": "45d461fc-0dea-40c2-42b8-0e102dc11327",
+            "id": "e7f3c5fd-e6c3-4393-6b6f-fa90f1aeaee4",
             "name": "bosh-vsphere-esxi-ubuntu-trusty-go_agent",
-            "version": "3363.20",
-            "cid": "sc-3914cd75-5261-46b7-919b-e02ab0e9f0d9"
+            "version": "3312.15",
+            "cid": "sc-e715e916-b1ef-41be-980b-b29f792ad7d7"
         }
     ],
     "releases": [
         {
-            "id": "64b9f3b2-6743-4fe0-7b8d-54bc6b452410",
+            "id": "99f07b5f-efe8-475a-6220-af0a0757c8c7",
             "name": "bosh",
-            "version": "261.4"
+            "version": "260.5"
         },
         {
-            "id": "c58831e4-9204-4900-4192-9f5ccf3f53a3",
+            "id": "d97a2bdd-b37c-4dd7-65be-e85f8343f91e",
             "name": "bosh-vsphere-cpi",
             "version": "34"
         }

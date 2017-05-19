@@ -1,42 +1,38 @@
+---
 azs:
 - name: z1
   cloud_properties:
     datacenters:
-    - clusters: [canada: {}]
-- name: z2
-  cloud_properties:
-    datacenters:
-    - clusters: [canada: {}]
-- name: z3
-  cloud_properties:
-    datacenters:
-    - clusters: [canada: {}]
+    - clusters: [((vcenter_cluster)): {}]
+
+networks:
+- name: &network_name ((deployments_network))
+  type: manual
+  subnets:
+  - range: ((internal_cidr))
+    gateway: ((internal_gw))
+    dns: [8.8.8.8]
+    azs: [z1]
+    cloud_properties:
+      name: ((network_name))
+    reserved: ((reserved_ips))
 
 vm_types:
 - name: worker
   cloud_properties:
-    cpu: 4
-    ram:  16_384
-    disk: 66_384   # storage + ram for swap
+    ram: 8192
+    cpu: 2
+    disk: 102400
 
-
-networks:
-- name: default
-  type: manual
-  subnets:
-  - range: 10.74.34.0/25
-    gateway: 10.74.34.1
-    azs: [z1, z2, z3]
-    dns: [10.74.1.10]
-    reserved:
-      - "10.74.34.0-10.74.34.122"
-      - "10.74.34.126-10.74.34.127"
-    cloud_properties:
-      name: calgary
+disk_types:
+- name: 10240
+  disk_size: 10240
+- name: 5120
+  disk_size: 5120
 
 compilation:
   workers: 1
-  reuse_compilation_vms: true
+  network: *network_name
   az: z1
+  reuse_compilation_vms: true
   vm_type: worker
-  network: default

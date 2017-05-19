@@ -23,7 +23,7 @@ instance_groups:
   vm_type: worker
   stemcell: trusty
   azs: [z1]
-  networks: [{name: default}]
+  networks: [{name: ((deployments_network))}]
   jobs:
   - name: groundcrew
     release: concourse

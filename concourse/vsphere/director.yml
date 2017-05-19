@@ -1,14 +1,20 @@
-director_name: vsphere-concourse
-internal_cidr: 10.74.34.0/25
-internal_gw: 10.74.34.1
-internal_ip: 10.74.34.123
-network_name: calgary
+vcenter_ip: 10.74.32.100
+vcenter_user: root
+vcenter_dc: canada-dc
+vcenter_cluster: canada
+vcenter_ds: vnx5600-toronto-1
+vcenter_rp: thunderbay
+vcenter_vms: thunderbay_vms
+vcenter_templates: thunderbay_templates
+vcenter_disks: thunderbay_disks
 
-vcenter_cluster: canada # vCenter Cluster
-vcenter_dc: canada-dc # vCenter Datacenter Name
-vcenter_disks: calgary_disks # vCenter Disk Folder Name
-vcenter_ds: vnx5600-toronto-2 # vCenter Ephemeral Datastore Name
-vcenter_ip: vcenter.toronto.cf-app.com # vCenter Host IP
-vcenter_templates: calgary_templates # vCenter Template Folder Name
-vcenter_user: root # vCenter Username
-vcenter_vms: calgary_vms # vCenter VM Folder Name
+network_name: thunderbay
+internal_cidr: 10.74.42.0/25
+internal_gw: 10.74.42.1
+internal_ip: 10.74.42.5
+reserved_ips:
+- 10.74.42.0-10.74.42.5
+- 10.74.42.10-10.74.42.127
+
+director_name: thunder-bosh
+deployments_network: kubo-network
