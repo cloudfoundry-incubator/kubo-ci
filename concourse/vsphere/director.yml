@@ -3,6 +3,7 @@ internal_cidr: 10.74.34.0/25
 internal_gw: 10.74.34.1
 internal_ip: 10.74.34.123
 network_name: calgary
+routing_mode: cf
 
 vcenter_cluster: canada # vCenter Cluster
 vcenter_dc: canada-dc # vCenter Datacenter Name
