@@ -1,3 +1,6 @@
+<%
+  iaas_list = ['gcp', 'vsphere']
+%>
 ---
 resource_types:
 - name: slack-notification
@@ -5,6 +8,7 @@ resource_types:
   source:
     repository: cfcommunity/slack-notification-resource
     tag: latest
+
 - name: pull-request
   type: docker-image
   source:
@@ -31,13 +35,15 @@ resources:
     private_key: {{git-ssh-key}}
     access_token: {{github-token-key}}
 
-- name: kubo-lock
+<% iaas_list.each do |iaas| %>
+- name: kubo-lock-<%= iaas %>
   type: pool
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: {{git-ssh-key}}
-    pool: kubo-deployment
+    pool: kubo-<%= iaas == "gcp" ? "deployment" : iaas %>
+<% end %>
 
 - name: gcs-bosh-state
   type: gcs
@@ -98,13 +104,14 @@ jobs:
             text_file: pr-slack-message/message.txt
             text: |
               $TEXT_FILE_CONTENT
-              https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+              https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
       - put: git-kubo-deployment
         params:
           path: git-kubo-deployment
           status: failure
 
-- name: claim-lock
+<% iaas_list.each do |iaas| %>
+- name: claim-lock-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-deployment
@@ -115,25 +122,27 @@ jobs:
     params:
       path: git-kubo-deployment
       status: pending
-  - put: kubo-lock
+  - put: kubo-lock-<%= iaas %>
     params: { acquire: true }
 
-- name: install-bosh
+- name: install-bosh-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-deployment
-      passed: [ 'claim-lock' ]
-    - get: kubo-lock
+      passed: [ 'claim-lock-<%= iaas %>' ]
+    - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'claim-lock' ]
+      passed: [ 'claim-lock-<%= iaas %>' ]
   - put: git-kubo-deployment
     params:
       path: git-kubo-deployment
       status: pending
   - task: install
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure
   - aggregate:
     - put: gcs-bosh-creds
@@ -143,27 +152,29 @@ jobs:
       params:
         file: bosh-state/state.json
 
-- name: deploy-k8s
+- name: deploy-k8s-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock
+    - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'install-bosh' ]
+      passed: [ 'install-bosh-<%= iaas %>' ]
     - get: git-kubo-deployment
-      passed: [ 'install-bosh' ]
+      passed: [ 'install-bosh-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball
     - get: gcs-bosh-state
-      passed: [ 'install-bosh' ]
+      passed: [ 'install-bosh-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'install-bosh' ]
+      passed: [ 'install-bosh-<%= iaas %>' ]
   - put: git-kubo-deployment
     params:
       path: git-kubo-deployment
       status: pending
   - task: deploy
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure
 
   - aggregate:
@@ -171,79 +182,87 @@ jobs:
       params:
         file: service-creds/ci-service-creds.yml
 
-- name: deploy-workload
+- name: deploy-workload-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock
+    - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'deploy-k8s' ]
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: git-kubo-deployment
-      passed: [ 'deploy-k8s' ]
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'deploy-k8s' ]
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'deploy-k8s' ]
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-service-creds
-      passed: [ 'deploy-k8s' ]
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
   - put: git-kubo-deployment
     params:
       path: git-kubo-deployment
       status: pending
   - task: workload
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure
 
   - task: pod-to-pod
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure
 
-- name: destroy-k8s
+- name: destroy-k8s-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock
+    - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'deploy-workload' ]
+      passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: git-kubo-deployment
-      passed: [ 'deploy-workload' ]
+      passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'deploy-workload' ]
+      passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'deploy-workload' ]
+      passed: [ 'deploy-workload-<%= iaas %>' ]
   - put: git-kubo-deployment
     params:
       path: git-kubo-deployment
       status: pending
   - task: destroy-k8s
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure
 
-- name: destroy-bosh
+- name: destroy-bosh-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-deployment
-      passed: [ 'destroy-k8s' ]
-    - get: kubo-lock
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
+    - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'destroy-k8s' ]
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'destroy-k8s' ]
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'destroy-k8s' ]
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
   - put: git-kubo-deployment
     params:
       path: git-kubo-deployment
       status: pending
   - task: destroy
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure
-  - put: kubo-lock
-    params: { release: kubo-lock }
+  - put: kubo-lock-<%= iaas %>
+    params: { release: kubo-lock-<%= iaas %> }
   - task: alert-text
     file: git-kubo-ci/tasks/generate-deployment-pr-messages.yml
     params:
@@ -257,3 +276,4 @@ jobs:
     params:
       path: git-kubo-deployment
       status: success
+<% end %>
