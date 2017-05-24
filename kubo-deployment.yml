@@ -1,5 +1,5 @@
 <%
-  iaas_list = ['gcp', 'vsphere']
+  iaas_list = %w(gcp vsphere)
 %>
 ---
 resource_types:
