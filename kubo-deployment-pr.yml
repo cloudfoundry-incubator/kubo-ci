@@ -283,7 +283,7 @@ jobs:
     params: { release: kubo-lock-<%= iaas %> }
 <% end %>
 
-- name: success_notification
+- name: success-notification
   plan:
   - get: git-kubo-deployment
     passed: <%= iaas_list.collect { |iaas| "destroy-bosh-#{iaas}" } %>
