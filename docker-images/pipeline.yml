@@ -38,7 +38,12 @@ jobs:
   - task: test-docker-image
     config:
       platform: linux
-      image: docker:///pcfkubo/kubo-ci#latest
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: latest
+
       inputs:
       - name: git-kubo-ci
       run:
