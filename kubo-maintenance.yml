@@ -1,5 +1,9 @@
 <%
-    envs = ENV.fetch('ENVS').split(',')
+    lock_files =  Dir.glob(File.join(__dir__, "..", "kubo-locks", "kubo-deployment", "*", "*"))
+    envs = lock_files.collect do |file|
+      File.basename(file)
+    end
+    #envs = ENV.fetch('ENVS').split(',')
 %>
 ---
 resources:

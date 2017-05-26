@@ -64,29 +64,17 @@ main() {
   lpass show "Shared-Kubo/CI/kubo-ci" --notes >> "${ci_dir}/secrets.yml"
   lpass show "Shared-Kubo/CI/CF" --notes >> "${ci_dir}/secrets.yml"
 
-  fly --target ${fly_target} sync > /dev/null
+  fly --target "${fly_target}" sync > /dev/null
+  erb "${pipeline_filename}" > /dev/null
 
-  if [ "$pipeline_name" == "kubo-maintenance" ]; then
-    fly --target ${fly_target} set-pipeline --pipeline "${pipeline_name}" \
-      --config <(ENVS=$(ls environments | paste -d, -s -) erb "${pipeline_filename}") \
-      --load-vars-from "${ci_dir}/secrets.yml" \
-      --var git-ssh-key="${ssh_key}" \
-      --var gcp-service-account="${service_account}" \
-      --var slack-url="${slack_url}" \
-      --var github-token-key="${github_token}" \
-      --var branch-name="${branch_name}"
-  else
-    fly --target ${fly_target} set-pipeline --pipeline "${pipeline_name}" \
-      --config <(erb "${pipeline_filename}") \
-      --load-vars-from "${ci_dir}/secrets.yml" \
-      --var git-ssh-key="${ssh_key}" \
-      --var gcp-service-account="${service_account}" \
-      --var slack-url="${slack_url}" \
-      --var github-token-key="${github_token}" \
-      --var branch-name="${branch_name}"
-
-  fi
-
+  fly --target "${fly_target}" set-pipeline --pipeline "${pipeline_name}" \
+    --config <(erb "${pipeline_filename}") \
+    --load-vars-from "${ci_dir}/secrets.yml" \
+    --var git-ssh-key="${ssh_key}" \
+    --var gcp-service-account="${service_account}" \
+    --var slack-url="${slack_url}" \
+    --var github-token-key="${github_token}" \
+    --var branch-name="${branch_name}"
 }
 
 pushd "${ci_dir}" > /dev/null
