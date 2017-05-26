@@ -3,7 +3,6 @@
     envs = lock_files.collect do |file|
       File.basename(file)
     end
-    #envs = ENV.fetch('ENVS').split(',')
 %>
 ---
 resources:
