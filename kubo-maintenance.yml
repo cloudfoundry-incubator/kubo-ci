@@ -9,42 +9,25 @@ resources:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks
     branch: master
     private_key: {{git-ssh-key}}
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+
 
 jobs:
 <% envs.each do |env| %>
 - name: cleanup-<%= env %>
   plan:
   - aggregate:
-    get: kubo-lock-repo
-    trigger: false
+    - get: git-kubo-ci
+    - get: kubo-lock-repo
+      trigger: false
   - task: claim-<%= env %>
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pcfkubo/kubo-ci
-          tag: stable
-
-      inputs:
-      - name: kubo-lock-repo
-      outputs:
-      - name: modified-repo
-      run:
-        path: /bin/bash
-        args:
-        - -exc
-        - |
-          cp -a kubo-lock-repo/. modified-repo
-          cd modified-repo
-          git config user.email "ci-bot@localhost"
-          git config user.name "CI Bot"
-
-          # TODO: make this a try block instead
-          set +e
-            git mv kubo-deployment/unclaimed/<%= env %> kubo-deployment/claimed/<%= env %>
-            git commit -m "claiming: <%= env %>"
-          set -e
+    file: git-kubo-ci/tasks/claim-lock-manually.yml
+    params:
+      ENV_NAME: <%= env %>
     ensure:
       put: kubo-lock-repo
       params:
@@ -52,84 +35,17 @@ jobs:
         rebase: true
 
   - task: cleanup-<%= env %>
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pcfkubo/kubo-ci
-          tag: stable
-
-      inputs:
-      - name: kubo-lock-repo
-
-      params:
-        AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
-        AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
-        AWS_DEFAULT_REGION: eu-west-1
-
-      run:
-        path: /bin/bash
-        args:
-        - -exc
-        - |
-
-          login_gcp() {
-            lock_file="kubo-lock-repo/kubo-deployment/claimed/<%= env %>"
-
-            bosh-cli int $lock_file --path='/gcp_service_account' > gcp_service_account.json
-            gcloud auth activate-service-account --key-file=gcp_service_account.json
-            gcloud config set project $(cat gcp_service_account.json | bosh-cli int - --path=/project_id)
-            gcloud config set compute/zone "$(bosh-cli int $lock_file --path='/zone')"
-          }
-
-          delete_tfstate() {
-            if gsutil ls gs://kubo-pipeline-store/terraform/airgap/tinyproxy/<%= env %>*; then
-              gsutil rm gs://kubo-pipeline-store/terraform/airgap/tinyproxy/<%= env %>*
-            fi
-          }
-
-          delete_gcloud_vms() {
-            lock_file="kubo-lock-repo/kubo-deployment/claimed/<%= env %>"
-
-            subnetwork=$(bosh-cli int $lock_file --path='/subnetwork')
-            subnetLink=$(gcloud compute networks subnets list $subnetwork --format=json | bosh-cli int - --path=/0/selfLink)
-            vm_names=$(gcloud  compute instances list --filter="networkInterfaces.subnetwork=$subnetLink" --format="table(name)" | tail -n +2 )
-
-            if [ -n "${vm_names}" ]; then
-              gcloud compute instances delete ${vm_names[@]} --delete-disks=all --quiet
-            fi
-          }
-
-          login_gcp
-          delete_tfstate
-          delete_gcloud_vms
-
+    file: git-kubo-ci/tasks/cleanup-environment.yml
+    params:
+      AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
+      AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
+      AWS_DEFAULT_REGION: eu-west-1
+      ENV_NAME: <%= env %>
 
   - task: unclaim-<%= env %>
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pcfkubo/kubo-ci
-          tag: stable
-
-      inputs:
-      - name: kubo-lock-repo
-      outputs:
-      - name: modified-repo
-      run:
-        path: /bin/bash
-        args:
-        - -exc
-        - |
-          cp -a kubo-lock-repo/. modified-repo
-          cd modified-repo
-          git config user.email "ci-bot@localhost"
-          git config user.name "CI Bot"
-          git mv kubo-deployment/claimed/<%= env %> kubo-deployment/unclaimed/<%= env %>
-          git commit -m "unclaiming: <%= env %>"
+    file: git-kubo-ci/tasks/unclaim-lock-manually.yml
+    params:
+      ENV_NAME: <%= env %>
     ensure:
       put: kubo-lock-repo
       params:
