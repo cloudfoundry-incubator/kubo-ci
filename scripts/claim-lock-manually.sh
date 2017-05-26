@@ -8,6 +8,6 @@ cd modified-repo
 git config user.email "ci-bot@localhost"
 git config user.name "CI Bot"
 
-if git mv "kubo-deployment/unclaimed/$ENV_NAME" "kubo-deployment/claimed/$ENV_NAME"; then
-  git commit -m "claiming: $ENV_NAME"
+if git mv "$LOCK_DIR/unclaimed/$ENV_NAME" "$LOCK_DIR/claimed/$ENV_NAME"; then
+  git commit -m "claiming: $LOCK_DIR/$ENV_NAME"
 fi

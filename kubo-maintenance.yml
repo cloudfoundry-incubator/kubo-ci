@@ -31,6 +31,7 @@ jobs:
     file: git-kubo-ci/tasks/claim-lock-manually.yml
     params:
       ENV_NAME: <%= env %>
+      LOCK_DIR: kubo-deployment
     ensure:
       put: kubo-lock-repo
       params:
@@ -49,6 +50,7 @@ jobs:
     file: git-kubo-ci/tasks/unclaim-lock-manually.yml
     params:
       ENV_NAME: <%= env %>
+      LOCK_DIR: kubo-deployment
     ensure:
       put: kubo-lock-repo
       params:
