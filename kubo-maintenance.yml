@@ -5,7 +5,7 @@
       File.basename(file)
     end
   end
-  pools = { 'kubo-deployment' => get_lock_names('kubo-deployment'), 'kubo-gcp-only' => get_lock_names('kubo-gcp-only') }
+  pools = { 'kubo-deployment' => get_lock_names('kubo-deployment'), 'kubo-gcp-lb' => get_lock_names('kubo-gcp-lb') }
 %>
 ---
 resources:
