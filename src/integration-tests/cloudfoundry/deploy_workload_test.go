@@ -1,4 +1,4 @@
-package integration_tests_test
+package cloudfoundry_test
 
 import (
 	"fmt"
@@ -8,14 +8,15 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"integration-tests/test_helpers"
 )
 
 var _ = Describe("Deploy workload", func() {
-	It("exposes routes", func() {
+	It("exposes routes via CF routers", func() {
 		By("deploying application")
-		Eventually(runKubectlCommand("create", "-f", pathFromRoot("specs/nginx.yml")), "60s").Should(gexec.Exit(0))
+		Eventually(runner.RunKubectlCommand("create", "-f", nginxSpec), "60s").Should(gexec.Exit(0))
 
-		serviceName := "test-" + generateRandomName()
+		serviceName := "test-" + test_helpers.GenerateRandomName()
 		appUrl := fmt.Sprintf("http://%s.%s", serviceName, appsDomain)
 
 		By("exposing it via HTTP")
@@ -24,7 +25,7 @@ var _ = Describe("Deploy workload", func() {
 		Expect(result.StatusCode).NotTo(Equal(200))
 
 		httpLabel := fmt.Sprintf("http-route-sync=%s", serviceName)
-		Eventually(runKubectlCommand("label", "services", "nginx", httpLabel), "10s").Should(gexec.Exit(0))
+		Eventually(runner.RunKubectlCommand("label", "services", "nginx", httpLabel), "10s").Should(gexec.Exit(0))
 
 		timeout := time.Duration(5 * time.Second)
 		httpClient := http.Client{
@@ -45,7 +46,7 @@ var _ = Describe("Deploy workload", func() {
 		Expect(err).To(HaveOccurred())
 
 		tcpLabel := fmt.Sprintf("tcp-route-sync=%d", tcpPort)
-		Eventually(runKubectlCommand("label", "services", "nginx", tcpLabel), "10s").Should(gexec.Exit(0))
+		Eventually(runner.RunKubectlCommand("label", "services", "nginx", tcpLabel), "10s").Should(gexec.Exit(0))
 		Eventually(func() error {
 			_, err := http.Get(appUrl)
 			return err
@@ -54,7 +55,7 @@ var _ = Describe("Deploy workload", func() {
 	})
 
 	AfterEach(func() {
-		session := runKubectlCommand("delete", "-f", pathFromRoot("specs/nginx.yml"))
+		session := runner.RunKubectlCommand("delete", "-f", nginxSpec)
 		session.Wait("30s")
 
 	})
