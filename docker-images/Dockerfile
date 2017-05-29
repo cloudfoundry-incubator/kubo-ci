@@ -58,8 +58,12 @@ RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download
   -O credhub-linux-0.6.0.tgz && tar xvf credhub-linux-0.6.0.tgz && mv credhub /usr/bin/credhub-0.6.0
 
 # kubectl
-RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.5.3/bin/linux/amd64/kubectl -O /usr/bin/kubectl && \
+RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.6.1/bin/linux/amd64/kubectl -O /usr/bin/kubectl && \
   chmod +x /usr/bin/kubectl
+
+# govc
+RUN wget https://github.com/vmware/govmomi/releases/download/v0.14.0/govc_linux_amd64.gz -qO- | gunzip > /usr/local/bin/govc && \
+  chmod +x /usr/local/bin/govc
 
 # Cleanup
 RUN rm -rf /tmp/docker-build
