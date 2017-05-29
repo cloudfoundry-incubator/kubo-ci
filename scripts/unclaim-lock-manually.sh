@@ -7,5 +7,5 @@ cp -a kubo-lock-repo/. modified-repo
 cd modified-repo
 git config user.email "ci-bot@localhost"
 git config user.name "CI Bot"
-git mv "$LOCK_DIR/claimed/$ENV_NAME" "$LOCK_DIR/unclaimed/$ENV_NAME"
-git commit -m "unclaiming: $LOCK_DIR/$ENV_NAME"
+git mv "${POOL_NAME}/claimed/${ENV_NAME}" "${POOL_NAME}/unclaimed/${ENV_NAME}"
+git commit -m "Unclaiming: ${POOL_NAME}/${ENV_NAME}"

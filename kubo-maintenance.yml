@@ -1,8 +1,11 @@
 <%
-    lock_files =  Dir.glob(File.join(__dir__, "..", "kubo-locks", "kubo-deployment", "*", "*"))
-    envs = lock_files.collect do |file|
+  def get_lock_names(env)
+    lock_files = Dir.glob(File.join(__dir__, "..", "kubo-locks", env, "*", "*"))
+    lock_files.collect do |file|
       File.basename(file)
     end
+  end
+  pools = { 'kubo-deployment' => get_lock_names('kubo-deployment'), 'kubo-gcp' => get_lock_names('kubo-gcp') }
 %>
 ---
 resources:
@@ -20,6 +23,7 @@ resources:
 
 
 jobs:
+<% pools.each do |pool, envs| %>
 <% envs.each do |env| %>
 - name: cleanup-<%= env %>
   plan:
@@ -31,7 +35,7 @@ jobs:
     file: git-kubo-ci/tasks/claim-lock-manually.yml
     params:
       ENV_NAME: <%= env %>
-      LOCK_DIR: kubo-deployment
+      POOL_NAME: <%= pool %>
     ensure:
       put: kubo-lock-repo
       params:
@@ -45,16 +49,16 @@ jobs:
       AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
       AWS_DEFAULT_REGION: eu-west-1
       ENV_NAME: <%= env %>
-
+      POOL_NAME: <%= pool %>
   - task: unclaim-<%= env %>
     file: git-kubo-ci/tasks/unclaim-lock-manually.yml
     params:
       ENV_NAME: <%= env %>
-      LOCK_DIR: kubo-deployment
+      POOL_NAME: <%= pool %>
     ensure:
       put: kubo-lock-repo
       params:
         repository: modified-repo
         rebase: true
-
+<% end %>
 <% end %>

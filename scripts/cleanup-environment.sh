@@ -4,7 +4,7 @@ set -eu
 set -o pipefail
 
 login_gcp() {
-  lock_file="kubo-lock-repo/kubo-deployment/claimed/$ENV_NAME"
+  lock_file="kubo-lock-repo/${POOL_NAME}/claimed/${ENV_NAME}"
 
   bosh-cli int "$lock_file" --path='/gcp_service_account' > gcp_service_account.json
   gcloud auth activate-service-account --key-file=gcp_service_account.json
@@ -13,13 +13,13 @@ login_gcp() {
 }
 
 delete_tfstate() {
-  if gsutil ls "gs://kubo-pipeline-store/terraform/airgap/tinyproxy/$ENV_NAME*"; then
-    gsutil rm "gs://kubo-pipeline-store/terraform/airgap/tinyproxy/$ENV_NAME*"
+  if gsutil ls "gs://kubo-pipeline-store/terraform/airgap/tinyproxy/${ENV_NAME}*"; then
+    gsutil rm "gs://kubo-pipeline-store/terraform/airgap/tinyproxy/${ENV_NAME}*"
   fi
 }
 
 delete_gcloud_vms() {
-  lock_file="kubo-lock-repo/kubo-deployment/claimed/$ENV_NAME"
+  lock_file="kubo-lock-repo/${POOL_NAME}/claimed/${ENV_NAME}"
 
   subnetwork=$(bosh-cli int "$lock_file" --path='/subnetwork')
   subnetLink=$(gcloud compute networks subnets list "$subnetwork" --format=json | bosh-cli int - --path=/0/selfLink)

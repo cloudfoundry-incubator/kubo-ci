@@ -6,6 +6,7 @@ image_resource:
     tag: stable
 params:
   ENV_NAME:
+  POOL_NAME:
   LOCK_DIR:
 inputs:
 - name: kubo-lock-repo
