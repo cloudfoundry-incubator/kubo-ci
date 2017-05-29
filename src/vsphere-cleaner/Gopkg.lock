@@ -14,6 +14,12 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/vmware/govmomi"
+  packages = [".","object","property","session","task","vim25","vim25/debug","vim25/methods","vim25/mo","vim25/progress","vim25/soap","vim25/types","vim25/xml"]
+  revision = "9bfdc5ce62c0585b48b154cc460f8664dcd124c3"
+  version = "v0.14.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
@@ -28,6 +34,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5e23fe07b114859b10834ebfb3a097b24093e41ed2e9e294aa7ce15c6608a4d0"
+  inputs-digest = "894122b0f03a458773f422c398bf36a9cbb9bd8fb05c9f955e4c50aacff6dc56"
   solver-name = "gps-cdcl"
   solver-version = 1
