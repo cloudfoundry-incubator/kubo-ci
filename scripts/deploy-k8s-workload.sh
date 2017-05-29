@@ -16,10 +16,19 @@ credhub login -u credhub-user -p \
 
 "git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
 
-export GOPATH="$PWD/git-kubo-ci"
-export WORKLOAD_TCP_PORT=$(expr $(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/external-kubo-port") + 1000)
-export PATH_TO_KUBECONFIG="$HOME/.kube/config"
-export TCP_ROUTER_DNS_NAME=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/cf-tcp-router-name")
-export CF_APPS_DOMAIN=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing-cf-app-domain-name")
+routing_mode=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing_mode")
 
-ginkgo "$GOPATH/src/integration-tests"
+export GOPATH="$PWD/git-kubo-ci"
+export PATH_TO_KUBECONFIG="$HOME/.kube/config"
+
+if [[ ${routing_mode} == "cf" ]]; then
+  export WORKLOAD_TCP_PORT=$(expr $(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/external-kubo-port") + 1000)
+  export TCP_ROUTER_DNS_NAME=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/cf-tcp-router-name")
+  export CF_APPS_DOMAIN=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing-cf-app-domain-name")
+
+  ginkgo "$GOPATH/src/integration-tests/cloudfoundry"
+elif [[ ${routing_mode} == "iaas" ]]; then
+  export WORKER_IP_ADDRESS=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/kubernetes_worker_ip")
+
+  ginkgo "$GOPATH/src/integration-tests/gcp-lb"
+fi
