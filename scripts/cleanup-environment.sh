@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu
+set -eux
 set -o pipefail
 
 login_gcp() {
@@ -26,7 +26,7 @@ delete_gcloud_vms() {
   vm_names=$(gcloud  compute instances list --filter="networkInterfaces.subnetwork=$subnetLink" --format="table(name)" | tail -n +2 )
 
   if [ -n "${vm_names}" ]; then
-    gcloud compute instances delete "${vm_names[@]}" --delete-disks=all --quiet
+    gcloud compute instances delete ${vm_names[@]} --delete-disks=all --quiet
   fi
 }
 
