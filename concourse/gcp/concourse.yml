@@ -73,6 +73,7 @@ instance_groups:
     properties:
       tags:
         - gcp
+        - gcp-lb
       tsa:
         private_key: ((worker-key.private_key))
   - name: baggageclaim
