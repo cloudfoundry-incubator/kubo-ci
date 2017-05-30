@@ -10,6 +10,7 @@ import (
 	"vsphere-cleaner/parser"
 )
 
+//go:generate counterfeiter ./ Client
 type Client interface {
 	DeleteVM(string) error
 }

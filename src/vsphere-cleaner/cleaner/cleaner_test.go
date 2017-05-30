@@ -2,18 +2,26 @@ package cleaner_test
 
 import (
 	"errors"
-	"vsphere-cleaner/cleaner"
-	"vsphere-cleaner/parser"
-	"vsphere-cleaner/parser/parserfakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"vsphere-cleaner/cleaner"
+	"vsphere-cleaner/parser"
+	"vsphere-cleaner/parser/parserfakes"
+	"vsphere-cleaner/vsphere/vspherefakes"
 )
 
 var _ = Describe("Cleaner", func() {
+	var fakeVSphereClient *vspherefakes.FakeClient
+	var fakeparser *parserfakes.FakeParser
+
+	BeforeEach(func() {
+		fakeparser = new(parserfakes.FakeParser)
+		fakeVSphereClient = new(vspherefakes.FakeClient)
+	})
+
 	It("should parse the lock", func() {
-		fakeparser := new(parserfakes.FakeParser)
-		cleanerObj := cleaner.NewCleaner("lock", fakeparser)
+		cleanerObj := cleaner.NewCleaner("lock", fakeparser, fakeVSphereClient)
 		Expect(cleanerObj.Clean()).To(Succeed())
 
 		Expect(fakeparser.ParseCallCount()).To(Equal(1))
@@ -22,20 +30,22 @@ var _ = Describe("Cleaner", func() {
 
 	It("should fail if parsing the lock fails", func() {
 		fakeparser := new(parserfakes.FakeParser)
-		cleanerObj := cleaner.NewCleaner("lock", fakeparser)
-		fakeparser.ParseReturns(parser.VSphereConfig{}, errors.New("I am error"))
+		cleanerObj := cleaner.NewCleaner("lock", fakeparser, fakeVSphereClient)
+		fakeparser.ParseReturns(parser.VSphereConfig{}, errors.New("I c4n haz eRr0rz"))
 
 		err := cleanerObj.Clean()
 		Expect(err).To(HaveOccurred())
 	})
 
-	// It("should calculate IPs to be terminated", func() {
-	// 	fakeparser := new(parserfakes.FakeParser)
-	// 	cleanerObj := cleaner.NewCleaner("lock", fakeparser, fakeVSphereClient)
-	// 	fakeparser.ParseReturns(parser.VSphereConfig{InternalCIDR: "10.2.2.0/30", ReservedIPs: []string{"10.2.2.1"}}, nil)
+	It("should destroy the bosh vm", func(){
+		fakeParser := new(parserfakes.FakeParser)
+		envCleaner := cleaner.NewCleaner("lock", fakeParser, fakeVSphereClient)
+		fakeParser.ParseReturns(parser.VSphereConfig{InternalIP: "10.2.2.1"}, nil)
+		envCleaner.Clean()
+		Expect(fakeVSphereClient.DeleteVMCallCount()).To(Equal(1))
+		Expect(fakeVSphereClient.DeleteVMArgsForCall(0)).To(Equal("10.2.2.1"))
+	})
 
-	// 	cleanerObj.Clean()
 
-	// 	Expect(fakeVSphereClient.DeleteVMCallCount()).To(Equal(3))
-	// })
+
 })
