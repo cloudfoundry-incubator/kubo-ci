@@ -14,7 +14,6 @@ type Client interface {
 	DeleteVM(string) error
 }
 
-//go:generate counterfeiter ./ vmFinder
 type vmFinder interface {
 	FindByIp(context.Context, *object.Datacenter, string, bool) (object.Reference, error)
 }
