@@ -103,10 +103,10 @@ resources:
 #     regexp: kubo-deployment-(.*).tgz
 
 
-# - name: slack-alert
-#   type: slack-notification
-#   source:
-#     url: {{slack-url}}
+- name: slack-alert
+  type: slack-notification
+  source:
+    url: {{slack-url}}
 
 
 ############################################
@@ -150,14 +150,14 @@ jobs:
 
   - task: install
     file: git-kubo-ci/tasks/install-bosh.yml
-    # on_failure:
-    #   put: slack-alert
-    #   params:
-    #     silent: true
-    #     icon_emoji: ":thumbsdown:"
-    #     text: |
-    #       Deploy BOSH failed:
-    #       https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+    on_failure:
+      put: slack-alert
+      params:
+        silent: true
+        icon_emoji: ":thumbsdown:"
+        text: |
+          Deploy BOSH failed:
+          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -259,14 +259,14 @@ jobs:
       kubo-lock: kubo-lock-with-proxy
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
 
-    # on_failure:
-    #   put: slack-alert
-    #   params:
-    #     silent: true
-    #     icon_emoji: ":thumbsdown:"
-    #     text: |
-    #       Deploy K8s failed:
-    #       https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+    on_failure:
+      put: slack-alert
+      params:
+        silent: true
+        icon_emoji: ":thumbsdown:"
+        text: |
+          Deploy K8s failed:
+          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: gcs-service-creds
     params:
       file: service-creds/ci-service-creds.yml
@@ -297,24 +297,24 @@ jobs:
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
   - task: workload
     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
-    # on_failure:
-    #   put: slack-alert
-    #   params:
-    #     silent: true
-    #     icon_emoji: ":thumbsdown:"
-    #     text: |
-    #       Deploy K8s Workload failed:
-    #       https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+    on_failure:
+      put: slack-alert
+      params:
+        silent: true
+        icon_emoji: ":thumbsdown:"
+        text: |
+          Deploy K8s Workload failed:
+          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: pod-to-pod
     file: git-kubo-ci/tasks/pod-to-pod.yml
-    # on_failure:
-    #   put: slack-alert
-    #   params:
-    #     silent: true
-    #     icon_emoji: ":thumbsdown:"
-    #     text: |
-    #       Pod to pod communication failed:
-    #       https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+    on_failure:
+      put: slack-alert
+      params:
+        silent: true
+        icon_emoji: ":thumbsdown:"
+        text: |
+          Pod to pod communication failed:
+          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-k8s
   plan:
@@ -340,14 +340,14 @@ jobs:
 
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-    # on_failure:
-    #   put: slack-alert
-    #   params:
-    #     silent: true
-    #     icon_emoji: ":thumbsdown:"
-    #     text: |
-    #       Destroy K8s failed:
-    #       https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+    on_failure:
+      put: slack-alert
+      params:
+        silent: true
+        icon_emoji: ":thumbsdown:"
+        text: |
+          Destroy K8s failed:
+          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-proxy
   plan:
@@ -391,14 +391,14 @@ jobs:
 
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    # on_failure:
-    #   put: slack-alert
-    #   params:
-    #     silent: true
-    #     icon_emoji: ":thumbsdown:"
-    #     text: |
-    #       Destroy BOSH failed:
-    #       https://p-concourse.kubo.cf-app.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+    on_failure:
+      put: slack-alert
+      params:
+        silent: true
+        icon_emoji: ":thumbsdown:"
+        text: |
+          Destroy BOSH failed:
+          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: kubo-lock
     params: { release: kubo-lock }
 
