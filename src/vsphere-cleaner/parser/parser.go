@@ -8,7 +8,7 @@ import (
 
 //go:generate counterfeiter ./ Parser
 type Parser interface {
-	Parse(string) (VMWareConfig, error)
+	Parse(string) (VSphereConfig, error)
 }
 
 type parserImpl struct{}
@@ -17,7 +17,7 @@ func NewParser() Parser {
 	return parserImpl{}
 }
 
-type VMWareConfig struct {
+type VSphereConfig struct {
 	IP        string `yaml:"vcenter_ip"`
 	User      string `yaml:"vcenter_user"`
 	Password  string `yaml:"vcenter_password"`
@@ -36,8 +36,8 @@ type VMWareConfig struct {
 	ReservedIPs  []string `yaml:"reserved_ips"`
 }
 
-func (parserImpl) Parse(lockPath string) (VMWareConfig, error) {
-	config := VMWareConfig{}
+func (parserImpl) Parse(lockPath string) (VSphereConfig, error) {
+	config := VSphereConfig{}
 	dat, err := ioutil.ReadFile(lockPath)
 	if err != nil {
 		return config, err

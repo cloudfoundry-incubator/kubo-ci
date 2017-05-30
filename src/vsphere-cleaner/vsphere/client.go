@@ -2,23 +2,29 @@ package vsphere
 
 import (
 	"context"
-	"errors"
+	//"errors"
 	"net/url"
-	"vsphere-cleaner/parser"
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/object"
+	"vsphere-cleaner/parser"
+	"errors"
 )
 
 type Client interface {
 	DeleteVM(string) error
 }
 
-type client struct {
-	searchIndex object.SearchIndex
+//go:generate counterfeiter ./ vmFinder
+type vmFinder interface {
+	FindByIp(context.Context, *object.Datacenter, string, bool) (object.Reference, error)
 }
 
-func BuildUrl(config parser.VMWareConfig) *url.URL {
+type client struct {
+	finder vmFinder
+}
+
+func BuildUrl(config parser.VSphereConfig) *url.URL {
 	parsedUrl := url.URL{
 		Scheme: "https",
 		Host:   config.IP,
@@ -30,17 +36,28 @@ func BuildUrl(config parser.VMWareConfig) *url.URL {
 
 func NewClient(vsphereURL *url.URL) (Client, error) {
 	ctx := context.Background()
+	finder, err := buildSearchIndex(ctx, vsphereURL)
+	if err != nil {
+		return nil, err
+	}
+	return NewClientWithFinder(finder), nil
+}
+
+func NewClientWithFinder(finder vmFinder) Client {
+	return &client{finder: finder}
+}
+
+func buildSearchIndex(ctx context.Context, vsphereURL *url.URL) (vmFinder, error) {
 	c, err := govmomi.NewClient(ctx, vsphereURL, true)
 	if err != nil {
-		return &client{}, err
+		return nil, err
 	}
-	searchIndex := object.NewSearchIndex(c.Client)
-	return &client{searchIndex: *searchIndex}, nil
+	return object.NewSearchIndex(c.Client), nil
 }
 
 func (c *client) DeleteVM(ip string) error {
 	ctx := context.Background()
-	vmReference, err := c.searchIndex.FindByIp(ctx, nil, ip, true)
+	vmReference, err := c.finder.FindByIp(ctx, nil, ip, true)
 	if err != nil {
 		return nil
 	}

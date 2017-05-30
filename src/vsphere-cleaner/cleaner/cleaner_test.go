@@ -23,7 +23,7 @@ var _ = Describe("Cleaner", func() {
 	It("should fail if parsing the lock fails", func() {
 		fakeparser := new(parserfakes.FakeParser)
 		cleanerObj := cleaner.NewCleaner("lock", fakeparser)
-		fakeparser.ParseReturns(parser.VMWareConfig{}, errors.New("I am error"))
+		fakeparser.ParseReturns(parser.VSphereConfig{}, errors.New("I am error"))
 
 		err := cleanerObj.Clean()
 		Expect(err).To(HaveOccurred())
@@ -32,7 +32,7 @@ var _ = Describe("Cleaner", func() {
 	// It("should calculate IPs to be terminated", func() {
 	// 	fakeparser := new(parserfakes.FakeParser)
 	// 	cleanerObj := cleaner.NewCleaner("lock", fakeparser, fakeVSphereClient)
-	// 	fakeparser.ParseReturns(parser.VMWareConfig{InternalCIDR: "10.2.2.0/30", ReservedIPs: []string{"10.2.2.1"}}, nil)
+	// 	fakeparser.ParseReturns(parser.VSphereConfig{InternalCIDR: "10.2.2.0/30", ReservedIPs: []string{"10.2.2.1"}}, nil)
 
 	// 	cleanerObj.Clean()
 

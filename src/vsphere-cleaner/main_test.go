@@ -23,11 +23,4 @@ var _ = Describe("Main", func() {
 		Eventually(session).Should(gexec.Exit())
 		Expect(session.ExitCode()).NotTo(Equal(0))
 	})
-
-	XIt("asks vsphere to delete vms", func() {
-		command := exec.Command(pathToCLI, "")
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ToNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit(0))
-	})
 })
