@@ -368,6 +368,8 @@ jobs:
       env_name_file: kubo-lock/name
       var_files: [ tfvars_dir/terraform.tfvars ]
       action: destroy
+    get_params:
+      action: destroy
 
 - name: destroy-bosh
   plan:
