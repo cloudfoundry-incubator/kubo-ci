@@ -4,12 +4,17 @@ package vspherefakes
 import (
 	"context"
 	"github.com/vmware/govmomi/object"
+	"errors"
 )
 
 type FakeVmFinder struct {
-	Err error
+	err error
+}
+
+func FailingFinder() FakeVmFinder {
+	return FakeVmFinder{err: errors.New("Confucius says: sex and om.")}
 }
 
 func (fake FakeVmFinder) FindByIp(arg1 context.Context, arg2 *object.Datacenter, arg3 string, arg4 bool) (object.Reference, error) {
-	return nil, fake.Err
+	return nil, fake.err
 }

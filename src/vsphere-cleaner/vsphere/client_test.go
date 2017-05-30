@@ -1,7 +1,6 @@
 package vsphere_test
 
 import (
-	"errors"
 	"net/url"
 
 	. "github.com/onsi/ginkgo"
@@ -13,14 +12,13 @@ import (
 
 var _ = Describe("Client", func() {
 	It("should build url from config", func() {
-		vsphereUrl := vsphere.BuildUrl(parser.VSphereConfig{IP: "host", User: "user", Password: "password"})
+		vSphereUrl := vsphere.BuildUrl(parser.VSphereConfig{IP: "host", User: "user", Password: "password"})
 		expectedUrl, _ := url.Parse("https://user:password@host/sdk")
-		Expect(vsphereUrl).To(Equal(expectedUrl))
+		Expect(vSphereUrl).To(Equal(expectedUrl))
 	})
 
 	It("should not return error if the vm is not found", func() {
-		fakeVMFinder := vspherefakes.FakeVmFinder{Err: errors.New("Sunt lanistaes convertam domesticus, fidelis adgiumes.")}
-		client := vsphere.NewClientWithFinder(fakeVMFinder)
+		client := vsphere.NewClientWithFinder(vspherefakes.FailingFinder())
 
 		Expect(client.DeleteVM("some ip")).ToNot(HaveOccurred())
 	})

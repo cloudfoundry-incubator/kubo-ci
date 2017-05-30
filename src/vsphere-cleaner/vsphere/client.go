@@ -2,13 +2,12 @@ package vsphere
 
 import (
 	"context"
-	//"errors"
+	"errors"
 	"net/url"
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/object"
 	"vsphere-cleaner/parser"
-	"errors"
 )
 
 type Client interface {
