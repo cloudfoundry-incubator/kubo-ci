@@ -3,7 +3,6 @@ package gcp_lb_test
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -27,7 +26,6 @@ var _ = Describe("Deploy workload", func() {
 
 		Eventually(runner.RunKubectlCommand("create", "-f", nginxSpec), "60s").Should(gexec.Exit(0))
 
-
 		Eventually(func() int {
 			result, err := httpClient.Get(appUrl)
 			if err != nil {
@@ -35,7 +33,6 @@ var _ = Describe("Deploy workload", func() {
 			}
 			return result.StatusCode
 		}, "120s", "5s").Should(Equal(200))
-
 
 	})
 
