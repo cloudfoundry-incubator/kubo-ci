@@ -29,11 +29,8 @@ func BuildUrl(config parser.VMWareConfig) *url.URL {
 }
 
 func NewClient(vsphereURL *url.URL) (Client, error) {
-	ctx := context.TODO()
-	vsphere := url.URL{
-		Host: "host",
-	}
-	c, err := govmomi.NewClient(ctx, &vsphere, true)
+	ctx := context.Background()
+	c, err := govmomi.NewClient(ctx, vsphereURL, true)
 	if err != nil {
 		return &client{}, err
 	}
@@ -42,8 +39,7 @@ func NewClient(vsphereURL *url.URL) (Client, error) {
 }
 
 func (c *client) DeleteVM(ip string) error {
-	var err error
-	ctx := context.TODO()
+	ctx := context.Background()
 	vmReference, err := c.searchIndex.FindByIp(ctx, nil, ip, true)
 	if err != nil {
 		return nil
@@ -51,11 +47,14 @@ func (c *client) DeleteVM(ip string) error {
 
 	vm, converted := vmReference.(*object.VirtualMachine)
 	if !converted {
-		return errors.New("not vm is returned")
+		return errors.New("The returned object is not a VM")
 	}
+
 	state, err := vm.PowerOff(ctx)
 	err = state.Wait(ctx)
+
 	state, err = vm.Destroy(ctx)
 	err = state.Wait(ctx)
+
 	return err
 }
