@@ -14,7 +14,7 @@ var _ = Describe("Deploy workload", func() {
 
 	It("exposes routes via GCP LBs", func() {
 
-		appUrl := fmt.Sprintf("http://%s", workerAddress)
+		appUrl := fmt.Sprintf("http://%s:%s", workerAddress, nodePort)
 
 		timeout := time.Duration(5 * time.Second)
 		httpClient := http.Client{
