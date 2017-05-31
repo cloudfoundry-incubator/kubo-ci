@@ -1,17 +1,7 @@
-iaas: vsphere
 vcenter_ip: 10.74.32.100
 vcenter_user: 'username@vsphere.local'
 vcenter_password: 'password'
-vcenter_dc: canada-dc
-vcenter_cluster: canada
-vcenter_ds: vnx5600-toronto-1
-vcenter_rp: thunderbay
-vcenter_vms: thunderbay_vms
-vcenter_templates: thunderbay_templates
-vcenter_disks: thunderbay_disks
 
-network_name: thunderbay
 internal_cidr: 10.74.42.0/25
-internal_gw: 10.74.42.1
 internal_ip: 10.74.42.44
 reserved_ips: [10.74.42.0-10.74.42.44,10.74.42.72-10.74.42.127]
