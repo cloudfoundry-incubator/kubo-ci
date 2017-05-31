@@ -9,13 +9,6 @@ import (
 )
 
 var _ = Describe("Main", func() {
-	It("exits 0", func() {
-		command := exec.Command(pathToCLI, "lock-file")
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ToNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit(0))
-	})
-
 	It("requires lock file", func() {
 		command := exec.Command(pathToCLI)
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)

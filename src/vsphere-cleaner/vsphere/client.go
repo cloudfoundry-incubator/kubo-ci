@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/url"
 
+	"fmt"
+
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/object"
 )
@@ -47,6 +49,8 @@ func (c *client) DeleteVM(ip string) error {
 	ctx := context.Background()
 	vmReference, err := c.finder.FindByIp(ctx, nil, ip, true)
 	if err != nil {
+		fmt.Println("VM with IP " + ip + " does not exist")
+
 		return nil
 	}
 
@@ -55,6 +59,7 @@ func (c *client) DeleteVM(ip string) error {
 		return errors.New("The returned object is not a VM")
 	}
 
+	fmt.Println("Deleting VM with IP " + ip)
 	state, err := vm.PowerOff(ctx)
 	// TEST ME PLIIIZZ!
 	err = state.Wait(ctx)
