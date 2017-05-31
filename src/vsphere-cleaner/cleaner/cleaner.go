@@ -30,7 +30,10 @@ func (c Cleaner) Clean() error {
 		return err
 	}
 
-	ips, _ := config.UsedIPs()
+	ips, err := config.UsedIPs()
+	if err != nil {
+		return err
+	}
 	for _, ip := range ips {
 		err = vSphereClient.DeleteVM(ip)
 		if err != nil {

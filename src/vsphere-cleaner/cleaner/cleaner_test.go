@@ -91,5 +91,13 @@ var _ = Describe("Cleaner", func() {
 		Expect(err).To(HaveOccurred())
 	})
 
+	Context("when getting used ips from config fails", func() {
+		It("should return error", func() {
+			fakeConfig.UsedIPsReturns([]string{}, errors.New("error"))
+			err := cleanerObj.Clean()
+
+			Expect(err).To(HaveOccurred())
+
+		})
 	})
 })
