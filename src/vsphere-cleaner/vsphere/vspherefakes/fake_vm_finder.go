@@ -3,18 +3,106 @@ package vspherefakes
 
 import (
 	"context"
+	"sync"
+
 	"github.com/vmware/govmomi/object"
-	"errors"
 )
 
 type FakeVmFinder struct {
-	err error
+	FindByIpStub        func(context.Context, *object.Datacenter, string, bool) (object.Reference, error)
+	findByIpMutex       sync.RWMutex
+	findByIpArgsForCall []struct {
+		arg1 context.Context
+		arg2 *object.Datacenter
+		arg3 string
+		arg4 bool
+	}
+	findByIpReturns struct {
+		result1 object.Reference
+		result2 error
+	}
+	findByIpReturnsOnCall map[int]struct {
+		result1 object.Reference
+		result2 error
+	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
-func FailingFinder() FakeVmFinder {
-	return FakeVmFinder{err: errors.New("Confucius says: sex and om.")}
+func (fake *FakeVmFinder) FindByIp(arg1 context.Context, arg2 *object.Datacenter, arg3 string, arg4 bool) (object.Reference, error) {
+	fake.findByIpMutex.Lock()
+	ret, specificReturn := fake.findByIpReturnsOnCall[len(fake.findByIpArgsForCall)]
+	fake.findByIpArgsForCall = append(fake.findByIpArgsForCall, struct {
+		arg1 context.Context
+		arg2 *object.Datacenter
+		arg3 string
+		arg4 bool
+	}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("FindByIp", []interface{}{arg1, arg2, arg3, arg4})
+	fake.findByIpMutex.Unlock()
+	if fake.FindByIpStub != nil {
+		return fake.FindByIpStub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.findByIpReturns.result1, fake.findByIpReturns.result2
 }
 
-func (fake FakeVmFinder) FindByIp(arg1 context.Context, arg2 *object.Datacenter, arg3 string, arg4 bool) (object.Reference, error) {
-	return nil, fake.err
+func (fake *FakeVmFinder) FindByIpCallCount() int {
+	fake.findByIpMutex.RLock()
+	defer fake.findByIpMutex.RUnlock()
+	return len(fake.findByIpArgsForCall)
+}
+
+func (fake *FakeVmFinder) FindByIpArgsForCall(i int) (context.Context, *object.Datacenter, string, bool) {
+	fake.findByIpMutex.RLock()
+	defer fake.findByIpMutex.RUnlock()
+	return fake.findByIpArgsForCall[i].arg1, fake.findByIpArgsForCall[i].arg2, fake.findByIpArgsForCall[i].arg3, fake.findByIpArgsForCall[i].arg4
+}
+
+func (fake *FakeVmFinder) FindByIpReturns(result1 object.Reference, result2 error) {
+	fake.FindByIpStub = nil
+	fake.findByIpReturns = struct {
+		result1 object.Reference
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeVmFinder) FindByIpReturnsOnCall(i int, result1 object.Reference, result2 error) {
+	fake.FindByIpStub = nil
+	if fake.findByIpReturnsOnCall == nil {
+		fake.findByIpReturnsOnCall = make(map[int]struct {
+			result1 object.Reference
+			result2 error
+		})
+	}
+	fake.findByIpReturnsOnCall[i] = struct {
+		result1 object.Reference
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeVmFinder) Invocations() map[string][][]interface{} {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	fake.findByIpMutex.RLock()
+	defer fake.findByIpMutex.RUnlock()
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
+}
+
+func (fake *FakeVmFinder) recordInvocation(key string, args []interface{}) {
+	fake.invocationsMutex.Lock()
+	defer fake.invocationsMutex.Unlock()
+	if fake.invocations == nil {
+		fake.invocations = map[string][][]interface{}{}
+	}
+	if fake.invocations[key] == nil {
+		fake.invocations[key] = [][]interface{}{}
+	}
+	fake.invocations[key] = append(fake.invocations[key], args)
 }

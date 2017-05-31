@@ -1,13 +1,15 @@
 package vsphere_test
 
 import (
+	"errors"
 	"net/url"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"vsphere-cleaner/parser"
 	"vsphere-cleaner/vsphere"
 	"vsphere-cleaner/vsphere/vspherefakes"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Client", func() {
@@ -18,8 +20,10 @@ var _ = Describe("Client", func() {
 	})
 
 	It("should not return error if the vm is not found", func() {
-		client := vsphere.NewClientWithFinder(vspherefakes.FailingFinder())
-
-		Expect(client.DeleteVM("some ip")).ToNot(HaveOccurred())
+		fakeVmFinder := &vspherefakes.FakeVmFinder{}
+		client := vsphere.NewClientWithFinder(fakeVmFinder)
+		fakeVmFinder.FindByIpReturns(nil, errors.New("Some error"))
+		err := client.DeleteVM("some ip")
+		Expect(err).ToNot(HaveOccurred())
 	})
 })

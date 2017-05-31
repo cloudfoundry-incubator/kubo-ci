@@ -5,9 +5,10 @@ import (
 	"errors"
 	"net/url"
 
+	"vsphere-cleaner/parser"
+
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/object"
-	"vsphere-cleaner/parser"
 )
 
 //go:generate counterfeiter ./ Client
