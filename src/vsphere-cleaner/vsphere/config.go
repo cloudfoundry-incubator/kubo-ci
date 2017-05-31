@@ -30,9 +30,28 @@ func (c Config) UsedIPs() ([]string, error) {
 		if err != nil {
 			return []string{}, err
 		}
-		ips = ipcalc.Difference(ips, reserved)
+		ips = difference(ips, reserved)
 	}
 	return ips, nil
+}
+
+func difference(slice1 []string, slice2 []string) []string {
+	result := []string{}
+	for _, e := range slice1 {
+		if !contains(slice2, e) {
+			result = append(result, e)
+		}
+	}
+	return result
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
 
 func (c Config) BuildUrl() *url.URL {

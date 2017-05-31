@@ -36,25 +36,6 @@ func GetIPsFromRange(ipRange string) ([]string, error) {
 	return listIPsInRange(firstAndLastIPs[0], firstAndLastIPs[1])
 }
 
-func Difference(slice1 []string, slice2 []string) []string {
-	result := []string{}
-	for _, e := range slice1 {
-		if !contains(slice2, e) {
-			result = append(result, e)
-		}
-	}
-	return result
-}
-
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}
-
 func listIPsInRange(firstIPString string, lastIPString string) ([]string, error) {
 	firstIP := net.ParseIP(firstIPString)
 	lastIP := net.ParseIP(lastIPString)

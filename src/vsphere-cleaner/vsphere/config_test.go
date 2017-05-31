@@ -11,7 +11,7 @@ import (
 var _ = Describe("Config", func() {
 	Describe("UsedIPs", func() {
 		It("should get IPs in InternalCIDR but not those in ReservedIPs", func() {
-			config := vsphere.Config{InternalCIDR: "10.1.1.0/30", ReservedIPs: []string{"10.1.1.3-10.1.1.4"}}
+			config := vsphere.Config{InternalCIDR: "10.1.1.0/29", ReservedIPs: []string{"10.1.1.3-10.1.1.4", "10.1.1.5-10.1.1.8"}}
 			ips, err := config.UsedIPs()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(ips).To(Equal([]string{"10.1.1.1", "10.1.1.2"}))
