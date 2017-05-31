@@ -22,16 +22,6 @@ type client struct {
 	finder vmFinder
 }
 
-func BuildUrl(config Config) *url.URL {
-	parsedUrl := url.URL{
-		Scheme: "https",
-		Host:   config.IP,
-		Path:   "/sdk",
-		User:   url.UserPassword(config.User, config.Password),
-	}
-	return &parsedUrl
-}
-
 func NewClient(vsphereURL *url.URL) (Client, error) {
 	ctx := context.Background()
 	finder, err := buildSearchIndex(ctx, vsphereURL)

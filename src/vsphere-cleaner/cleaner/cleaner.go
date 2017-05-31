@@ -1,7 +1,6 @@
 package cleaner
 
 import (
-	"vsphere-cleaner/ipcalc"
 	"vsphere-cleaner/parser"
 	"vsphere-cleaner/vsphere"
 )
@@ -21,17 +20,12 @@ func (c Cleaner) Clean() error {
 	if err != nil {
 		return err
 	}
-	err = c.vSphereClient.DeleteVM(string(config.InternalIP))
+	err = c.vSphereClient.DeleteVM(config.InternalIP)
 	if err != nil {
 		return err
 	}
 
-	ips, _ := ipcalc.GetIPsFromCIDR(config.InternalCIDR)
-	for _, reservedRange := range config.ReservedIPs {
-		reserved, _ := ipcalc.GetIPsFromRange(reservedRange)
-		ips = ipcalc.Difference(ips, reserved)
-	}
-
+	ips, _ := config.UsedIPs()
 	for _, ip := range ips {
 		err = c.vSphereClient.DeleteVM(ip)
 		if err != nil {

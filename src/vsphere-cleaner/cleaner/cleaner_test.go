@@ -42,7 +42,6 @@ var _ = Describe("Cleaner", func() {
 	})
 
 	It("should destroy the bosh vm", func() {
-
 		err := cleanerObj.Clean()
 
 		Expect(err).NotTo(HaveOccurred())

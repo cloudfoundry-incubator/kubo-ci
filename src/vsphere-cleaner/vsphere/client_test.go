@@ -2,7 +2,6 @@ package vsphere_test
 
 import (
 	"errors"
-	"net/url"
 
 	"vsphere-cleaner/vsphere"
 	"vsphere-cleaner/vsphere/vspherefakes"
@@ -12,12 +11,6 @@ import (
 )
 
 var _ = Describe("Client", func() {
-	It("should build url from config", func() {
-		vSphereUrl := vsphere.BuildUrl(vsphere.Config{IP: "host", User: "user", Password: "password"})
-		expectedUrl, _ := url.Parse("https://user:password@host/sdk")
-		Expect(vSphereUrl).To(Equal(expectedUrl))
-	})
-
 	It("should not return error if the vm is not found", func() {
 		fakeVmFinder := &vspherefakes.FakeVmFinder{}
 		client := vsphere.NewClientWithFinder(fakeVmFinder)

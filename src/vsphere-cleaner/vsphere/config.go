@@ -1,8 +1,8 @@
 package vsphere
 
 import (
-	"errors"
-	"net"
+	"net/url"
+	"vsphere-cleaner/ipcalc"
 )
 
 type Config struct {
@@ -11,26 +11,36 @@ type Config struct {
 	Password string `yaml:"vcenter_password"`
 
 	InternalCIDR string   `yaml:"internal_cidr"`
-	InternalIP   IP       `yaml:"internal_ip"`
+	InternalIP   string   `yaml:"internal_ip"`
 	ReservedIPs  []string `yaml:"reserved_ips"`
 }
 
-func (config Config) UsedIPs() []string {
-	return []string{}
+type IConfig interface {
+	BuildUrl() *url.URL
+	UsedIPs() ([]string, error)
 }
 
-type IP string
-
-func (ip *IP) UnmarshalYAML(u func(interface{}) error) error {
-	var s string
-	err := u(&s)
+func (c Config) UsedIPs() ([]string, error) {
+	ips, err := ipcalc.GetIPsFromCIDR(c.InternalCIDR)
 	if err != nil {
-		return err
+		return []string{}, err
 	}
-	parsedIP := net.ParseIP(s)
-	if parsedIP == nil {
-		return errors.New("Invalid IP")
+	for _, reservedRange := range c.ReservedIPs {
+		reserved, err := ipcalc.GetIPsFromRange(reservedRange)
+		if err != nil {
+			return []string{}, err
+		}
+		ips = ipcalc.Difference(ips, reserved)
 	}
-	*ip = IP(s)
-	return nil
+	return ips, nil
+}
+
+func (c Config) BuildUrl() *url.URL {
+	parsedUrl := url.URL{
+		Scheme: "https",
+		Host:   c.IP,
+		Path:   "/sdk",
+		User:   url.UserPassword(c.User, c.Password),
+	}
+	return &parsedUrl
 }
