@@ -17,15 +17,19 @@ var _ = Describe("Cleaner", func() {
 	var fakeVSphereClient *vspherefakes.FakeClient
 	var fakeParser *parserfakes.FakeParser
 	var cleanerObj cleaner.Cleaner
+	var fakeConfig *vspherefakes.FakeConfig
 
 	BeforeEach(func() {
 		fakeParser = new(parserfakes.FakeParser)
 		fakeVSphereClient = new(vspherefakes.FakeClient)
+		fakeConfig = new(vspherefakes.FakeConfig)
 		builder := func(*url.URL) (vsphere.Client, error) {
 			return fakeVSphereClient, nil
 		}
 		cleanerObj = cleaner.NewCleaner("lock", fakeParser, builder)
-		fakeParser.ParseReturns(vsphere.Config{InternalIP: "10.2.2.1", InternalCIDR: "10.2.3.0/29", ReservedIPs: []string{"10.2.3.2-10.2.3.3", "10.2.3.4"}}, nil)
+		fakeConfig.DirectorIPReturns("10.2.2.1")
+		fakeConfig.UsedIPsReturns([]string{"10.2.3.1", "10.2.3.10"}, nil)
+		fakeParser.ParseReturns(fakeConfig, nil)
 	})
 
 	It("should parse the lock", func() {
@@ -37,7 +41,7 @@ var _ = Describe("Cleaner", func() {
 
 	Context("when parsing lock fails", func() {
 		It("should fail if parsing the lock fails", func() {
-			fakeParser.ParseReturns(vsphere.Config{}, errors.New("I c4n haz eRr0rz"))
+			fakeParser.ParseReturns(new(vspherefakes.FakeConfig), errors.New("I c4n haz eRr0rz"))
 
 			err := cleanerObj.Clean()
 
@@ -71,11 +75,12 @@ var _ = Describe("Cleaner", func() {
 		Expect(err).To(HaveOccurred())
 	})
 
-	It("should destroy the vms in CIDR", func() {
+	It("should destroy the all vms from UsedIPs", func() {
 		err := cleanerObj.Clean()
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeVSphereClient.DeleteVMArgsForCall(1)).To(Equal("10.2.3.1"))
+		Expect(fakeVSphereClient.DeleteVMArgsForCall(2)).To(Equal("10.2.3.10"))
 	})
 
 	It("should return error if deleting the vms in CIDR fails", func() {
@@ -86,12 +91,5 @@ var _ = Describe("Cleaner", func() {
 		Expect(err).To(HaveOccurred())
 	})
 
-	It("should not destroy VMs in ReservedIPs", func() {
-		err := cleanerObj.Clean()
-
-		Expect(err).ToNot(HaveOccurred())
-		Expect(fakeVSphereClient.Invocations()["DeleteVM"]).NotTo(ContainElement([]interface{}{"10.2.3.2"}))
-		Expect(fakeVSphereClient.Invocations()["DeleteVM"]).NotTo(ContainElement([]interface{}{"10.2.3.3"}))
-		Expect(fakeVSphereClient.Invocations()["DeleteVM"]).NotTo(ContainElement([]interface{}{"10.2.3.4"}))
 	})
 })

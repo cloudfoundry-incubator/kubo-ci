@@ -25,7 +25,7 @@ func (c Cleaner) Clean() error {
 	if err != nil {
 		return err
 	}
-	err = vSphereClient.DeleteVM(config.InternalIP)
+	err = vSphereClient.DeleteVM(config.DirectorIP())
 	if err != nil {
 		return err
 	}

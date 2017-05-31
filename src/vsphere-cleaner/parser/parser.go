@@ -19,7 +19,7 @@ func NewParser() Parser {
 }
 
 func (parserImpl) Parse(lockPath string) (vsphere.Config, error) {
-	config := vsphere.Config{}
+	config := Config{}
 	dat, err := ioutil.ReadFile(lockPath)
 	if err != nil {
 		return config, err

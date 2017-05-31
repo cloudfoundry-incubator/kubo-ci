@@ -20,7 +20,7 @@ var _ = Describe("Parser", func() {
 	It("parses the test file", func() {
 		config, err := parserObj.Parse("test_lock")
 		Expect(err).NotTo(HaveOccurred())
-		Expect(config.IP).To(Equal("10.74.32.100"))
+		Expect(config.DirectorIP()).To(Equal("10.74.42.44"))
 	})
 
 	It("returns error if file does not exist", func() {
