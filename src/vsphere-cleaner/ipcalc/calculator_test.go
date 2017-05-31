@@ -57,4 +57,19 @@ var _ = Describe("Calculator", func() {
 			table.Entry("First IP is bigger than last IP", "10.1.1.2-10.1.1.1"),
 		)
 	})
+
+	Describe("Difference", func() {
+		It("should find difference between two empty arrays", func() {
+			Expect(ipcalc.Difference([]string{}, []string{})).To(Equal([]string{}))
+		})
+
+		It("should find difference when only second array is empty", func() {
+			Expect(ipcalc.Difference([]string{"foo"}, []string{})).To(Equal([]string{"foo"}))
+		})
+
+		It("should find difference when both arrays are not empty", func() {
+			Expect(ipcalc.Difference([]string{"foo", "bar"}, []string{"bar"})).To(Equal([]string{"foo"}))
+			Expect(ipcalc.Difference([]string{"bar", "foo", "bar"}, []string{"bar"})).To(Equal([]string{"foo"}))
+		})
+	})
 })

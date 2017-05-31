@@ -4,27 +4,28 @@ package parserfakes
 import (
 	"sync"
 	"vsphere-cleaner/parser"
+	"vsphere-cleaner/vsphere"
 )
 
 type FakeParser struct {
-	ParseStub        func(string) (parser.VSphereConfig, error)
+	ParseStub        func(string) (vsphere.Config, error)
 	parseMutex       sync.RWMutex
 	parseArgsForCall []struct {
 		arg1 string
 	}
 	parseReturns struct {
-		result1 parser.VSphereConfig
+		result1 vsphere.Config
 		result2 error
 	}
 	parseReturnsOnCall map[int]struct {
-		result1 parser.VSphereConfig
+		result1 vsphere.Config
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeParser) Parse(arg1 string) (parser.VSphereConfig, error) {
+func (fake *FakeParser) Parse(arg1 string) (vsphere.Config, error) {
 	fake.parseMutex.Lock()
 	ret, specificReturn := fake.parseReturnsOnCall[len(fake.parseArgsForCall)]
 	fake.parseArgsForCall = append(fake.parseArgsForCall, struct {
@@ -53,24 +54,24 @@ func (fake *FakeParser) ParseArgsForCall(i int) string {
 	return fake.parseArgsForCall[i].arg1
 }
 
-func (fake *FakeParser) ParseReturns(result1 parser.VSphereConfig, result2 error) {
+func (fake *FakeParser) ParseReturns(result1 vsphere.Config, result2 error) {
 	fake.ParseStub = nil
 	fake.parseReturns = struct {
-		result1 parser.VSphereConfig
+		result1 vsphere.Config
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeParser) ParseReturnsOnCall(i int, result1 parser.VSphereConfig, result2 error) {
+func (fake *FakeParser) ParseReturnsOnCall(i int, result1 vsphere.Config, result2 error) {
 	fake.ParseStub = nil
 	if fake.parseReturnsOnCall == nil {
 		fake.parseReturnsOnCall = make(map[int]struct {
-			result1 parser.VSphereConfig
+			result1 vsphere.Config
 			result2 error
 		})
 	}
 	fake.parseReturnsOnCall[i] = struct {
-		result1 parser.VSphereConfig
+		result1 vsphere.Config
 		result2 error
 	}{result1, result2}
 }

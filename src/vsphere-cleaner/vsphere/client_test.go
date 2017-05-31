@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/url"
 
-	"vsphere-cleaner/parser"
 	"vsphere-cleaner/vsphere"
 	"vsphere-cleaner/vsphere/vspherefakes"
 
@@ -14,7 +13,7 @@ import (
 
 var _ = Describe("Client", func() {
 	It("should build url from config", func() {
-		vSphereUrl := vsphere.BuildUrl(parser.VSphereConfig{IP: "host", User: "user", Password: "password"})
+		vSphereUrl := vsphere.BuildUrl(vsphere.Config{IP: "host", User: "user", Password: "password"})
 		expectedUrl, _ := url.Parse("https://user:password@host/sdk")
 		Expect(vSphereUrl).To(Equal(expectedUrl))
 	})

@@ -5,8 +5,6 @@ import (
 	"errors"
 	"net/url"
 
-	"vsphere-cleaner/parser"
-
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/object"
 )
@@ -24,7 +22,7 @@ type client struct {
 	finder vmFinder
 }
 
-func BuildUrl(config parser.VSphereConfig) *url.URL {
+func BuildUrl(config Config) *url.URL {
 	parsedUrl := url.URL{
 		Scheme: "https",
 		Host:   config.IP,
@@ -68,6 +66,7 @@ func (c *client) DeleteVM(ip string) error {
 	}
 
 	state, err := vm.PowerOff(ctx)
+	// TEST ME PLIIIZZ!
 	err = state.Wait(ctx)
 
 	state, err = vm.Destroy(ctx)
