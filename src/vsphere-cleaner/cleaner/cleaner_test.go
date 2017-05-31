@@ -2,6 +2,7 @@ package cleaner_test
 
 import (
 	"errors"
+	"net/url"
 
 	"vsphere-cleaner/cleaner"
 	"vsphere-cleaner/parser/parserfakes"
@@ -20,7 +21,10 @@ var _ = Describe("Cleaner", func() {
 	BeforeEach(func() {
 		fakeParser = new(parserfakes.FakeParser)
 		fakeVSphereClient = new(vspherefakes.FakeClient)
-		cleanerObj = cleaner.NewCleaner("lock", fakeParser, fakeVSphereClient)
+		builder := func(*url.URL) (vsphere.Client, error) {
+			return fakeVSphereClient, nil
+		}
+		cleanerObj = cleaner.NewCleaner("lock", fakeParser, builder)
 		fakeParser.ParseReturns(vsphere.Config{InternalIP: "10.2.2.1", InternalCIDR: "10.2.3.0/29", ReservedIPs: []string{"10.2.3.2-10.2.3.3", "10.2.3.4"}}, nil)
 	})
 
@@ -37,6 +41,17 @@ var _ = Describe("Cleaner", func() {
 
 			err := cleanerObj.Clean()
 
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Context("when vsphere client creation fails", func() {
+		It("should return error", func() {
+			builder := func(*url.URL) (vsphere.Client, error) {
+				return fakeVSphereClient, errors.New("error")
+			}
+			cleanerObj = cleaner.NewCleaner("lock", fakeParser, builder)
+			err := cleanerObj.Clean()
 			Expect(err).To(HaveOccurred())
 		})
 	})
