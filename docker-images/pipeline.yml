@@ -8,6 +8,23 @@ resources:
     paths:
     - docker-images/*
 
+- name: vsphere-cleaner-latest
+  type: docker-image
+  source:
+    repository: pcfkubo/vsphere-cleaner
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+    tag: latest
+
+- name: vsphere-cleaner-stable
+  type: docker-image
+  source:
+    repository: pcfkubo/vsphere-cleaner
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+    tag: stable
 - name: kubo-ci-latest
   type: docker-image
   source:
@@ -43,8 +60,6 @@ jobs:
   plan:
   - get: git-kubo-ci
     trigger: true
-  - get: gcs-vsphere-cleaner
-    trigger: true
   - put: kubo-ci-latest
     params:
       build: git-kubo-ci/docker-images
@@ -70,3 +85,32 @@ jobs:
       cache: true
       pull_repository: pcfkubo/kubo-ci
       pull_tag: latest
+
+- name: build-vsphere-cleaner
+  plan:
+  - get: git-kubo-ci
+    trigger: true
+  - get: gcs-vsphere-cleaner
+    trigger: true
+  - put: vsphere-cleaner-latest
+    params:
+      build: git-kubo-ci/docker-images/vsphere-cleaner
+  - task: test-docker-image
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/vsphere-cleaner
+          tag: latest
+
+      inputs:
+      - name: git-kubo-ci
+      run:
+        path: git-kubo-ci/docker-images/vsphere-cleaner/run_tests
+  - put: vsphere-cleaner-stable
+    params:
+      cache: true
+      pull_repository: pcfkubo/vsphere-cleaner
+      pull_tag: latest
+
