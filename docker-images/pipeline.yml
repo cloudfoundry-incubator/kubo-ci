@@ -25,11 +25,25 @@ resources:
     username: {{docker-hub-username}}
     password: {{docker-hub-password}}
     tag: stable
+- name: gcs-vsphere-cleaner
+  type: gcs
+  source:
+    json_key: {{gcs-json-key}}
+    bucket: kubo-public
+    versioned_file: vsphere-cleaner
+
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
 
 jobs:
 - name: build-kubo-ci
   plan:
   - get: git-kubo-ci
+    trigger: true
+  - get: gcs-vsphere-cleaner
     trigger: true
   - put: kubo-ci-latest
     params:

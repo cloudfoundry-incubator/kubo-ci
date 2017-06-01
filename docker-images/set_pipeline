@@ -13,6 +13,7 @@ pipeline_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 echo "---" > "$pipeline_dir/secrets.yml"
 trap 'rm "${pipeline_dir}/secrets.yml"' EXIT
 lpass show "Shared-Kubo/Docker Hub" --notes >> "$pipeline_dir/secrets.yml"
+lpass show "Shared-Kubo/CI/kubo-ci" --notes >> "$pipeline_dir/secrets.yml"
 password=$(lpass show "Shared-Kubo/Docker Hub" --password)
 ssh_key="$(lpass show "Shared-Kubo/CI/git-ssh-key" --notes)"
 
