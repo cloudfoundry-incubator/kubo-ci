@@ -61,9 +61,9 @@ RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download
 RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.6.1/bin/linux/amd64/kubectl -O /usr/bin/kubectl && \
   chmod +x /usr/bin/kubectl
 
-# govc
-RUN wget https://github.com/vmware/govmomi/releases/download/v0.14.0/govc_linux_amd64.gz -qO- | gunzip > /usr/local/bin/govc && \
-  chmod +x /usr/local/bin/govc
-
 # Cleanup
 RUN rm -rf /tmp/docker-build
+
+# vsphere-cleaner
+RUN wget https://storage.cloud.google.com/kubo-public/vsphere-cleaner -O /usr/bin/vsphere-cleaner && \
+  chmod +x /usr/bin/vsphere-cleaner
