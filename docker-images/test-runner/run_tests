@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+  echo "Usage:"
+  echo "  ${0} <docker image id>"
+  exit 1
+fi
+
+docker run -v $PWD/system_tests/:/home/vcap/system_tests -w /home/vcap/system_tests ${1} ginkgo
