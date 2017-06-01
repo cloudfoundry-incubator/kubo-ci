@@ -6,17 +6,29 @@ resources:
     branch: master
     paths:
     - src/vsphere-cleaner/*
+- name: gcs-vsphere-cleaner
+  type: gcs
+  source:
+    json_key: {{gcs-json-key}}
+    bucket: kubo-public
+    versioned_file: vsphere-cleaner
+
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
 
 jobs:
 - name: tests
   plan:
-  - aggregate:
-    - get: git-kubo-ci
-      trigger: true
+  - get: git-kubo-ci
+    trigger: true
   - task: run-tests
     config:
       platform: linux
-      image_resource:
+      image_resource: &image_resource
         type: docker-image
         source:
           repository: pcfkubo/kubo-ci
@@ -25,3 +37,24 @@ jobs:
       - name: git-kubo-ci
       run:
         path: git-kubo-ci/src/vsphere-cleaner/run-tests
+- name: publish
+  plan:
+  - get: git-kubo-ci
+    trigger: true
+    passed:
+    - tests
+  - task: generate-binary
+    config:
+      platform: linux
+      image_resource: *image_resource
+      inputs:
+      - name: git-kubo-ci
+      run:
+        path: git-kubo-ci/src/vsphere-cleaner/generate-binary
+        args:
+        - outputs
+      outputs:
+      - name: outputs
+  - put: gcs-vsphere-cleaner
+    params:
+      file: outputs/vsphere-cleaner
