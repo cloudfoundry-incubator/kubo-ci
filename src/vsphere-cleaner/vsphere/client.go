@@ -56,7 +56,7 @@ func (c *client) DeleteVM(ip string) error {
 
 	vm, converted := vmReference.(*object.VirtualMachine)
 	if !converted {
-		return errors.New("The returned object is not a VM")
+		return errors.New("The returned object (IP = '" + ip + "') is not a VM")
 	}
 
 	fmt.Println("Deleting VM with IP " + ip)
