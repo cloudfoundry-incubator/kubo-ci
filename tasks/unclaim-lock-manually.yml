@@ -3,7 +3,7 @@ image_resource:
   type: docker-image
   source:
     repository: alpine/git
-    tag: stable
+    tag: latest
 params:
   ENV_NAME:
   POOL_NAME:
