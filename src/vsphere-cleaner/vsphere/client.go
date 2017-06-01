@@ -2,7 +2,6 @@ package vsphere
 
 import (
 	"context"
-	"errors"
 	"net/url"
 
 	"fmt"
@@ -56,7 +55,7 @@ func (c *client) DeleteVM(ip string) error {
 
 	vm, converted := vmReference.(*object.VirtualMachine)
 	if !converted {
-		return errors.New("The returned object (IP = '" + ip + "') is not a VM")
+		return fmt.Errorf("The returned object (IP = '%s') is not a VM %#v", ip, vmReference)
 	}
 
 	fmt.Println("Deleting VM with IP " + ip)
