@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+cleanerDir=$(dirname "${BASH_SOURCE[0]}")
+GOPATH=$(cd "$cleanerDir/../../" && pwd)
+export GOPATH
+ginkgo -r "$cleanerDir"
