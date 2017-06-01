@@ -7,7 +7,23 @@ resources:
     branch: master
     paths:
     - docker-images/*
+- name: test-runner-latest
+  type: docker-image
+  source:
+    repository: pcfkubo/test-runner
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+    tag: latest
 
+- name: test-runner-stable
+  type: docker-image
+  source:
+    repository: pcfkubo/test-runner
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+    tag: stable
 - name: vsphere-cleaner-latest
   type: docker-image
   source:
@@ -103,7 +119,6 @@ jobs:
         source:
           repository: pcfkubo/vsphere-cleaner
           tag: latest
-
       inputs:
       - name: git-kubo-ci
       run:
@@ -112,5 +127,33 @@ jobs:
     params:
       cache: true
       pull_repository: pcfkubo/vsphere-cleaner
+      pull_tag: latest
+
+- name: build-test-runner
+  plan:
+  - get: git-kubo-ci
+    trigger: true
+  - put: test-runner-latest
+    params:
+      build: git-kubo-ci/docker-images/test-runner
+  - task: test-docker-image
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/test-runner
+          tag: latest
+      inputs:
+      - name: git-kubo-ci
+      run:
+        path: ginkgo
+        args:
+        - -r
+        - git-kubo-ci/docker-images/test-runner/system_tests
+  - put: test-runner-stable
+    params:
+      cache: true
+      pull_repository: pcfkubo/test-runner
       pull_tag: latest
 
