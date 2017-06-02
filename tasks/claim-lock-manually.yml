@@ -7,7 +7,6 @@ image_resource:
 params:
   ENV_NAME:
   POOL_NAME:
-  LOCK_DIR:
 inputs:
 - name: kubo-lock-repo
 - name: git-kubo-ci

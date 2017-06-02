@@ -11,9 +11,9 @@ inputs:
 
 params:
   ENV_NAME:
-  LOCK_DIR:
+  POOL_NAME:
 run:
   path: bash
   args:
   - -ec
-  - vsphere-cleaner "kubo-lock-repo/$LOCK_DIR/claimed/$ENV_NAME"
+  - vsphere-cleaner "kubo-lock-repo/$POOL_NAME/claimed/$ENV_NAME"
