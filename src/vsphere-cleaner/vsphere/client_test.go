@@ -18,4 +18,12 @@ var _ = Describe("Client", func() {
 		err := client.DeleteVM("some ip")
 		Expect(err).ToNot(HaveOccurred())
 	})
+
+	It("should not return error if the vm is not found without error", func() {
+		fakeVmFinder := &vspherefakes.FakeVmFinder{}
+		client := vsphere.NewClientWithFinder(fakeVmFinder)
+		fakeVmFinder.FindByIpReturns(nil, nil)
+		err := client.DeleteVM("some ip")
+		Expect(err).ToNot(HaveOccurred())
+	})
 })

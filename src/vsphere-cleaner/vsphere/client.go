@@ -47,7 +47,7 @@ func buildSearchIndex(ctx context.Context, vsphereURL *url.URL) (vmFinder, error
 func (c *client) DeleteVM(ip string) error {
 	ctx := context.Background()
 	vmReference, err := c.finder.FindByIp(ctx, nil, ip, true)
-	if err != nil {
+	if err != nil || vmReference == nil {
 		fmt.Println("VM with IP " + ip + " does not exist")
 
 		return nil
