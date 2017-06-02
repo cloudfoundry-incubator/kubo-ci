@@ -1,0 +1,71 @@
+resource_types:
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+
+- name: git-kubo-etcd
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-etcd
+    branch: master
+
+- name: git-infrastructure-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/infrastructure-ci
+    branch: master
+
+- name: slack-alert
+  type: slack-notification
+  source:
+    url: {{slack-url}}
+
+jobs:
+- name: run-unit-tests
+  plan:
+  - aggregate:
+    - get: git-kubo-etcd
+      trigger: true
+    - get: git-kubo-ci
+    - get: git-infrastructure-ci
+  - aggregate:
+    - task: test-etcd-proxy
+      file: git-infrastructure-ci/scripts/etcd/run-unit-test-suite/task.yml
+      input_mapping:
+        ci: git-infrastructure-ci
+        etcd-release: git-kubo-etcd
+      params:
+        TEST_SUITE: etcd-proxy
+    - task: test-etcd-consistency-checker
+      file: git-infrastructure-ci/scripts/etcd/run-unit-test-suite/task.yml
+      input_mapping:
+        ci: git-infrastructure-ci
+        etcd-release: git-kubo-etcd
+      params:
+        TEST_SUITE: etcd-consistency-checker
+    - task: test-etcdfab
+      file: git-infrastructure-ci/scripts/etcd/run-unit-test-suite/task.yml
+      input_mapping:
+        ci: git-infrastructure-ci
+        etcd-release: git-kubo-etcd
+      params:
+        TEST_SUITE: etcdfab
+    # - task: test-etcd-metrics-server
+
+    on_failure:
+      put: slack-alert
+      params:
+        text: "Unit Tests failed"
+        emoji: ":fail:"
+
+
