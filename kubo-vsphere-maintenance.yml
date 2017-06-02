@@ -31,7 +31,7 @@ jobs:
     file: git-kubo-ci/tasks/claim-lock-manually.yml
     params:
       ENV_NAME: <%= env %>
-      LOCK_DIR: kubo-vsphere
+      POOL_NAME: kubo-vsphere
     ensure:
       put: kubo-lock-repo
       params:
@@ -43,13 +43,13 @@ jobs:
     tags: [vsphere]
     params:
       ENV_NAME: <%= env %>
-      LOCK_DIR: kubo-vsphere
+      POOL_NAME: kubo-vsphere
 
   - task: unclaim-<%= env %>
     file: git-kubo-ci/tasks/unclaim-lock-manually.yml
     params:
       ENV_NAME: <%= env %>
-      LOCK_DIR: kubo-vsphere
+      POOL_NAME: kubo-vsphere
     ensure:
       put: kubo-lock-repo
       params:
