@@ -22,8 +22,8 @@ resources:
 - name: git-infrastructure-ci
   type: git
   source:
-    uri: https://github.com/cloudfoundry/infrastructure-ci
-    branch: master
+    uri: https://github.com/alex-slynko/infrastructure-ci
+    branch: fix-blob-in-etcd-metrics-tests
 
 - name: slack-alert
   type: slack-notification
@@ -60,7 +60,11 @@ jobs:
         etcd-release: git-kubo-etcd
       params:
         TEST_SUITE: etcdfab
-    # - task: test-etcd-metrics-server
+    - task: test-etcd-metrics-server
+      file: git-infrastructure-ci/scripts/etcd/test-etcd-metrics-server/task.yml
+      input_mapping:
+        ci: git-infrastructure-ci
+        etcd-release: git-kubo-etcd
 
     on_failure:
       put: slack-alert
