@@ -34,7 +34,7 @@ function main() {
 }
 
 function set_cloud_config() {
-  bosh update-cloud-config git-kubo-ci/etcd/cloud-config.yml \
+  bosh -n update-cloud-config git-kubo-ci/etcd/cloud-config.yml \
     --vars-file=kubo-lock/metadata
 }
 
