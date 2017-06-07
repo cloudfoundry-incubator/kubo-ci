@@ -20,6 +20,8 @@ var _ = Describe("Docker Image", func() {
 		"make":     []string{"-v"},
 		"ruby":     []string{"-v"},
 		"kubectl":  []string{"help"},
+		"golint":   []string{"-h"},
+		"go":       []string{"doc", "cmd/vet"},
 	}
 
 	for executable, args := range commands {
@@ -35,10 +37,10 @@ var _ = Describe("Docker Image", func() {
 		})
 	}
 
-	It("has vsphere-cleaner installed", func() {
-		command := exec.Command("which", "vsphere-cleaner")
-		session, err := Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ToNot(HaveOccurred())
-		Eventually(session, "1s").Should(Exit(0))
-	})
+	// It("has vsphere-cleaner installed", func() {
+	// 	command := exec.Command("which", "vsphere-cleaner")
+	// 	session, err := Start(command, GinkgoWriter, GinkgoWriter)
+	// 	Expect(err).ToNot(HaveOccurred())
+	// 	Eventually(session, "1s").Should(Exit(0))
+	// })
 })

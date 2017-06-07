@@ -63,7 +63,3 @@ RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.6.1/bin/li
 
 # Cleanup
 RUN rm -rf /tmp/docker-build
-
-# vsphere-cleaner
-RUN wget https://storage.googleapis.com/kubo-public/vsphere-cleaner -O /usr/bin/vsphere-cleaner && \
-  chmod +x /usr/bin/vsphere-cleaner
