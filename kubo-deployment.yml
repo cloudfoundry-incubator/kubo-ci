@@ -130,7 +130,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Kubo release unit tests failed:
+          <!here|here> Kubo release unit tests failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: run-deployment-unit-tests
     file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
@@ -140,7 +140,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Kubo deployment unit tests failed:
+          <!here|here> Kubo deployment unit tests failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: build-kubo-release
@@ -163,7 +163,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Kubo release build failed:
+          <!here|here> Kubo release build failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: gcs-kubo-release-tarball-untested
     params:
@@ -216,7 +216,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Deploy BOSH failed:
+          <!here|here> Deploy BOSH failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - aggregate:
     - put: gcs-bosh-creds
@@ -258,7 +258,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Deploy K8s failed:
+          <!here|here> Deploy K8s failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: gcs-service-creds
     params:
@@ -296,7 +296,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Deploy K8s Workload failed:
+          <!here|here> Deploy K8s Workload failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: pod-to-pod
     tags: [<%= iaas %>]
@@ -308,7 +308,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Pod to pod communication failed:
+          <!here|here> Pod to pod communication failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-k8s-<%= iaas %>
@@ -339,7 +339,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Destroy K8s failed:
+          <!here|here> Destroy K8s failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 
@@ -371,7 +371,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Destroy BOSH failed:
+          <!here|here> Destroy BOSH failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: kubo-lock-<%= iaas %>
     params: { release: kubo-lock-<%= iaas %> }

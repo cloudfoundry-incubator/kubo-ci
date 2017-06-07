@@ -156,7 +156,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Deploy BOSH failed:
+          <!here|here> Deploy BOSH failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - aggregate:
     - put: gcs-bosh-creds
@@ -265,7 +265,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Deploy K8s failed:
+          <!here|here> Deploy K8s failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: gcs-service-creds
     params:
@@ -303,7 +303,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Deploy K8s Workload failed:
+          <!here|here> Deploy K8s Workload failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: pod-to-pod
     file: git-kubo-ci/tasks/pod-to-pod.yml
@@ -313,7 +313,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Pod to pod communication failed:
+          <!here|here> Pod to pod communication failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-k8s
@@ -346,7 +346,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Destroy K8s failed:
+          <!here|here> Destroy K8s failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-proxy
@@ -399,7 +399,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          @here Destroy BOSH failed:
+          <!here|here> Destroy BOSH failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: kubo-lock
     params: { release: kubo-lock }
