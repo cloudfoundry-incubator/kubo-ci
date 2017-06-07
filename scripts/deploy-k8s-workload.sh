@@ -31,5 +31,5 @@ elif [[ ${routing_mode} == "iaas" ]]; then
   export WORKER_LB_ADDRESS=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/kubernetes_worker_ip")
   export NODE_PORT=$(bosh-cli int "${PWD}/git-kubo-ci/specs/nginx.yml" --path="/spec/ports/0/nodePort")
 
-  ginkgo "$GOPATH/src/integration-tests/gcp-lb"
+  ginkgo "$GOPATH/src/integration-tests/gcp_lb"
 fi
