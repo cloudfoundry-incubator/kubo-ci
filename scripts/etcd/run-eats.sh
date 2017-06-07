@@ -16,6 +16,7 @@ turbulence_release_version="$(cat "${root}/turbulence-release/version")"
 function main() {
   setup_bosh_env_vars
 
+  set_cloud_config
   upload_stemcell
   upload_releases
   force_compilation
@@ -30,6 +31,11 @@ function main() {
   bosh -d eats run-errand acceptance-tests
 
   bosh -n clean-up --all
+}
+
+function set_cloud_config() {
+  bosh update-cloud-config git-kubo-ci/etcd/cloud-config.yml \
+    --vars-file=kubo-lock/metadata
 }
 
 function setup_bosh_env_vars() {
