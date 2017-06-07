@@ -1,0 +1,12 @@
+# create user that can be used instead bosh_admin client in kubo-deployment scripts
+- type: replace
+  path: /instance_groups/name=bosh/properties/director/user_management/local/users/-
+  value:
+    name: bosh_admin
+    password: ((bosh_admin_client_secret))
+
+- type: replace
+  path: /variables/-
+  value:
+    name: bosh_admin_client_secret
+    type: password
