@@ -40,9 +40,9 @@ function set_cloud_config() {
 
 function setup_bosh_env_vars() {
   BOSH_CLIENT=bosh_admin
-  BOSH_CLIENT_SECRET=$(bosh-cli int gcs-bosh-creds/creds.yml --path=/bosh_admin_client_secret)
-  BOSH_CA_CERT=$(bosh-cli int gcs-bosh-creds/creds.yml --path=/default_ca/ca)
-  BOSH_ENVIRONMENT=$(bosh-cli int kubo-lock/metadata --path=/internal_ip)
+  BOSH_CLIENT_SECRET=$(bosh int gcs-bosh-creds/creds.yml --path=/bosh_admin_client_secret)
+  BOSH_CA_CERT=$(bosh int gcs-bosh-creds/creds.yml --path=/default_ca/ca)
+  BOSH_ENVIRONMENT=$(bosh int kubo-lock/metadata --path=/internal_ip)
   export BOSH_ENVIRONMENT BOSH_CA_CERT BOSH_CLIENT BOSH_CLIENT_SECRET
 }
 
