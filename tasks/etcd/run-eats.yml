@@ -18,7 +18,7 @@ inputs:
   - name: kubo-lock
 
 run:
-  path: kubo-ci/etcd/run-eats.sh
+  path: git-kubo-ci/etcd/run-eats.sh
 
 params:
   TEST_enable_turbulence_tests:
