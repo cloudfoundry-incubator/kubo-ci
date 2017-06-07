@@ -7,7 +7,7 @@ image_resource:
     repository: cfinfrastructure/deployment
 
 inputs:
-  - name: kubo-ci
+  - name: git-kubo-ci
   - name: ci
   - name: etcd-release
   - name: consul-release
