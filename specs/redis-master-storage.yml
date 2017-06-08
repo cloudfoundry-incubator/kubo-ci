@@ -1,0 +1,17 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: redis-storage
+provisioner: kubernetes.io/gce-pd
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: redis-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+  storageClassName: redis-storage
