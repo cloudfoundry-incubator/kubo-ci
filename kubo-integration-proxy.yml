@@ -88,14 +88,14 @@ resources:
     terraform_source: github.com/pivotal-cf-experimental/kubo-ci//terraform
 
 # Target Artifacts - to be uploaded
-# - name: gcs-kubo-release-pass-airgap
+# - name: gcs-kubo-release-pass-proxy
 #   type: gcs
 #   source:
 #     json_key: {{gcs-json-key}}
 #     bucket: kubo-public
 #     regexp: kubo-release-(.*).tgz
 #
-# - name: gcs-kubo-deployment-pass-airgap
+# - name: gcs-kubo-deployment-pass-proxy
 #   type: gcs
 #   source:
 #     json_key: {{gcs-json-key}}
@@ -124,13 +124,6 @@ jobs:
       trigger: true
   - put: kubo-lock
     params: { acquire: true }
-
-- name: manual-release-lock
-  plan:
-  - get: kubo-lock
-    passed: [claim-lock]
-  - put: kubo-lock
-    params: { release: kubo-lock }
 
 - name: install-bosh
   plan:
@@ -183,28 +176,6 @@ jobs:
       delete_on_failure: true
       env_name_file: kubo-lock/name
       var_files: [ tfvars_dir/terraform.tfvars ]
-
-- name: manual-bosh-cleanup
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: gcs-kubo-deployment-pre
-      passed: [ 'claim-lock' ]
-    - get: kubo-lock
-      passed: [ 'install-bosh' ]
-    - get: gcs-bosh-state
-      passed: [ 'install-bosh' ]
-    - get: gcs-bosh-creds
-      passed: [ 'install-bosh' ]
-
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-
-  - task: destroy
-    file: git-kubo-ci/tasks/destroy-bosh.yml
-  - put: kubo-lock
-    params: { release: kubo-lock }
-
 
 - name: apply-runtime-config
   plan:
@@ -272,7 +243,7 @@ jobs:
       file: service-creds/ci-service-creds.yml
 
 - name: deploy-workload
-  serial_groups: [airgap]
+  serial_groups: [proxy]
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -406,7 +377,7 @@ jobs:
 
 #
 # - name: upload-kubo-deployment
-#  serial_groups: [airgap]
+#  serial_groups: [proxy]
 #   plan:
 #   - aggregate:
 #     - get: git-kubo-ci
@@ -427,7 +398,7 @@ jobs:
 #
 #
 # - name: upload-kubo-release
-#  serial_groups: [airgap]
+#  serial_groups: [proxy]
 #   plan:
 #   - aggregate:
 #     - get: gcs-kubo-release-tarball-untested
@@ -444,7 +415,7 @@ jobs:
 #         file: gcs-kubo-release-tarball-untested/kubo-release-*.tgz
 #
 # - name: success-notification
-#  serial_groups: [airgap]
+#  serial_groups: [proxy]
 
 #   plan:
 #   - aggregate:
