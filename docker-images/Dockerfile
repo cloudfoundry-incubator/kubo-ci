@@ -26,7 +26,8 @@ ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 RUN go get github.com/onsi/gomega
 RUN go get github.com/onsi/ginkgo
 RUN go get github.com/cloudfoundry/bosh-cli
-RUN go install github.com/onsi/ginkgo/...
+RUN go get github.com/onsi/ginkgo/...
+RUN go get github.com/golang/lint/golint
 
 # CF
 RUN wget -O /cf-cli_amd64.deb https://cli.run.pivotal.io/stable?release=debian64
