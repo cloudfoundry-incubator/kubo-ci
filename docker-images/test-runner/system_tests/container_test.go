@@ -12,8 +12,7 @@ import (
 var _ = Describe("Docker Image", func() {
 
 	commands := map[string][]string{
-		"bash":   []string{"--version"},
-		"golint": []string{},
+		"bash": []string{"--version"},
 	}
 
 	for executable, args := range commands {

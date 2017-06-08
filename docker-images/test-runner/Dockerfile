@@ -7,5 +7,5 @@ RUN apk --update  add git openssh bash && \
 
 RUN go get github.com/onsi/ginkgo/ginkgo
 RUN go get github.com/onsi/gomega
-RUN go get github.com/golang/lint/golint
+
 
