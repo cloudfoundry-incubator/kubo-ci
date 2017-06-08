@@ -6,16 +6,17 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"time"
 
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )
 
 type KubectlRunner struct {
 	configPath string
-	namespace string
+	namespace  string
+	Timeout    string
 }
 
 func NewKubectlRunner() *KubectlRunner {
@@ -28,6 +29,7 @@ func NewKubectlRunner() *KubectlRunner {
 	}
 
 	runner.namespace = "test-" + GenerateRandomName()
+	runner.Timeout = "60s"
 
 	return runner
 }
@@ -53,6 +55,10 @@ func (runner KubectlRunner) RunKubectlCommand(args ...string) *gexec.Session {
 
 }
 
+func (runner KubectlRunner) ExpectEventualSuccess(args ...string) {
+	Eventually(runner.RunKubectlCommand(args...), runner.Timeout).Should(gexec.Exit(0))
+}
+
 func GenerateRandomName() string {
 	letterRunes := []rune("abcdefghijklmnopqrstuvwxyz")
 	b := make([]rune, 20)
@@ -63,5 +69,5 @@ func GenerateRandomName() string {
 }
 
 func init() {
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(config.GinkgoConfig.RandomSeed)
 }

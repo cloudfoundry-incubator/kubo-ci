@@ -1,7 +1,14 @@
-hash: a95355aecdf1a62e425137cf5572ca6fe478c1b8db38f2d1071a9bda79119464
-updated: 2017-05-03T14:45:23.781812193+01:00
-imports: []
-testImports:
+hash: 285a35973eaed976c99c8cb346cdeb30e3572d982099ccb092cbe71a61f826b4
+updated: 2017-06-07T12:00:28.893338208+01:00
+imports:
+- name: github.com/go-redis/redis
+  version: 663bb76bcc3763c41877b63671003705a47289c5
+  subpackages:
+  - internal
+  - internal/consistenthash
+  - internal/hashtag
+  - internal/pool
+  - internal/proto
 - name: github.com/onsi/ginkgo
   version: 43e2af1f01ace55adbb6d7d0f30416476db1baae
   subpackages:
@@ -23,6 +30,8 @@ testImports:
   version: c90bd38f8da6e92f8b114953db2f0ad7361fb4b4
   subpackages:
   - format
+  - gbytes
+  - gexec
   - internal/assertion
   - internal/asyncassertion
   - internal/oraclematcher
@@ -39,3 +48,4 @@ testImports:
   - unix
 - name: gopkg.in/yaml.v2
   version: e4d366fc3c7938e2958e662b4258c7a89e1f0e3e
+testImports: []
