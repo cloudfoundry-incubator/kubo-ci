@@ -155,6 +155,7 @@ jobs:
         pre: dev
     - get: git-kubo-release
       passed: [ 'run-unit-tests' ]
+      trigger: true
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
     on_failure:
