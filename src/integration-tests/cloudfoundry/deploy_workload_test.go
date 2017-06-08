@@ -12,6 +12,24 @@ import (
 )
 
 var _ = Describe("Deploy workload", func() {
+
+	var (
+		nginxSpec        = test_helpers.PathFromRoot("specs/nginx.yml")
+		runner           *test_helpers.KubectlRunner
+	)
+
+	BeforeEach(func() {
+		runner = test_helpers.NewKubectlRunner()
+		runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
+	})
+
+	AfterEach(func() {
+		session := runner.RunKubectlCommand("delete", "-f", nginxSpec)
+		session.Wait("30s")
+
+		runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("60s")
+	})
+
 	It("exposes routes via CF routers", func() {
 		By("deploying application")
 		Eventually(runner.RunKubectlCommand("create", "-f", nginxSpec), "60s").Should(gexec.Exit(0))
@@ -51,13 +69,5 @@ var _ = Describe("Deploy workload", func() {
 			_, err := http.Get(appUrl)
 			return err
 		}, "120s", "5s").ShouldNot(HaveOccurred())
-
 	})
-
-	AfterEach(func() {
-		session := runner.RunKubectlCommand("delete", "-f", nginxSpec)
-		session.Wait("30s")
-
-	})
-
 })
