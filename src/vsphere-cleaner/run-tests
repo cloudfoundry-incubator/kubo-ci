@@ -5,4 +5,6 @@ set -e
 cleanerDir=$(dirname "${BASH_SOURCE[0]}")
 GOPATH=$(cd "$cleanerDir/../../" && pwd)
 export GOPATH
+basePackageName="$(basename "$cleanerDir")"
+go vet $(go list "$basePackageName/..." | grep -v "$basePackageName/vendor/")
 ginkgo -r "$cleanerDir"
