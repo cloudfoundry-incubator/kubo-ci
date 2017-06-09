@@ -5,6 +5,10 @@ resource_types:
     repository: cfcommunity/slack-notification-resource
     tag: latest
 
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
 
 resources:
 - name: git-kubo-ci
@@ -30,8 +34,59 @@ resources:
   source:
     url: {{slack-url}}
 
+- name: kubo-lock
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: {{git-ssh-key}}
+    pool: kubo-deployment
+
+- name: gcs-kubo-deployment-pre
+  type: gcs
+  source:
+    json_key: {{gcs-json-key}}
+    bucket: kubo-public
+    versioned_file: kubo-deployment-latest.tgz
+
+- name: gcs-bosh-creds
+  type: gcs
+  source:
+    json_key: {{gcs-json-key}}
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/creds.yml
+
+- name: gcs-bosh-state
+  type: gcs
+  source:
+    json_key: {{gcs-json-key}}
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/state.json
+
+- name: gcp-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-google-kvm-ubuntu-trusty-go_agent
+
+- name: turbulence-release
+  type: github-release
+  source:
+    user: christianang
+    repository: turbulence-release
+
+- name: consul-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/consul-release
+
+- name: latest-etcd-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/etcd-release
+
 jobs:
 - name: run-unit-tests
+  public: true
   plan:
   - aggregate:
     - get: git-kubo-etcd
@@ -72,4 +127,148 @@ jobs:
         text: "Unit Tests failed"
         emoji: ":fail:"
 
+- name: setup-eats-infrastructure
+  public: true
+  plan:
+  - aggregate:
+    - get: git-kubo-etcd
+      trigger: true
+      passed: [ run-unit-tests ]
+    - get: git-kubo-ci
+    - get: git-infrastructure-ci
+    - get: gcs-kubo-deployment-pre
+  - put: kubo-lock
+    params: { acquire: true }
 
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+
+  - task: install
+    file: git-kubo-ci/tasks/etcd/setup-eats-infrastructure.yml
+    on_failure:
+      put: slack-alert
+      params:
+        silent: true
+        icon_emoji: ":thumbsdown:"
+        text: |
+          <!here|here> Deploy BOSH failed:
+          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+
+- name: eats
+  public: true
+  plan:
+  - aggregate:
+    - get: gcs-bosh-state
+      passed:
+      - setup-eats-infrastructure
+    - get: gcs-bosh-creds
+      passed:
+      - setup-eats-infrastructure
+    - get: kubo-lock
+      trigger: true
+      passed:
+      - setup-eats-infrastructure
+    - get: etcd-release
+      resource: git-kubo-etcd
+      passed:
+      - setup-eats-infrastructure
+    - get: git-infrastructure-ci
+    - get: stemcell
+      resource: gcp-stemcell
+    - get: turbulence-release
+    - get: consul-release
+    - get: latest-etcd-release
+    - get: git-kubo-ci
+  - task: run-eats
+    file: git-kubo-ci/tasks/etcd/run-eats.yml
+    input_mapping:
+      ci: git-infrastructure-ci
+    params:
+      TEST_enable_turbulence_tests: false
+      TEST_parallel_nodes: 7
+    on_failure:
+      put: slack-alert
+      params:
+        text: |
+          <!here|here> deploy etcd failed:
+          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
+- name: eats-turbulence
+  public: true
+  plan:
+  - aggregate:
+    - get: gcs-bosh-state
+      passed:
+      - eats
+    - get: gcs-bosh-creds
+      passed:
+      - eats
+    - get: kubo-lock
+      trigger: true
+      passed:
+      - eats
+    - get: etcd-release
+      resource: git-kubo-etcd
+      passed:
+      - eats
+    - get: git-infrastructure-ci
+    - get: stemcell
+      resource: gcp-stemcell
+    - get: turbulence-release
+    - get: consul-release
+    - get: latest-etcd-release
+    - get: git-kubo-ci
+  - task: run-eats
+    file: git-kubo-ci/tasks/etcd/run-eats.yml
+    input_mapping:
+      ci: git-infrastructure-ci
+    params:
+      TEST_enable_turbulence_tests: true
+      TEST_parallel_nodes: 3
+    on_failure:
+      put: slack-alert
+      params:
+        text: |
+          <!here|here> deploy etcd failed:
+          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
+- name: teardown-eats-infrastructure
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      version: every
+      trigger: true
+      passed: [ 'eats-turbulence' ]
+    - get: gcs-kubo-deployment-pre
+    - get: gcs-bosh-state
+      passed: [ 'eats-turbulence' ]
+    - get: gcs-bosh-creds
+      passed: [ 'eats-turbulence' ]
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+
+  - task: destroy
+    file: git-kubo-ci/tasks/destroy-bosh.yml
+    on_failure:
+      put: slack-alert
+      params:
+        silent: true
+        icon_emoji: ":thumbsdown:"
+        text: |
+          <!here|here> Destroy BOSH failed:
+          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+  - put: kubo-lock
+    params: { release: kubo-lock }
+  - put: slack-alert
+    params:
+      silent: true
+      icon_emoji: ':the_horns:'
+      text: ETCD pipeline succeed
