@@ -1,0 +1,49 @@
+---
+resource_types:
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+resources:
+- name: gcs-slack-watcher-list
+  type: gcs
+  source:
+    json_key: {{gcs-json-key}}
+    bucket: kubo-pipeline-store
+    versioned_file: slack-watcher-list.txt
+
+- name: slack-schedule
+  type: time
+  source:
+    days: [ Monday ]
+    location: Europe/Ireland
+    start: 9:00 AM
+    stop: 9:10 AM
+    interval: 1h
+
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+
+jobs:
+- name: notify
+  plan:
+  - get: slack-schedule
+    trigger: true
+  - get: gcs-slack-watcher-list
+  - task: select-watcher
+    file: git-kubo-ci/tasks/select-watcher.yml
+  - put: gcs-slack-watcher-list
+  - put: slack-alert
+    params:
+      icon_emoji: ":unicorn_face:"
+      text_file: slack-message/announcement.txt
