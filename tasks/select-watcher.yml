@@ -15,6 +15,6 @@ run:
   args:
   - -exc
   - |
-    cat gcs-slack-watcher-list-in/slack-watcher-list.txt | sed '1,1{H;1h;d;};$G' > slack-watcher-list-out/slack-watcher-list.txt
+    cat gcs-slack-watcher-list/slack-watcher-list.txt | sed '1,1{H;1h;d;};$G' > slack-watcher-list-out/slack-watcher-list.txt
     mkdir slack-message
     echo "==> The OSS watcher for this week is !$(head -1 gcs-slack-watcher-list/slack-watcher-list.txt)" > slack-message/announcement.txt
