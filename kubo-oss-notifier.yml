@@ -34,15 +34,23 @@ resources:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
     branch: master
 
+- name: slack-alert
+  type: slack-notification
+  source:
+    url: {{slack-url}}
+
 jobs:
 - name: notify
   plan:
+  - get: git-kubo-ci
   - get: slack-schedule
     trigger: true
   - get: gcs-slack-watcher-list
   - task: select-watcher
     file: git-kubo-ci/tasks/select-watcher.yml
   - put: gcs-slack-watcher-list
+    params:
+      file: slack-watcher-list-out/slack-watcher-list.txt
   - put: slack-alert
     params:
       icon_emoji: ":unicorn_face:"
