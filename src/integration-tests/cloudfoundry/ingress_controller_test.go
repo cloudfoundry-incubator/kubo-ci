@@ -4,7 +4,6 @@ import (
   "os"
   "fmt"
 	"net/http"
-  "strconv"
   "io/ioutil"
 	"time"
 
@@ -17,16 +16,29 @@ import (
 var _ = Describe("Testing Ingress Controller", func ()  {
 
   var (
+    tcpPort string
     tlsKubernetesCert string
     tlsKubernetesPrivateKey string
     kubernetesServiceHost string
-    kubernetesServicePort int64
+    kubernetesServicePort string
 
     ingressSpec = test_helpers.PathFromRoot("specs/ingress.yml")
     runner           *test_helpers.KubectlRunner
   )
 
   BeforeEach(func() {
+    tcpPort = os.Getenv("INGRESS_CONTROLLER_TCP_PORT")
+    if tcpPort == "" {
+      Fail("Correct INGRESS_CONTROLLER_TCP_PORT has to be set")
+    }
+    kubernetesServiceHost = os.Getenv("KUBERNETES_SERVICE_HOST")
+    if kubernetesServiceHost == "" {
+      Fail("Correct KUBERNETES_SERVICE_HOST has to be set")
+    }
+    kubernetesServicePort = os.Getenv("KUBERNETES_SERVICE_PORT")
+  	if kubernetesServicePort == "" {
+  		Fail("Correct KUBERNETES_SERVICE_PORT has to be set")
+  	}
     tlsKubernetesCert = os.Getenv("TLS_KUBERNETES_CERT")
     if tlsKubernetesCert == "" {
       Fail("Correct TLS_KUBERNETES_CERT has to be set")
@@ -35,19 +47,6 @@ var _ = Describe("Testing Ingress Controller", func ()  {
     if tlsKubernetesPrivateKey == "" {
       Fail("Correct TLS_KUBERNETES_PRIVATE_KEY has to be set")
     }
-    kubernetesServiceHost = os.Getenv("KUBERNETES_SERVICE_HOST")
-    if kubernetesServiceHost == "" {
-      Fail("Correct KUBERNETES_SERVICE_HOST has to be set")
-    }
-
-    var portErr error
-    kubernetesServicePort, portErr = strconv.ParseInt(os.Getenv("KUBERNETES_SERVICE_PORT"), 10, 64)
-  	if portErr != nil || kubernetesServicePort <= 0 {
-  		Fail("Correct KUBERNETES_SERVICE_PORT has to be set")
-  	}
-
-    runner = test_helpers.NewKubectlRunner()
-		runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
 
     certFile, _ := ioutil.TempFile(os.TempDir(), "cert")
     certFile.WriteString(tlsKubernetesCert)
@@ -57,11 +56,15 @@ var _ = Describe("Testing Ingress Controller", func ()  {
     keyFile.WriteString(tlsKubernetesPrivateKey)
     defer os.Remove(keyFile.Name())
 
+    runner = test_helpers.NewKubectlRunner()
+		runner.RunKubectlCommand(
+      "create", "namespace", runner.Namespace()).Wait("60s")
+
     Eventually(runner.RunKubectlCommand(
       "create", "secret", "tls", "tls-kubernetes", "--cert", certFile.Name(), "--key", keyFile.Name())).Should(gexec.Exit(0))
 
     Eventually(runner.RunKubectlCommand(
-      "create", "secret", "generic", "kubernetes-service", fmt.Sprintf("--from-literal=host=%s", kubernetesServiceHost), fmt.Sprintf("--from-literal=port=%d", kubernetesServicePort))).Should(gexec.Exit(0))
+      "create", "secret", "generic", "kubernetes-service", fmt.Sprintf("--from-literal=host=%s", kubernetesServiceHost), fmt.Sprintf("--from-literal=port=%s", kubernetesServicePort))).Should(gexec.Exit(0))
 
     Eventually(runner.RunKubectlCommand(
       "create", "-f", ingressSpec), "60s").Should(gexec.Exit(0))
@@ -77,7 +80,8 @@ var _ = Describe("Testing Ingress Controller", func ()  {
     Eventually(runner.RunKubectlCommand(
       "delete", "secret", "kubernetes-service")).Should(gexec.Exit())
 
-    runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("60s")
+    runner.RunKubectlCommand(
+      "delete", "namespace", runner.Namespace()).Wait("60s")
 	})
 
   It("Allows routing via Ingress Controller", func() {
@@ -87,14 +91,13 @@ var _ = Describe("Testing Ingress Controller", func ()  {
     By("exposing it via HTTP")
     result, err := http.Get(appUrl)
     Expect(err).NotTo(HaveOccurred())
-    Expect(result.StatusCode).NotTo(Equal(200))
+    Expect(result.StatusCode).To(Equal(404))
 
     httpLabel := fmt.Sprintf("http-route-sync=%s", serviceName)
     Eventually(runner.RunKubectlCommand("label", "services", "nginx-ingress-controller", httpLabel), "10s").Should(gexec.Exit(0))
 
-    timeout := time.Duration(5 * time.Second)
     httpClient := http.Client{
-      Timeout: timeout,
+      Timeout: time.Duration(5 * time.Second),
     }
     Eventually(func() int {
       result, err := httpClient.Get(appUrl+ "/simple-http-server")
@@ -109,12 +112,12 @@ var _ = Describe("Testing Ingress Controller", func ()  {
     Expect(result.StatusCode).To(Equal(404))
 
     By("exposing it via TCP")
-    appUrl = fmt.Sprintf("http://%s:%d", tcpRouterDNSName, tcpPort)
+    appUrl = fmt.Sprintf("http://%s:%s", tcpRouterDNSName, tcpPort)
 
     result, err = http.Get(appUrl)
     Expect(err).To(HaveOccurred())
 
-    tcpLabel := fmt.Sprintf("tcp-route-sync=%d", tcpPort)
+    tcpLabel := fmt.Sprintf("tcp-route-sync=%s", tcpPort)
     Eventually(runner.RunKubectlCommand("label", "services", "nginx-ingress-controller", tcpLabel), "10s").Should(gexec.Exit(0))
     Eventually(func() error {
       _, err := http.Get(appUrl)
