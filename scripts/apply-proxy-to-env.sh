@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/bin/bash
+
+set -exu -o pipefail
 
 cp -r kubo-lock/* kubo-lock-with-proxy/
 

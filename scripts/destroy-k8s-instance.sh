@@ -1,5 +1,6 @@
-#!/bin/sh -ex
+#!/bin/bash
 
+set -exu -o pipefail
 
 creds_path="${PWD}/gcs-bosh-creds/creds.yml"
 . "$(dirname "$0")/lib/environment.sh"

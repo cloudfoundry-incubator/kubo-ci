@@ -1,8 +1,7 @@
 #!/bin/bash
 
-set -eux
-set -o pipefail
-
+set -exu -o pipefail
+ 
 cp -a kubo-lock-repo/. modified-repo
 cd modified-repo
 git config user.email "ci-bot@localhost"

@@ -1,7 +1,6 @@
 #!/bin/bash
 
-set -eux
-set -o pipefail
+set -exu -o pipefail
 
 login_gcp() {
   lock_file="kubo-lock-repo/${POOL_NAME}/claimed/${ENV_NAME}"

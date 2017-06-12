@@ -1,6 +1,6 @@
-#!/bin/sh -e
+#!/bin/bash
 
-[ -z "$DEBUG" ] || set -x
+set -exu -o pipefail
 
 . "$(dirname "$0")/lib/environment.sh"
 

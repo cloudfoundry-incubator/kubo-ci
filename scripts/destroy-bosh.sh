@@ -1,11 +1,11 @@
-#!/bin/sh -e
+#!/bin/bash
+
+set -exu -o pipefail
 
 . "$(dirname "$0")/lib/environment.sh"
 
-set -x
 export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
-
 
 cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}"
@@ -20,4 +20,3 @@ if [ "$iaas" = "gcp" ]; then
 else
   "${KUBO_DEPLOYMENT_DIR}/bin/destroy_bosh" "${KUBO_ENVIRONMENT_DIR}"
 fi
-

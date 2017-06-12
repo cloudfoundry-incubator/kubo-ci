@@ -12,4 +12,3 @@ bosh-cli create-env "git-kubo-deployment/bosh-deployment/bosh.yml"  \
   --var-file gcp_credentials_json=key.json \
   --vars-store "bosh-creds/creds.yml" \
   --vars-file "kubo-lock/metadata"
-

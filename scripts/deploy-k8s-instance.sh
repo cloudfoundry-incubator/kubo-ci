@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/bin/bash
+
+set -exu -o pipefail
 
 . "$(dirname "$0")/lib/environment.sh"
 

@@ -1,8 +1,9 @@
-#!/bin/sh -e
+#!/bin/bash
+
+set -exu -o pipefail
 
 . "$(dirname "$0")/lib/environment.sh"
 
-set -x
 export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"

@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/bin/bash
 
-[ -z "$DEBUG" ] || set -x
+set -exu -o pipefail
 
 version="$(cat kubo-version/version)"
 base_directory=git-kubo-deployment

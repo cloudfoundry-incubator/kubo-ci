@@ -1,4 +1,6 @@
-#!/bin/sh -ex
+#!/bin/bash
+
+set -exu -o pipefail
 
 status=${PR_STATUS:-"<<status is missing>>"}
 repo=${PR_REPO:-"<<unspecified repo>>"}

@@ -1,5 +1,6 @@
-#!/bin/bash -exu
+#!/bin/bash
 
+set -exu -o pipefail
 
 RUNTIME_CONFIG_YML='
 releases:
