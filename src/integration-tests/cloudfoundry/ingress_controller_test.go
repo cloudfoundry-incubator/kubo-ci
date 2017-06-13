@@ -102,6 +102,7 @@ var _ = Describe("Testing Ingress Controller", func ()  {
     Eventually(func() int {
       result, err := httpClient.Get(appUrl+ "/simple-http-server")
       if err != nil {
+        fmt.Println(err)
         return -1
       }
       return result.StatusCode

@@ -60,6 +60,7 @@ var _ = Describe("Deploy workload", func() {
 		Eventually(func() int {
 			result, err := httpClient.Get(appUrl)
 			if err != nil {
+				fmt.Println(err)
 				return -1
 			}
 			return result.StatusCode

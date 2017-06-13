@@ -51,11 +51,8 @@ ENV PATH /usr/local/ruby-install/bin:/usr/local/bin:$PATH
 RUN ruby-install --system ruby 2.3.3
 
 # Credhub
-RUN wget https://github.com/pivotal-cf/credhub-cli/releases/download/0.4.0/credhub-linux-0.4.0.tgz \
-  -O credhub-linux-0.4.0.tgz && tar xvf credhub-linux-0.4.0.tgz && mv credhub /usr/bin
-
-RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/0.6.0/credhub-linux-0.6.0.tgz \
-  -O credhub-linux-0.6.0.tgz && tar xvf credhub-linux-0.6.0.tgz && mv credhub /usr/bin/credhub-0.6.0
+RUN wget https://github.com/pivotal-cf/credhub-cli/releases/download/1.0.0/credhub-linux-1.0.0.tgz \
+  -O credhub-linux-1.0.0.tgz && tar xvf credhub-linux-1.0.0.tgz && mv credhub /usr/bin
 
 # kubectl
 RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.6.1/bin/linux/amd64/kubectl -O /usr/bin/kubectl && \
