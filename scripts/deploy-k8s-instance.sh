@@ -17,5 +17,3 @@ cp "$tarball_name" "git-kubo-deployment/../kubo-release.tgz"
 
 "git-kubo-deployment/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
 "git-kubo-deployment/bin/deploy_k8s" "${KUBO_ENVIRONMENT_DIR}" ci-service local
-
-cp "${KUBO_ENVIRONMENT_DIR}/ci-service-creds.yml" "$PWD/service-creds/ci-service-creds.yml"

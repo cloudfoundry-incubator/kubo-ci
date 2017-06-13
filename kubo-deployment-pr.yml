@@ -59,13 +59,6 @@ resources:
     bucket: kubo-pipeline-store
     versioned_file: bosh/creds.yml
 
-- name: gcs-service-creds
-  type: gcs
-  source:
-    json_key: {{gcs-json-key}}
-    bucket: kubo-pipeline-store
-    versioned_file: bosh/ci-service-creds.yml
-
 - name: gcs-kubo-release-tarball
   type: gcs
   source:
@@ -195,11 +188,6 @@ jobs:
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure_<%= iaas %>
 
-  - aggregate:
-    - put: gcs-service-creds
-      params:
-        file: service-creds/ci-service-creds.yml
-
 - name: deploy-workload-<%= iaas %>
   plan:
   - aggregate:
@@ -213,8 +201,6 @@ jobs:
     - get: gcs-bosh-state
       passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'deploy-k8s-<%= iaas %>' ]
-    - get: gcs-service-creds
       passed: [ 'deploy-k8s-<%= iaas %>' ]
   - put: git-kubo-deployment
     params:

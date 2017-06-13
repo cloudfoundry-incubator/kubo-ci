@@ -10,7 +10,6 @@ export DEBUG=1
 
 deployment_name="ci-service"
 
-cp "$PWD/gcs-service-creds/ci-service-creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 

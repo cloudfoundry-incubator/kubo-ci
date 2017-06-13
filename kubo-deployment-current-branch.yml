@@ -57,13 +57,6 @@ resources:
     bucket: kubo-pipeline-store
     versioned_file: bosh/creds.yml
 
-- name: gcs-service-creds
-  type: gcs
-  source:
-    json_key: {{gcs-json-key}}
-    bucket: kubo-pipeline-store
-    versioned_file: bosh/ci-service-creds.yml
-
 - name: gcs-kubo-release-tarball-untested
   type: gcs
   source:
@@ -258,9 +251,6 @@ jobs:
         text: |
           Deploy K8s on branch {{branch-name}} failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-  - put: gcs-service-creds
-    params:
-      file: service-creds/ci-service-creds.yml
 
 - name: deploy-workload-<%= iaas %>
   plan:
@@ -278,8 +268,6 @@ jobs:
     - get: kubo-version
       passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: git-kubo-release
-      passed: [ 'deploy-k8s-<%= iaas %>' ]
-    - get: gcs-service-creds
       passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'deploy-k8s-<%= iaas %>' ]
