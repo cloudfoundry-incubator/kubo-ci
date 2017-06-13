@@ -26,8 +26,8 @@ director_name=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/dir
 export GOPATH="$PWD/git-kubo-ci"
 export PATH_TO_KUBECONFIG="$HOME/.kube/config"
 
-export TLS_KUBERNETES_CERT=$(bosh-cli int <(credhub get -n "${director_name}/${deployment_name}/tls-kubernetes" --output-json) --path='/certificate')
-export TLS_KUBERNETES_PRIVATE_KEY=$(bosh-cli int <(credhub get -n "${director_name}/${deployment_name}/tls-kubernetes" --output-json) --path='/private_key')
+export TLS_KUBERNETES_CERT=$(bosh-cli int <(credhub get -n "${director_name}/${deployment_name}/tls-kubernetes" --output-json) --path='/value/certificate')
+export TLS_KUBERNETES_PRIVATE_KEY=$(bosh-cli int <(credhub get -n "${director_name}/${deployment_name}/tls-kubernetes" --output-json) --path='/value/private_key')
 
 if [[ ${routing_mode} == "cf" ]]; then
   export KUBERNETES_SERVICE_HOST=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/cf-tcp-router-name")
