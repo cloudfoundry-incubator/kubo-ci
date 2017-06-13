@@ -20,7 +20,6 @@ var _ = Describe("Docker Image", func() {
 		"make":     []string{"-v"},
 		"ruby":     []string{"-v"},
 		"kubectl":  []string{"help"},
-		"golint":   []string{"-h"},
 		"go":       []string{"doc", "cmd/vet"},
 	}
 
