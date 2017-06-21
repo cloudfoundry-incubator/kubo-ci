@@ -10,7 +10,8 @@ run:
 inputs:
 
 - name: kubo-lock
+- name: git-kubo-deployment
+- name: gcs-bosh-creds
 - name: git-kubo-ci
-- name: proxy-tf
 outputs:
 - name: kubo-lock-with-proxy

@@ -1,0 +1,34 @@
+name: tinyproxy
+
+releases:
+- name: tinyproxy
+  version: latest
+  url: https://github.com/freynca/tinyproxy-release/releases/download/0.0.1/tinyproxy-release-v0.0.1.tgz
+  sha1: 30797314c230eaf5ca13982993c159ad0efeef88
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: latest
+
+instance_groups:
+- name: tinyproxy
+  instances: 1
+  networks:
+  - name: public
+  azs: [z1]
+  jobs:
+  - name: tinyproxy
+    release: tinyproxy
+    properties: {}
+
+  stemcell: trusty
+  vm_type: common
+
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  serial: true
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
