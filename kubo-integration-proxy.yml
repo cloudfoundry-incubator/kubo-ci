@@ -17,6 +17,13 @@ resource_types:
     repository: frodenas/gcs-resource
 
 resources:
+
+- name: git-kubo-deployment
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-deployment
+    branch: master
+
 - name: git-kubo-ci
   type: git
   source:
@@ -61,39 +68,6 @@ resources:
     json_key: {{gcs-json-key}}
     bucket: kubo-public
     versioned_file: kubo-deployment-latest.tgz
-
-
-- name: proxy-tf
-  type: terraform
-  source:
-    vars:
-      region: us-east1
-    storage:
-      region_name: eu-west-1
-      bucket: kubo-pipeline-store
-      bucket_path: terraform/airgap/tinyproxy
-      access_key_id: {{gcs-access-key-id}}
-      secret_access_key: {{gcs-secret-access-key}}
-      region_name: us-east1
-      endpoint: storage.googleapis.com
-    # the '//' indicates a sub-directory in a git repo
-    terraform_source: github.com/pivotal-cf-experimental/kubo-ci//terraform
-
-# Target Artifacts - to be uploaded
-# - name: gcs-kubo-release-pass-proxy
-#   type: gcs
-#   source:
-#     json_key: {{gcs-json-key}}
-#     bucket: kubo-public
-#     regexp: kubo-release-(.*).tgz
-#
-# - name: gcs-kubo-deployment-pass-proxy
-#   type: gcs
-#   source:
-#     json_key: {{gcs-json-key}}
-#     bucket: kubo-public
-#     regexp: kubo-deployment-(.*).tgz
-
 
 - name: slack-alert
   type: slack-notification
@@ -155,19 +129,16 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-kubo-deployment
+    - get: gcs-bosh-creds
+      passed: ['install-bosh']
     - get: kubo-lock
       version: every
       trigger: true
-      passed: [ 'claim-lock' ]
+      passed: [ 'install-bosh' ]
 
-  - task: generate-proxy-tfvars
-    file: git-kubo-ci/tasks/generate-proxy-tfvars.yml
-
-  - put: proxy-tf
-    params:
-      delete_on_failure: true
-      env_name_file: kubo-lock/name
-      var_files: [ tfvars_dir/terraform.tfvars ]
+  - task: deploy-tinyproxy
+    file: git-kubo-ci/tasks/deploy-tinyproxy.yml
 
 - name: apply-runtime-config
   plan:
@@ -176,7 +147,7 @@ jobs:
     - get: kubo-lock
       version: every
       trigger: true
-      passed: [ 'install-bosh' ]
+      passed: [ 'deploy-proxy' ]
     - get: gcs-kubo-deployment-pre
       passed: [ 'install-bosh' ]
     - get: gcs-kubo-release-pre
@@ -184,8 +155,6 @@ jobs:
     - get: gcs-bosh-state
       passed: [ 'install-bosh' ]
     - get: gcs-bosh-creds
-      passed: [ 'install-bosh' ]
-    - get: proxy-tf
       passed: [ 'deploy-proxy' ]
 
   - task: apply-runtime-config
@@ -199,6 +168,8 @@ jobs:
       version: every
       trigger: true
       passed: [ 'apply-runtime-config' ]
+    - get: git-kubo-deployment
+      passed: [ 'deploy-proxy' ]
     - get: gcs-kubo-deployment-pre
       passed: [ 'apply-runtime-config' ]
     - get: gcs-kubo-release-pre
@@ -206,8 +177,6 @@ jobs:
     - get: gcs-bosh-state
       passed: [ 'apply-runtime-config' ]
     - get: gcs-bosh-creds
-      passed: [ 'apply-runtime-config' ]
-    - get: proxy-tf
       passed: [ 'apply-runtime-config' ]
 
   - task: unpack-kubo-deployment
@@ -230,6 +199,7 @@ jobs:
         text: |
           <!here|here> Deploy K8s failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
 - name: deploy-workload
   serial_groups: [proxy]
   plan:
@@ -246,8 +216,6 @@ jobs:
     - get: gcs-kubo-release-pre
       passed: [ 'deploy-k8s' ]
     - get: gcs-kubo-deployment-pre
-      passed: [ 'deploy-k8s' ]
-    - get: proxy-tf
       passed: [ 'deploy-k8s' ]
 
   - task: unpack-kubo-deployment
@@ -289,8 +257,6 @@ jobs:
       passed: [ 'deploy-workload' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-workload' ]
-    - get: proxy-tf
-      passed: [ 'deploy-workload' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -310,23 +276,17 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed: ['deploy-k8s']
+    - get: gcs-bosh-creds
+      passed: ['destroy-k8s']
     - get: kubo-lock
       version: every
       trigger: true
-      passed: [ 'deploy-workload' ]
-    - get: proxy-tf
-      passed: [ 'deploy-workload' ]
+      passed: ['destroy-k8s']
 
-  - task: generate-proxy-tfvars
-    file: git-kubo-ci/tasks/generate-proxy-tfvars.yml
-
-  - put: proxy-tf
-    params:
-      env_name_file: kubo-lock/name
-      var_files: [ tfvars_dir/terraform.tfvars ]
-      action: destroy
-    get_params:
-      action: destroy
+  - task: destroy-tinyproxy
+    file: git-kubo-ci/tasks/destroy-tinyproxy.yml
 
 - name: destroy-bosh
   plan:
@@ -335,15 +295,15 @@ jobs:
     - get: kubo-lock
       version: every
       trigger: true
-      passed: [ 'destroy-k8s' ]
+      passed: [ 'destroy-proxy' ]
     - get: gcs-kubo-deployment-pre
-      passed: [ 'destroy-k8s' ]
+      passed: [ 'install-bosh' ]
     - get: gcs-kubo-release-pre
-      passed: [ 'destroy-k8s' ]
+      passed: [ 'install-bosh' ]
     - get: gcs-bosh-state
-      passed: [ 'destroy-k8s' ]
+      passed: [ 'install-bosh' ]
     - get: gcs-bosh-creds
-      passed: [ 'destroy-k8s' ]
+      passed: [ 'destroy-proxy' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
