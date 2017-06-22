@@ -3,7 +3,7 @@ name: tinyproxy
 releases:
 - name: tinyproxy
   version: latest
-  url: https://github.com/freynca/tinyproxy-release/releases/download/0.0.1/tinyproxy-release-v0.0.1.tgz
+  url: https://github.com/pivotal-cf-experimental/tinyproxy-release/releases/download/0.0.1/tinyproxy-release-v0.0.1.tgz
   sha1: 30797314c230eaf5ca13982993c159ad0efeef88
 
 stemcells:
