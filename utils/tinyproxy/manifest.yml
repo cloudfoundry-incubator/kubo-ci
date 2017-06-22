@@ -15,7 +15,7 @@ instance_groups:
 - name: tinyproxy
   instances: 1
   networks:
-  - name: public
+  - name: kubo-network
   azs: [z1]
   jobs:
   - name: tinyproxy
