@@ -2,6 +2,34 @@
   iaas_list = %w(gcp vsphere)
 %>
 ---
+groups:
+- name: all
+  jobs:
+<% iaas_list.each do |iaas| %>
+  - claim-lock-<%= iaas %>
+  - install-bosh-<%= iaas %>
+  - deploy-proxy-<%= iaas %>
+  - apply-runtime-config-<%= iaas %>
+  - deploy-k8s-<%= iaas %>
+  - deploy-workload-<%= iaas %>
+  - destroy-k8s-<%= iaas %>
+  - destroy-proxy-<%= iaas %>
+  - destroy-bosh-<%= iaas %>
+<% end %>
+<% iaas_list.each do |iaas| %>
+- name: <%= iaas %>
+  jobs:
+  - claim-lock-<%= iaas %>
+  - install-bosh-<%= iaas %>
+  - deploy-proxy-<%= iaas %>
+  - apply-runtime-config-<%= iaas %>
+  - deploy-k8s-<%= iaas %>
+  - deploy-workload-<%= iaas %>
+  - destroy-k8s-<%= iaas %>
+  - destroy-proxy-<%= iaas %>
+  - destroy-bosh-<%= iaas %>
+<% end %>
+
 resource_types:
 - name: slack-notification
   type: docker-image
@@ -67,23 +95,6 @@ resources:
     bucket: kubo-public
     versioned_file: kubo-deployment-latest.tgz
 
-
-- name: proxy-tf
-  type: terraform
-  source:
-    vars:
-      region: us-east1
-    storage:
-      region_name: eu-west-1
-      bucket: kubo-pipeline-store
-      bucket_path: terraform/airgap/tinyproxy
-      access_key_id: {{gcs-access-key-id}}
-      secret_access_key: {{gcs-secret-access-key}}
-      region_name: us-east1
-      endpoint: storage.googleapis.com
-    # the '//' indicates a sub-directory in a git repo
-    terraform_source: github.com/pivotal-cf-experimental/kubo-ci//terraform
-
 # Target Artifacts - to be uploaded
 # - name: gcs-kubo-release-pass-proxy
 #   type: gcs
@@ -139,7 +150,6 @@ jobs:
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     tags: [<%= iaas %>]
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
   - task: install
     file: git-kubo-ci/tasks/install-bosh.yml
@@ -166,7 +176,8 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: git-kubo-deployment
+    - get: gcs-kubo-deployment-pre
+      passed: [ 'claim-lock-<%= iaas %>' ]
     - get: gcs-bosh-creds
       passed: ['install-bosh-<%= iaas %>']
     - get: kubo-lock-<%= iaas %>
@@ -174,10 +185,16 @@ jobs:
       trigger: true
       passed: [ 'install-bosh-<%= iaas %>' ]
 
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    tags: [<%= iaas %>]
+
   - task: deploy-tinyproxy
     file: git-kubo-ci/tasks/deploy-tinyproxy.yml
     tags: [<%= iaas %>]
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+    params:
+      IAAS: "<%=iaas%>"
 
 - name: apply-runtime-config-<%= iaas %>
   plan:
@@ -186,8 +203,6 @@ jobs:
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'deploy-proxy-<%= iaas %>' ]
-    - get: git-kubo-deployment
       passed: [ 'deploy-proxy-<%= iaas %>' ]
     - get: gcs-kubo-deployment-pre
       passed: [ 'install-bosh-<%= iaas %>' ]
@@ -211,8 +226,6 @@ jobs:
       version: every
       trigger: true
       passed: [ 'apply-runtime-config-<%= iaas %>' ]
-    - get: git-kubo-deployment
-      passed: [ 'apply-runtime-config-<%= iaas %>' ]
     - get: gcs-kubo-deployment-pre
       passed: [ 'apply-runtime-config-<%= iaas %>' ]
     - get: gcs-kubo-release-pre
@@ -225,7 +238,6 @@ jobs:
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     tags: [<%= iaas %>]
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
   - task: apply-proxy-to-env
     file: git-kubo-ci/tasks/apply-proxy-to-env.yml
@@ -249,7 +261,6 @@ jobs:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: deploy-workload-<%= iaas %>
-  serial_groups: [proxy]
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -269,7 +280,6 @@ jobs:
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     tags: [<%= iaas %>]
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
   - task: workload
     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
@@ -286,6 +296,8 @@ jobs:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: pod-to-pod
     file: git-kubo-ci/tasks/pod-to-pod.yml
+    tags: [<%= iaas %>]
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure:
       put: slack-alert
       params:
@@ -315,7 +327,6 @@ jobs:
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     tags: [<%= iaas %>]
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
@@ -335,18 +346,23 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: git-kubo-deployment
-      passed: ['deploy-k8s-<%= iaas %>']
+    - get: gcs-kubo-deployment-pre
+      passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: ['destroy-k8s-<%= iaas %>']
+      passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: ['destroy-k8s-<%= iaas %>']
+      passed: [ 'deploy-workload-<%= iaas %>' ]
+
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    tags: [<%= iaas %>]
 
   - task: destroy-tinyproxy
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-tinyproxy.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
 - name: destroy-bosh-<%= iaas %>
   plan:
@@ -355,20 +371,25 @@ jobs:
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'destroy-proxy-<%= iaas %>' ]
+      passed:
+      - 'destroy-proxy-<%= iaas %>'
+      - 'destroy-k8s-<%= iaas %>'
     - get: gcs-kubo-deployment-pre
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed:
+      - 'destroy-proxy-<%= iaas %>'
+      - 'destroy-k8s-<%= iaas %>'
     - get: gcs-kubo-release-pre
       passed: [ 'install-bosh-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'destroy-proxy-<%= iaas %>' ]
+      passed:
+      - 'destroy-proxy-<%= iaas %>'
+      - 'destroy-k8s-<%= iaas %>'
 
   - task: unpack-kubo-deployment
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
   - task: destroy
     tags: [<%= iaas %>]
