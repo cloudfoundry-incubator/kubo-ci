@@ -3,9 +3,9 @@ name: concourse-worker
 
 releases:
 - name: concourse
-  version: 3.1.1
+  version: 3.2.1
   url: https://bosh.io/d/github.com/concourse/concourse?v=3.1.1
-  sha1: d796ed9059dc6d97aec9dcbf13c2529c53149692
+  sha1: 5d4fa5907d3733445ea0e8f9852e4fd3296b1ec7
 - name: garden-runc
   version: 1.6.0
   url: https://github.com/concourse/concourse/releases/download/v3.0.0/garden-runc-1.6.0.tgz
