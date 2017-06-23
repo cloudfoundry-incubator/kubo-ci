@@ -8,6 +8,7 @@ export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 export DEBUG=1
 cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
+touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
 
 iaas=$(bosh-cli int kubo-lock/metadata --path=/iaas)
 if [ "$iaas" = "gcp" ]; then
