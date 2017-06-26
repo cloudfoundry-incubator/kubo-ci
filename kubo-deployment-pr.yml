@@ -29,8 +29,8 @@ resources:
 - name: git-kubo-deployment
   type: pull-request
   source:
-    repo: pivotal-cf-experimental/kubo-deployment
-    uri: git@github.com:pivotal-cf-experimental/kubo-deployment
+    repo: cloudfoundry-incubator/kubo-deployment
+    uri: git@github.com:cloudfoundry-incubator/kubo-deployment
     base: master
     private_key: {{git-ssh-key}}
     access_token: {{github-token-key}}

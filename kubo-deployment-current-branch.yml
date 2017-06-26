@@ -24,13 +24,13 @@ resources:
 - name: git-kubo-deployment
   type: git
   source:
-    uri: https://github.com/pivotal-cf-experimental/kubo-deployment
+    uri: https://github.com/cloudfoundry-incubator/kubo-deployment
     branch: {{branch-name}}
 
 - name: git-kubo-release
   type: git
   source:
-    uri: https://github.com/pivotal-cf-experimental/kubo-release
+    uri: https://github.com/cloudfoundry-incubator/kubo-release
     branch: master
 
 <% iaas_list.each do |iaas| %>
