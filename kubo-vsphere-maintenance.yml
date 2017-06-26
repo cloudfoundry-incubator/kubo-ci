@@ -1,8 +1,22 @@
 <%
-    lock_files =  Dir.glob(File.join(__dir__, "..", "kubo-locks", "kubo-vsphere", "*", "*"))
-    envs = lock_files.collect do |file|
-      File.basename(file)
+    vsphere_lock_files =  Dir.glob(File.join(__dir__, "..", "kubo-locks", "kubo-vsphere", "*", "*"))
+    vsphere_lb_lock_files =  Dir.glob(File.join(__dir__, "..", "kubo-locks", "kubo-vsphere-lb", "*", "*"))
+
+    vsphere_envs = vsphere_lock_files.collect do |file|
+      {
+        "pool_name" => "kubo-vsphere",
+        "name" => File.basename(file)
+      }
     end
+
+    vsphere_lb_envs = vsphere_lb_lock_files.collect do |file|
+      {
+        "pool_name" => "kubo-vsphere-lb",
+        "name" => File.basename(file)
+      }
+    end
+
+    envs = (vsphere_envs + vsphere_lb_envs).flatten
 %>
 ---
 resources:
@@ -21,35 +35,35 @@ resources:
 
 jobs:
 <% envs.each do |env| %>
-- name: cleanup-<%= env %>
+- name: cleanup-<%= env["name"] %>
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-lock-repo
       trigger: false
-  - task: claim-<%= env %>
+  - task: claim-<%= env["name"] %>
     file: git-kubo-ci/tasks/claim-lock-manually.yml
     params:
-      ENV_NAME: <%= env %>
-      POOL_NAME: kubo-vsphere
+      ENV_NAME: <%= env["name"] %>
+      POOL_NAME: <%= env["pool_name"] %>
     ensure:
       put: kubo-lock-repo
       params:
         repository: modified-repo
         rebase: true
 
-  - task: cleanup-<%= env %>
+  - task: cleanup-<%= env["name"] %>
     file: git-kubo-ci/tasks/cleanup-vsphere-environment.yml
     tags: [vsphere]
     params:
-      ENV_NAME: <%= env %>
-      POOL_NAME: kubo-vsphere
+      ENV_NAME: <%= env["name"] %>
+      POOL_NAME: <%= env["pool_name"] %>
 
-  - task: unclaim-<%= env %>
+  - task: unclaim-<%= env["name"] %>
     file: git-kubo-ci/tasks/unclaim-lock-manually.yml
     params:
-      ENV_NAME: <%= env %>
-      POOL_NAME: kubo-vsphere
+      ENV_NAME: <%= env["name"] %>
+      POOL_NAME: <%= env["pool_name"] %>
     ensure:
       put: kubo-lock-repo
       params:
