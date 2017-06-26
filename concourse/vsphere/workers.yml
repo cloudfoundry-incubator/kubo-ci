@@ -30,6 +30,7 @@ instance_groups:
     properties:
       tags:
         - vsphere
+        - vsphere-lb
       tsa:
         private_key: ((worker-key.private_key))
         host: ci.kubo.sh
