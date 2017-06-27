@@ -23,7 +23,7 @@ kubectl rollout status deployment/frontend -w
 kubectl rollout status deployment/redis-master -w
 kubectl rollout status deployment/redis-slave -w
 
-worker_ip=$(BOSH_CLIENT=bosh_admin BOSH_CLIENT_SECRET=${client_secret} BOSH_CA_CERT="${bosh_ca_cert}" bosh-cli -e ${director_ip} vms | grep worker | head -n1 | awk '{print $4}')
+worker_ip=$(BOSH_CLIENT=bosh_admin BOSH_CLIENT_SECRET=${client_secret} BOSH_CA_CERT="${bosh_ca_cert}" bosh-cli -e ${director_ip} vms | grep worker | grep -v haproxy | head -n1 | awk '{print $4}')
 testvalue="hellothere$(date +'%N')"
 
 if timeout 120 /bin/bash <<EOF
