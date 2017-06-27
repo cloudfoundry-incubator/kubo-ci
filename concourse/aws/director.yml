@@ -1,0 +1,15 @@
+az: us-east-1b
+subnet_id: subnet-a644fd8a
+default_key_name: kubo
+default_security_groups:
+- sg-1c5aef6d
+region: us-east-1
+
+internal_cidr: 10.0.0.0/24
+internal_gw: 10.0.0.1
+internal_ip: 10.0.0.6
+reserved_ips:
+- 10.0.0.1/30
+
+deployments_network: kubo
+director_name: aws_concourse
