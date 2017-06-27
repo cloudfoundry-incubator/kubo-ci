@@ -192,7 +192,7 @@ jobs:
       ci: git-infrastructure-ci
     params:
       TEST_enable_turbulence_tests: false
-      TEST_parallel_nodes: 7
+      TEST_parallel_nodes: 5
     on_failure:
       put: slack-alert
       params:
