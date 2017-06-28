@@ -21,11 +21,13 @@ function main() {
   upload_releases
   force_compilation
 
+  crt=$(mktemp)
+  printenv BOSH_CA_CERT > "$crt"
   bosh -d eats -n deploy "${root}/etcd-release/manifests/eats.yml" \
     --vars-env=TEST \
     --var="bosh_client=${BOSH_CLIENT}" \
     --var="bosh_client_secret=${BOSH_CLIENT_SECRET}" \
-    --var="bosh_director_ca_cert=${BOSH_CA_CERT}" \
+    --var-file="bosh_director_ca_cert=${crt}" \
     --var="bosh_environment=https://${BOSH_ENVIRONMENT}:25555"
 
   bosh -d eats run-errand acceptance-tests
