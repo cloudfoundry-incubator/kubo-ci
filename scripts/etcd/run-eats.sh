@@ -25,7 +25,7 @@ function main() {
     --vars-env=TEST \
     --var="bosh_client=${BOSH_CLIENT}" \
     --var="bosh_client_secret=${BOSH_CLIENT_SECRET}" \
-    --var="bosh_ca_cert=${BOSH_CA_CERT}" \
+    --var="bosh_director_ca_cert=${BOSH_CA_CERT}" \
     --var="bosh_environment=https://${BOSH_ENVIRONMENT}:25555"
 
   bosh -d eats run-errand acceptance-tests
