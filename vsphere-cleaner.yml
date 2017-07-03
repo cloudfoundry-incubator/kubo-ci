@@ -9,7 +9,7 @@ resources:
 - name: gcs-vsphere-cleaner
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-public
     versioned_file: vsphere-cleaner
 

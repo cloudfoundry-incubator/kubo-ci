@@ -32,34 +32,34 @@ resources:
 - name: slack-alert
   type: slack-notification
   source:
-    url: {{slack-url}}
+    url: ((slack-url))
 
 - name: kubo-lock
   type: pool
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
-    private_key: {{git-ssh-key}}
+    private_key: ((git-ssh-key))
     pool: kubo-deployment
 
 - name: gcs-kubo-deployment-pre
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-public
     versioned_file: kubo-deployment-latest.tgz
 
 - name: gcs-bosh-creds
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     versioned_file: bosh/creds.yml
 
 - name: gcs-bosh-state
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     versioned_file: bosh/state.json
 

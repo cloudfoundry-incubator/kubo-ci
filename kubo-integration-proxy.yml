@@ -61,14 +61,14 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
-    private_key: {{git-ssh-key}}
+    private_key: ((git-ssh-key))
     pool: kubo-<%= iaas == "gcp" ? "deployment" : iaas %>
 <% end %>
 
 - name: gcs-bosh-state
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     versioned_file: bosh/state.json
 
@@ -77,7 +77,7 @@ resources:
 - name: gcs-bosh-creds
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     versioned_file: bosh/creds.yml
 
@@ -85,21 +85,21 @@ resources:
 - name: gcs-kubo-release-pre
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-public
     versioned_file: kubo-release-latest.tgz
 
 - name: gcs-kubo-deployment-pre
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-public
     versioned_file: kubo-deployment-latest.tgz
 
 - name: slack-alert
   type: slack-notification
   source:
-    url: {{slack-url}}
+    url: ((slack-url))
 
 
 ############################################

@@ -14,7 +14,7 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks
     branch: master
-    private_key: {{git-ssh-key}}
+    private_key: ((git-ssh-key))
 - name: git-kubo-ci
   type: git
   source:
@@ -45,8 +45,8 @@ jobs:
   - task: cleanup-<%= env %>
     file: git-kubo-ci/tasks/cleanup-environment.yml
     params:
-      AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
-      AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
+      AWS_ACCESS_KEY_ID: ((aws-access-key-id))
+      AWS_SECRET_ACCESS_KEY: ((aws-secret-access-key))
       AWS_DEFAULT_REGION: eu-west-1
       ENV_NAME: <%= env %>
       POOL_NAME: <%= pool %>

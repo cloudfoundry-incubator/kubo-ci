@@ -25,7 +25,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/kubo-deployment
-    branch: {{branch-name}}
+    branch: ((branch-name))
 
 - name: git-kubo-release
   type: git
@@ -39,56 +39,56 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
-    private_key: {{git-ssh-key}}
+    private_key: ((git-ssh-key))
     pool: kubo-<%= iaas == "gcp" ? "deployment" : iaas %>
 <% end %>
 
 - name: gcs-bosh-state
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     versioned_file: bosh/state.json
 
 - name: gcs-bosh-creds
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     versioned_file: bosh/creds.yml
 
 - name: gcs-kubo-release-tarball-untested
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     regexp: kubo-release-(.*).tgz
 
 - name: gcs-kubo-releases
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-releases
     regexp: kubo-release-(.*).tgz
 
 - name: gcs-kubo-deployments
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-releases
     regexp: kubo-deployment-(.*).tgz
 
 - name: gcs-kubo-release-tarball
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-public
     versioned_file: kubo-release-latest.tgz
 
 - name: gcs-kubo-deployment-tarball
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-public
     versioned_file: kubo-deployment-latest.tgz
 
@@ -96,8 +96,8 @@ resources:
   type: semver
   source:
     key: kubo-version
-    access_key_id: {{gcs-access-key-id}}
-    secret_access_key: {{gcs-secret-access-key}}
+    access_key_id: ((gcs-access-key-id))
+    secret_access_key: ((gcs-secret-access-key))
     bucket: kubo-pipeline-store
     region_name: us-east1
     endpoint: storage.googleapis.com
@@ -105,7 +105,7 @@ resources:
 - name: slack-alert
   type: slack-notification
   source:
-    url: {{slack-url}}
+    url: ((slack-url))
 
 jobs:
 - name: run-unit-tests
@@ -207,7 +207,7 @@ jobs:
         silent: true
         icon_emoji: ":octopus:"
         text: |
-          Deploy BOSH on {{branch-name}} failed:
+          Deploy BOSH on ((branch-name)) failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - aggregate:
     - put: gcs-bosh-creds
@@ -249,7 +249,7 @@ jobs:
         silent: true
         icon_emoji: ":octopus:"
         text: |
-          Deploy K8s on branch {{branch-name}} failed:
+          Deploy K8s on branch ((branch-name)) failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: deploy-workload-<%= iaas %>
@@ -281,7 +281,7 @@ jobs:
         silent: true
         icon_emoji: ":octopus:"
         text: |
-          Deploy K8s Workload on branch {{branch-name}} failed:
+          Deploy K8s Workload on branch ((branch-name)) failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: pod-to-pod
     tags: [<%= iaas %>]
@@ -293,7 +293,7 @@ jobs:
         silent: true
         icon_emoji: ":octopus:"
         text: |
-          Pod to pod communication on branch {{branch-name}} failed:
+          Pod to pod communication on branch ((branch-name)) failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-k8s-<%= iaas %>
@@ -323,7 +323,7 @@ jobs:
         silent: true
         icon_emoji: ":octopus:"
         text: |
-          Destroy K8s on branch {{branch-name}} failed:
+          Destroy K8s on branch ((branch-name)) failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 
@@ -355,7 +355,7 @@ jobs:
         silent: true
         icon_emoji: ":octopus:"
         text: |
-          Destroy BOSH on branch {{branch-name}} failed:
+          Destroy BOSH on branch ((branch-name)) failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: kubo-lock-<%= iaas %>
     params: { release: kubo-lock-<%= iaas %> }
@@ -411,4 +411,4 @@ jobs:
       silent: true
       icon_emoji: ":chameleon:"
       text: |
-        kubo-deployment pipeline on branch {{branch-name}} has succeeded
+        kubo-deployment pipeline on branch ((branch-name)) has succeeded

@@ -11,57 +11,57 @@ resources:
   type: docker-image
   source:
     repository: pcfkubo/test-runner
-    email: {{docker-hub-email}}
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
     tag: latest
 
 - name: test-runner-stable
   type: docker-image
   source:
     repository: pcfkubo/test-runner
-    email: {{docker-hub-email}}
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
     tag: stable
 - name: vsphere-cleaner-latest
   type: docker-image
   source:
     repository: pcfkubo/vsphere-cleaner
-    email: {{docker-hub-email}}
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
     tag: latest
 
 - name: vsphere-cleaner-stable
   type: docker-image
   source:
     repository: pcfkubo/vsphere-cleaner
-    email: {{docker-hub-email}}
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
     tag: stable
 - name: kubo-ci-latest
   type: docker-image
   source:
     repository: pcfkubo/kubo-ci
-    email: {{docker-hub-email}}
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
     tag: latest
 
 - name: kubo-ci-stable
   type: docker-image
   source:
     repository: pcfkubo/kubo-ci
-    email: {{docker-hub-email}}
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
     tag: stable
 - name: gcs-vsphere-cleaner
   type: gcs
   source:
-    json_key: {{gcs-json-key}}
+    json_key: ((gcs-json-key))
     bucket: kubo-public
     versioned_file: vsphere-cleaner
 
