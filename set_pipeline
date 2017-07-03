@@ -19,6 +19,9 @@ print_usage() {
     pipeline_name="$(basename "${name}")"
     echo "        - ${pipeline_name%.yml}"
   done
+  echo
+  echo 'Use following command to set all pipelines'
+  echo 'find * -maxdepth 0 -name \*.yml -exec ./set_pipeline  {} \;'
 }
 
 main() {
@@ -28,9 +31,14 @@ main() {
   local branch_name="master"
 
   if [ ! -f "${pipeline_filename}" ]; then
-    echo "Unknown pipeline name ${pipeline_name}"
-    print_usage
-    exit 1
+    pipeline_filename="${ci_dir}/${pipeline_name}"
+    if [ ! -f "${pipeline_filename}" ]; then
+      echo "Unknown pipeline name ${pipeline_name}"
+      print_usage
+      exit 1
+    else
+      pipeline_name="${pipeline_name%.*}"
+    fi
   fi
 
 
