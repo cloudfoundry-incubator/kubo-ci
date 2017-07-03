@@ -66,11 +66,11 @@ function force_compilation() {
       -e "s/ETCD_RELEASE_VERSION/${TEST_etcd_release_version}/g" \
       -e "s/TURBULENCE_RELEASE_VERSION/${turbulence_release_version}/g" \
       -e "s/STEMCELL_VERSION/${TEST_stemcell_version}/g" \
-      "${root}/ci/scripts/etcd/run-eats/fixtures/eats_compilation.yml" \
+      "${root}/etcd-release/scripts/fixtures/eats_compilation.yml" \
       > "${root}/eats_compilation.yml"
 
     bosh -d compilation -n deploy "${root}/eats_compilation.yml"
-    bosh -d compilation export-release "etcd/${TEST_etcd_release_version}" "ubuntu-trusty/${TEST_stemcell_version}"
+    bosh -d compilation export-release "kubo-etcd/${TEST_etcd_release_version}" "ubuntu-trusty/${TEST_stemcell_version}"
     bosh -d compilation export-release "consul/${consul_release_version}" "ubuntu-trusty/${TEST_stemcell_version}"
     bosh -d compilation export-release "turbulence/${turbulence_release_version}" "ubuntu-trusty/${TEST_stemcell_version}"
     bosh -d compilation -n delete-deployment
@@ -79,7 +79,7 @@ function force_compilation() {
 function teardown() {
   set +e
   bosh -d eats -n delete-deployment
-  bosh -n delete-release etcd
+  bosh -n delete-release kubo-etcd
   bosh -n delete-release consul
   bosh -n delete-release turbulence
   set -e
