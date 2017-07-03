@@ -66,7 +66,7 @@ function force_compilation() {
       -e "s/ETCD_RELEASE_VERSION/${TEST_etcd_release_version}/g" \
       -e "s/TURBULENCE_RELEASE_VERSION/${turbulence_release_version}/g" \
       -e "s/STEMCELL_VERSION/${TEST_stemcell_version}/g" \
-      "${root}/etcd-release/scripts/fixtures/eats_compilation.yml" \
+      "${root}/git-kubo-ci/etcd/eats_compilation.yml" \
       > "${root}/eats_compilation.yml"
 
     bosh -d compilation -n deploy "${root}/eats_compilation.yml"
