@@ -6,7 +6,7 @@ root="${PWD}"
 
 TEST_etcd_release_version="99999+dev.$(date +%s)"
 TEST_stemcell_version="$(cat "${root}/stemcell/version")"
-TEST_latest_etcd_release_version="$(cat "${root}/latest-etcd-release/version")"
+TEST_latest_etcd_release_version="$(tar -xOf latest-etcd-release/latest-kubo-etcd.tgz release.MF | bosh int - --path /version)"
 export TEST_etcd_release_version TEST_stemcell_version TEST_latest_etcd_release_version
 
 consul_release_version="$(cat "${root}/consul-release/version")"
@@ -55,7 +55,7 @@ function upload_stemcell() {
 function upload_releases() {
   bosh upload-release turbulence-release/release.tgz
   bosh upload-release consul-release/release.tgz
-  bosh upload-release latest-etcd-release/release.tgz
+  bosh upload-release latest-etcd-release/latest-kubo-etcd.tgz
 
   bosh -n create-release --force --version "${TEST_etcd_release_version}" --dir=etcd-release
   bosh upload-release --dir=etcd-release
