@@ -12,11 +12,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
 
 WORKDIR /tmp/docker-build
 
-# Direnv
-RUN wget https://github.com/direnv/direnv/releases/download/v2.9.0/direnv.linux-amd64 -O /usr/local/bin/direnv
-RUN chmod +x /usr/local/bin/direnv
-RUN echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
-
 # Golang
 RUN wget https://storage.googleapis.com/golang/go1.7.4.linux-amd64.tar.gz
 RUN tar -C /usr/local -xzf go1.7.4.linux-amd64.tar.gz

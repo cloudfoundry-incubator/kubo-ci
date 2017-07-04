@@ -35,11 +35,4 @@ var _ = Describe("Docker Image", func() {
 			Eventually(session, "5s").Should(Exit(0))
 		})
 	}
-
-	// It("has vsphere-cleaner installed", func() {
-	// 	command := exec.Command("which", "vsphere-cleaner")
-	// 	session, err := Start(command, GinkgoWriter, GinkgoWriter)
-	// 	Expect(err).ToNot(HaveOccurred())
-	// 	Eventually(session, "1s").Should(Exit(0))
-	// })
 })
