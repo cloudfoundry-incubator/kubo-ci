@@ -40,7 +40,7 @@ resources:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key))
-    pool: kubo-deployment
+    pool: kubo-aws-lb
 
 - name: gcs-kubo-deployment-pre
   type: gcs
@@ -80,9 +80,11 @@ resources:
     repository: cloudfoundry-incubator/consul-release
 
 - name: latest-etcd-release
-  type: bosh-io-release
+  type: gcs
   source:
-    repository: cloudfoundry-incubator/etcd-release
+    json_key: ((gcs-json-key))
+    bucket: kubo-public
+    versioned_file: latest-kubo-etcd.tgz
 
 jobs:
 - name: run-unit-tests
