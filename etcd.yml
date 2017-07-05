@@ -40,7 +40,7 @@ resources:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key))
-    pool: kubo-aws-lb
+    pool: kubo-deployment
 
 - name: gcs-kubo-deployment-pre
   type: gcs
