@@ -2,6 +2,32 @@
   iaas_list = %w(gcp vsphere gcp-lb)
 %>
 ---
+groups:
+- name: all
+  jobs:
+  - run-unit-tests
+  - build-kubo-release
+<% iaas_list.each do |iaas| %>
+  - claim-lock-<%= iaas %>
+  - install-bosh-<%= iaas %>
+  - deploy-k8s-<%= iaas %>
+  - deploy-workload-<%= iaas %>
+  - destroy-k8s-<%= iaas %>
+  - destroy-bosh-<%= iaas %>
+<% end %>
+  - upload-kubo-deployment
+  - upload-kubo-release
+  - success-notification
+<% iaas_list.each do |iaas| %>
+- name: <%= iaas %>
+  jobs:
+  - claim-lock-<%= iaas %>
+  - install-bosh-<%= iaas %>
+  - deploy-k8s-<%= iaas %>
+  - deploy-workload-<%= iaas %>
+  - destroy-k8s-<%= iaas %>
+  - destroy-bosh-<%= iaas %>
+<% end %>
 resource_types:
 - name: slack-notification
   type: docker-image
