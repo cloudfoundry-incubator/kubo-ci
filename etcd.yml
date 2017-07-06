@@ -26,8 +26,8 @@ resources:
 - name: git-infrastructure-ci
   type: git
   source:
-    uri: https://github.com/alex-slynko/infrastructure-ci
-    branch: fix-blob-in-etcd-metrics-tests
+    uri: https://github.com/cloudfoundry/infrastructure-ci
+    branch: master
 
 - name: slack-alert
   type: slack-notification
