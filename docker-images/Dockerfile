@@ -53,5 +53,9 @@ RUN wget https://github.com/pivotal-cf/credhub-cli/releases/download/1.0.0/credh
 RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.6.6/bin/linux/amd64/kubectl -O /usr/bin/kubectl && \
   chmod +x /usr/bin/kubectl
 
+# Direnv
+RUN wget -O /usr/local/bin/direnv https://github.com/direnv/direnv/releases/download/v2.12.2/direnv.linux-amd64 && \
+  chmod +x /usr/local/bin/direnv
+
 # Cleanup
 RUN rm -rf /tmp/docker-build
