@@ -23,7 +23,6 @@ resources:
   type: time
   source:
     days: [ Monday ]
-    location: Europe/Ireland
     start: 9:00 AM
     stop: 9:10 AM
     interval: 1h
