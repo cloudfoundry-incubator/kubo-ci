@@ -1,0 +1,48 @@
+#!/bin/bash
+set -e -o pipefail
+
+bin_dir=$(dirname "${BASH_SOURCE[0]}")
+CONCOURSE_DIR="$(cd $bin_dir/..; pwd)"
+
+print_usage(){
+  echo "Usage: $0 <bosh_deployment> <iaas>"
+}
+
+BOSH_DEPLOYMENT="$1"
+IAAS="$2"
+
+if [ -z "$BOSH_DEPLOYMENT" ]; then
+  print_usage
+  exit 1
+fi
+
+if [ -z "$IAAS" ]; then
+  print_usage
+  exit 1
+fi
+
+set -u
+
+BOSH_DEPLOYMENT=$(cd "$BOSH_DEPLOYMENT"; pwd)
+
+touch "$CONCOURSE_DIR/$IAAS/private.yml"
+touch "$CONCOURSE_DIR/$IAAS/director.yml"
+
+secrets_lpass_note_id=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/secrets_lpass_note_id')
+secrets_lpass_note_path=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/secrets_lpass_note_path')
+
+manifest_file=$(mktemp)
+
+
+bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
+    --ops-file  "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
+    --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \
+    --vars-store "$CONCOURSE_DIR/$IAAS/private.yml" \
+    --vars-file <(bosh int <(lpass show --note $secrets_lpass_note_id) --path="/$secrets_lpass_note_path") \
+    > "$manifest_file"
+
+bosh-cli create-env "$manifest_file" \
+    --vars-store "$CONCOURSE_DIR/$IAAS/private.yml" \
+    --state "$CONCOURSE_DIR/$IAAS/state.json"
+
+rm "$manifest_file"

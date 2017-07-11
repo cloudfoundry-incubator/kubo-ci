@@ -1,18 +1,18 @@
 {
-    "director_id": "752da3a5-63dd-4e4c-5b1c-dda9d03937e8",
-    "installation_id": "789f97f0-bc0c-41ab-7e0b-1ae2df77897a",
-    "current_vm_cid": "i-01e258eeba333cc0e",
-    "current_stemcell_id": "31e041c4-c79f-4098-55d8-71a71bd86d99",
-    "current_disk_id": "839f3ec3-5105-4f1d-4f6f-fb2011f4adf3",
+    "director_id": "b0454416-4cf9-46f0-4d14-eaaa2e0d3ae5",
+    "installation_id": "9ad3b541-3ccc-4f77-539d-2c445faec2bd",
+    "current_vm_cid": "i-06990a5287eefc7e6",
+    "current_stemcell_id": "625273ac-5fa8-4fc5-696a-b3eed3e94d9d",
+    "current_disk_id": "05ac6b44-8a41-46dd-7a51-58719f096a29",
     "current_release_ids": [
-        "c2e5c1d3-df93-489b-7cfd-b79579117ac3",
-        "ff64aac9-ece9-4f6d-6fa5-78f3b551a144"
+        "92d117a5-1e62-4b3e-5e63-63922e70a35d",
+        "29be1537-a795-48cb-4232-f5091635ade5"
     ],
-    "current_manifest_sha": "b814b7f0866877b16b998b37f068b108d07fe6525f37c31aaa9c0e1236f9083b7a3005df2fad8bcc44a4542213fc6cb8db6eb2bd341c3c3218ab9ca49b2b639d",
+    "current_manifest_sha": "06bbbcab96a02c9d4c0677b8b03ef8200026c6494b6b4d2ac5e79943602b62b7dd85b734e2b1382768bd2d250168e204c02ad257217bd9d8c427ee25160853b8",
     "disks": [
         {
-            "id": "839f3ec3-5105-4f1d-4f6f-fb2011f4adf3",
-            "cid": "vol-0ea8936a9047e8d55",
+            "id": "05ac6b44-8a41-46dd-7a51-58719f096a29",
+            "cid": "vol-02cb75b30387ab680",
             "size": 32768,
             "cloud_properties": {
                 "type": "gp2"
@@ -21,20 +21,20 @@
     ],
     "stemcells": [
         {
-            "id": "31e041c4-c79f-4098-55d8-71a71bd86d99",
+            "id": "625273ac-5fa8-4fc5-696a-b3eed3e94d9d",
             "name": "bosh-aws-xen-hvm-ubuntu-trusty-go_agent",
-            "version": "3421.9",
-            "cid": "ami-24c7e932 light"
+            "version": "3421.4",
+            "cid": "ami-5df6a64b light"
         }
     ],
     "releases": [
         {
-            "id": "c2e5c1d3-df93-489b-7cfd-b79579117ac3",
+            "id": "92d117a5-1e62-4b3e-5e63-63922e70a35d",
             "name": "bosh",
-            "version": "262.1"
+            "version": "262"
         },
         {
-            "id": "ff64aac9-ece9-4f6d-6fa5-78f3b551a144",
+            "id": "29be1537-a795-48cb-4232-f5091635ade5",
             "name": "bosh-aws-cpi",
             "version": "65"
         }
