@@ -1,5 +1,5 @@
 ---
-name: concourse-worker
+name: concourse-worker-aws
 
 releases:
 - name: concourse
@@ -20,7 +20,7 @@ instance_groups:
 - name: worker
   instances: 1
   # replace with a VM type from your BOSH Director's cloud config
-  vm_type: default
+  vm_type: workers
   stemcell: trusty
   azs: [z1]
   networks: [{name: ((deployments_network))}]

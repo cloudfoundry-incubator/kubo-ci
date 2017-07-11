@@ -1,12 +1,12 @@
 {
     "director_id": "b0454416-4cf9-46f0-4d14-eaaa2e0d3ae5",
     "installation_id": "9ad3b541-3ccc-4f77-539d-2c445faec2bd",
-    "current_vm_cid": "i-06990a5287eefc7e6",
+    "current_vm_cid": "i-0b2e568093efc4131",
     "current_stemcell_id": "625273ac-5fa8-4fc5-696a-b3eed3e94d9d",
     "current_disk_id": "05ac6b44-8a41-46dd-7a51-58719f096a29",
     "current_release_ids": [
-        "92d117a5-1e62-4b3e-5e63-63922e70a35d",
-        "29be1537-a795-48cb-4232-f5091635ade5"
+        "8639fa6d-8ddc-445e-41d0-eeee17fe5a73",
+        "c9fc1db0-a018-4527-68dd-46527851dc2c"
     ],
     "current_manifest_sha": "06bbbcab96a02c9d4c0677b8b03ef8200026c6494b6b4d2ac5e79943602b62b7dd85b734e2b1382768bd2d250168e204c02ad257217bd9d8c427ee25160853b8",
     "disks": [
@@ -29,12 +29,12 @@
     ],
     "releases": [
         {
-            "id": "92d117a5-1e62-4b3e-5e63-63922e70a35d",
+            "id": "8639fa6d-8ddc-445e-41d0-eeee17fe5a73",
             "name": "bosh",
             "version": "262"
         },
         {
-            "id": "29be1537-a795-48cb-4232-f5091635ade5",
+            "id": "c9fc1db0-a018-4527-68dd-46527851dc2c",
             "name": "bosh-aws-cpi",
             "version": "65"
         }

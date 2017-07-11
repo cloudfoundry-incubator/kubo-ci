@@ -1,0 +1,64 @@
+#!/bin/bash
+set -e -o pipefail
+
+bin_dir=$(dirname "${BASH_SOURCE[0]}")
+CONCOURSE_DIR="$(cd $bin_dir/..; pwd)"
+
+print_usage() {
+  echo "Usage: $0 <iaas> <bosh-env-name>"
+}
+
+deploy() {
+  manifest_template="$1"
+  deployment_name="$2"
+
+  manifest_file=$(mktemp)
+  touch "$CONCOURSE_DIR/$IAAS/private.yml"
+  touch "$CONCOURSE_DIR/$IAAS/director.yml"
+
+  concourse_secrets_lpass_note_id=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/concourse_secrets_lpass_note_id')
+
+  bosh-cli interpolate "$manifest_template"  \
+      --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \
+      --vars-file "$CONCOURSE_DIR/$IAAS/private.yml" \
+      --vars-file <(bosh int <(lpass show --note $concourse_secrets_lpass_note_id)) \
+      > "$manifest_file"
+
+  echo "Updating cloud config..."
+
+  bosh-cli -n -e "$BOSH_ENV_NAME" update-cloud-config "$CONCOURSE_DIR/$IAAS/cloud-config.yml"  \
+      --vars-file "$CONCOURSE_DIR/$IAAS/director.yml"
+
+  echo "Deploying concourse..."
+
+
+  bosh-cli -n -e "$BOSH_ENV_NAME" deploy "$manifest_file" \
+      -d "$deployment_name" \
+      --vars-file "$CONCOURSE_DIR/$IAAS/private.yml"
+
+  rm "$manifest_file"
+}
+
+IAAS="$1"
+BOSH_ENV_NAME="$2"
+
+if [ -z "$IAAS" ]; then
+  print_usage
+  exit 1
+fi
+
+if [ -z "$BOSH_ENV_NAME" ]; then
+  print_usage
+  exit 1
+fi
+
+set -u
+
+if [ -f "$CONCOURSE_DIR/$IAAS/concourse.yml" ]; then
+  deploy "$CONCOURSE_DIR/$IAAS/concourse.yml" "concourse-$IAAS"
+elif [ -f "$CONCOURSE_DIR/$IAAS/workers.yml" ]; then
+  deploy "$CONCOURSE_DIR/$IAAS/workers.yml" "concourse-worker-$IAAS"
+else
+  echo "ERROR: Expected to find either [$CONCOURSE_DIR/$IAAS/concourse.yml] or [$CONCOURSE_DIR/$IAAS/workers.yml]"
+  exit 1
+fi

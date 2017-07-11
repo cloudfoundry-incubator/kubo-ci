@@ -35,7 +35,7 @@ manifest_file=$(mktemp)
 
 
 bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
-    --ops-file  "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
+    --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
     --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \
     --vars-store "$CONCOURSE_DIR/$IAAS/private.yml" \
     --vars-file <(bosh int <(lpass show --note $secrets_lpass_note_id) --path="/$secrets_lpass_note_path") \

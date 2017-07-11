@@ -7,6 +7,14 @@ vm_types:
   cloud_properties:
     instance_type: t2.micro
     ephemeral_disk: {size: 3000, type: gp2}
+- name: large
+  cloud_properties:
+    instance_type: m3.large
+    ephemeral_disk: {size: 30000, type: gp2}
+- name: workers
+  cloud_properties:
+    instance_type: m3.2xlarge
+    ephemeral_disk: {size: 409600, type: gp2}
 
 disk_types:
 - name: default
