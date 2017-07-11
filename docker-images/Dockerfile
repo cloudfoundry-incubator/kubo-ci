@@ -20,7 +20,6 @@ RUN mkdir -p /root/go/bin
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 RUN go get github.com/onsi/gomega
 RUN go get github.com/onsi/ginkgo
-RUN go get github.com/cloudfoundry/bosh-cli
 RUN go install github.com/onsi/ginkgo/...
 
 # CF
@@ -59,3 +58,9 @@ RUN wget -O /usr/local/bin/direnv https://github.com/direnv/direnv/releases/down
 
 # Cleanup
 RUN rm -rf /tmp/docker-build
+
+# BOSH CLI
+RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.27-linux-amd64 && \
+  chmod +x bosh-cli-2.0.27-linux-amd64 && \
+  mv bosh-cli-2.0.27-linux-amd64 /usr/local/bin/bosh-cli
+
