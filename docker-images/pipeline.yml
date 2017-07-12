@@ -58,7 +58,7 @@ resources:
     username: ((docker-hub-username))
     password: ((docker-hub-password))
     tag: stable
-- name: curl
+- name: kubectl
   type: docker-image
   source:
     repository: pcfkubo/alpine
@@ -165,10 +165,10 @@ jobs:
       pull_repository: pcfkubo/test-runner
       pull_tag: latest
 
-- name: build-curl
+- name: build-kubectl
   plan:
   - get: git-kubo-ci
     trigger: true
-  - put: curl
+  - put: kubectl
     params:
-      build: git-kubo-ci/docker-images/curl
+      build: git-kubo-ci/docker-images/kubectl
