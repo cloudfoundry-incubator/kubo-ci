@@ -24,7 +24,7 @@ KUBO_ENVIRONMENT_DIR=$3
 
 routing_mode=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing_mode")
 director_name=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/director_name")
-GIT_KUBO_CI=$(cd $(dirname "${BASH_SOURCE[0]}")/.. && pwd)
+GIT_KUBO_CI=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 GOPATH="$GIT_KUBO_CI"
 export GOPATH
 
@@ -56,3 +56,4 @@ elif [[ ${routing_mode} == "proxy" ]]; then
 
   ginkgo "$GOPATH/src/integration-tests/workload"
 fi
+ginkgo "$GOPATH/src/integration-tests/generic"
