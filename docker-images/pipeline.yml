@@ -58,6 +58,14 @@ resources:
     username: ((docker-hub-username))
     password: ((docker-hub-password))
     tag: stable
+- name: curl
+  type: docker-image
+  source:
+    repository: pcfkubo/alpine
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    tag: stable
 - name: gcs-vsphere-cleaner
   type: gcs
   source:
@@ -157,3 +165,10 @@ jobs:
       pull_repository: pcfkubo/test-runner
       pull_tag: latest
 
+- name: build-curl
+  plan:
+  - get: git-kubo-ci
+    trigger: true
+  - put: curl
+    params:
+      build: git-kubo-ci/docker-images/curl
