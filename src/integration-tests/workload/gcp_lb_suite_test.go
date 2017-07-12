@@ -1,4 +1,4 @@
-package gcp_lb_test
+package workload_test
 
 import (
 	"integration-tests/test_helpers"
@@ -22,14 +22,14 @@ var (
 )
 
 var _ = BeforeSuite(func() {
-	workerAddress = os.Getenv("WORKER_LB_ADDRESS")
+	workerAddress = os.Getenv("WORKLOAD_ADDRESS")
 	if workerAddress == "" {
-		Fail("WORKER_LB_ADDRESS is not set")
+		Fail("WORKLOAD_ADDRESS is not set")
 	}
 
-	nodePort = os.Getenv("NODE_PORT")
+	nodePort = os.Getenv("WORKLOAD_PORT")
 	if nodePort == "" {
-		Fail("NODE_PORT is not set")
+		Fail("WORKLOAD_PORT is not set")
 	}
 
 	runner = test_helpers.NewKubectlRunner()

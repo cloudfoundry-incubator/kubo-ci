@@ -1,3 +1,4 @@
 private.yml
 bin/
 pkg/
+*.iml
