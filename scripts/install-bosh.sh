@@ -21,6 +21,11 @@ elif [ "$iaas" = "aws" ]; then
   bosh-cli int kubo-lock/metadata --path=/private_key > "$PWD/key"
   set -x
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key"
+elif [ "$iaas" = "openstack" ]; then
+  set +x
+  bosh-cli int kubo-lock/metadata --path=/private_key > "$PWD/key"
+  set -x
+  "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key"
 else
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}"
 fi
