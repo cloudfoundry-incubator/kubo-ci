@@ -1,0 +1,16 @@
+net_id: 083c57b0-a934-4123-9054-9a22706d1a4e
+internal_cidr: 192.168.122.0/24
+internal_gw: 192.168.122.1
+internal_ip: 192.168.122.3
+reserved_ips: "192.168.122.8/30"
+
+az: nova
+
+director_name: clay-bosh
+network_name: clay_net
+deployments_network: clay_net
+
+secrets_lpass_note_id: 6568959770663483364
+secrets_lpass_note_path: openstack_ci
+
+concourse_secrets_lpass_note_id: 1124880505947455779
