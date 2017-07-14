@@ -161,13 +161,17 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: gcs-kubo-deployment-pre
-      passed: [ 'claim-lock-<%= iaas %>' ]
     - get: gcs-bosh-creds
       passed: ['install-bosh-<%= iaas %>']
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
+      passed: [ 'install-bosh-<%= iaas %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'install-bosh-<%= iaas %>' ]
+    - get: gcs-kubo-release-pre
+      passed: [ 'install-bosh-<%= iaas %>' ]
+    - get: gcs-kubo-deployment-pre
       passed: [ 'install-bosh-<%= iaas %>' ]
 
   - task: unpack-kubo-deployment
@@ -190,11 +194,11 @@ jobs:
       trigger: true
       passed: [ 'deploy-proxy-<%= iaas %>' ]
     - get: gcs-kubo-deployment-pre
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'deploy-proxy-<%= iaas %>' ]
     - get: gcs-kubo-release-pre
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'deploy-proxy-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'deploy-proxy-<%= iaas %>' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-proxy-<%= iaas %>' ]
 
