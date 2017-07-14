@@ -50,11 +50,13 @@ var _ = Describe("Testing Ingress Controller", func() {
 		}
 
 		certFile, _ := ioutil.TempFile(os.TempDir(), "cert")
-		certFile.WriteString(tlsKubernetesCert)
+		_, err := certFile.WriteString(tlsKubernetesCert)
+		Expect(err).NotTo(HaveOccurred())
 		defer os.Remove(certFile.Name())
 
 		keyFile, _ := ioutil.TempFile(os.TempDir(), "key")
-		keyFile.WriteString(tlsKubernetesPrivateKey)
+		_, err = keyFile.WriteString(tlsKubernetesPrivateKey)
+		Expect(err).NotTo(HaveOccurred())
 		defer os.Remove(keyFile.Name())
 
 		runner = test_helpers.NewKubectlRunner()
@@ -89,7 +91,7 @@ var _ = Describe("Testing Ingress Controller", func() {
 		serviceName := test_helpers.GenerateRandomName()
 		appUrl := fmt.Sprintf("http://%s.%s", serviceName, appsDomain)
 
-		By("exposing it via HTTP")
+		By("exposing it via HTTP - " + serviceName)
 		result, err := http.Get(appUrl)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result.StatusCode).To(Equal(404))
