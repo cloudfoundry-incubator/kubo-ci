@@ -153,7 +153,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          <!here|here> Deploy BOSH failed:
+          Deploy BOSH failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - aggregate:
     - put: gcs-bosh-creds
@@ -199,7 +199,7 @@ jobs:
       put: slack-alert
       params:
         text: |
-          <!here|here> deploy etcd failed:
+          deploy etcd failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: eats-turbulence
@@ -238,7 +238,7 @@ jobs:
       put: slack-alert
       params:
         text: |
-          <!here|here> deploy etcd failed:
+          deploy etcd failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: teardown-eats-infrastructure
@@ -265,7 +265,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          <!here|here> Destroy BOSH failed:
+          Destroy BOSH failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: kubo-lock
     params: { release: kubo-lock }

@@ -147,7 +147,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          <!here|here> Deploy BOSH failed:
+          Deploy BOSH failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - aggregate:
     - put: gcs-bosh-creds
@@ -242,7 +242,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          <!here|here> Deploy K8s failed:
+          Deploy K8s failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: deploy-workload-<%= iaas %>
@@ -277,7 +277,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          <!here|here> Deploy K8s Workload failed:
+          Deploy K8s Workload failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: pod-to-pod
     file: git-kubo-ci/tasks/pod-to-pod.yml
@@ -289,7 +289,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          <!here|here> Pod to pod communication failed:
+          Pod to pod communication failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-k8s-<%= iaas %>
@@ -324,7 +324,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          <!here|here> Destroy K8s failed:
+          Destroy K8s failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-proxy-<%= iaas %>
@@ -386,7 +386,7 @@ jobs:
         silent: true
         icon_emoji: ":thumbsdown:"
         text: |
-          <!here|here> Destroy BOSH failed:
+          Destroy BOSH failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: kubo-lock-<%= iaas %>
     params: { release: kubo-lock-<%= iaas %> }
