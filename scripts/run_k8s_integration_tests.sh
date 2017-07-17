@@ -12,8 +12,8 @@ if [[ $# -lt 3 ]]; then
 fi
 
 function call_bosh {
-  director_ip=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_ip")
-  BOSH_CA_CERT=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path="/default_ca/ca") bosh-cli -e "$director_ip" "$@"
+  BOSH_ENV="$KUBO_ENVIRONMENT_DIR" source "$GIT_KUBO_DEPLOYMENT_DIR/bin/set_bosh_environment"
+  bosh-cli "$@"
 }
 
 GIT_KUBO_DEPLOYMENT_DIR=$1
