@@ -24,6 +24,7 @@ resources:
     username: ((docker-hub-username))
     password: ((docker-hub-password))
     tag: stable
+
 - name: vsphere-cleaner-latest
   type: docker-image
   source:
@@ -41,6 +42,25 @@ resources:
     username: ((docker-hub-username))
     password: ((docker-hub-password))
     tag: stable
+
+- name: aws-maintenance-latest
+  type: docker-image
+  source:
+    repository: pcfkubo/aws-maintenance
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    tag: latest
+
+- name: aws-maintenance-stable
+  type: docker-image
+  source:
+    repository: pcfkubo/aws-maintenance
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    tag: stable
+
 - name: kubo-ci-latest
   type: docker-image
   source:
@@ -172,3 +192,28 @@ jobs:
   - put: kubectl
     params:
       build: git-kubo-ci/docker-images/kubectl
+
+- name: build-aws-maintenance
+  plan:
+   - get: git-kubo-ci
+     trigger: true
+   - put: aws-maintenance-latest
+     params:
+       build: git-kubo-ci/docker-images/aws-maintenance
+   - task: test-docker-image
+     config:
+       platform: linux
+       image_resource:
+         type: docker-image
+         source:
+           repository: pcfkubo/aws-maintenance
+           tag: latest
+       inputs:
+       - name: git-kubo-ci
+       run:
+         path: git-kubo-ci/docker-images/aws-maintenance/run_tests
+   - put: aws-maintenance-stable
+     params:
+       cache: true
+       pull_repository: pcfkubo/aws-maintenance
+       pull_tag: latest

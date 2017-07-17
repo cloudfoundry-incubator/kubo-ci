@@ -1,5 +1,5 @@
 FROM alpine:3.6
-MAINTAINER PCF Kubo <pcf-kubo@pivotal.io>
+MAINTAINER pcf-kubo@pivotal.io
 
 RUN apk update && apk add \ 
       bash \
