@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+if which aws > /dev/null; then
+  echo "Found 'aws'"
+else
+  echo "Command 'aws' not found" >&2
+  exit 1
+fi
+
+if which bosh-cli > /dev/null; then
+  echo "Found bosh-cli"
+else
+  echo "Command 'bosh-cli' not found" >&2
+  exit 1
+fi
+
+echo "Image is good"
