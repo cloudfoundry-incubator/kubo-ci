@@ -29,9 +29,14 @@ var _ = Describe("Deploy workload", func() {
 		rolloutWatch := runner.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w")
 		Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
 
-		result, err := httpClient.Get(appUrl)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(result.StatusCode).Should(Equal(200))
+		Eventually(func() int {
+			result, err := httpClient.Get(appUrl)
+			if err != nil {
+				return -1
+			}
+			return result.StatusCode
+		}, "120s", "5s").Should(Equal(200))
+
 	})
 
 	AfterEach(func() {
