@@ -37,7 +37,7 @@ var _ = Describe("Kubectl", func() {
 
 	It("Should provide access to the dashboard", func() {
 		session := runner.RunKubectlCommand("proxy")
-		panic(Eventually(session).Should(gbytes.Say("Starting to serve on")))
+		Eventually(session).Should(gbytes.Say("Starting to serve on"))
 
 		timeout := time.Duration(5 * time.Second)
 		httpClient := http.Client{
