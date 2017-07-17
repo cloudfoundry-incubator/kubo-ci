@@ -1,0 +1,61 @@
+<%
+  def get_lock_names(env)
+    lock_files = Dir.glob(File.join(__dir__, "..", "kubo-locks", env, "*", "*"))
+    lock_files.collect do |file|
+      File.basename(file)
+    end
+  end
+  pools = { 'kubo-openstack-lb' => get_lock_names('kubo-openstack-lb') }
+%>
+---
+resources:
+- name: kubo-lock-repo
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks
+    branch: master
+    private_key: ((git-ssh-key))
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+
+
+jobs:
+<% pools.each do |pool, envs| %>
+<% envs.each do |env| %>
+- name: cleanup-<%= env %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-repo
+      trigger: false
+  - task: claim-<%= env %>
+    file: git-kubo-ci/tasks/claim-lock-manually.yml
+    params:
+      ENV_NAME: <%= env %>
+      POOL_NAME: <%= pool %>
+    ensure:
+      put: kubo-lock-repo
+      params:
+        repository: modified-repo
+        rebase: true
+
+  - task: cleanup-<%= env %>
+    file: git-kubo-ci/tasks/cleanup-openstack-environment.yml
+    params:
+      ENV_NAME: <%= env %>
+      POOL_NAME: <%= pool %>
+  - task: unclaim-<%= env %>
+    file: git-kubo-ci/tasks/unclaim-lock-manually.yml
+    params:
+      ENV_NAME: <%= env %>
+      POOL_NAME: <%= pool %>
+    ensure:
+      put: kubo-lock-repo
+      params:
+        repository: modified-repo
+        rebase: true
+<% end %>
+<% end %>

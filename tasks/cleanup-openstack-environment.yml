@@ -1,0 +1,16 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+    tag: stable
+
+inputs:
+- name: kubo-lock-repo
+- name: git-kubo-ci
+
+params:
+  ENV_NAME:
+  POOL_NAME:
+run:
+  path: git-kubo-ci/scripts/cleanup-openstack-environment.sh

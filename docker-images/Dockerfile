@@ -6,6 +6,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   gcc \
   git-core \
   make \
+  python-pip \
   python-software-properties \
   software-properties-common \
   wget
@@ -64,3 +65,5 @@ RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.27-linux-amd64
   chmod +x bosh-cli-2.0.27-linux-amd64 && \
   mv bosh-cli-2.0.27-linux-amd64 /usr/local/bin/bosh-cli
 
+# Openstack CLI
+RUN pip install python-openstackclient
