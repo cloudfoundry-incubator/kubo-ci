@@ -262,7 +262,7 @@ jobs:
       status: pending
   - task: workload
     tags: [<%= iaas %>]
-    file: git-kubo-ci/tasks/deploy-k8s-workload.yml
+    file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure_<%= iaas %>
   - task: pod-to-pod
