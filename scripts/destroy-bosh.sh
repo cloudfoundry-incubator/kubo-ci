@@ -18,7 +18,7 @@ if [ "$iaas" = "gcp" ]; then
   bosh-cli int kubo-lock/metadata --path=/gcp_service_account > "$PWD/key.json"
   set -x
   "${KUBO_DEPLOYMENT_DIR}/bin/destroy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key.json"
-elif [ "$iaas" = "aws" ]; then
+elif [ "$iaas" = "aws" ] || [ "$iaas" = "openstack" ]; then
   set +x
   bosh-cli int kubo-lock/metadata --path=/private_key > "$PWD/key"
   set -x
