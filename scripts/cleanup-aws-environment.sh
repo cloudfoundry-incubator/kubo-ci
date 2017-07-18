@@ -35,6 +35,6 @@ instance_ids=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].
 if [ -z "$instance_ids" ]; then
   echo "No instances found in subnet '${subnet_id}'"
 else
-  aws ec2 terminate-instances --instance-ids $instance_ids
-  aws ec2 wait instance-terminated --filters "Name=instance-ids,Values=${instance_ids}"
+  aws ec2 terminate-instances --instance-ids ${instance_ids}
+  aws ec2 wait instance-terminated --instance-ids ${instance_ids}
 fi
