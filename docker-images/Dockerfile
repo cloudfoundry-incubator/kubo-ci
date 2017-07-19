@@ -7,6 +7,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   git-core \
   make \
   python-pip \
+  python-dev \
   python-software-properties \
   software-properties-common \
   wget
