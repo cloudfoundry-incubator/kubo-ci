@@ -1,5 +1,5 @@
 <%
-  iaas_list = %w(gcp vsphere gcp-lb vsphere-lb aws-lb)
+  iaas_list = %w(gcp vsphere vsphere-lb gcp-lb aws-lb openstack-lb)
 %>
 ---
 resource_types:
@@ -239,7 +239,7 @@ jobs:
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure_<%= iaas %>
-    
+
 - name: deploy-workload-<%= iaas %>
   plan:
   - aggregate:
