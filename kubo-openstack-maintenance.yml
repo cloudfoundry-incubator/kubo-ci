@@ -32,7 +32,7 @@ jobs:
     - get: kubo-lock-repo
       trigger: false
   - task: claim-<%= env %>
-    tags: [openstack]
+    tags: [openstack-lb]
     file: git-kubo-ci/tasks/claim-lock-manually.yml
     params:
       ENV_NAME: <%= env %>
@@ -44,13 +44,13 @@ jobs:
         rebase: true
 
   - task: cleanup-<%= env %>
-    tags: [openstack]
+    tags: [openstack-lb]
     file: git-kubo-ci/tasks/cleanup-openstack-environment.yml
     params:
       ENV_NAME: <%= env %>
       POOL_NAME: <%= pool %>
   - task: unclaim-<%= env %>
-    tags: [openstack]
+    tags: [openstack-lb]
     file: git-kubo-ci/tasks/unclaim-lock-manually.yml
     params:
       ENV_NAME: <%= env %>
