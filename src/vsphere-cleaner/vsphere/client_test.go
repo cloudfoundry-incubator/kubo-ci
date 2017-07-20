@@ -34,11 +34,11 @@ var _ = Describe("Client", func() {
 		Expect(fakeVM.DestroyCallCount()).To(Equal(1))
 	})
 
-	Context("when VM is not found", func() {
-		It("should not return error", func() {
+	Context("when VM search fails with error", func() {
+		It("should return error", func() {
 			fakeVmFinder.FindByIpReturns(nil, errors.New("Some error"))
 			err := client.DeleteVM("some ip")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).To(HaveOccurred())
 		})
 	})
 
