@@ -71,16 +71,12 @@ var _ = Describe("Testing Ingress Controller", func() {
 
 		Eventually(runner.RunKubectlCommand(
 			"create", "-f", ingressSpec), "60s").Should(gexec.Exit(0))
+
+		Eventually(runner.RunKubectlCommand(
+			"rollout", "status", "-f", ingressSpec, "-w"), "300s").Should(gexec.Exit(0))
 	})
 
 	AfterEach(func() {
-		session := runner.RunKubectlCommand("rollout", "status", "deployment/default-http-backend")
-		Eventually(session).Should(gexec.Exit())
-		session = runner.RunKubectlCommand("rollout", "status", "deployment/simple-http-backend")
-		Eventually(session).Should(gexec.Exit())
-		session = runner.RunKubectlCommand("rollout", "status", "deployment/nginx-ingress-controller")
-		Eventually(session).Should(gexec.Exit())
-
 		Eventually(runner.RunKubectlCommand(
 			"delete", "-f", ingressSpec), "60s").Should(gexec.Exit())
 
