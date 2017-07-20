@@ -56,10 +56,16 @@ worker_ip=$(BOSH_CLIENT=bosh_admin BOSH_CLIENT_SECRET=${client_secret} BOSH_CA_C
 
 testvalue="hellothere$(date +'%N')"
 
-kubectl create -f "git-kubo-ci/specs/storage-class-${iaas}.yml"
-deploy_guestbook
-post_to_guestbook
-get_from_guestbook
-delete_guestbook
-deploy_guestbook
-get_from_guestbook
+"git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
+
+if [ -e "git-kubo-ci/specs/storage-class-${iaas}.yml" ]; then 
+  kubectl create -f "git-kubo-ci/specs/storage-class-${iaas}.yml"
+  deploy_guestbook
+  post_to_guestbook
+  get_from_guestbook
+  delete_guestbook
+  deploy_guestbook
+  get_from_guestbook
+else
+  echo "Skipping test as no storage-class-${iaas}.yml file exists"
+fi
