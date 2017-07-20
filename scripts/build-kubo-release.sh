@@ -2,8 +2,6 @@
 
 set -exu -o pipefail
 
-. "$(dirname "$0")/lib/environment.sh"
-
 export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 version=$(cat kubo-version/version)
