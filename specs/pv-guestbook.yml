@@ -98,7 +98,6 @@ spec:
   type: NodePort
   ports:
   - port: 80
-    nodePort: 30303
   selector:
     app: guestbook
     tier: frontend
@@ -127,15 +126,3 @@ spec:
           value: dns
         ports:
         - containerPort: 80
----
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: ci-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: ci-storage
