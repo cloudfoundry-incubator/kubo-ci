@@ -49,6 +49,9 @@ export DEBUG=1
 
 . "$(dirname "$0")/lib/environment.sh"
 
+cp "gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
+
 iaas=$(bosh-cli int "kubo-lock/metadata" --path=/iaas)
 director_ip=$(bosh-cli int "kubo-lock/metadata" --path="/internal_ip")
 bosh_ca_cert=$(bosh-cli int "gcs-bosh-creds/creds.yml" --path=/default_ca/ca)
