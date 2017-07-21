@@ -1,0 +1,39 @@
+name: turbulence
+
+releases:
+- name: turbulence
+  version: latest
+  url: https://bosh.io/d/github.com/cppforlife/turbulence-release?v=0.6
+  sha1: 5222108e2aa500bb60205d7a0e6f654dde391f36
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: latest
+
+instance_groups:
+- name: turbulence
+  instances: 1
+  networks:
+  - name: kubo-network
+  azs: [z1]
+  jobs:
+  - name: turbulence_api
+    release: turbulence
+    properties:
+      director:
+        host: ((internal_ip))
+        client: bosh_admin
+        client_secret: ((bosh_admin_client_secret))
+      password: my-turbulence-password
+
+  stemcell: trusty
+  vm_type: common
+
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  serial: true
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
