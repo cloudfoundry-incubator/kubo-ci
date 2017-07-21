@@ -10,16 +10,29 @@ resources:
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
     branch: master
+
+# releases
 - name: docker-boshrelease
   type: bosh-io-release
   source:
     repository: cf-platform-eng/docker-boshrelease
+- name: haproxy-boshrelease
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-community/haproxy-boshrelease
+- name: kubo-etcd-release
+  type: github-release
+  source:
+    owner: pivotal-cf-experimental
+    repository: kubo-etcd
 
+# stemcell
 - name: ubuntu-trusty-3421-stemcell
   type: bosh-io-stemcell
   source:
     name: bosh-warden-boshlite-ubuntu-trusty-go_agent
 
+# output
 - name: compiled-releases
   type: gcs
   source:
@@ -34,7 +47,6 @@ jobs:
       - get: kubo-ci
       - get: docker-boshrelease
         version:
-          # url: http://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=28.0.1
           version: "28.0.1"
       - get: ubuntu-trusty-3421-stemcell
         version:
@@ -45,6 +57,44 @@ jobs:
       input_mapping:
         stemcell: ubuntu-trusty-3421-stemcell
         release: docker-boshrelease
+    - put: compiled-releases
+      params:
+        file: "compiled-release/*.tgz"
+
+- name: compile-haproxy-release-ubuntu-trusty-3421
+  plan:
+    - aggregate:
+      - get: kubo-ci
+      - get: haproxy-boshrelease
+        version:
+          version: "8.3.0"
+      - get: ubuntu-trusty-3421-stemcell
+        version:
+          version: "3421.11"
+    - task: export-release
+      file: kubo-ci/tasks/export-release.yml
+      privileged: true
+      input_mapping:
+        stemcell: ubuntu-trusty-3421-stemcell
+        release: haproxy-boshrelease
+    - put: compiled-releases
+      params:
+        file: "compiled-release/*.tgz"
+
+- name: compile-kubo-etcd-release-ubuntu-trusty-3421
+  plan:
+    - aggregate:
+      - get: kubo-ci
+      - get: kubo-etcd-release
+      - get: ubuntu-trusty-3421-stemcell
+        version:
+          version: "3421.11"
+    - task: export-release
+      file: kubo-ci/tasks/export-release.yml
+      privileged: true
+      input_mapping:
+        stemcell: ubuntu-trusty-3421-stemcell
+        release: kubo-etcd-release
     - put: compiled-releases
       params:
         file: "compiled-release/*.tgz"
