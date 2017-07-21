@@ -25,6 +25,7 @@ var _ = Describe("Testing Ingress Controller", func() {
 
 		ingressSpec = test_helpers.PathFromRoot("specs/ingress.yml")
 		runner      *test_helpers.KubectlRunner
+		hasPassed   bool
 	)
 
 	BeforeEach(func() {
@@ -81,17 +82,19 @@ var _ = Describe("Testing Ingress Controller", func() {
 	})
 
 	AfterEach(func() {
-		Eventually(runner.RunKubectlCommand(
-			"delete", "-f", ingressSpec), "60s").Should(gexec.Exit())
+		if hasPassed {
+			Eventually(runner.RunKubectlCommand(
+				"delete", "-f", ingressSpec), "60s").Should(gexec.Exit())
 
-		Eventually(runner.RunKubectlCommand(
-			"delete", "secret", "tls-kubernetes")).Should(gexec.Exit())
+			Eventually(runner.RunKubectlCommand(
+				"delete", "secret", "tls-kubernetes")).Should(gexec.Exit())
 
-		Eventually(runner.RunKubectlCommand(
-			"delete", "secret", "kubernetes-service")).Should(gexec.Exit())
+			Eventually(runner.RunKubectlCommand(
+				"delete", "secret", "kubernetes-service")).Should(gexec.Exit())
 
-		runner.RunKubectlCommand(
-			"delete", "namespace", runner.Namespace()).Wait("60s")
+			runner.RunKubectlCommand(
+				"delete", "namespace", runner.Namespace()).Wait("60s")
+		}
 	})
 
 	It("Allows routing via Ingress Controller", func() {
@@ -134,6 +137,6 @@ var _ = Describe("Testing Ingress Controller", func() {
 			_, err := http.Get(appUrl)
 			return err
 		}, "120s", "5s").ShouldNot(HaveOccurred())
-
+		hasPassed = true
 	})
 })
