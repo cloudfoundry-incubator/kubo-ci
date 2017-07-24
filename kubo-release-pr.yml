@@ -240,7 +240,7 @@ jobs:
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure_<%= iaas %>
 
-- name: deploy-workload-<%= iaas %>
+- name: run-k8s-integration-tests-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -260,7 +260,7 @@ jobs:
     params:
       path: git-kubo-release
       status: pending
-  - task: workload
+  - task: integration-tests
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
@@ -283,15 +283,15 @@ jobs:
     - get: kubo-lock-<%= iaas %>
       trigger: true
       version: every
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: git-kubo-deployment
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: git-kubo-release
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
   - put: git-kubo-release
     params:
       path: git-kubo-release

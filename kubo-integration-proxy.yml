@@ -11,7 +11,7 @@ groups:
   - deploy-proxy-<%= iaas %>
   - apply-runtime-config-<%= iaas %>
   - deploy-k8s-<%= iaas %>
-  - deploy-workload-<%= iaas %>
+  - run-k8s-integration-tests-<%= iaas %>
   - destroy-k8s-<%= iaas %>
   - destroy-proxy-<%= iaas %>
   - destroy-bosh-<%= iaas %>
@@ -24,7 +24,7 @@ groups:
   - deploy-proxy-<%= iaas %>
   - apply-runtime-config-<%= iaas %>
   - deploy-k8s-<%= iaas %>
-  - deploy-workload-<%= iaas %>
+  - run-k8s-integration-tests-<%= iaas %>
   - destroy-k8s-<%= iaas %>
   - destroy-proxy-<%= iaas %>
   - destroy-bosh-<%= iaas %>
@@ -249,7 +249,7 @@ jobs:
           Deploy K8s failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
-- name: deploy-workload-<%= iaas %>
+- name: run-k8s-integration-tests-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -270,7 +270,7 @@ jobs:
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     tags: [<%= iaas %>]
 
-  - task: workload
+  - task: integration-tests
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
     tags: [<%= iaas %>]
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
@@ -303,15 +303,15 @@ jobs:
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-kubo-deployment-pre
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-kubo-release-pre
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -336,13 +336,13 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: gcs-kubo-deployment-pre
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml

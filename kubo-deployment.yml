@@ -11,7 +11,7 @@ groups:
   - claim-lock-<%= iaas %>
   - install-bosh-<%= iaas %>
   - deploy-k8s-<%= iaas %>
-  - deploy-workload-<%= iaas %>
+  - run-k8s-integration-tests-<%= iaas %>
   - destroy-k8s-<%= iaas %>
   - destroy-bosh-<%= iaas %>
 <% end %>
@@ -24,7 +24,7 @@ groups:
   - claim-lock-<%= iaas %>
   - install-bosh-<%= iaas %>
   - deploy-k8s-<%= iaas %>
-  - deploy-workload-<%= iaas %>
+  - run-k8s-integration-tests-<%= iaas %>
   - destroy-k8s-<%= iaas %>
   - destroy-bosh-<%= iaas %>
 <% end %>
@@ -290,7 +290,7 @@ jobs:
           <!here|here> Deploy K8s failed:
           https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
-- name: deploy-workload-<%= iaas %>
+- name: run-k8s-integration-tests-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -310,7 +310,7 @@ jobs:
       passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'deploy-k8s-<%= iaas %>' ]
-  - task: workload
+  - task: integration-tests
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
@@ -354,17 +354,17 @@ jobs:
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: kubo-version
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: git-kubo-deployment
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'deploy-workload-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
   - task: destroy-k8s
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
