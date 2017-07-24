@@ -271,7 +271,7 @@ jobs:
     tags: [<%= iaas %>]
 
   - task: workload
-    file: git-kubo-ci/tasks/deploy-k8s-workload.yml
+    file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
     tags: [<%= iaas %>]
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
