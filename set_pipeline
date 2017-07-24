@@ -1,6 +1,10 @@
-#!/bin/bash -e
+#!/bin/bash
+
+set -e -o pipefail
 
 [ -z "${DEBUG}" ] || set -x
+
+set -u
 
 ci_dir="$(cd "$(dirname "$0")"; pwd)"
 
@@ -28,7 +32,7 @@ extract_pipeline_name() {
   local pipeline_name="$1"
 
   local pipeline_filename="${ci_dir}/${pipeline_name}.yml"
-    if [ ! -f "${pipeline_filename}" ]; then
+  if [ ! -f "${pipeline_filename}" ]; then
     pipeline_filename="${ci_dir}/${pipeline_name}"
     if [ ! -f "${pipeline_filename}" ]; then
       echo "Unknown pipeline name ${pipeline_name}"
@@ -43,6 +47,10 @@ extract_pipeline_name() {
 
 main() {
   local pipeline_name
+  if [ "$#" == "0" ]; then
+    print_usage
+    exit 1
+  fi
   pipeline_name=$(extract_pipeline_name "${1}")
 
   local pipeline_filename="${ci_dir}/${pipeline_name}.yml"
