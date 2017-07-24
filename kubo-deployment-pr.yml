@@ -211,10 +211,14 @@ jobs:
     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure_<%= iaas %>
-
   - task: pod-to-pod
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+    on_failure: *on_failure_<%= iaas %>
+  - task: pv-pod-to-pod
+    tags: [<%= iaas %>]
+    file: git-kubo-ci/tasks/pv-pod-to-pod.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure_<%= iaas %>
 
