@@ -52,12 +52,21 @@ resources:
   source:
     uri: https://github.com/cloudfoundry-incubator/kubo-deployment
     branch: master
+    ignore_paths:
+    - 'docs/**/*'
+    - '*.md'
+    - 'LICENSE'
+    - 'NOTICE'
 
 - name: git-kubo-release
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/kubo-release
     branch: master
+    ignore_paths:
+    - '*.md'
+    - 'LICENSE'
+    - 'NOTICE'
 
 <% iaas_list.each do |iaas| %>
 - name: kubo-lock-<%= iaas %>
