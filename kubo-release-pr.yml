@@ -3,11 +3,6 @@
 %>
 ---
 resource_types:
-- name: slack-notification
-  type: docker-image
-  source:
-    repository: cfcommunity/slack-notification-resource
-    tag: latest
 - name: pull-request
   type: docker-image
   source:
@@ -81,11 +76,6 @@ resources:
     region_name: us-east1
     endpoint: storage.googleapis.com
 
-- name: slack-alert
-  type: slack-notification
-  source:
-    url: ((slack-url))
-
 jobs:
 - name: run-unit-tests
   plan:
@@ -101,24 +91,10 @@ jobs:
   - task: run-unit-tests
     file: git-kubo-ci/tasks/run-release-unit-tests.yml
     on_failure: &on_failure
-      aggregate:
-      - do:
-        - task: alert-text
-          file: git-kubo-ci/tasks/generate-release-pr-messages.yml
-          params:
-            PR_STATUS: failed
-        - put: slack-alert
-          params:
-            silent: true
-            icon_emoji: ":red_circle:"
-            text_file: pr-slack-message/message.txt
-            text: |
-              $TEXT_FILE_CONTENT
-              https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-      - put: git-kubo-release
-        params:
-          path: git-kubo-release
-          status: failure
+      put: git-kubo-release
+      params:
+        path: git-kubo-release
+        status: failure
 
 - name: build-kubo-release
   plan:
@@ -161,24 +137,10 @@ jobs:
   - put: kubo-lock-<%= iaas %>
     params: { acquire: true }
     on_failure: &on_failure_<%= iaas %>
-      aggregate:
-      - do:
-        - task: alert-text
-          file: git-kubo-ci/tasks/generate-release-pr-messages.yml
-          params:
-            PR_STATUS: failed
-        - put: slack-alert
-          params:
-            silent: true
-            icon_emoji: ":red_circle:"
-            text_file: pr-slack-message/message.txt
-            text: |
-              $TEXT_FILE_CONTENT with <%= iaas %>
-              https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-      - put: git-kubo-release
-        params:
-          path: git-kubo-release
-          status: failure
+      put: git-kubo-release
+      params:
+        path: git-kubo-release
+        status: failure
 
 - name: install-bosh-<%= iaas %>
   plan:
@@ -338,15 +300,6 @@ jobs:
   - get: git-kubo-release
     passed: <%= iaas_list.collect { |iaas| "destroy-bosh-#{iaas}" } %>
     trigger: true
-  - task: alert-text
-    file: git-kubo-ci/tasks/generate-release-pr-messages.yml
-    params:
-      PR_STATUS: succeeded
-  - put: slack-alert
-    params:
-      silent: true
-      icon_emoji: ":trex:"
-      text_file: pr-slack-message/message.txt
   - put: git-kubo-release
     params:
       path: git-kubo-release

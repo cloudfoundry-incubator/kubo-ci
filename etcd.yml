@@ -1,9 +1,4 @@
 resource_types:
-- name: slack-notification
-  type: docker-image
-  source:
-    repository: cfcommunity/slack-notification-resource
-    tag: latest
 
 - name: gcs
   type: docker-image
@@ -28,11 +23,6 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/infrastructure-ci
     branch: master
-
-- name: slack-alert
-  type: slack-notification
-  source:
-    url: ((slack-url))
 
 - name: kubo-lock
   type: pool
@@ -123,11 +113,6 @@ jobs:
         ci: git-infrastructure-ci
         etcd-release: git-kubo-etcd
 
-    on_failure:
-      put: slack-alert
-      params:
-        text: "Unit Tests failed"
-        emoji: ":fail:"
 
 - name: setup-eats-infrastructure
   public: true
@@ -147,14 +132,7 @@ jobs:
 
   - task: install
     file: git-kubo-ci/tasks/etcd/setup-eats-infrastructure.yml
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":thumbsdown:"
-        text: |
-          Deploy BOSH failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -195,12 +173,6 @@ jobs:
     params:
       TEST_enable_turbulence_tests: false
       TEST_parallel_nodes: 5
-    on_failure:
-      put: slack-alert
-      params:
-        text: |
-          deploy etcd failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: eats-turbulence
   public: true
@@ -234,12 +206,6 @@ jobs:
     params:
       TEST_enable_turbulence_tests: true
       TEST_parallel_nodes: 3
-    on_failure:
-      put: slack-alert
-      params:
-        text: |
-          deploy etcd failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: teardown-eats-infrastructure
   plan:
@@ -259,18 +225,6 @@ jobs:
 
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":thumbsdown:"
-        text: |
-          Destroy BOSH failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
   - put: kubo-lock
     params: { release: kubo-lock }
-  - put: slack-alert
-    params:
-      silent: true
-      icon_emoji: ':the_horns:'
-      text: ETCD pipeline succeed

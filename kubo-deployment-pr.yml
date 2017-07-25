@@ -3,12 +3,6 @@
 %>
 ---
 resource_types:
-- name: slack-notification
-  type: docker-image
-  source:
-    repository: cfcommunity/slack-notification-resource
-    tag: latest
-
 - name: pull-request
   type: docker-image
   source:
@@ -66,11 +60,6 @@ resources:
     bucket: kubo-public
     versioned_file: kubo-release-latest.tgz
 
-- name: slack-alert
-  type: slack-notification
-  source:
-    url: ((slack-url))
-
 jobs:
 - name: run-unit-tests
   plan:
@@ -84,24 +73,10 @@ jobs:
   - task: run-deployment-unit-tests
     file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
     on_failure:
-      aggregate:
-      - do:
-        - task: alert-text
-          file: git-kubo-ci/tasks/generate-deployment-pr-messages.yml
-          params:
-            PR_STATUS: failed
-        - put: slack-alert
-          params:
-            silent: true
-            icon_emoji: ":animal:"
-            text_file: pr-slack-message/message.txt
-            text: |
-              $TEXT_FILE_CONTENT
-              https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-      - put: git-kubo-deployment
-        params:
-          path: git-kubo-deployment
-          status: failure
+      put: git-kubo-deployment
+      params:
+        path: git-kubo-deployment
+        status: failure
 
 <% iaas_list.each do |iaas| %>
 - name: claim-lock-<%= iaas %>
@@ -137,24 +112,10 @@ jobs:
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: &on_failure_<%= iaas %>
-      aggregate:
-      - do:
-        - task: alert-text
-          file: git-kubo-ci/tasks/generate-deployment-pr-messages.yml
-          params:
-            PR_STATUS: failed
-        - put: slack-alert
-          params:
-            silent: true
-            icon_emoji: ":animal:"
-            text_file: pr-slack-message/message.txt
-            text: |
-              $TEXT_FILE_CONTENT with <%= iaas %>
-              https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-      - put: git-kubo-deployment
-        params:
-          path: git-kubo-deployment
-          status: failure
+      put: git-kubo-deployment
+      params:
+        path: git-kubo-deployment
+        status: failure
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -283,12 +244,3 @@ jobs:
     params:
       path: git-kubo-deployment
       status: success
-  - task: alert-text
-    file: git-kubo-ci/tasks/generate-deployment-pr-messages.yml
-    params:
-      PR_STATUS: succeeded
-  - put: slack-alert
-    params:
-      silent: true
-      icon_emoji: ":bulbasaur:"
-      text_file: pr-slack-message/message.txt

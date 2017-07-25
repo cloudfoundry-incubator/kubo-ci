@@ -31,12 +31,6 @@ groups:
 <% end %>
 
 resource_types:
-- name: slack-notification
-  type: docker-image
-  source:
-    repository: cfcommunity/slack-notification-resource
-    tag: latest
-
 - name: terraform
   type: docker-image
   source:
@@ -96,12 +90,6 @@ resources:
     bucket: kubo-public
     versioned_file: kubo-deployment-latest.tgz
 
-- name: slack-alert
-  type: slack-notification
-  source:
-    url: ((slack-url))
-
-
 ############################################
 # Jobs
 ############################################
@@ -140,14 +128,6 @@ jobs:
     tags: [<%= iaas %>]
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":thumbsdown:"
-        text: |
-          Deploy BOSH failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -239,14 +219,6 @@ jobs:
       kubo-lock: kubo-lock-with-proxy
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
 
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":thumbsdown:"
-        text: |
-          Deploy K8s failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: run-k8s-integration-tests-<%= iaas %>
   plan:
@@ -274,26 +246,10 @@ jobs:
     tags: [<%= iaas %>]
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":thumbsdown:"
-        text: |
-          Deploy K8s Workload failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: pod-to-pod
     file: git-kubo-ci/tasks/pod-to-pod.yml
     tags: [<%= iaas %>]
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":thumbsdown:"
-        text: |
-          Pod to pod communication failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-k8s-<%= iaas %>
   plan:
@@ -321,14 +277,6 @@ jobs:
     tags: [<%= iaas %>]
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":thumbsdown:"
-        text: |
-          Destroy K8s failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-proxy-<%= iaas %>
   plan:
@@ -383,14 +331,6 @@ jobs:
     file: git-kubo-ci/tasks/destroy-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":thumbsdown:"
-        text: |
-          Destroy BOSH failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: kubo-lock-<%= iaas %>
     params: { release: kubo-lock-<%= iaas %> }
 <% end %>

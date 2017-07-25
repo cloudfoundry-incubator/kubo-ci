@@ -3,11 +3,6 @@
 %>
 ---
 resource_types:
-- name: slack-notification
-  type: docker-image
-  source:
-    repository: cfcommunity/slack-notification-resource
-    tag: latest
 
 - name: gcs
   type: docker-image
@@ -102,10 +97,6 @@ resources:
     region_name: us-east1
     endpoint: storage.googleapis.com
 
-- name: slack-alert
-  type: slack-notification
-  source:
-    url: ((slack-url))
 
 jobs:
 - name: run-unit-tests
@@ -115,24 +106,8 @@ jobs:
   - get: git-kubo-release
   - task: run-release-unit-tests
     file: git-kubo-ci/tasks/run-release-unit-tests.yml
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":octopus:"
-        text: |
-          Kubo release unit tests failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-  - task: run-deployment-unit-tests
+ - task: run-deployment-unit-tests
     file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":octopus:"
-        text: |
-          Kubo deployment unit tests failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: build-kubo-release
   plan:
@@ -148,14 +123,6 @@ jobs:
       passed: [ 'run-unit-tests' ]
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":thumbsdown:"
-        text: |
-          Kubo release build failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: gcs-kubo-release-tarball-untested
     params:
       file: kubo-release/kubo-release-*.tgz
@@ -201,14 +168,6 @@ jobs:
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":octopus:"
-        text: |
-          Deploy BOSH on ((branch-name)) failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -243,14 +202,6 @@ jobs:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
       kubo-lock: kubo-lock-<%= iaas %>
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":octopus:"
-        text: |
-          Deploy K8s on branch ((branch-name)) failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: run-k8s-integration-tests-<%= iaas %>
   plan:
@@ -275,38 +226,14 @@ jobs:
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":octopus:"
-        text: |
-          Deploy K8s Workload on branch ((branch-name)) failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: pod-to-pod
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":octopus:"
-        text: |
-          Pod to pod communication on branch ((branch-name)) failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: pv-pod-to-pod
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pv-pod-to-pod.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":octopus:"
-        text: |
-          Pod to pod communication on branch ((branch-name)) failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-k8s-<%= iaas %>
   plan:
@@ -329,14 +256,6 @@ jobs:
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":octopus:"
-        text: |
-          Destroy K8s on branch ((branch-name)) failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 
 - name: destroy-bosh-<%= iaas %>
@@ -361,14 +280,6 @@ jobs:
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure:
-      put: slack-alert
-      params:
-        silent: true
-        icon_emoji: ":octopus:"
-        text: |
-          Destroy BOSH on branch ((branch-name)) failed:
-          https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - put: kubo-lock-<%= iaas %>
     params: { release: kubo-lock-<%= iaas %> }
 <% end %>
@@ -418,9 +329,3 @@ jobs:
     - get: kubo-version
       passed: [ upload-kubo-release, upload-kubo-deployment ]
       trigger: true
-  - put: slack-alert
-    params:
-      silent: true
-      icon_emoji: ":chameleon:"
-      text: |
-        kubo-deployment pipeline on branch ((branch-name)) has succeeded
