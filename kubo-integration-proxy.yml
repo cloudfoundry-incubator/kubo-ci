@@ -115,7 +115,6 @@ jobs:
     - get: gcs-kubo-release-pre
       trigger: true
     - get: gcs-kubo-deployment-pre
-      trigger: true
   - put: kubo-lock-<%= iaas %>
     params: { acquire: true }
 
