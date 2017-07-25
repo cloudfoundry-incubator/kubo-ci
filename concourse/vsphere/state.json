@@ -1,14 +1,14 @@
 {
     "director_id": "5166ef5f-9501-4596-5d62-2a58c29ff264",
     "installation_id": "8cf898f8-7040-4108-5423-f87fd2a68d63",
-    "current_vm_cid": "vm-f92f791f-4936-43e6-8fab-558a38206fe8",
-    "current_stemcell_id": "e7f3c5fd-e6c3-4393-6b6f-fa90f1aeaee4",
+    "current_vm_cid": "vm-d78166d6-f9fd-4dc6-abdd-647f8c20f7b0",
+    "current_stemcell_id": "265736b6-88a5-4370-4f6e-340086c2ade2",
     "current_disk_id": "96466e8e-16e1-4d51-69b8-76665ec6601b",
     "current_release_ids": [
-        "99f07b5f-efe8-475a-6220-af0a0757c8c7",
-        "d97a2bdd-b37c-4dd7-65be-e85f8343f91e"
+        "7608fbd2-76a9-40a6-66b3-c7e09c80b69f",
+        "3a63d921-768f-4ec9-4271-667272f8d96f"
     ],
-    "current_manifest_sha": "5ca5455c0f4fa147b3d8e412d952a8b7c096ba4f564b1ec038969a9ddf31f4476869734fb90a2d0631e9fb7cadf889ed457e4f317528d9d8bb69c3c8b4942fc5",
+    "current_manifest_sha": "58f4a3a5be9b1870fd5205f000ff514f1bd221f5aa78ba722a9918b14d14bc4063d409b296f115bb2833b24115fb905bf6702b11f2cffeeb64ab84d4180c19a8",
     "disks": [
         {
             "id": "96466e8e-16e1-4d51-69b8-76665ec6601b",
@@ -19,22 +19,22 @@
     ],
     "stemcells": [
         {
-            "id": "e7f3c5fd-e6c3-4393-6b6f-fa90f1aeaee4",
+            "id": "265736b6-88a5-4370-4f6e-340086c2ade2",
             "name": "bosh-vsphere-esxi-ubuntu-trusty-go_agent",
-            "version": "3312.15",
-            "cid": "sc-e715e916-b1ef-41be-980b-b29f792ad7d7"
+            "version": "3421.9",
+            "cid": "sc-aac55336-cb73-43f1-894c-e1eb3ddc312e"
         }
     ],
     "releases": [
         {
-            "id": "99f07b5f-efe8-475a-6220-af0a0757c8c7",
+            "id": "7608fbd2-76a9-40a6-66b3-c7e09c80b69f",
             "name": "bosh",
-            "version": "260.5"
+            "version": "262.3"
         },
         {
-            "id": "d97a2bdd-b37c-4dd7-65be-e85f8343f91e",
+            "id": "3a63d921-768f-4ec9-4271-667272f8d96f",
             "name": "bosh-vsphere-cpi",
-            "version": "34"
+            "version": "41"
         }
     ]
 }
