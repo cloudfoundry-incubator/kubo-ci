@@ -20,3 +20,5 @@ director_name: thunder-bosh
 deployments_network: kubo-network
 
 secrets_lpass_note_id: 1581710883144161516
+
+concourse_secrets_lpass_note_id: 1124880505947455779
