@@ -30,6 +30,8 @@ instance_groups:
         authorize:
           - organization: pivotal-cf-experimental
             teams: [ pcf-kubo ]
+          - organization: cloudfoundry-incubator
+            teams: [ cf-kubo ]
           - user: johnsonj
           - user: mkjelland
           - user: evandbrown
