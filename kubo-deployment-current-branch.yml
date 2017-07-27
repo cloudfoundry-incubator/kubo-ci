@@ -106,7 +106,7 @@ jobs:
   - get: git-kubo-release
   - task: run-release-unit-tests
     file: git-kubo-ci/tasks/run-release-unit-tests.yml
- - task: run-deployment-unit-tests
+  - task: run-deployment-unit-tests
     file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
 
 - name: build-kubo-release
