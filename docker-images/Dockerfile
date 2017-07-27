@@ -10,7 +10,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   python-dev \
   python-software-properties \
   software-properties-common \
-  wget && rm -rf /var/lib/apt/lists/*
+  wget
 
 WORKDIR /tmp/docker-build
 
@@ -58,9 +58,6 @@ RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.7.1/bin/li
 RUN wget -O /usr/local/bin/direnv https://github.com/direnv/direnv/releases/download/v2.12.2/direnv.linux-amd64 && \
   chmod +x /usr/local/bin/direnv
 
-# Cleanup
-RUN rm -rf /tmp/docker-build
-
 # BOSH CLI
 RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.27-linux-amd64 && \
   chmod +x bosh-cli-2.0.27-linux-amd64 && \
@@ -68,3 +65,6 @@ RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.27-linux-amd64
 
 # Openstack CLI
 RUN pip install python-openstackclient
+
+# Cleanup
+RUN rm -rf /tmp/docker-build && rm -rf /var/lib/apt/lists/*
