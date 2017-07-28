@@ -130,6 +130,11 @@ resources:
     bucket: kubo-pipeline-store
     region_name: us-east1
     endpoint: storage.googleapis.com
+# stemcell
+- name: ubuntu-trusty-3421-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
 
 jobs:
 - name: run-unit-tests
@@ -157,11 +162,21 @@ jobs:
     - get: git-kubo-release
       passed: [ 'run-unit-tests' ]
       trigger: true
+    - get: ubuntu-trusty-3421-stemcell
+      version:
+        version: "3421.11"
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
+  - task: export-release
+    file: git-kubo-ci/tasks/export-release.yml
+    privileged: true
+    input_mapping:
+      kubo-ci: git-kubo-ci
+      stemcell: ubuntu-trusty-3421-stemcell
+      release: kubo-release
   - put: gcs-kubo-release-tarball-untested
     params:
-      file: kubo-release/kubo-release-*.tgz
+      file: compiled-release/kubo-*.tgz
   - put: kubo-version
     params:
       pre: dev
@@ -357,10 +372,10 @@ jobs:
   - aggregate:
     - put: gcs-kubo-release-tarball
       params:
-        file: gcs-kubo-release-tarball-untested/kubo-release-*.tgz
+        file: gcs-kubo-release-tarball-untested/kubo-*.tgz
     - put: gcs-kubo-releases
       params:
-        file: gcs-kubo-release-tarball-untested/kubo-release-*.tgz
+        file: gcs-kubo-release-tarball-untested/kubo-*.tgz
 
 - name: success-notification
   plan:
