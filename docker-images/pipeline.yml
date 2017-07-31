@@ -43,6 +43,24 @@ resources:
     password: ((docker-hub-password))
     tag: stable
 
+- name: curl-latest
+  type: docker-image
+  source:
+    repository: pcfkubo/curl
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    tag: latest
+
+- name: curl-stable
+  type: docker-image
+  source:
+    repository: pcfkubo/curl
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    tag: stable
+
 - name: aws-maintenance-latest
   type: docker-image
   source:
@@ -86,6 +104,7 @@ resources:
     username: ((docker-hub-username))
     password: ((docker-hub-password))
     tag: stable
+
 - name: gcs-vsphere-cleaner
   type: gcs
   source:
@@ -155,6 +174,31 @@ jobs:
     params:
       cache: true
       pull_repository: pcfkubo/vsphere-cleaner
+      pull_tag: latest
+
+- name: build-curl
+  plan:
+  - get: git-kubo-ci
+    trigger: true
+  - put: curl-latest
+    params:
+      build: git-kubo-ci/docker-images/curl
+  - task: test-docker-image
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/curl
+          tag: latest
+      inputs:
+      - name: git-kubo-ci
+      run:
+        path: git-kubo-ci/docker-images/curl/run_tests
+  - put: curl-stable
+    params:
+      cache: true
+      pull_repository: pcfkubo/curl
       pull_tag: latest
 
 - name: build-test-runner
