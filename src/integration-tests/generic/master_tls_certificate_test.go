@@ -1,9 +1,13 @@
 package generic_test
 
 import (
+	"fmt"
 	"integration-tests/test_helpers"
+
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("MasterTlsCertificate", func() {
@@ -16,17 +20,14 @@ var _ = Describe("MasterTlsCertificate", func() {
 		runner = test_helpers.NewKubectlRunner()
 	})
 
-	It("should be valid for fully-qualified names for master", func() {
-		session := runner.RunKubectlCommand("run", "test-master-cert-via-curl", "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", "https://kubernetes.default.svc.cluster.local", "--cacert", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
-		<-session.Exited
-	  stdo := string(session.Out.Contents())
-		Expect(stdo).To(ContainSubstring("User \"system:anonymous\" cannot get path \"/\".: \"No policy matched.\""))
-	})
-
-	It("should be valid for partial names for master", func() {
-		session := runner.RunKubectlCommand("run", "test-master-cert-via-curl", "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", "https://kubernetes", "--cacert", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
-		<-session.Exited
-	  stdo := string(session.Out.Contents())
-		Expect(stdo).To(ContainSubstring("User \"system:anonymous\" cannot get path \"/\".: \"No policy matched.\""))
-	})
+	FDescribeTable("hostnames", func(hostname string) {
+		url := fmt.Sprintf("https://%s", hostname)
+		session := runner.RunKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl", "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", url, "--cacert", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+		Eventually(session, "5m").Should(gexec.Exit(0))
+	},
+		Entry("kubernetes", "kubernetes"),
+		Entry("kubernetes.default", "kubernetes.default"),
+		Entry("kubernetes.default.svc", "kubernetes.default.svc"),
+		Entry("kubernetes.default.svc.cluster.local", "kubernetes.default.svc.cluster.local"),
+	)
 })

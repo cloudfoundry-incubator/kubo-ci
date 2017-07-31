@@ -45,14 +45,17 @@ func (runner KubectlRunner) Namespace() string {
 }
 
 func (runner KubectlRunner) RunKubectlCommand(args ...string) *gexec.Session {
-	newArgs := append([]string{"--kubeconfig", runner.configPath, "--namespace", runner.namespace}, args...)
+	return runner.RunKubectlCommandInNamespace(runner.namespace, args...)
+}
+
+func (runner KubectlRunner) RunKubectlCommandInNamespace(namespace string, args ...string) *gexec.Session {
+	newArgs := append([]string{"--kubeconfig", runner.configPath, "--namespace", namespace}, args...)
 	command := exec.Command("kubectl", newArgs...)
 
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 
 	Expect(err).NotTo(HaveOccurred())
 	return session
-
 }
 
 func (runner KubectlRunner) ExpectEventualSuccess(args ...string) {
