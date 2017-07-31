@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+if which curl > /dev/null; then
+  echo "Image is good"
+else
+  echo "curl is missing" >&2
+  exit 1
+fi
