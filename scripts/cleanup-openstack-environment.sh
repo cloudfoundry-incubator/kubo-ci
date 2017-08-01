@@ -7,6 +7,8 @@ delete_vms() {
   network_name=$(openstack network list | grep "$network_id" | awk '{print $4}')
   openstack server list | grep "$network_name" | awk '{print $2}' | xargs -I{} openstack server delete {}
 
+  openstack volume list --status available -c ID -f json | jq -r .[].ID | xargs -I{} openstack volume delete {}
+
   internal_ip=$(bosh-cli int $lock_file --path='/internal_ip')
   openstack port list | grep "$internal_ip" | awk '{print $2}' | xargs -I{} openstack port delete {}
 }
