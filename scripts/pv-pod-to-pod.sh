@@ -56,7 +56,7 @@ iaas=$(bosh-cli int "kubo-lock/metadata" --path=/iaas)
 director_ip=$(bosh-cli int "kubo-lock/metadata" --path="/internal_ip")
 bosh_ca_cert=$(bosh-cli int "gcs-bosh-creds/creds.yml" --path=/default_ca/ca)
 client_secret=$(bosh-cli int "gcs-bosh-creds/creds.yml" --path=/bosh_admin_client_secret)
-worker_ip=$(BOSH_CLIENT=bosh_admin BOSH_CLIENT_SECRET=${client_secret} BOSH_CA_CERT="${bosh_ca_cert}" bosh-cli -e ${director_ip} vms | grep worker | head -n1 | awk '{print $4}')
+worker_ip=$(BOSH_CLIENT=bosh_admin BOSH_CLIENT_SECRET=${client_secret} BOSH_CA_CERT="${bosh_ca_cert}" bosh-cli -e ${director_ip} vms | grep worker | grep -v haproxy | head -n1 | awk '{print $4}')
 
 testvalue="$(date +%s)"
 
