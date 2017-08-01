@@ -20,7 +20,7 @@ var _ = Describe("MasterTlsCertificate", func() {
 		runner = test_helpers.NewKubectlRunner()
 	})
 
-	FDescribeTable("hostnames", func(hostname string) {
+	DescribeTable("hostnames", func(hostname string) {
 		url := fmt.Sprintf("https://%s", hostname)
 		session := runner.RunKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl", "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", url, "--cacert", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
 		Eventually(session, "5m").Should(gexec.Exit(0))
