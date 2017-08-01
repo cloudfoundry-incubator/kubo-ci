@@ -7,13 +7,13 @@ delete_vms() {
   network_name=$(openstack network list -f value | grep "$network_id" | awk '{print $2}')
   server_names=$(openstack server list -f value | grep "$network_name" | awk '{print $1}')
 
-  openstack volume list --status available -c ID | grep -v ID | grep -v '\-----' | awk '{print $2}' | xargs -I{} openstack volume delete {}
+  openstack volume list --status available -c ID -f value | awk '{print $1}' | xargs -I{} openstack volume delete {}
 
   internal_ip=$(bosh-cli int $lock_file --path='/internal_ip')
   openstack port list | grep "$internal_ip" | awk '{print $2}' | xargs -I{} openstack port delete {}
   internal_ip=$(bosh-cli int $lock_file --path='/internal_ip')
   openstack port list | grep "$internal_ip" | awk '{print $2}' | xargs -I{} openstack port delete {}
-  
+
   for server_name in ${server_names}
   do
     volume_name=$(openstack server show "${server_name}" -f yaml | bosh int --path /volumes_attached - | cut -d "'" -f2)
