@@ -5,13 +5,10 @@ image_resource:
     repository: pcfkubo/kubo-ci
     tag: stable
 run:
-  path: git-kubo-ci/scripts/deploy-turbulence.sh
+  path: git-kubo-ci/scripts/configure-bosh.sh
 
 inputs:
   - name: git-kubo-ci
-  - name: git-kubo-deployment
   - name: gcs-bosh-creds
+  - name: git-kubo-deployment
   - name: kubo-lock
-
-params:
-  IAAS:

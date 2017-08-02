@@ -129,6 +129,14 @@ jobs:
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     tags: [gcp]
 
+  - task: configure-bosh
+    tags: [gcp]
+    input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>
+      gcs-kubo-release-tarball: gcs-kubo-release-pre
+    file: git-kubo-ci/tasks/configure-bosh.yml
+    tags: [gcp]
+
   - task: deploy
     tags: [gcp]
     input_mapping:
