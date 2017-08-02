@@ -2,6 +2,7 @@ package workload_test
 
 import (
 	"integration-tests/test_helpers"
+	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
