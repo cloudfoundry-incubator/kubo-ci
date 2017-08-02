@@ -19,7 +19,7 @@ resources:
   type: git
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
-    branch: master
+    branch: turbulence_test
 
 <% iaas_list.each do |iaas| %>
 - name: kubo-lock-<%= iaas %>
