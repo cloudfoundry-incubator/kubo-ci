@@ -9,6 +9,9 @@ export BOSH_LOG_PATH="$PWD/bosh.log"
 export DEBUG=1
 BOSH_ENV="${KUBO_ENVIRONMENT_DIR}"
 
+cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
+
 source "git-kubo-deployment/bin/set_bosh_environment"
 
 turbulence_release_url=$(bosh-cli int "git-kubo-ci/utils/turbulence/runtime-config.yml" --path='/releases/name=turbulence/url')
