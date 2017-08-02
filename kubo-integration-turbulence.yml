@@ -176,6 +176,33 @@ jobs:
     tags: [gcp]
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
+- name: run-turbulence-tests-<%= iaas %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= iaas %>
+      version: every
+      trigger: true
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+    - get: gcs-kubo-release-pre
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+    - get: gcs-kubo-deployment-pre
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+
+  # - task: unpack-kubo-deployment
+  #   file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+  #   tags: [gcp]
+
+  - task: integration-tests
+    file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
+    tags: [gcp]
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+
+
 - name: destroy-k8s-<%= iaas %>
   plan:
   - aggregate:

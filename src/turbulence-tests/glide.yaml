@@ -1,0 +1,9 @@
+package: turbulence-tests
+import:
+- package: github.com/onsi/ginkgo
+  subpackages:
+  - config
+- package: github.com/onsi/gomega
+  subpackages:
+  - gexec
+- package: golang.org/x/net
