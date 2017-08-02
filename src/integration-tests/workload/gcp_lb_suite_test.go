@@ -16,7 +16,10 @@ func TestGcpLb(t *testing.T) {
 var (
 	runner        *test_helpers.KubectlRunner
 	nginxSpec     = test_helpers.PathFromRoot("specs/nginx.yml")
-	nginxLBSpec     = test_helpers.PathFromRoot("specs/nginx-lb.yml")
+	nginxLBSpec   = test_helpers.PathFromRoot("specs/nginx-lb.yml")
+	workerAddress string
+	nodePort      string
+	iaas          string
 )
 
 var _ = BeforeSuite(func() {
