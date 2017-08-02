@@ -130,31 +130,3 @@ func (runner TurbulenceRunner) ApplyIncident(incidentFile string) (TurbulenceInc
 	json.Unmarshal(bytes, &newIncident)
 	return newIncident, nil
 }
-
-//
-// func (runner TurbulenceRunner) RunKubectlCommandInNamespace(namespace string, args ...string) *gexec.Session {
-// 	newArgs := append([]string{"--kubeconfig", runner.configPath, "--namespace", namespace}, args...)
-// 	command := exec.Command("kubectl", newArgs...)
-//
-// 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-//
-// 	Expect(err).NotTo(HaveOccurred())
-// 	return session
-// }
-//
-// func (runner TurbulenceRunner) ExpectEventualSuccess(args ...string) {
-// 	Eventually(runner.RunKubectlCommand(args...), runner.Timeout).Should(gexec.Exit(0))
-// }
-//
-// func GenerateRandomName() string {
-// 	letterRunes := []rune("abcdefghijklmnopqrstuvwxyz")
-// 	b := make([]rune, 20)
-// 	for i := range b {
-// 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-// 	}
-// 	return string(b)
-// }
-//
-// func init() {
-// 	rand.Seed(config.GinkgoConfig.RandomSeed)
-// }
