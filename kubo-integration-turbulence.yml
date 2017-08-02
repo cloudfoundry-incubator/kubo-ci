@@ -171,11 +171,6 @@ jobs:
     tags: [gcp]
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
-  - task: pod-to-pod
-    file: git-kubo-ci/tasks/pod-to-pod.yml
-    tags: [gcp]
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-
 - name: run-turbulence-tests-<%= iaas %>
   plan:
   - aggregate:
@@ -193,12 +188,8 @@ jobs:
     - get: gcs-kubo-deployment-pre
       passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
 
-  # - task: unpack-kubo-deployment
-  #   file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-  #   tags: [gcp]
-
-  - task: integration-tests
-    file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
+  - task: turbulence-tests
+    file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
     tags: [gcp]
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
