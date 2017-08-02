@@ -1,8 +1,15 @@
 {
-  "Group": {
-  	"Name": "worker"
-  },
-  "ID": {
-  	"Limit": "1"
+  "Tasks": [
+    {
+  		"Type": "Kill"
+  	}
+  ],
+  "Selector": {
+    "Group": {
+    	"Name": "worker"
+    },
+    "ID": {
+    	"Limit": "1"
+    }
   }
 }

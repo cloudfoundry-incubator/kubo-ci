@@ -74,6 +74,10 @@ func (runner TurbulenceRunner) ListIncidents() (TurbulenceIncidents, error) {
 		return nil, fmt.Errorf("Error parsing incidents list response; [%v]", bodyErr)
 	}
 
+	if response.StatusCode >= 300 {
+		return nil, fmt.Errorf("Error in listing incidents; [%v]", string(bytes))
+	}
+
 	incidents := TurbulenceIncidents{}
 	json.Unmarshal(bytes, &incidents)
 	return incidents, nil
@@ -90,6 +94,10 @@ func (runner TurbulenceRunner) GetIncidentById(incidentId string) (TurbulenceInc
 	bytes, bodyErr := ioutil.ReadAll(response.Body)
 	if bodyErr != nil {
 		return TurbulenceIncident{}, fmt.Errorf("Error parsing incident response; [%v]", bodyErr)
+	}
+
+	if response.StatusCode >= 300 {
+		return TurbulenceIncident{}, fmt.Errorf("Error in getting incident; [%v]", string(bytes))
 	}
 
 	incident := TurbulenceIncident{}
@@ -112,6 +120,10 @@ func (runner TurbulenceRunner) ApplyIncident(incidentFile string) (TurbulenceInc
 	bytes, bodyErr := ioutil.ReadAll(response.Body)
 	if bodyErr != nil {
 		return TurbulenceIncident{}, fmt.Errorf("Error parsing incident submit response; [%v]", bodyErr)
+	}
+
+	if response.StatusCode >= 300 {
+		return TurbulenceIncident{}, fmt.Errorf("Error in submitting incident; [%v]", string(bytes))
 	}
 
 	newIncident := TurbulenceIncident{}
