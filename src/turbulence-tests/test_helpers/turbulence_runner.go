@@ -1,22 +1,32 @@
 package test_helpers
 
 import (
-	"os"
-	"fmt"
-	"path/filepath"
-	"runtime"
 	"bytes"
+	"crypto/tls"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
+	"runtime"
 
 	. "github.com/onsi/ginkgo"
 )
 
 type TurbulenceRunner struct {
 	username    string
-  password    string
+	password    string
 	apiEndpoint string
+	httpClient  *http.Client
 }
+
+type TurbulenceIncident struct {
+	ID string `json:"ID"`
+	// other fields TBD
+}
+
+type TurbulenceIncidents []TurbulenceIncident
 
 func NewTurbulenceRunner() *TurbulenceRunner {
 
@@ -37,6 +47,11 @@ func NewTurbulenceRunner() *TurbulenceRunner {
 		Fail("TURBULENCE_PASSWORD is not set")
 	}
 
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	runner.httpClient = &http.Client{Transport: tr}
+
 	return runner
 }
 
@@ -46,26 +61,63 @@ func PathFromRoot(relativePath string) string {
 	return filepath.Join(currentDir, "..", "..", "..", relativePath)
 }
 
-func (runner TurbulenceRunner) ApplyIncident(incidentFile string) (string, error) {
-	postUrl := fmt.Sprintf("https://%s:%s@%s/incidents", runner.username, runner.password, runner.apiEndpoint)
-	fileBytes, fileReadErr := ioutil.ReadFile(incidentFile)
-	if fileReadErr != nil {
-		return "", fmt.Errorf("Can't read file [%s]; [%v]", incidentFile, fileReadErr)
-	}
+func (runner TurbulenceRunner) ListIncidents() (TurbulenceIncidents, error) {
+	getUrl := fmt.Sprintf("https://%s:%s@%s/incidents", runner.username, runner.password, runner.apiEndpoint)
 
-	response, postErr := http.Post(postUrl, "application/json", bytes.NewReader(fileBytes))
-  if postErr != nil {
-		return "", fmt.Errorf("Error submitting incident; [%v]", postErr)
+	response, listErr := runner.httpClient.Get(getUrl)
+	if listErr != nil {
+		return nil, fmt.Errorf("Error listing incidents; [%v]", listErr)
 	}
 
 	bytes, bodyErr := ioutil.ReadAll(response.Body)
 	if bodyErr != nil {
-		return "", fmt.Errorf("Error parsing incident submit response; [%v]", bodyErr)
+		return nil, fmt.Errorf("Error parsing incidents list response; [%v]", bodyErr)
 	}
 
-	return string(bytes), nil
+	incidents := TurbulenceIncidents{}
+	json.Unmarshal(bytes, &incidents)
+	return incidents, nil
 }
 
+func (runner TurbulenceRunner) GetIncidentById(incidentId string) (TurbulenceIncident, error) {
+	getUrl := fmt.Sprintf("https://%s:%s@%s/incidents/%s", runner.username, runner.password, runner.apiEndpoint, incidentId)
+
+	response, getErr := runner.httpClient.Get(getUrl)
+	if getErr != nil {
+		return TurbulenceIncident{}, fmt.Errorf("Error getting incident; [%v]", getErr)
+	}
+
+	bytes, bodyErr := ioutil.ReadAll(response.Body)
+	if bodyErr != nil {
+		return TurbulenceIncident{}, fmt.Errorf("Error parsing incident response; [%v]", bodyErr)
+	}
+
+	incident := TurbulenceIncident{}
+	json.Unmarshal(bytes, &incident)
+	return incident, nil
+}
+
+func (runner TurbulenceRunner) ApplyIncident(incidentFile string) (TurbulenceIncident, error) {
+	postUrl := fmt.Sprintf("https://%s:%s@%s/incidents", runner.username, runner.password, runner.apiEndpoint)
+	fileBytes, fileReadErr := ioutil.ReadFile(incidentFile)
+	if fileReadErr != nil {
+		return TurbulenceIncident{}, fmt.Errorf("Can't read file [%s]; [%v]", incidentFile, fileReadErr)
+	}
+
+	response, postErr := runner.httpClient.Post(postUrl, "application/json", bytes.NewReader(fileBytes))
+	if postErr != nil {
+		return TurbulenceIncident{}, fmt.Errorf("Error submitting incident; [%v]", postErr)
+	}
+
+	bytes, bodyErr := ioutil.ReadAll(response.Body)
+	if bodyErr != nil {
+		return TurbulenceIncident{}, fmt.Errorf("Error parsing incident submit response; [%v]", bodyErr)
+	}
+
+	newIncident := TurbulenceIncident{}
+	json.Unmarshal(bytes, &newIncident)
+	return newIncident, nil
+}
 
 //
 // func (runner TurbulenceRunner) RunKubectlCommandInNamespace(namespace string, args ...string) *gexec.Session {
