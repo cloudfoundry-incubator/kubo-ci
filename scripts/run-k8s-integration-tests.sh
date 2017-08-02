@@ -23,6 +23,7 @@ KUBO_ENVIRONMENT_DIR=$3
 "$GIT_KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
 
 routing_mode=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing_mode")
+iaas=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/iaas")
 director_name=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/director_name")
 GIT_KUBO_CI=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 GOPATH="$GIT_KUBO_CI"
@@ -43,7 +44,14 @@ if [[ ${routing_mode} == "cf" ]]; then
   export KUBERNETES_SERVICE_HOST KUBERNETES_SERVICE_PORT WORKLOAD_TCP_PORT INGRESS_CONTROLLER_TCP_PORT TCP_ROUTER_DNS_NAME CF_APPS_DOMAIN
 
   ginkgo "$GOPATH/src/integration-tests/cloudfoundry"
+elif [[ ${routing_mode} == "iaas" && ${iaas} == "gcp" ]]; then
+  IAAS=${iaas}
+  ginkgo "$GOPATH/src/integration-tests/workload"
 elif [[ ${routing_mode} == "iaas" ]]; then
+  IAAS=${iaas}
+  WORKLOAD_ADDRESS=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/kubernetes_worker_host")
+  WORKLOAD_PORT=$(bosh-cli int "${PWD}/git-kubo-ci/specs/nginx.yml" --path="/spec/ports/0/nodePort")
+  export WORKLOAD_ADDRESS WORKLOAD_PORT
   ginkgo "$GOPATH/src/integration-tests/workload"
 elif [[ ${routing_mode} == "proxy" ]]; then
   WORKLOAD_ADDRESS=$(call_bosh -d "${DEPLOYMENT_NAME}" vms | grep 'worker-haproxy/' | head -1 | awk '{print $4}')

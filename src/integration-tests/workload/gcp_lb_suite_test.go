@@ -15,10 +15,14 @@ func TestGcpLb(t *testing.T) {
 
 var (
 	runner        *test_helpers.KubectlRunner
-	nginxSpec     = test_helpers.PathFromRoot("specs/nginx-lb.yml")
+	nginxSpec     = test_helpers.PathFromRoot("specs/nginx.yml")
+	nginxLBSpec     = test_helpers.PathFromRoot("specs/nginx-lb.yml")
 )
 
 var _ = BeforeSuite(func() {
+	workerAddress = os.Getenv("WORKLOAD_ADDRESS")
+	nodePort = os.Getenv("WORKLOAD_PORT")
+	iaas = os.Getenv("IAAS")
 	runner = test_helpers.NewKubectlRunner()
 	runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
 })
