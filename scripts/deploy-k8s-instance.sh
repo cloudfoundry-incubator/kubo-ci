@@ -12,10 +12,6 @@ tarball_name=$(ls $PWD/gcs-kubo-release-tarball/kubo-*.tgz | head -n1)
 
 cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
-echo "- type: replace
-  path: /instance_groups/name=worker/jobs/name=docker/properties/docker/debug?
-  value: true
-" > "${KUBO_ENVIRONMENT_DIR}/ci-service.yml"
 
 cp "$tarball_name" "git-kubo-deployment/../kubo-release.tgz"
 
