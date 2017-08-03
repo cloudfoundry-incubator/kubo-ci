@@ -11,6 +11,16 @@ cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
 
 iaas=$(bosh-cli int kubo-lock/metadata --path=/iaas)
+set +e  # 'deploy_diagnostics' key is is optional
+deploy_diagnostics=$(bosh-cli int ${bosh_env}/director.yml --path /deploy_diagnostics)
+set -e
+
+BOSH_EXTRA_OPS=""
+if [ "true" == "$deploy_diagnostics" ]; then
+  BOSH_EXTRA_OPS="--ops-file \"${KUBO_DEPLOYMENT_DIR}/bosh-deployment/turbulence.yml\""
+fi
+export BOSH_EXTRA_OPS
+
 if [ "$iaas" = "gcp" ]; then
   set +x
   bosh-cli int kubo-lock/metadata --path=/gcp_service_account > "$PWD/key.json"
