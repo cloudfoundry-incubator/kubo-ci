@@ -7,10 +7,12 @@ set -exu -o pipefail
 export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 export DEBUG=1
+
 cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
 
 iaas=$(bosh-cli int kubo-lock/metadata --path=/iaas)
+
 set +e  # 'deploy_diagnostics' key is is optional
 deploy_diagnostics=$(bosh-cli int ${bosh_env}/director.yml --path /deploy_diagnostics)
 set -e
@@ -19,6 +21,11 @@ BOSH_EXTRA_OPS=""
 if [ "true" == "$deploy_diagnostics" ]; then
   BOSH_EXTRA_OPS="--ops-file \"${KUBO_DEPLOYMENT_DIR}/bosh-deployment/turbulence.yml\""
 fi
+
+if [[ -f "$(dirname "$0")/../manifests/ops-files/${iaas}-cpi.yml" ]]; then
+  BOSH_EXTRA_OPS="${BOSH_EXTRA_OPS} --ops-file $(cd dirname "$0"; pwd)/../manifests/ops-files/${iaas}-cpi.yml"
+fi
+
 export BOSH_EXTRA_OPS
 
 if [ "$iaas" = "gcp" ]; then
