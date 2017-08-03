@@ -6,7 +6,7 @@
     end
   end
   pools = {
-            'kubo-deployment' => get_lock_names('kubo-deployment'),
+            'kubo-gcp' => get_lock_names('kubo-gcp'),
             'kubo-gcp-lb' => get_lock_names('kubo-gcp-lb'),
             'kubo-gcp-turbulence' => get_lock_names('kubo-gcp-turbulence')
           }

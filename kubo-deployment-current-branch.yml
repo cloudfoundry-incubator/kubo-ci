@@ -35,7 +35,7 @@ resources:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key))
-    pool: kubo-<%= iaas == "gcp" ? "deployment" : iaas %>
+    pool: kubo-<%= iaas %>
 <% end %>
 
 - name: gcs-bosh-state
