@@ -60,7 +60,7 @@ var _ = Describe("Deploy workload", func() {
 
 	AfterEach(func() {
 		session := runner.RunKubectlCommand("delete", "-f", nginxSpec)
-		session.Wait("30s")
+		session.Wait("60s")
 	})
 
 })
