@@ -16,12 +16,12 @@ delete_vms() {
 
   for server_name in ${server_names}
   do
-    volume_name=$(openstack server show "${server_name}" -f yaml | bosh int --path /volumes_attached - | cut -d "'" -f2)
+    volume_name=$(openstack server show "${server_name}" -f yaml | bosh-cli int --path /volumes_attached - | cut -d "'" -f2)
     if [ ! "${volume_name}" == "" ]; then
       openstack server remove volume "${server_name}" "${volume_name}"
 
       if timeout 120 /bin/bash <<EOF
-        until openstack volume show "${volume_name}" -f yaml | bosh int --path /status - | grep "available"; do
+        until openstack volume show "${volume_name}" -f yaml | bosh-cli int --path /status - | grep "available"; do
           sleep 2
         done
 EOF
