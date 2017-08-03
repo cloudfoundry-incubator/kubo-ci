@@ -22,8 +22,8 @@ if [ "true" == "$deploy_diagnostics" ]; then
   BOSH_EXTRA_OPS="--ops-file \"${KUBO_DEPLOYMENT_DIR}/bosh-deployment/turbulence.yml\""
 fi
 
-if [[ -f "$(dirname "$0")/../manifests/ops-files/${iaas}-cpi.yml" ]]; then
-  BOSH_EXTRA_OPS="${BOSH_EXTRA_OPS} --ops-file $(cd dirname "$0"; pwd)/../manifests/ops-files/${iaas}-cpi.yml"
+if [[ -f "${PWD}/git-kubo-ci/manifests/ops-files/${iaas}-cpi.yml" ]]; then
+  BOSH_EXTRA_OPS="${BOSH_EXTRA_OPS} --ops-file ${PWD}/git-kubo-ci/manifests/ops-files/${iaas}-cpi.yml"
 fi
 
 export BOSH_EXTRA_OPS
