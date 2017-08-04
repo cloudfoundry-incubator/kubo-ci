@@ -34,8 +34,8 @@ var _ = Describe("Deploy workload", func() {
 			if err != nil {
 				return err.Error()
 			}
-			return string(result.StatusCode)
-		}, "120s", "5s").Should(Equal("200"))
+			return result.Status
+		}, "120s", "5s").Should(Equal("200 OK"))
 
 	})
 
