@@ -15,7 +15,7 @@ cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 source "$PWD/git-kubo-deployment/bin/lib/deploy_utils"
 source "$PWD/git-kubo-deployment/bin/set_bosh_environment"
 
-manifest_file="$PWD/git-kubo-ci/utils/tinyproxy/manifest.yml"
+manifest_file="$PWD/git-kubo-ci/manifests/tinyproxy/manifest.yml"
 stemcell_url=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path='/stemcell_url')
 
 BOSH_CLIENT=bosh_admin

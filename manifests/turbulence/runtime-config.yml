@@ -1,9 +1,9 @@
 ---
 releases:
 - name: turbulence
-  version: 0.6
-  url: https://bosh.io/d/github.com/cppforlife/turbulence-release?v=0.6
-  sha1: 5222108e2aa500bb60205d7a0e6f654dde391f36
+  version: 0.7
+  url: https://bosh.io/d/github.com/cppforlife/turbulence-release?v=0.7
+  sha1: 6e9d33e7372925b55a929be6852c10758c0173cb
 
 addons:
 - name: turbulence_agent
