@@ -59,34 +59,6 @@ resources:
     bucket: kubo-pipeline-store
     regexp: kubo-release-(.*).tgz
 
-- name: gcs-kubo-releases
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-releases
-    regexp: kubo-release-(.*).tgz
-
-- name: gcs-kubo-deployments
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-releases
-    regexp: kubo-deployment-(.*).tgz
-
-- name: gcs-kubo-release-tarball
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-public
-    versioned_file: kubo-release-latest.tgz
-
-- name: gcs-kubo-deployment-tarball
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-public
-    versioned_file: kubo-deployment-latest.tgz
-
 - name: kubo-version
   type: semver
   source:
@@ -288,44 +260,3 @@ jobs:
  destroy_bosh = iaas_list.map {|iaas| "destroy-bosh-#{iaas}"}
 %>
 
-- name: upload-kubo-deployment
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: git-kubo-deployment
-    - get: kubo-version
-      passed: <%= destroy_bosh %>
-      trigger: true
-  - task: create-kubo-deployment-tarball
-    file: git-kubo-ci/tasks/create-kubo-deployment-tarball.yml
-  - aggregate:
-    - put: gcs-kubo-deployment-tarball
-      params:
-        file: tarballs/kubo-deployment-*.tgz
-    - put: gcs-kubo-deployments
-      params:
-        file: tarballs/kubo-deployment-*.tgz
-
-
-- name: upload-kubo-release
-  plan:
-  - aggregate:
-    - get: gcs-kubo-release-tarball-untested
-      passed: <%= destroy_bosh %>
-    - get: kubo-version
-      passed: <%= destroy_bosh %>
-      trigger: true
-  - aggregate:
-    - put: gcs-kubo-release-tarball
-      params:
-        file: gcs-kubo-release-tarball-untested/kubo-release-*.tgz
-    - put: gcs-kubo-releases
-      params:
-        file: gcs-kubo-release-tarball-untested/kubo-release-*.tgz
-
-- name: success-notification
-  plan:
-  - aggregate:
-    - get: kubo-version
-      passed: [ upload-kubo-release, upload-kubo-deployment ]
-      trigger: true
