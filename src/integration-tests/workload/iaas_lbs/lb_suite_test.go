@@ -9,9 +9,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestGcpLb(t *testing.T) {
+func TestIAASLb(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "GcpLb Suite")
+	RunSpecs(t, "IAASLb Suite")
 }
 
 var (
@@ -26,12 +26,10 @@ var _ = BeforeSuite(func() {
 	if workerAddress == "" {
 		Fail("WORKLOAD_ADDRESS is not set")
 	}
-
 	nodePort = os.Getenv("WORKLOAD_PORT")
 	if nodePort == "" {
 		Fail("WORKLOAD_PORT is not set")
 	}
-
 	runner = test_helpers.NewKubectlRunner()
 	runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
 })
