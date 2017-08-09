@@ -7,7 +7,6 @@ metadata:
 spec:
   ports:
     - port: 80
-      nodePort: 30102
   selector:
     app: nginx
   type: LoadBalancer
