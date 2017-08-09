@@ -19,7 +19,7 @@ var _ = Describe("Deploy workload", func() {
 		Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
 		serviceIP := ""
 		Eventually(func() string {
-		getServiceIp := runner.RunKubectlCommand("get", "service", "nginx", "-o", "jsonpath='{.status.loadBalancer.ingress[0].ip}'")
+			getServiceIp := runner.RunKubectlCommand("get", "service", "nginx", "-o", "jsonpath='{.status.loadBalancer.ingress[0].ip}'")
 			Eventually(getServiceIp, "60s").Should(gexec.Exit(0))
 			serviceIP = string(getServiceIp.Out.Contents())
 			serviceIP = serviceIP[1 : len(serviceIP)-1]
