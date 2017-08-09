@@ -45,15 +45,14 @@ if [[ ${routing_mode} == "cf" ]]; then
 
   ginkgo "$GOPATH/src/integration-tests/cloudfoundry"
 elif [[ ${routing_mode} == "iaas" && ${iaas} == "gcp" ]]; then
-  IAAS=${iaas}
-  export IAAS
-  ginkgo "$GOPATH/src/integration-tests/workload"
+  ginkgo "$GOPATH/src/integration-tests/pod_logs"
+  ginkgo "$GOPATH/src/integration-tests/workload/k8s_lbs"
 elif [[ ${routing_mode} == "iaas" ]]; then
-  IAAS=${iaas}
   WORKLOAD_ADDRESS=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/kubernetes_worker_host")
   WORKLOAD_PORT=$(bosh-cli int "${PWD}/git-kubo-ci/specs/nginx.yml" --path="/spec/ports/0/nodePort")
-  export IAAS WORKLOAD_ADDRESS WORKLOAD_PORT
-  ginkgo "$GOPATH/src/integration-tests/workload"
+  export WORKLOAD_ADDRESS WORKLOAD_PORT
+  ginkgo "$GOPATH/src/integration-tests/pod_logs"
+  ginkgo "$GOPATH/src/integration-tests/workload/iaas_lbs"
 elif [[ ${routing_mode} == "proxy" ]]; then
   WORKLOAD_ADDRESS=$(call_bosh -d "${DEPLOYMENT_NAME}" vms | grep 'worker-haproxy/' | head -1 | awk '{print $4}')
   WORKLOAD_PORT=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/worker_haproxy_tcp_frontend_port")
