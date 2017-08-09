@@ -1,4 +1,4 @@
-package workload_test_k8s
+package workload_test_k8s_test
 
 import (
 	"integration-tests/test_helpers"
@@ -14,8 +14,8 @@ func TestK8sLb(t *testing.T) {
 }
 
 var (
-	runner        *test_helpers.KubectlRunner
-	nginxLBSpec   = test_helpers.PathFromRoot("specs/nginx-lb.yml")
+	runner      *test_helpers.KubectlRunner
+	nginxLBSpec = test_helpers.PathFromRoot("specs/nginx-lb.yml")
 )
 
 var _ = BeforeSuite(func() {
