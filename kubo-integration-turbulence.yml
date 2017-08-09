@@ -146,33 +146,6 @@ jobs:
       gcs-kubo-release-tarball: gcs-kubo-release-pre
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
 
-
-- name: run-k8s-integration-tests-<%= iaas %>
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
-      version: every
-      trigger: true
-      passed: [ 'deploy-k8s-<%= iaas %>' ]
-    - get: gcs-bosh-state
-      passed: [ 'deploy-k8s-<%= iaas %>' ]
-    - get: gcs-bosh-creds
-      passed: [ 'deploy-k8s-<%= iaas %>' ]
-    - get: gcs-kubo-release-pre
-      passed: [ 'deploy-k8s-<%= iaas %>' ]
-    - get: gcs-kubo-deployment-pre
-      passed: [ 'deploy-k8s-<%= iaas %>' ]
-
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    tags: [gcp]
-
-  - task: integration-tests
-    file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
-    tags: [gcp]
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-
 - name: run-turbulence-tests-<%= iaas %>
   plan:
   - aggregate:
@@ -180,15 +153,15 @@ jobs:
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-release-pre
-      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-deployment-pre
-      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
 
   - task: turbulence-tests
     file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
