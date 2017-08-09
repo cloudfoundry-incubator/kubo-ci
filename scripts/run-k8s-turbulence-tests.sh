@@ -19,3 +19,6 @@ export TURBULENCE_USERNAME
 export TURBULENCE_PASSWORD
 export TURBULENCE_API_ENDPOINT
 ginkgo "$GOPATH/src/turbulence-tests/worker_failure"
+
+# the tests above are too fast. We need to sleep for a minute or so before destroying the k8s deployment
+sleep 100
