@@ -18,7 +18,6 @@ var (
 	runner        *test_helpers.KubectlRunner
 	nginxSpec     = test_helpers.PathFromRoot("specs/nginx.yml")
 	workerAddress string
-	nodePort      string
 )
 
 var _ = BeforeSuite(func() {
@@ -26,10 +25,7 @@ var _ = BeforeSuite(func() {
 	if workerAddress == "" {
 		Fail("WORKLOAD_ADDRESS is not set")
 	}
-	nodePort = os.Getenv("WORKLOAD_PORT")
-	if nodePort == "" {
-		Fail("WORKLOAD_PORT is not set")
-	}
+
 	runner = test_helpers.NewKubectlRunner()
 	runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
 })

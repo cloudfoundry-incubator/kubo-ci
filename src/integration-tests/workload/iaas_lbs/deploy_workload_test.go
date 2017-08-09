@@ -13,22 +13,27 @@ import (
 var _ = Describe("Deploy workload", func() {
 
 	It("exposes routes via LBs", func() {
-		// TODO Once we have enabled cloud provider packages on
-		// vSphere and AWS, this test can go away
+
+		deployNginx := runner.RunKubectlCommand("create", "-f", nginxSpec)
+		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
+		rolloutWatch := runner.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w")
+		Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
+
+		nodePort := ""
+		Eventually(func() string {
+			getNodePort := runner.RunKubectlCommand("get", "service", "nginx", "-o", "jsonpath='{.spec.ports[0].nodePort}'")
+			Eventually(getNodePort, "60s").Should(gexec.Exit(0))
+			nodePort = string(getNodePort.Out.Contents())
+			nodePort = nodePort[1 : len(nodePort)-1]
+			return nodePort
+		}, "120s", "5s").Should(Not(Equal("")))
+
 		appUrl := fmt.Sprintf("http://%s:%s", workerAddress, nodePort)
 
 		timeout := time.Duration(5 * time.Second)
 		httpClient := http.Client{
 			Timeout: timeout,
 		}
-
-		_, err := httpClient.Get(appUrl)
-		Expect(err).To(HaveOccurred())
-
-		deployNginx := runner.RunKubectlCommand("create", "-f", nginxSpec)
-		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
-		rolloutWatch := runner.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w")
-		Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
 
 		Eventually(func() string {
 			result, err := httpClient.Get(appUrl)
