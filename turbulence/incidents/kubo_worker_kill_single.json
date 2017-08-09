@@ -6,9 +6,7 @@
   ],
   "Selector": {
     "Group": {
-    	"Name": "worker"
-    },
-    "ID": {
+    	"Name": "worker",
     	"Limit": "1"
     }
   }
