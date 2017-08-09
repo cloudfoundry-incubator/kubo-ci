@@ -1,4 +1,4 @@
-package iaas_lbs_test
+package haproxy_test
 
 import (
 	"integration-tests/test_helpers"
@@ -11,12 +11,12 @@ import (
 
 func TestIAASLb(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "IAASLb Suite")
+	RunSpecs(t, "HAProxy Suite")
 }
 
 var (
 	runner        *test_helpers.KubectlRunner
-	nginxSpec     = test_helpers.PathFromRoot("specs/nginx.yml")
+	nginxSpec     = test_helpers.PathFromRoot("specs/nginx-specified-nodeport.yml")
 	workerAddress string
 	nodePort      string
 )

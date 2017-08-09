@@ -58,6 +58,6 @@ elif [[ ${routing_mode} == "proxy" ]]; then
   WORKLOAD_PORT=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/worker_haproxy_tcp_frontend_port")
   export WORKLOAD_ADDRESS WORKLOAD_PORT
 
-  ginkgo "$GOPATH/src/integration-tests/workload/iaas_lbs"
+  ginkgo "$GOPATH/src/integration-tests/workload/haproxy"
 fi
 ginkgo "$GOPATH/src/integration-tests/generic"

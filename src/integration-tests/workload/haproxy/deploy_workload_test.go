@@ -1,4 +1,4 @@
-package iaas_lbs_test
+package haproxy_test
 
 import (
 	"fmt"
@@ -12,9 +12,8 @@ import (
 
 var _ = Describe("Deploy workload", func() {
 
-	It("exposes routes via LBs", func() {
-		// TODO Once we have enabled cloud provider packages on
-		// vSphere and AWS, this test can go away
+	It("exposes routes via haproxy", func() {
+
 		appUrl := fmt.Sprintf("http://%s:%s", workerAddress, nodePort)
 
 		timeout := time.Duration(5 * time.Second)
