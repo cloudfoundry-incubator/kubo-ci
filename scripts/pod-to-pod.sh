@@ -23,12 +23,14 @@ kubectl apply -f "git-kubo-ci/specs/guestbook.yml"
 kubectl rollout status deployment/frontend -w
 kubectl rollout status deployment/redis-master -w
 kubectl rollout status deployment/redis-slave -w
+nodeport=$(kubectl describe svc/frontend | grep 'NodePort:' | awk '{print $3}' | sed -e 's/\/TCP//g')
+
 
 worker_ip=$(BOSH_CLIENT=bosh_admin BOSH_CLIENT_SECRET=${client_secret} BOSH_CA_CERT="${bosh_ca_cert}" bosh-cli -e "${director_ip}" vms | grep worker | grep -v haproxy | head -n1 | awk '{print $4}')
-testvalue="hellothere$(date +'%N')"
+testvalue="$(date +%s)"
 
 if timeout 120 /bin/bash <<EOF
-  until wget -O - 'http://${worker_ip}:30303/guestbook.php?cmd=set&key=messages&value=${testvalue}' | grep '{"message": "Updated"}'; do
+  until wget -O - 'http://${worker_ip}:${nodeport}/guestbook.php?cmd=set&key=messages&value=${testvalue}' | grep '{"message": "Updated"}'; do
     sleep 2
   done
 EOF
@@ -39,10 +41,10 @@ else
   exit 1
 fi
 
-wget -O - "http://${worker_ip}:30303/guestbook.php?cmd=set&key=messages&value=${testvalue}"
+wget -O - "http://${worker_ip}:${nodeport}/guestbook.php?cmd=set&key=messages&value=${testvalue}"
 
 if timeout 120 /bin/bash <<EOF
-  until wget -O - "http://${worker_ip}:30303/guestbook.php?cmd=get&key=messages" | grep ${testvalue}; do
+  until wget -O - "http://${worker_ip}:${nodeport}/guestbook.php?cmd=get&key=messages" | grep ${testvalue}; do
     sleep 2
   done
 EOF

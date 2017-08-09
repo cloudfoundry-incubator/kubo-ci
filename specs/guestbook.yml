@@ -91,7 +91,6 @@ spec:
   type: NodePort
   ports:
   - port: 80
-    nodePort: 30303
   selector:
     app: guestbook
     tier: frontend
