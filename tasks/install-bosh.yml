@@ -6,6 +6,8 @@ image_resource:
     tag: stable
 run:
   path: git-kubo-ci/scripts/install-bosh.sh
+params:
+  USE_TURBULENCE:
 
 inputs:
 - name: git-kubo-ci

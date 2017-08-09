@@ -98,7 +98,10 @@ jobs:
   - task: install
     file: git-kubo-ci/tasks/install-bosh.yml
     tags: [gcp]
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+    input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>
+    params:
+      USE_TURBULENCE: 1
 
   - aggregate:
     - put: gcs-bosh-creds
@@ -133,7 +136,6 @@ jobs:
     tags: [gcp]
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
-      gcs-kubo-release-tarball: gcs-kubo-release-pre
     file: git-kubo-ci/tasks/configure-bosh.yml
     tags: [gcp]
 

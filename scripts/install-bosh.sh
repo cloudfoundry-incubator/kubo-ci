@@ -13,7 +13,11 @@ touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
 
 iaas=$(bosh-cli int kubo-lock/metadata --path=/iaas)
 
-BOSH_EXTRA_OPS="--ops-file \"git-kubo-ci/manifests/turbulence/turbulence.yml\""
+BOSH_EXTRA_OPS=""
+if [[ "$USE_TURBULENCE" ]]; then
+  BOSH_EXTRA_OPS="--ops-file \"git-kubo-ci/manifests/turbulence/turbulence.yml\""
+fi
+
 BOSH_EXTRA_OPS="${BOSH_EXTRA_OPS} --ops-file \"${KUBO_DEPLOYMENT_DIR}/bosh-deployment/jumpbox-user.yml\""
 
 if [[ -f "${PWD}/git-kubo-ci/manifests/ops-files/${iaas}-cpi.yml" ]]; then
