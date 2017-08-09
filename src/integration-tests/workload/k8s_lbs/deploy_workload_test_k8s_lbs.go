@@ -20,26 +20,26 @@ var _ = Describe("Deploy workload", func() {
 		serviceIP := ""
 		Eventually(func() string {
 		getServiceIp := runner.RunKubectlCommand("get", "service", "nginx", "-o", "jsonpath='{.status.loadBalancer.ingress[0].ip}'")
-		Eventually(getServiceIp, "60s").Should(gexec.Exit(0))
+			Eventually(getServiceIp, "60s").Should(gexec.Exit(0))
 			serviceIP = string(getServiceIp.Out.Contents())
 			serviceIP = serviceIP[1 : len(serviceIP)-1]
 			return serviceIP
 		}, "120s", "5s").Should(Not(Equal("")))
 
-                appUrl := fmt.Sprintf("http://%s", serviceIP)
+		appUrl := fmt.Sprintf("http://%s", serviceIP)
 
-                timeout := time.Duration(5 * time.Second)
-                httpClient := http.Client{
-                        Timeout: timeout,
-                }
+		timeout := time.Duration(5 * time.Second)
+		httpClient := http.Client{
+			Timeout: timeout,
+		}
 
-                Eventually(func() int {
-                       	result, err := httpClient.Get(appUrl)
-                       	if err != nil {
-                       	        return -1
-                       	}
-                       	return result.StatusCode
-               	}, "120s", "5s").Should(Equal(200))
+		Eventually(func() int {
+			result, err := httpClient.Get(appUrl)
+			if err != nil {
+				return -1
+			}
+			return result.StatusCode
+		}, "120s", "5s").Should(Equal(200))
 	})
 
 	AfterEach(func() {

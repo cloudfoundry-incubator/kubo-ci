@@ -23,7 +23,13 @@ var (
 
 var _ = BeforeSuite(func() {
 	workerAddress = os.Getenv("WORKLOAD_ADDRESS")
+	if workerAddress == "" {
+		Fail("WORKLOAD_ADDRESS is not set")
+	}
 	nodePort = os.Getenv("WORKLOAD_PORT")
+	if nodePort == "" {
+		Fail("WORKLOAD_PORT is not set")
+	}
 	runner = test_helpers.NewKubectlRunner()
 	runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
 })
