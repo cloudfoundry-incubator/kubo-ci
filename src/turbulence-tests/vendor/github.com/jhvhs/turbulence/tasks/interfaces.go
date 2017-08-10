@@ -3,7 +3,7 @@ package tasks
 type Task struct {
 	ID string
 
-	Optionss OptionsSlice // todo shoudl be singular
+	Optionss OptionsSlice // todo should be singular
 }
 
 type Options interface {

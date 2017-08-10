@@ -69,17 +69,17 @@ func (runner TurbulenceRunner) ListIncidents() (TurbulenceIncidents, error) {
 		return nil, fmt.Errorf("Error listing incidents; [%v]", listErr)
 	}
 
-	bytes, bodyErr := ioutil.ReadAll(response.Body)
+	responseBytes, bodyErr := ioutil.ReadAll(response.Body)
 	if bodyErr != nil {
 		return nil, fmt.Errorf("Error parsing incidents list response; [%v]", bodyErr)
 	}
 
 	if response.StatusCode >= 300 {
-		return nil, fmt.Errorf("Error in listing incidents; [%v]", string(bytes))
+		return nil, fmt.Errorf("Error in listing incidents; [%v]", string(responseBytes))
 	}
 
 	incidents := TurbulenceIncidents{}
-	json.Unmarshal(bytes, &incidents)
+	json.Unmarshal(responseBytes, &incidents)
 	return incidents, nil
 }
 
@@ -91,17 +91,17 @@ func (runner TurbulenceRunner) GetIncidentById(incidentId string) (TurbulenceInc
 		return TurbulenceIncident{}, fmt.Errorf("Error getting incident; [%v]", getErr)
 	}
 
-	bytes, bodyErr := ioutil.ReadAll(response.Body)
+	responseBytes, bodyErr := ioutil.ReadAll(response.Body)
 	if bodyErr != nil {
 		return TurbulenceIncident{}, fmt.Errorf("Error parsing incident response; [%v]", bodyErr)
 	}
 
 	if response.StatusCode >= 300 {
-		return TurbulenceIncident{}, fmt.Errorf("Error in getting incident; [%v]", string(bytes))
+		return TurbulenceIncident{}, fmt.Errorf("Error in getting incident; [%v]", string(responseBytes))
 	}
 
 	incident := TurbulenceIncident{}
-	json.Unmarshal(bytes, &incident)
+	json.Unmarshal(responseBytes, &incident)
 	return incident, nil
 }
 
@@ -117,16 +117,16 @@ func (runner TurbulenceRunner) ApplyIncident(incidentFile string) (TurbulenceInc
 		return TurbulenceIncident{}, fmt.Errorf("Error submitting incident; [%v]", postErr)
 	}
 
-	bytes, bodyErr := ioutil.ReadAll(response.Body)
+	responseBytes, bodyErr := ioutil.ReadAll(response.Body)
 	if bodyErr != nil {
 		return TurbulenceIncident{}, fmt.Errorf("Error parsing incident submit response; [%v]", bodyErr)
 	}
 
 	if response.StatusCode >= 300 {
-		return TurbulenceIncident{}, fmt.Errorf("Error in submitting incident; [%v]", string(bytes))
+		return TurbulenceIncident{}, fmt.Errorf("Error in submitting incident; [%v]", string(responseBytes))
 	}
 
 	newIncident := TurbulenceIncident{}
-	json.Unmarshal(bytes, &newIncident)
+	json.Unmarshal(responseBytes, &newIncident)
 	return newIncident, nil
 }
