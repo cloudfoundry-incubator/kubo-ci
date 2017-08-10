@@ -1,8 +1,8 @@
 hash: c3b49193ba7e82c2360cdfc485524017239ceeffa2a4f600f432f79e16042302
-updated: 2017-08-01T15:24:18.547770682-04:00
+updated: 2017-08-10T10:31:18.341380098+01:00
 imports:
 - name: github.com/onsi/ginkgo
-  version: 43e2af1f01ace55adbb6d7d0f30416476db1baae
+  version: 77a8c1e5c40d6bb6c5eb4dd4bdce9763564f6298
   subpackages:
   - config
   - internal/codelocation
@@ -11,21 +11,24 @@ imports:
   - internal/leafnodes
   - internal/remote
   - internal/spec
+  - internal/spec_iterator
   - internal/specrunner
   - internal/suite
   - internal/testingtproxy
   - internal/writer
   - reporters
   - reporters/stenographer
+  - reporters/stenographer/support/go-colorable
+  - reporters/stenographer/support/go-isatty
   - types
 - name: github.com/onsi/gomega
-  version: 4dfabf7db2e4147ec99a86db32b2f2a3484cfee8
+  version: 334b8f472b3af5d541c5642701c1e29e2126f486
   subpackages:
   - format
-  - gbytes
   - gexec
   - internal/assertion
   - internal/asyncassertion
+  - internal/oraclematcher
   - internal/testingtsupport
   - matchers
   - matchers/support/goraph/bipartitegraph
@@ -35,8 +38,84 @@ imports:
   - types
 - name: golang.org/x/net
   version: 07b51741c1d6423d4a6abab1c49940ec09cb1aaf
+  subpackages:
+  - context
+  - proxy
 - name: golang.org/x/sys
-  version: a408501be4d17ee978c04a618e7a1b22af058c0e
+  version: fb4cac33e3196ff7f507ab9b2d2a44b0142f5b5a
   subpackages:
   - unix
-testImports: []
+testImports:
+- name: code.cloudfoundry.org/clock
+  version: 2269160ae1757f96bbb8c6475e6fa36c805e73e0
+- name: github.com/bmatcuk/doublestar
+  version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
+- name: github.com/cenkalti/backoff
+  version: 61153c768f31ee5f130071d08fc82b85208528de
+- name: github.com/charlievieth/fs
+  version: 7dc373669fa10ddf827c37c595dee30a2f001be9
+- name: github.com/cheggaaa/pb
+  version: 0af82b7d15eb9371fbdf8f468ff10cbba62e0414
+- name: github.com/cloudfoundry/bosh-cli
+  version: b50032ed5c7383152e89acd21856154a3362a32d
+  subpackages:
+  - director
+  - uaa
+  - ui
+  - ui/fmt
+  - ui/table
+- name: github.com/cloudfoundry/bosh-utils
+  version: 833257efc00aee289992e3c49551121850208c36
+  subpackages:
+  - crypto
+  - errors
+  - http
+  - httpclient
+  - logger
+  - retrystrategy
+  - system
+  - uuid
+- name: github.com/cppforlife/go-semi-semantic
+  version: 576b6af77ae4f3ccef356902fb3b9a9ae22e0b11
+  subpackages:
+  - version
+- name: github.com/dustin/go-humanize
+  version: 259d2a102b871d17f30e3cd9881a642961a1e486
+- name: github.com/fatih/color
+  version: 62e9147c64a1ed519147b62a56a14e83e2be02c1
+- name: github.com/jhvhs/turbulence
+  version: 5000e08eb5cab3fd88c551a4448fece7403d4fa9
+  subpackages:
+  - client
+  - director
+  - incident
+  - incident/reporter
+  - incident/selector
+  - tasks
+  - tasks/monit
+- name: github.com/mattn/go-colorable
+  version: 5411d3eea5978e6cdc258b30de592b60df6aba96
+  repo: https://github.com/mattn/go-colorable
+- name: github.com/mattn/go-isatty
+  version: 57fdcb988a5c543893cc61bce354a6e24ab70022
+- name: github.com/mattn/go-runewidth
+  version: 97311d9f7767e3d6f422ea06661bc2c7a19e8a5d
+- name: github.com/nu7hatch/gouuid
+  version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
+- name: github.com/vito/go-interact
+  version: 6928e8fe3693603deb4d861856effaee10db7bcf
+  subpackages:
+  - interact
+  - interact/terminal
+- name: github.com/zorkian/go-datadog-api
+  version: 659bba33a1626ab76f393d6878dc3e4f13253f6d
+- name: golang.org/x/crypto
+  version: adbae1b6b6fb4b02448a0fc0dbbc9ba2b95b294d
+  subpackages:
+  - curve25519
+  - ed25519
+  - ed25519/internal/edwards25519
+  - ssh
+  - ssh/terminal
+- name: gopkg.in/yaml.v2
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
