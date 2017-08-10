@@ -14,7 +14,8 @@ touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
 iaas=$(bosh-cli int kubo-lock/metadata --path=/iaas)
 
 BOSH_EXTRA_OPS=""
-if [[ "$USE_TURBULENCE" ]]; then
+# This means USE_TURBULENCE is set and not blank #Bashisms
+if [[ ! -z ${USE_TURBULENCE+x} ]] && [[ ! -z "${USE_TURBULENCE}" ]]; then
   BOSH_EXTRA_OPS="--ops-file \"git-kubo-ci/manifests/turbulence/turbulence.yml\""
 fi
 
