@@ -1,4 +1,4 @@
-package workload_test_k8s_test
+package k8s_lbs_test
 
 import (
 	"fmt"
