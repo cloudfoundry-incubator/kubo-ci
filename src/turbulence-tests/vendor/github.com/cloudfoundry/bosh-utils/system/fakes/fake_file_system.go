@@ -424,6 +424,10 @@ func (fs *FakeFileSystem) WriteFileString(path, content string) error {
 	return fs.WriteFile(path, []byte(content))
 }
 
+func (fs *FakeFileSystem) WriteFileQuietly(path string, content []byte) error {
+	return fs.WriteFile(path, []byte(content))
+}
+
 func (fs *FakeFileSystem) WriteFile(path string, content []byte) error {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()

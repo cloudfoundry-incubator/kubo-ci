@@ -7,3 +7,4 @@ import:
   subpackages:
   - gexec
 - package: golang.org/x/net
+- package: github.com/GoogleCloudPlatform/google-cloud-go/storage

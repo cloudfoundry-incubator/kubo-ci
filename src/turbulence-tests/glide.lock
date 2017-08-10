@@ -1,8 +1,12 @@
-hash: c3b49193ba7e82c2360cdfc485524017239ceeffa2a4f600f432f79e16042302
-updated: 2017-08-10T10:31:18.341380098+01:00
+hash: 3659f989d71c83b5aebb5fc3df53e2186c4d5f0faef3554c03272a7350ccb254
+updated: 2017-08-10T17:18:19.070177277+01:00
 imports:
+- name: github.com/GoogleCloudPlatform/google-cloud-go
+  version: 40ffb42f0f7044c82f01d779a496f23cb14f5577
+  subpackages:
+  - storage
 - name: github.com/onsi/ginkgo
-  version: 77a8c1e5c40d6bb6c5eb4dd4bdce9763564f6298
+  version: 8382b23d18dbaaff8e5f7e83784c53ebb8ec2f47
   subpackages:
   - config
   - internal/codelocation
@@ -22,7 +26,7 @@ imports:
   - reporters/stenographer/support/go-isatty
   - types
 - name: github.com/onsi/gomega
-  version: 334b8f472b3af5d541c5642701c1e29e2126f486
+  version: 9b8c753e8dfb382618ba8fa19b4197b5dcb0434c
   subpackages:
   - format
   - gexec
@@ -37,54 +41,172 @@ imports:
   - matchers/support/goraph/util
   - types
 - name: golang.org/x/net
-  version: 07b51741c1d6423d4a6abab1c49940ec09cb1aaf
+  version: 0b588ed7a0cd59c271d128ec8c429c1c1607e8ab
   subpackages:
   - context
+  - context/ctxhttp
+  - html
+  - html/atom
+  - html/charset
+  - http2
+  - http2/hpack
+  - idna
+  - internal/timeseries
+  - lex/httplex
   - proxy
+  - trace
 - name: golang.org/x/sys
-  version: fb4cac33e3196ff7f507ab9b2d2a44b0142f5b5a
+  version: e24f485414aeafb646f6fca458b0bf869c0880a1
   subpackages:
   - unix
 testImports:
+- name: cloud.google.com/go
+  version: 40ffb42f0f7044c82f01d779a496f23cb14f5577
+  subpackages:
+  - compute/metadata
+  - iam
+  - internal
+  - internal/optional
+  - internal/version
+  - storage
 - name: code.cloudfoundry.org/clock
   version: 2269160ae1757f96bbb8c6475e6fa36c805e73e0
+- name: github.com/aws/aws-sdk-go
+  version: fa7f88097f64d1a2bcc65f9b9b547f363082d496
+  repo: https://github.com/aws/aws-sdk-go
+  subpackages:
+  - aws
+  - aws/awserr
+  - aws/awsutil
+  - aws/client
+  - aws/client/metadata
+  - aws/corehandlers
+  - aws/credentials
+  - aws/credentials/ec2rolecreds
+  - aws/credentials/endpointcreds
+  - aws/credentials/stscreds
+  - aws/defaults
+  - aws/ec2metadata
+  - aws/endpoints
+  - aws/request
+  - aws/session
+  - aws/signer/v4
+  - private/protocol
+  - private/protocol/query
+  - private/protocol/query/queryutil
+  - private/protocol/rest
+  - private/protocol/restxml
+  - private/protocol/xml/xmlutil
+  - service/s3
+  - service/s3/s3iface
+  - service/s3/s3manager
+  - service/sts
 - name: github.com/bmatcuk/doublestar
   version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
-- name: github.com/cenkalti/backoff
-  version: 61153c768f31ee5f130071d08fc82b85208528de
 - name: github.com/charlievieth/fs
   version: 7dc373669fa10ddf827c37c595dee30a2f001be9
 - name: github.com/cheggaaa/pb
   version: 0af82b7d15eb9371fbdf8f468ff10cbba62e0414
+- name: github.com/cloudfoundry/bosh-agent
+  version: 94efcadce98b09507ef1e0f2621fbb48e607e2de
+  subpackages:
+  - agentclient
+  - agentclient/applyspec
+  - agentclient/http
 - name: github.com/cloudfoundry/bosh-cli
   version: b50032ed5c7383152e89acd21856154a3362a32d
   subpackages:
+  - blobstore
+  - cloud
+  - cmd
+  - cmd/config
+  - common/net
+  - common/util
+  - config
+  - cpi/release
+  - crypto
+  - deployment
+  - deployment/disk
+  - deployment/instance
+  - deployment/instance/state
+  - deployment/manifest
+  - deployment/release
+  - deployment/sshtunnel
+  - deployment/template
+  - deployment/vm
   - director
+  - director/template
+  - index
+  - installation
+  - installation/blobextract
+  - installation/manifest
+  - installation/pkg
+  - installation/tarball
+  - registry
+  - release
+  - release/job
+  - release/job/manifest
+  - release/license
+  - release/manifest
+  - release/pkg
+  - release/pkg/manifest
+  - release/resource
+  - release/set/manifest
+  - releasedir
+  - releasedir/index
+  - ssh
+  - state/job
+  - state/pkg
+  - stemcell
+  - templatescompiler
+  - templatescompiler/erbrenderer
   - uaa
   - ui
   - ui/fmt
   - ui/table
-- name: github.com/cloudfoundry/bosh-utils
-  version: 833257efc00aee289992e3c49551121850208c36
+  - ui/task
+- name: github.com/cloudfoundry/bosh-davcli
+  version: f1f773ae1ba528205dcf95916aacd3e878daff44
   subpackages:
+  - client
+  - config
+- name: github.com/cloudfoundry/bosh-gcscli
+  version: da481c0bfe6b8c41d04d807930ed996e2d7e3461
+  subpackages:
+  - client
+  - config
+- name: github.com/cloudfoundry/bosh-s3cli
+  version: 13c8c0aca2edb8d6e6811cf61e6684b2f3588b2f
+  subpackages:
+  - config
+- name: github.com/cloudfoundry/bosh-utils
+  version: 93f5c38fe1483b9a3f197eebe9efb254fa064143
+  subpackages:
+  - blobstore
   - crypto
   - errors
+  - fileutil
   - http
   - httpclient
   - logger
+  - property
   - retrystrategy
   - system
   - uuid
+- name: github.com/cloudfoundry/config-server
+  version: 74ae6becea4c6ad14b9c1956c4d4e51e4914d3a2
+  subpackages:
+  - types
+- name: github.com/cppforlife/go-patch
+  version: 37a72c69d59809d4d5aa0b2aff033e74b8014390
+  subpackages:
+  - patch
 - name: github.com/cppforlife/go-semi-semantic
   version: 576b6af77ae4f3ccef356902fb3b9a9ae22e0b11
   subpackages:
   - version
-- name: github.com/dustin/go-humanize
-  version: 259d2a102b871d17f30e3cd9881a642961a1e486
-- name: github.com/fatih/color
-  version: 62e9147c64a1ed519147b62a56a14e83e2be02c1
-- name: github.com/jhvhs/turbulence
-  version: 5000e08eb5cab3fd88c551a4448fece7403d4fa9
+- name: github.com/cppforlife/turbulence
+  version: 8fd842ff95203c00a38c9cb3a890d1ddd840b473
   subpackages:
   - client
   - director
@@ -93,29 +215,142 @@ testImports:
   - incident/selector
   - tasks
   - tasks/monit
+- name: github.com/dustin/go-humanize
+  version: 259d2a102b871d17f30e3cd9881a642961a1e486
+- name: github.com/fatih/color
+  version: 67c513e5729f918f5e69786686770c27141a4490
+- name: github.com/go-ini/ini
+  version: 3d73f4b845efdf9989fffd4b4e562727744a34ba
+- name: github.com/golang/protobuf
+  version: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
+  repo: https://github.com/golang/protobuf
+  subpackages:
+  - proto
+  - protoc-gen-go/descriptor
+  - ptypes
+  - ptypes/any
+  - ptypes/duration
+  - ptypes/timestamp
+- name: github.com/googleapis/gax-go
+  version: 84ed26760e7f6f80887a2fbfb50db3cc415d2cea
+- name: github.com/hashicorp/errwrap
+  version: 7554cd9344cec97297fa6649b055a8c98c2a1e55
+- name: github.com/hashicorp/go-multierror
+  version: 83588e72410abfbe4df460eeb6f30841ae47d4c4
+- name: github.com/jessevdk/go-flags
+  version: 6cf8f02b4ae8ba723ddc64dcfd403e530c06d927
+- name: github.com/jmespath/go-jmespath
+  version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/mattn/go-colorable
   version: 5411d3eea5978e6cdc258b30de592b60df6aba96
   repo: https://github.com/mattn/go-colorable
 - name: github.com/mattn/go-isatty
-  version: 57fdcb988a5c543893cc61bce354a6e24ab70022
+  version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/mattn/go-runewidth
   version: 97311d9f7767e3d6f422ea06661bc2c7a19e8a5d
 - name: github.com/nu7hatch/gouuid
   version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
+- name: github.com/pivotal-cf/paraphernalia
+  version: 19228380402d05fb5d36f64b6b2327eab2cf650c
+  subpackages:
+  - secure/tlsconfig
+- name: github.com/pivotal-golang/s3cli
+  version: 13c8c0aca2edb8d6e6811cf61e6684b2f3588b2f
+  subpackages:
+  - client
+  - config
+- name: github.com/pivotal-golang/yaml
+  version: 8b09e4a33107d942293b5ef6f32254124ccaf8a8
 - name: github.com/vito/go-interact
-  version: 6928e8fe3693603deb4d861856effaee10db7bcf
+  version: c5a3f51ad50e34ec101050f69383caa75082f233
   subpackages:
   - interact
   - interact/terminal
-- name: github.com/zorkian/go-datadog-api
-  version: 659bba33a1626ab76f393d6878dc3e4f13253f6d
 - name: golang.org/x/crypto
-  version: adbae1b6b6fb4b02448a0fc0dbbc9ba2b95b294d
+  version: e1a4589e7d3ea14a3352255d04b6f1a418845e5e
   subpackages:
   - curve25519
   - ed25519
   - ed25519/internal/edwards25519
   - ssh
   - ssh/terminal
+- name: golang.org/x/oauth2
+  version: 9a379c6b3e95a790ffc43293c2a78dee0d7b6e20
+  subpackages:
+  - google
+  - internal
+  - jws
+  - jwt
+- name: golang.org/x/text
+  version: 6a48995cef2d1856bbef2b064f570126429f78ef
+  repo: https://go.googlesource.com/text
+  subpackages:
+  - encoding
+  - encoding/charmap
+  - encoding/htmlindex
+  - encoding/internal
+  - encoding/internal/identifier
+  - encoding/japanese
+  - encoding/korean
+  - encoding/simplifiedchinese
+  - encoding/traditionalchinese
+  - encoding/unicode
+  - internal/gen
+  - internal/tag
+  - internal/utf8internal
+  - language
+  - runes
+  - secure/bidirule
+  - transform
+  - unicode/bidi
+  - unicode/cldr
+  - unicode/norm
+- name: google.golang.org/api
+  version: 98825bb0065da4054e5da6db34f5fc598e50bc24
+  subpackages:
+  - gensupport
+  - googleapi
+  - googleapi/internal/uritemplates
+  - googleapi/transport
+  - internal
+  - iterator
+  - option
+  - storage/v1
+  - transport/http
+- name: google.golang.org/appengine
+  version: c5a90ac045b779001847fec87403f5cba090deae
+  subpackages:
+  - internal
+  - internal/app_identity
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/modules
+  - internal/remote_api
+  - internal/urlfetch
+  - urlfetch
+- name: google.golang.org/genproto
+  version: 09f6ed296fc66555a25fe4ce95173148778dfa85
+  subpackages:
+  - googleapis/api/annotations
+  - googleapis/iam/v1
+  - googleapis/rpc/status
+- name: google.golang.org/grpc
+  version: 7657092a1303cc5a6fa3fee988d57c665683a4da
+  subpackages:
+  - codes
+  - connectivity
+  - credentials
+  - grpclb/grpc_lb_v1
+  - grpclog
+  - internal
+  - keepalive
+  - metadata
+  - naming
+  - peer
+  - stats
+  - status
+  - tap
+  - transport
 - name: gopkg.in/yaml.v2
-  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
+  version: 25c4ec802a7d637f88d584ab26798e94ad14c13b

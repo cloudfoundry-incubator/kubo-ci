@@ -3,7 +3,7 @@ package workload_test
 import (
 	"turbulence-tests/test_helpers"
 
-	"github.com/jhvhs/turbulence/incident"
+	"github.com/cppforlife/turbulence/incident"
 
 	"io"
 
@@ -13,9 +13,9 @@ import (
 	"github.com/cloudfoundry/bosh-cli/cmd"
 	"github.com/cloudfoundry/bosh-cli/ui"
 	"github.com/cloudfoundry/bosh-utils/logger"
-	turbulence_client "github.com/jhvhs/turbulence/client"
-	"github.com/jhvhs/turbulence/incident/selector"
-	"github.com/jhvhs/turbulence/tasks"
+	turbulence_client "github.com/cppforlife/turbulence/client"
+	"github.com/cppforlife/turbulence/incident/selector"
+	"github.com/cppforlife/turbulence/tasks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

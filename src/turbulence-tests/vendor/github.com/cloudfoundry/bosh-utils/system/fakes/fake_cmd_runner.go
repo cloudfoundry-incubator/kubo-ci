@@ -150,6 +150,10 @@ func (r *FakeCmdRunner) RunCommand(cmdName string, args ...string) (string, stri
 	return r.getOutputsForCmd(runCmd)
 }
 
+func (r *FakeCmdRunner) RunCommandQuietly(cmdName string, args ...string) (string, string, int, error) {
+	return r.RunCommand(cmdName, args...)
+}
+
 func (r *FakeCmdRunner) RunCommandWithInput(input, cmdName string, args ...string) (string, string, int, error) {
 	r.commandResultsLock.Lock()
 	defer r.commandResultsLock.Unlock()
