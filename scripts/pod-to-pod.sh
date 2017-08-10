@@ -18,6 +18,9 @@ client_secret=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/bosh_ad
 director_ip=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_ip")
 
 "git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
+
+trap "kubectl delete -f 'git-kubo-ci/specs/guestbook.yml'" EXIT
+
 kubectl apply -f "git-kubo-ci/specs/guestbook.yml"
 # wait for deployment to finish
 kubectl rollout status deployment/frontend -w
