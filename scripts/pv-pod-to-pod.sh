@@ -62,11 +62,14 @@ testvalue="$(date +%s)"
 
 "git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
 
-if [ -e "git-kubo-ci/specs/storage-class-${iaas}.yml" ]; then 
-  
-  trap delete_guestbook EXIT
-  trap 'kubectl delete -f "git-kubo-ci/specs/persistent-volume-claim.yml"' EXIT
-  trap 'kubectl delete -f "git-kubo-ci/specs/storage-class-${iaas}.yml"' EXIT
+cleanup() {
+  delete_guestbook
+  kubectl delete -f "git-kubo-ci/specs/persistent-volume-claim.yml"
+  kubectl delete -f "git-kubo-ci/specs/storage-class-${iaas}.yml"
+}
+
+if [ -e "git-kubo-ci/specs/storage-class-${iaas}.yml" ]; then
+  trap cleanup EXIT
 
   kubectl create -f "git-kubo-ci/specs/storage-class-${iaas}.yml"
   kubectl create -f "git-kubo-ci/specs/persistent-volume-claim.yml"
