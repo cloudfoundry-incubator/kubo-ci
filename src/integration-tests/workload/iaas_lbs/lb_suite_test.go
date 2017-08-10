@@ -16,7 +16,7 @@ func TestIAASLb(t *testing.T) {
 
 var (
 	runner        *test_helpers.KubectlRunner
-	nginxSpec     = test_helpers.PathFromRoot("specs/nginx.yml")
+	nginxSpec     = test_helpers.PathFromRoot("specs/nginx-specified-nodeport.yml")
 	workerAddress string
 )
 
