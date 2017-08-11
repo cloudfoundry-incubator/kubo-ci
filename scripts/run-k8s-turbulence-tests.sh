@@ -33,8 +33,3 @@ export BOSH_CA_CERT
 export BOSH_CLIENT
 export BOSH_CLIENT_SECRET
 ginkgo "$GOPATH/src/turbulence-tests/worker_failure"
-
-# As of now we are not testing for the worker to come back up
-# We have to wait for the worker to be resurrected
-# before tearing down the deployment
-sleep 600
