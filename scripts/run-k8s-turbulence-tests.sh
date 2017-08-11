@@ -5,13 +5,17 @@
 set -eu
 set -o pipefail
 
-TURBULENCE_USERNAME="turbulence"
-TURBULENCE_PASSWORD=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path='/turbulence_api_password')
 BOSH_ENVIRONMENT=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/internal_ip')
 BOSH_CA_CERT=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path='/default_ca/ca')
 BOSH_CLIENT=bosh_admin
 BOSH_CLIENT_SECRET=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path='/bosh_admin_client_secret')
-TURBULENCE_API_ENDPOINT="$BOSH_ENVIRONMENT:8080/api/v1"
+
+TURBULENCE_HOST=${BOSH_ENVIRONMENT}
+TURBULENCE_PORT=8080
+TURBULENCE_USERNAME=turbulence
+TURBULENCE_PASSWORD=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path='/turbulence_api_password')
+TURBULENCE_CA_CERT=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path /turbulence_api_ca/ca)
+
 
 GIT_KUBO_CI=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 GOPATH="$GIT_KUBO_CI"
@@ -20,7 +24,10 @@ export GOPATH
 
 export TURBULENCE_USERNAME
 export TURBULENCE_PASSWORD
-export TURBULENCE_API_ENDPOINT
+export TURBULENCE_HOST
+export TURBULENCE_PORT
+export TURBULENCE_CA_CERT
+
 export BOSH_ENVIRONMENT
 export BOSH_CA_CERT
 export BOSH_CLIENT
