@@ -54,11 +54,9 @@ var _ = Describe("Worker failure test", func() {
 			},
 
 			Selector: selector.Request{
-
-				Group: &selector.NameRequest{
-					Name:  "worker",
-					Limit: limit,
-				},
+				Deployment: &selector.NameRequest{Name: "ci-service"},
+				Group:      &selector.NameRequest{Name: "worker"},
+				ID:         &selector.IDRequest{Limit: limit},
 			},
 		}
 
