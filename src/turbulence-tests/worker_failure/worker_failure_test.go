@@ -3,18 +3,48 @@ package workload_test
 import (
 	"turbulence-tests/test_helpers"
 
+	"os/exec"
+
+	"fmt"
+	"io"
+
+	"github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
+)
+
+const (
+	workerVmType   = "worker"
+	vmRunningState = "running"
 )
 
 var _ = Describe("Worker failure test", func() {
 
 	It("brings back the failed worker VM", func() {
-		incident := test_helpers.KillVms("worker", "1")
+		director := test_helpers.NewDirector()
+		deployment, err := director.FindDeployment("ci-service")
+		Expect(err).NotTo(HaveOccurred())
 
-		Expect(incident.HasTaskErrors()).To(BeFalse())
+		countRunningWorkers := test_helpers.CountDeploymentVmsOfType(deployment, workerVmType, vmRunningState)
+		Expect(countRunningWorkers()).To(Equal(3))
 
-		Eventually(test_helpers.RunningVmList("worker"), 600, 20).Should(HaveLen(3))
+		By("Deleting a Worker VM")
+		killVM(test_helpers.DeploymentVmsOfType(deployment, workerVmType, vmRunningState))
+		Eventually(countRunningWorkers, 600, 20).Should(Equal(2))
+
+		By("Expecting Worker VM to be resurrected")
+		Eventually(countRunningWorkers, 600, 20).Should(Equal(3))
 	})
-
 })
+
+func killVM(vms []director.VMInfo) {
+	vm := vms[0]
+	cid := vm.VMID
+	cmd := exec.Command("gcloud", "-q", "compute", "instances", "delete", cid)
+	io.WriteString(GinkgoWriter, fmt.Sprintf("%#v", cmd))
+	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(session, 300, 20).Should(gexec.Exit())
+	Expect(session.ExitCode()).To(Equal(0))
+}

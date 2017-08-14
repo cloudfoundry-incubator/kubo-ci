@@ -5,6 +5,10 @@
 set -eu
 set -o pipefail
 
+gcloud auth activate-service-account --key-file=<(bosh-cli int "$PWD/kubo-lock/metadata" --path='/gcp_service_account')
+gcloud config set project "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/project_id)"
+gcloud config set compute/zone "$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/zone')"
+
 BOSH_ENVIRONMENT=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/internal_ip')
 BOSH_CA_CERT=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path='/default_ca/ca')
 BOSH_CLIENT=bosh_admin

@@ -1,44 +1,91 @@
 package test_helpers
 
 import (
-	"bytes"
-	"io"
-	"strings"
+	"fmt"
+	"os"
 
-	"github.com/cloudfoundry/bosh-cli/cmd"
-	"github.com/cloudfoundry/bosh-cli/ui"
-	"github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/onsi/gomega"
 
-	"github.com/onsi/ginkgo"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func BoshCmdFactory(out, err *bytes.Buffer) cmd.Factory {
-	l := logger.NewLogger(logger.LevelNone)
-	output := io.MultiWriter(ginkgo.GinkgoWriter, out)
-	errors := io.MultiWriter(ginkgo.GinkgoWriter, err)
-	boshUI := ui.NewWriterUI(output, errors, l)
-	someUI := ui.NewPaddingUI(boshUI)
-	confUI := ui.NewWrappingConfUI(someUI, l)
-	confUI.EnableNonInteractive()
-	return cmd.NewFactory(cmd.NewBasicDeps(confUI, l))
+func CountDeploymentVmsOfType(deployment boshdir.Deployment, jobName, processState string) func() int {
+	return func() int {
+		return len(DeploymentVmsOfType(deployment, jobName, processState))
+	}
 }
 
-func RunningVmList(vmType string) func() ([]string, error) {
-	return func() ([]string, error) {
-		stdout := bytes.NewBuffer([]byte{})
-		stderr := bytes.NewBuffer([]byte{})
+func DeploymentVmsOfType(deployment boshdir.Deployment, jobName, processState string) []boshdir.VMInfo {
+	vms, err := deployment.VMInfos()
+	Expect(err).NotTo(HaveOccurred())
+	return VmsMatchingPredicate(vms, func(vmInfo boshdir.VMInfo) bool {
+		return vmInfo.JobName == jobName && vmInfo.ProcessState == processState
+	})
+}
 
-		cmdFactory := BoshCmdFactory(stdout, stderr)
-		boshCommand, err := cmdFactory.New([]string{"vms"})
-		if err != nil {
-			return nil, err
+func VmsMatchingPredicate(vms []boshdir.VMInfo, f func(boshdir.VMInfo) bool) []boshdir.VMInfo {
+	result := make([]boshdir.VMInfo, 0)
+	for _, vmInfo := range vms {
+		if f(vmInfo) {
+			result = append(result, vmInfo)
 		}
-		boshCommand.Execute()
-		vmTable := stdout.String()
-
-		return FilterArrayOfStrings(strings.Split(vmTable, "\n"), func(line string) bool {
-			return strings.Contains(line, vmType) && strings.Contains(line, "running")
-		}), nil
-
 	}
+	return result
+}
+
+func NewDirector() boshdir.Director {
+	uaa, err := buildUAA()
+	if err != nil {
+		panic(err)
+	}
+
+	director, err := buildDirector(uaa)
+	if err != nil {
+		panic(err)
+	}
+
+	return director
+}
+
+func buildUaaUrl() string {
+	return buildDirectorUrl() + ":8443"
+}
+
+func buildDirectorUrl() string {
+	return fmt.Sprintf("https://%s", os.Getenv("BOSH_ENVIRONMENT"))
+}
+
+func buildUAA() (boshuaa.UAA, error) {
+	logger := boshlog.NewLogger(boshlog.LevelError)
+	factory := boshuaa.NewFactory(logger)
+
+	config, err := boshuaa.NewConfigFromURL(buildUaaUrl())
+	if err != nil {
+		return nil, err
+	}
+
+	config.Client = "bosh_admin"
+	config.ClientSecret = os.Getenv("BOSH_CLIENT_SECRET")
+
+	config.CACert = os.Getenv("BOSH_CA_CERT")
+
+	return factory.New(config)
+}
+
+func buildDirector(uaa boshuaa.UAA) (boshdir.Director, error) {
+	logger := boshlog.NewLogger(boshlog.LevelError)
+	factory := boshdir.NewFactory(logger)
+
+	config, err := boshdir.NewConfigFromURL(buildDirectorUrl())
+	if err != nil {
+		return nil, err
+	}
+
+	config.CACert = os.Getenv("BOSH_CA_CERT")
+
+	config.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
+
+	return factory.New(config, boshdir.NewNoopTaskReporter(), boshdir.NewNoopFileReporter())
 }
