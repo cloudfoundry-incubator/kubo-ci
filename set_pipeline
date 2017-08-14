@@ -84,7 +84,7 @@ main() {
   trap 'rm "${ci_dir}/secrets.yml"' EXIT
   echo "---" > "${ci_dir}/secrets.yml"
   lpass show "Shared-Kubo/CI/kubo-ci" --notes >> "${ci_dir}/secrets.yml"
-  lpass show "Shared-Kubo/CI/CF" --notes >> "${ci_dir}/secrets.yml"
+  lpass show 4254727809438166206 --notes >> "${ci_dir}/secrets.yml"
 
   fly --target kubo sync > /dev/null
   erb "${pipeline_filename}" > /dev/null
