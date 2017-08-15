@@ -8,8 +8,9 @@ import (
 	"runtime"
 
 	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
+
+	"github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega/gexec"
 )
 
