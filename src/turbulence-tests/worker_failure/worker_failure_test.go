@@ -3,11 +3,8 @@ package workload_test
 import (
 	"turbulence-tests/test_helpers"
 
-	"os/exec"
-
 	"fmt"
-	"io"
-
+	"os/exec"
 	"regexp"
 
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -57,7 +54,7 @@ var _ = Describe("Worker failure scenarios", func() {
 
 	Specify("The resurrected worker node joins the k8s cluster", func() {
 		By("Deleting a Worker VM")
-		killVM(test_helpers.DeploymentVmsOfType(deployment, workerVmType, vmRunningState))
+		killVM(test_helpers.DeploymentVmsOfType(deployment, workerVmType, vmRunningState), iaas)
 		Eventually(countRunningWorkers, 600, 20).Should(Equal(2))
 
 		By("Expecting the Worker VM to be resurrected")
@@ -68,11 +65,21 @@ var _ = Describe("Worker failure scenarios", func() {
 	})
 })
 
-func killVM(vms []director.VMInfo) {
-	vm := vms[0]
-	cid := vm.VMID
-	cmd := exec.Command("gcloud", "-q", "compute", "instances", "delete", cid)
-	io.WriteString(GinkgoWriter, fmt.Sprintf("%#v", cmd))
+func killVM(vms []director.VMInfo, iaas string) {
+	cid := vms[0].VMID
+	var cmd *exec.Cmd
+
+	switch iaas {
+	case "gcp":
+		cmd = exec.Command("gcloud", "-q", "compute", "instances", "delete", cid)
+		break
+	case "aws":
+		cmd = exec.Command("aws", "ec2", "terminate-instances", "--instance-ids", cid)
+		break
+	default:
+		Fail(fmt.Sprintf("Unsupported IaaS: %s", iaas))
+	}
+
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session, 300, 20).Should(gexec.Exit())

@@ -27,7 +27,7 @@ TURBULENCE_PORT=8080
 TURBULENCE_USERNAME=turbulence
 TURBULENCE_PASSWORD=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path='/turbulence_api_password')
 TURBULENCE_CA_CERT=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path /turbulence_api_ca/ca)
-
+TURBULENCE_IAAS=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/iaas')
 
 GIT_KUBO_CI=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 GOPATH="$GIT_KUBO_CI"
@@ -39,6 +39,7 @@ export TURBULENCE_PASSWORD
 export TURBULENCE_HOST
 export TURBULENCE_PORT
 export TURBULENCE_CA_CERT
+export TURBULENCE_IAAS
 
 export BOSH_ENVIRONMENT
 export BOSH_CA_CERT
