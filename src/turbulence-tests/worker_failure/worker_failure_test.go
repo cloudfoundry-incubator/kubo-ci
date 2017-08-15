@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 
+	"regexp"
+
 	"github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -19,22 +21,50 @@ const (
 	vmRunningState = "running"
 )
 
-var _ = Describe("Worker failure test", func() {
+var _ = Describe("Worker failure scenarios", func() {
+	var deployment director.Deployment
+	var countRunningWorkers func() int
+	var kubectl *test_helpers.KubectlRunner
 
-	It("brings back the failed worker VM", func() {
+	allBoshWorkersHaveJoinedK8s := func() bool {
+		cids := []string{}
+		for _, vm := range test_helpers.DeploymentVmsOfType(deployment, workerVmType, vmRunningState) {
+			cids = append(cids, vm.VMID)
+		}
+
+		s := kubectl.RunKubectlCommand("get", "nodes").Wait(10)
+		for _, cid := range cids {
+			if ok, err := regexp.MatchString(cid+"\\s+Ready", string(s.Out.Contents())); err != nil || !ok {
+				return false
+			}
+		}
+		return true
+	}
+
+	BeforeEach(func() {
+		var err error
+
 		director := test_helpers.NewDirector()
-		deployment, err := director.FindDeployment("ci-service")
+		deployment, err = director.FindDeployment("ci-service")
 		Expect(err).NotTo(HaveOccurred())
+		countRunningWorkers = test_helpers.CountDeploymentVmsOfType(deployment, workerVmType, vmRunningState)
 
-		countRunningWorkers := test_helpers.CountDeploymentVmsOfType(deployment, workerVmType, vmRunningState)
+		kubectl = test_helpers.NewKubectlRunner()
+
 		Expect(countRunningWorkers()).To(Equal(3))
+		Expect(allBoshWorkersHaveJoinedK8s()).To(BeTrue())
+	})
 
+	Specify("The resurrected worker node joins the k8s cluster", func() {
 		By("Deleting a Worker VM")
 		killVM(test_helpers.DeploymentVmsOfType(deployment, workerVmType, vmRunningState))
 		Eventually(countRunningWorkers, 600, 20).Should(Equal(2))
 
-		By("Expecting Worker VM to be resurrected")
+		By("Expecting the Worker VM to be resurrected")
 		Eventually(countRunningWorkers, 600, 20).Should(Equal(3))
+
+		By("Verifying the Worker VM has joined the cluster")
+		Eventually(allBoshWorkersHaveJoinedK8s, 120, 20).Should(BeTrue())
 	})
 })
 
