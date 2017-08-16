@@ -165,6 +165,10 @@ jobs:
     - get: gcs-kubo-deployment-pre
       passed: [ 'deploy-k8s-<%= iaas %>' ]
 
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    tags: [gcp]
+
   - task: turbulence-tests
     file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
     tags: [gcp]
