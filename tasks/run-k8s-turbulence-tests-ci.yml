@@ -11,3 +11,4 @@ inputs:
   - name: git-kubo-ci
   - name: gcs-bosh-creds
   - name: kubo-lock
+  - name: git-kubo-deployment
