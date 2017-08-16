@@ -12,6 +12,7 @@ import (
 
 	"github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega/gexec"
+	"strings"
 )
 
 type KubectlRunner struct {
@@ -74,6 +75,14 @@ func GenerateRandomName() string {
 
 func (runner KubectlRunner) CreateNamespace() {
 	Eventually(runner.RunKubectlCommand("create", "namespace", runner.namespace)).Should(gexec.Exit(0))
+}
+
+func (runner *KubectlRunner) GetOutput(kubectlArgs ...string) []string {
+	session := runner.RunKubectlCommand(kubectlArgs...)
+	Eventually(session, "10s").Should(gexec.Exit(0))
+	output := session.Out.Contents()
+
+	return strings.Fields(string(output))
 }
 
 func init() {

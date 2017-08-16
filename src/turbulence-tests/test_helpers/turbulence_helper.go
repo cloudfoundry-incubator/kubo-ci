@@ -4,14 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
-	"strings"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/cppforlife/turbulence/client"
-	"github.com/onsi/gomega/gexec"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 )
 
 const (
@@ -35,18 +34,11 @@ func AllBoshWorkersHaveJoinedK8s(deployment director.Deployment, kubectl *Kubect
 }
 
 func GetNodes(kubectl *KubectlRunner) []string {
-	getNodesSession := kubectl.RunKubectlCommand("get", "nodes", "-o", "name")
-	Eventually(getNodesSession, "10s").Should(gexec.Exit(0))
-	output := getNodesSession.Out.Contents()
-	return strings.Fields(string(output))
+	return kubectl.GetOutput("get", "nodes", "-o", "name")
 }
 
 func GetNodeNamesForRunningPods(kubectl *KubectlRunner) []string {
-	getPodsSession := kubectl.RunKubectlCommand("get", "pods", "-o", "jsonpath='{.items[*].spec.nodeName}'")
-	Eventually(getPodsSession).Should(gexec.Exit(0))
-	var output []byte
-	output = getPodsSession.Out.Contents()
-	return strings.Fields(string(output))
+	return kubectl.GetOutput("get", "pods", "-o", "jsonpath='{.items[*].spec.nodeName}'")
 }
 
 func NewVmId(oldVms []director.VMInfo, newVmIds []string) (string, error) {
