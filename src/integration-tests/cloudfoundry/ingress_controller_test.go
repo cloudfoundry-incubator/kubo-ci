@@ -64,11 +64,23 @@ var _ = Describe("Testing Ingress Controller", func() {
 		runner.RunKubectlCommand(
 			"create", "namespace", runner.Namespace()).Wait("60s")
 
-		Eventually(runner.RunKubectlCommand(
-			"create", "secret", "tls", "tls-kubernetes", "--cert", certFile.Name(), "--key", keyFile.Name())).Should(gexec.Exit(0))
+		Eventually(
+			runner.RunKubectlCommand(
+				"create", "secret", "tls", "tls-kubernetes",
+				"--cert", certFile.Name(),
+				"--key", keyFile.Name(),
+			),
+			"60s",
+		).Should(gexec.Exit(0))
 
-		Eventually(runner.RunKubectlCommand(
-			"create", "secret", "generic", "kubernetes-service", fmt.Sprintf("--from-literal=host=%s", kubernetesServiceHost), fmt.Sprintf("--from-literal=port=%s", kubernetesServicePort))).Should(gexec.Exit(0))
+		Eventually(
+			runner.RunKubectlCommand(
+				"create", "secret", "generic", "kubernetes-service",
+				fmt.Sprintf("--from-literal=host=%s", kubernetesServiceHost),
+				fmt.Sprintf("--from-literal=port=%s", kubernetesServicePort),
+			),
+			"60s",
+		).Should(gexec.Exit(0))
 
 		Eventually(runner.RunKubectlCommand(
 			"create", "-f", ingressSpec), "60s").Should(gexec.Exit(0))
