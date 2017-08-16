@@ -60,7 +60,7 @@ var _ = Describe("Worker failure scenarios", func() {
 		By("Expecting the Worker VM to be resurrected")
 		Eventually(countRunningWorkers, 600, 20).Should(Equal(3))
 
-		By("Verifying the Worker VM has joined the cluster")
+		By("Verifying the Worker VM has joined the K8s cluster")
 		Eventually(allBoshWorkersHaveJoinedK8s, 120, 20).Should(BeTrue())
 	})
 })
