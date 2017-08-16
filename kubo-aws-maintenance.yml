@@ -5,7 +5,10 @@
       File.basename(file)
     end
   end
-  pools = { 'kubo-aws-lb' => get_lock_names('kubo-aws-lb') }
+  pools = {
+    'kubo-aws-lb' => get_lock_names('kubo-aws-lb'),
+    'kubo-aws' => get_lock_names('kubo-aws')
+  }
 %>
 ---
 resources:
