@@ -1,11 +1,7 @@
 package workload_test
 
 import (
-	"turbulence-tests/test_helpers"
-
-	"fmt"
-	"os/exec"
-	"regexp"
+	. "turbulence-tests/test_helpers"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/ginkgo"
@@ -13,75 +9,46 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-const (
-	workerVmType   = "worker"
-	vmRunningState = "running"
-)
-
 var _ = Describe("Worker failure scenarios", func() {
 	var deployment director.Deployment
 	var countRunningWorkers func() int
-	var kubectl *test_helpers.KubectlRunner
-
-	allBoshWorkersHaveJoinedK8s := func() bool {
-		cids := []string{}
-		for _, vm := range test_helpers.DeploymentVmsOfType(deployment, workerVmType, vmRunningState) {
-			cids = append(cids, vm.VMID)
-		}
-
-		s := kubectl.RunKubectlCommand("get", "nodes").Wait(10)
-		for _, cid := range cids {
-			if ok, err := regexp.MatchString(cid+"\\s+Ready", string(s.Out.Contents())); err != nil || !ok {
-				return false
-			}
-		}
-		return true
-	}
+	var kubectl *KubectlRunner
 
 	BeforeEach(func() {
 		var err error
 
-		director := test_helpers.NewDirector()
+		director := NewDirector()
 		deployment, err = director.FindDeployment("ci-service")
 		Expect(err).NotTo(HaveOccurred())
-		countRunningWorkers = test_helpers.CountDeploymentVmsOfType(deployment, workerVmType, vmRunningState)
+		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 
-		kubectl = test_helpers.NewKubectlRunner()
+		kubectl = NewKubectlRunner()
 
 		Expect(countRunningWorkers()).To(Equal(3))
-		Expect(allBoshWorkersHaveJoinedK8s()).To(BeTrue())
+		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 
-	Specify("The resurrected worker node joins the k8s cluster", func() {
-		By("Deleting a Worker VM")
-		killVM(test_helpers.DeploymentVmsOfType(deployment, workerVmType, vmRunningState), iaas)
+	Specify("K8s applications are scheduled on the resurrected node", func() {
+		By("Deleting the Worker VM")
+		vms := DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
+		KillVM(vms, iaas)
 		Eventually(countRunningWorkers, 600, 20).Should(Equal(2))
 
-		By("Expecting the Worker VM to be resurrected")
-		Eventually(countRunningWorkers, 600, 20).Should(Equal(3))
+		By("Verifying that the Worker VM has joined the K8s cluster")
+		Eventually(func() bool { return AllBoshWorkersHaveJoinedK8s(deployment, kubectl) }, 600, 20).Should(BeTrue())
 
-		By("Verifying the Worker VM has joined the K8s cluster")
-		Eventually(allBoshWorkersHaveJoinedK8s, 120, 20).Should(BeTrue())
+		By("Deploying nginx on 3 nodes")
+		kubectl.CreateNamespace()
+		nginxSpec := PathFromRoot("specs/nginx-specified-nodeport.yml")
+		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxSpec)).Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), "120s").Should(gexec.Exit(0))
+
+		By("Verifying nginx got deployed on new node")
+		nodeNames := GetNodeNamesForRunningPods(kubectl)
+		_, err := NewVmId(vms, nodeNames)
+		Expect(err).ToNot(HaveOccurred())
+	})
+	AfterEach(func() {
+		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
 })
-
-func killVM(vms []director.VMInfo, iaas string) {
-	cid := vms[0].VMID
-	var cmd *exec.Cmd
-
-	switch iaas {
-	case "gcp":
-		cmd = exec.Command("gcloud", "-q", "compute", "instances", "delete", cid)
-		break
-	case "aws":
-		cmd = exec.Command("aws", "ec2", "terminate-instances", "--instance-ids", cid)
-		break
-	default:
-		Fail(fmt.Sprintf("Unsupported IaaS: %s", iaas))
-	}
-
-	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
-	Expect(err).NotTo(HaveOccurred())
-	Eventually(session, 300, 20).Should(gexec.Exit())
-	Expect(session.ExitCode()).To(Equal(0))
-}

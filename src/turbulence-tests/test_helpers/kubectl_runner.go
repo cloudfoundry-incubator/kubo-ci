@@ -72,6 +72,10 @@ func GenerateRandomName() string {
 	return string(b)
 }
 
+func (runner KubectlRunner) CreateNamespace() {
+	Eventually(runner.RunKubectlCommand("create", "namespace", runner.namespace)).Should(gexec.Exit(0))
+}
+
 func init() {
 	rand.Seed(config.GinkgoConfig.RandomSeed)
 }
