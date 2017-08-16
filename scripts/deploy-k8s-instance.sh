@@ -19,10 +19,10 @@ cp "$tarball_name" "git-kubo-deployment/../kubo-release.tgz"
 
 iaas=$(bosh-cli int ${KUBO_ENVIRONMENT_DIR}/director.yml --path=/iaas)
 iaas_cc_opsfile="${PWD}/git-kubo-ci/manifests/ops-files/${iaas}-k8s-cloud-config.yml"
-deployment_cc_opsfile="${PWD}/git-kubo-ci/manifests/ops-files/$(cat "$PWD/kubo-lock/name")-k8s-cloud-config.yml"
+static_network_cc_opsfile="${PWD}/git-kubo-ci/manifests/ops-files/${iaas}-static-network-cloud-config.yml"
 
-if [[ -f "$deployment_cc_opsfile" ]]; then
-  export CLOUD_CONFIG_OPS_FILE="${deployment_cc_opsfile}"
+if [[ -n "${CC_STATIC_NETWORK}" && "${CC_STATIC_NETWORK}" = true && -f "$static_network_cc_opsfile" ]]; then
+  export CLOUD_CONFIG_OPS_FILE="${static_network_cc_opsfile}"
 elif [[ -f "$iaas_cc_opsfile" ]]; then
   export CLOUD_CONFIG_OPS_FILE="${iaas_cc_opsfile}"
 fi

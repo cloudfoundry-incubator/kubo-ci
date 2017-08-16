@@ -13,3 +13,6 @@ inputs:
   - name: git-kubo-deployment
   - name: gcs-bosh-creds
   - name: kubo-lock
+
+params:
+  CC_STATIC_NETWORK:
