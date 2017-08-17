@@ -1,19 +1,42 @@
 {
-    "director_id": "a048799b-f583-4930-7389-12125e6763aa",
-    "installation_id": "2afffc7f-9e7c-4e46-66f2-805f68af854f",
-    "current_vm_cid": "i-08cc8d6596b7a6cc6",
-    "current_stemcell_id": "386c9f29-af48-4bda-5723-8085e74471c5",
-    "current_disk_id": "",
-    "current_release_ids": [],
-    "current_manifest_sha": "",
-    "disks": null,
+    "director_id": "8be3230f-398c-4047-7001-8c07194a4fb8",
+    "installation_id": "5e09d3a6-d9d2-4625-4bf0-7dbc8e6ff5aa",
+    "current_vm_cid": "i-0f0c94187d22ae210",
+    "current_stemcell_id": "60ee7a69-22d9-41e0-436c-847af6472c40",
+    "current_disk_id": "9dda465f-edc4-418e-5373-d50d1f8f872f",
+    "current_release_ids": [
+        "ae364606-2ef0-4763-7f91-c2b5ffef3d9a",
+        "54497f21-2a72-4fc3-6c8e-4883b41c36a3"
+    ],
+    "current_manifest_sha": "b5cafdcfec4f73d675ae5f46d9f67fbfa8619f5232b052fd2a71e3797b5098de6d087a91853ce4d2f92be6b6ed95ed5643c6aaef38d2c987ae2bfb5d99176226",
+    "disks": [
+        {
+            "id": "9dda465f-edc4-418e-5373-d50d1f8f872f",
+            "cid": "vol-0d06e3b3c27cf3059",
+            "size": 32768,
+            "cloud_properties": {
+                "type": "gp2"
+            }
+        }
+    ],
     "stemcells": [
         {
-            "id": "386c9f29-af48-4bda-5723-8085e74471c5",
+            "id": "60ee7a69-22d9-41e0-436c-847af6472c40",
             "name": "bosh-aws-xen-hvm-ubuntu-trusty-go_agent",
             "version": "3421.9",
             "cid": "ami-24c7e932 light"
         }
     ],
-    "releases": []
+    "releases": [
+        {
+            "id": "ae364606-2ef0-4763-7f91-c2b5ffef3d9a",
+            "name": "bosh",
+            "version": "262.3"
+        },
+        {
+            "id": "54497f21-2a72-4fc3-6c8e-4883b41c36a3",
+            "name": "bosh-aws-cpi",
+            "version": "65"
+        }
+    ]
 }
