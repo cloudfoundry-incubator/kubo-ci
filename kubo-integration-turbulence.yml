@@ -1,5 +1,5 @@
 <%
-  iaas_list = %w(gcp-turbulence aws-lb)
+  iaas_config = {"gcp-turbulence" => %w(static dynamic), "aws-lb" => %w(dynamic)}
 %>
 ---
 resource_types:
@@ -21,14 +21,17 @@ resources:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
     branch: master
 
-<% iaas_list.each do |iaas| %>
-- name: kubo-lock-<%= iaas %>
+<% iaas_config.each do |iaas, network_list|
+  network_list.each do |network|
+%>
+- name: kubo-lock-<%= iaas %>-<%= network %>
   type: pool
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key))
     pool: kubo-<%= iaas %>
+<% end %>
 <% end %>
 
 - name: gcs-bosh-state
@@ -67,30 +70,31 @@ resources:
 ############################################
 jobs:
 
-<% iaas_list.each do |iaas|
+<% iaas_config.each do |iaas, network_list|
+  network_list.each do |network|
   worker_tag = iaas.sub("-turbulence", "") %>
-- name: claim-lock-<%= iaas %>
+- name: claim-lock-<%= iaas %>-<%= network %>
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: gcs-kubo-release-pre
       trigger: true
     - get: gcs-kubo-deployment-pre
-  - put: kubo-lock-<%= iaas %>
+  - put: kubo-lock-<%= iaas %>-<%= network %>
     params: { acquire: true }
 
-- name: install-bosh-<%= iaas %>
+- name: install-bosh-<%= iaas %>-<%= network %>
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: gcs-kubo-release-pre
-      passed: [ 'claim-lock-<%= iaas %>' ]
+      passed: [ 'claim-lock-<%= iaas %>-<%= network %>' ]
     - get: gcs-kubo-deployment-pre
-      passed: [ 'claim-lock-<%= iaas %>' ]
-    - get: kubo-lock-<%= iaas %>
+      passed: [ 'claim-lock-<%= iaas %>-<%= network %>' ]
+    - get: kubo-lock-<%= iaas %>-<%= network %>
       version: every
       trigger: true
-      passed: [ 'claim-lock-<%= iaas %>' ]
+      passed: [ 'claim-lock-<%= iaas %>-<%= network %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -100,7 +104,7 @@ jobs:
     file: git-kubo-ci/tasks/install-bosh.yml
     tags: ['<%= worker_tag %>']
     input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>
+      kubo-lock: kubo-lock-<%= iaas %>-<%= network %>
     params:
       USE_TURBULENCE: 1
 
@@ -112,22 +116,22 @@ jobs:
       params:
         file: bosh-state/state.json
 
-- name: deploy-k8s-<%= iaas %>-dynamic-network
+- name: deploy-k8s-<%= iaas %>-<%= network %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
+    - get: kubo-lock-<%= iaas %>-<%= network %>
       version: every
       trigger: true
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
     - get: gcs-kubo-deployment-pre
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
     - get: gcs-kubo-release-pre
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-state
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -136,123 +140,35 @@ jobs:
   - task: configure-bosh
     tags: ['<%= worker_tag %>']
     input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>
+      kubo-lock: kubo-lock-<%= iaas %>-<%= network %>
     file: git-kubo-ci/tasks/configure-bosh.yml
     tags: ['<%= worker_tag %>']
 
   - task: deploy
     tags: ['<%= worker_tag %>']
     input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>
-      gcs-kubo-release-tarball: gcs-kubo-release-pre
-    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-
-- name: run-turbulence-tests-<%= iaas %>-dynamic-network
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
-      version: every
-      trigger: true
-      passed: [ 'deploy-k8s-<%= iaas %>-dynamic-network' ]
-    - get: gcs-bosh-state
-      passed: [ 'deploy-k8s-<%= iaas %>-dynamic-network' ]
-    - get: gcs-bosh-creds
-      passed: [ 'deploy-k8s-<%= iaas %>-dynamic-network' ]
-    - get: gcs-kubo-release-pre
-      passed: [ 'deploy-k8s-<%= iaas %>-dynamic-network' ]
-    - get: gcs-kubo-deployment-pre
-      passed: [ 'deploy-k8s-<%= iaas %>-dynamic-network' ]
-
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    tags: ['<%= worker_tag %>']
-
-  - task: turbulence-tests
-    file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
-    tags: ['<%= worker_tag %>']
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-
-
-- name: destroy-k8s-<%= iaas %>-dynamic-network
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
-      version: every
-      trigger: true
-      passed: [ 'run-turbulence-tests-<%= iaas %>-dynamic-network' ]
-    - get: gcs-kubo-deployment-pre
-      passed: [ 'run-turbulence-tests-<%= iaas %>-dynamic-network' ]
-    - get: gcs-kubo-release-pre
-      passed: [ 'run-turbulence-tests-<%= iaas %>-dynamic-network' ]
-    - get: gcs-bosh-state
-      passed: [ 'run-turbulence-tests-<%= iaas %>-dynamic-network' ]
-    - get: gcs-bosh-creds
-      passed: [ 'run-turbulence-tests-<%= iaas %>-dynamic-network' ]
-
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    tags: ['<%= worker_tag %>']
-
-  - task: destroy-k8s
-    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-    tags: ['<%= worker_tag %>']
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-
-- name: deploy-k8s-<%= iaas %>-static-network
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
-      version: every
-      trigger: true
-      passed: [ 'destroy-k8s-<%= iaas %>-dynamic-network' ]
-    - get: gcs-kubo-deployment-pre
-      passed: [ 'destroy-k8s-<%= iaas %>-dynamic-network' ]
-    - get: gcs-kubo-release-pre
-      passed: [ 'destroy-k8s-<%= iaas %>-dynamic-network' ]
-    - get: gcs-bosh-state
-      passed: [ 'destroy-k8s-<%= iaas %>-dynamic-network' ]
-    - get: gcs-bosh-creds
-      passed: [ 'destroy-k8s-<%= iaas %>-dynamic-network' ]
-
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    tags: ['<%= worker_tag %>']
-
-  - task: configure-bosh
-    tags: ['<%= worker_tag %>']
-    input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>
-    file: git-kubo-ci/tasks/configure-bosh.yml
-    tags: ['<%= worker_tag %>']
-
-  - task: deploy
-    tags: ['<%= worker_tag %>']
-    input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>
+      kubo-lock: kubo-lock-<%= iaas %>-<%= network %>
       gcs-kubo-release-tarball: gcs-kubo-release-pre
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
       CLOUD_CONFIG_OPS_FILE: static-network-k8s-cloud-config.yml
 
-- name: run-turbulence-tests-<%= iaas %>-static-network
+- name: run-turbulence-tests-<%= iaas %>-<%= network %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
+    - get: kubo-lock-<%= iaas %>-<%= network %>
       version: every
       trigger: true
-      passed: [ 'deploy-k8s-<%= iaas %>-static-network' ]
+      passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-state
-      passed: [ 'deploy-k8s-<%= iaas %>-static-network' ]
+      passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'deploy-k8s-<%= iaas %>-static-network' ]
+      passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
     - get: gcs-kubo-release-pre
-      passed: [ 'deploy-k8s-<%= iaas %>-static-network' ]
+      passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
     - get: gcs-kubo-deployment-pre
-      passed: [ 'deploy-k8s-<%= iaas %>-static-network' ]
+      passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -261,25 +177,25 @@ jobs:
   - task: turbulence-tests
     file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
     tags: ['<%= worker_tag %>']
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
 
 
-- name: destroy-k8s-<%= iaas %>-static-network
+- name: destroy-k8s-<%= iaas %>-<%= network %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
+    - get: kubo-lock-<%= iaas %>-<%= network %>
       version: every
       trigger: true
-      passed: [ 'run-turbulence-tests-<%= iaas %>-static-network' ]
+      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
     - get: gcs-kubo-deployment-pre
-      passed: [ 'run-turbulence-tests-<%= iaas %>-static-network' ]
+      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
     - get: gcs-kubo-release-pre
-      passed: [ 'run-turbulence-tests-<%= iaas %>-static-network' ]
+      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-state
-      passed: [ 'run-turbulence-tests-<%= iaas %>-static-network' ]
+      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'run-turbulence-tests-<%= iaas %>-static-network' ]
+      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -288,28 +204,27 @@ jobs:
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     tags: ['<%= worker_tag %>']
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
 
-
-- name: destroy-bosh-<%= iaas %>
+- name: destroy-bosh-<%= iaas %>-<%= network %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
+    - get: kubo-lock-<%= iaas %>-<%= network %>
       version: every
       trigger: true
       passed:
-      - 'destroy-k8s-<%= iaas %>-static-network'
+      - 'destroy-k8s-<%= iaas %>-<%= network %>'
     - get: gcs-kubo-deployment-pre
       passed:
-      - 'destroy-k8s-<%= iaas %>-static-network'
+      - 'destroy-k8s-<%= iaas %>-<%= network %>'
     - get: gcs-kubo-release-pre
-      passed: [ 'destroy-k8s-<%= iaas %>-static-network' ]
+      passed: [ 'destroy-k8s-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-state
-      passed: [ 'destroy-k8s-<%= iaas %>-static-network' ]
+      passed: [ 'destroy-k8s-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-creds
       passed:
-      - 'destroy-k8s-<%= iaas %>-static-network'
+      - 'destroy-k8s-<%= iaas %>-<%= network %>'
 
   - task: unpack-kubo-deployment
     tags: ['<%= worker_tag %>']
@@ -318,8 +233,9 @@ jobs:
   - task: destroy
     tags: ['<%= worker_tag %>']
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
 
-  - put: kubo-lock-<%= iaas %>
-    params: { release: kubo-lock-<%= iaas %> }
+  - put: kubo-lock-<%= iaas %>-<%= network %>
+    params: { release: kubo-lock-<%= iaas %>-<%= network %> }
+<% end %>
 <% end %>
