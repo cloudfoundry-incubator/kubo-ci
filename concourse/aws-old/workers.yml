@@ -1,0 +1,56 @@
+---
+name: concourse-worker-aws
+
+releases:
+- name: concourse
+  version: 3.3.0
+  url: https://bosh.io/d/github.com/concourse/concourse?v=3.3.0
+  sha1: f0b5ab73ba26e9cc72c8989d20ae2e8d994f18c4
+- name: garden-runc
+  version: 1.6.0
+  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.6.0
+  sha1: 58fbc64aff303e6d76899441241dd5dacef50cb7
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: latest
+
+instance_groups:
+- name: worker
+  instances: 1
+  # replace with a VM type from your BOSH Director's cloud config
+  vm_type: workers
+  stemcell: trusty
+  azs: [z1]
+  networks: [{name: ((deployments_network))}]
+  jobs:
+  - name: groundcrew
+    release: concourse
+    properties:
+      tags:
+        - aws
+        - aws-lb
+      tsa:
+        private_key: ((worker-key.private_key))
+        host: ci.kubo.sh
+        host_public_key: ((tsa-host-key.public_key))
+      garden:
+        forward_address: 127.0.0.1:7777
+      baggageclaim:
+        forward_address: 127.0.0.1:7788
+  - name: baggageclaim
+    release: concourse
+    properties: {}
+  - name: garden
+    release: garden-runc
+    properties:
+      garden:
+        listen_network: tcp
+        listen_address: 0.0.0.0:7777
+update:
+  canaries: 1
+  max_in_flight: 1
+  serial: false
+  canary_watch_time: 1000-60000
+  update_watch_time: 1000-60000

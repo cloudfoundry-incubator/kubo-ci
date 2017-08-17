@@ -1,17 +1,17 @@
 az: us-east-1b
-subnet_id: subnet-a28bcc8e
+subnet_id: subnet-a644fd8a
 default_key_name: kubo-aws-ci
 default_security_groups:
-- sg-8a74dcfa
+- sg-1c5aef6d
 region: us-east-1
 
-internal_cidr: 10.0.10.0/24
-internal_gw: 10.0.10.1
-internal_ip: 10.0.10.6
+internal_cidr: 10.0.0.0/24
+internal_gw: 10.0.0.1
+internal_ip: 10.0.0.6
 reserved_ips:
-- 10.0.10.1/30
+- 10.0.0.1/30
 
-deployments_network: k1-vpc
+deployments_network: kubo
 director_name: aws_concourse
 
 secrets_lpass_note_id: 5500749124404455704
