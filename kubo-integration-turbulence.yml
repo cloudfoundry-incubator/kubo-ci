@@ -67,7 +67,8 @@ resources:
 ############################################
 jobs:
 
-<% iaas_list.each do |iaas| %>
+<% iaas_list.each do |iaas|
+  worker_tag = iaas.split('-').first %>
 - name: claim-lock-<%= iaas %>
   plan:
   - aggregate:
@@ -93,11 +94,11 @@ jobs:
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    tags: [gcp]
+    tags: ['<%= worker_tag %>']
 
   - task: install
     file: git-kubo-ci/tasks/install-bosh.yml
-    tags: [gcp]
+    tags: ['<%= worker_tag %>']
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
     params:
@@ -130,17 +131,17 @@ jobs:
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    tags: [gcp]
+    tags: ['<%= worker_tag %>']
 
   - task: configure-bosh
-    tags: [gcp]
+    tags: ['<%= worker_tag %>']
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
     file: git-kubo-ci/tasks/configure-bosh.yml
-    tags: [gcp]
+    tags: ['<%= worker_tag %>']
 
   - task: deploy
-    tags: [gcp]
+    tags: ['<%= worker_tag %>']
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
       gcs-kubo-release-tarball: gcs-kubo-release-pre
@@ -167,11 +168,11 @@ jobs:
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    tags: [gcp]
+    tags: ['<%= worker_tag %>']
 
   - task: turbulence-tests
     file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
-    tags: [gcp]
+    tags: ['<%= worker_tag %>']
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
 
@@ -194,11 +195,11 @@ jobs:
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    tags: [gcp]
+    tags: ['<%= worker_tag %>']
 
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-    tags: [gcp]
+    tags: ['<%= worker_tag %>']
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
 - name: destroy-bosh-<%= iaas %>
@@ -222,11 +223,11 @@ jobs:
       - 'destroy-k8s-<%= iaas %>'
 
   - task: unpack-kubo-deployment
-    tags: [gcp]
+    tags: ['<%= worker_tag %>']
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
 
   - task: destroy
-    tags: [gcp]
+    tags: ['<%= worker_tag %>']
     file: git-kubo-ci/tasks/destroy-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
