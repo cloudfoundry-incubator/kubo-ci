@@ -145,6 +145,8 @@ jobs:
       kubo-lock: kubo-lock-<%= iaas %>
       gcs-kubo-release-tarball: gcs-kubo-release-pre
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    params:
+      CLOUD_CONFIG_OPS_FILE: static-network-k8s-cloud-config.yml
 
 - name: run-turbulence-tests-<%= iaas %>
   plan:
