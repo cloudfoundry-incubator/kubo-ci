@@ -68,7 +68,7 @@ resources:
 jobs:
 
 <% iaas_list.each do |iaas|
-  worker_tag = iaas.split('-').first %>
+  worker_tag = iaas.sub("-turbulence", "") %>
 - name: claim-lock-<%= iaas %>
   plan:
   - aggregate:
