@@ -21,6 +21,7 @@ var _ = Describe("Docker Image", func() {
 		"ruby":     []string{"-v"},
 		"kubectl":  []string{"help"},
 		"go":       []string{"doc", "cmd/vet"},
+		"aws":      []string{"--version"},
 	}
 
 	for executable, args := range commands {

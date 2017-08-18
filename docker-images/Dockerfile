@@ -66,5 +66,8 @@ RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.27-linux-amd64
 # Openstack CLI
 RUN pip install python-openstackclient
 
+# AWS CLI
+RUN pip install awscli
+
 # Cleanup
 RUN rm -rf /tmp/docker-build && rm -rf /var/lib/apt/lists/*
