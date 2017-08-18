@@ -7,11 +7,18 @@ set -o pipefail
 
 iaas=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/iaas')
 
-if [ "${iaas}" == "gcp" ]; then
-  gcloud auth activate-service-account --key-file=<(bosh-cli int "$PWD/kubo-lock/metadata" --path='/gcp_service_account')
-  gcloud config set project "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/project_id)"
-  gcloud config set compute/zone "$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/zone')"
-fi
+case "${iaas}" in
+  gcp)
+    gcloud auth activate-service-account --key-file=<(bosh-cli int "$PWD/kubo-lock/metadata" --path='/gcp_service_account')
+    gcloud config set project "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/project_id)"
+    gcloud config set compute/zone "$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/zone')"
+    ;;
+  aws)
+    aws configure set aws_access_key_id "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/access_key_id)"
+    aws configure set aws_secret_access_key  "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/secret_access_key)"
+    aws configure set default.region "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/region)"
+    ;;
+esac
 
 . "$PWD/git-kubo-ci/scripts/lib/environment.sh"
 
