@@ -5,9 +5,13 @@
 set -eu
 set -o pipefail
 
-gcloud auth activate-service-account --key-file=<(bosh-cli int "$PWD/kubo-lock/metadata" --path='/gcp_service_account')
-gcloud config set project "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/project_id)"
-gcloud config set compute/zone "$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/zone')"
+iaas=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/iaas')
+
+if [ "${iaas}" == "gcp" ]; then
+  gcloud auth activate-service-account --key-file=<(bosh-cli int "$PWD/kubo-lock/metadata" --path='/gcp_service_account')
+  gcloud config set project "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/project_id)"
+  gcloud config set compute/zone "$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/zone')"
+fi
 
 . "$PWD/git-kubo-ci/scripts/lib/environment.sh"
 
@@ -27,7 +31,7 @@ TURBULENCE_PORT=8080
 TURBULENCE_USERNAME=turbulence
 TURBULENCE_PASSWORD=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path='/turbulence_api_password')
 TURBULENCE_CA_CERT=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path /turbulence_api_ca/ca)
-TURBULENCE_IAAS=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/iaas')
+TURBULENCE_IAAS="${iaas}"
 
 GIT_KUBO_CI=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 GOPATH="$GIT_KUBO_CI"
