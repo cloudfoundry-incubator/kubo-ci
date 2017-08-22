@@ -7,6 +7,10 @@ cd modified-repo
 git config user.email "ci-bot@localhost"
 git config user.name "CI Bot"
 
-if git mv "${POOL_NAME}/unclaimed/${ENV_NAME}" "${POOL_NAME}/claimed/${ENV_NAME}"; then
-  git commit -m "Claiming: ${POOL_NAME}/${ENV_NAME}"
+pool_name=$(basename $(cd "$(dirname "$ENV_FILE")/.."; pwd))
+env_name=$(basename "$ENV_FILE")
+
+
+if git mv "${pool_name}/unclaimed/${env_name}" "${pool_name}/claimed/${env_name}"; then
+  git commit -m "Claiming: ${pool_name}/${env_name}"
 fi
