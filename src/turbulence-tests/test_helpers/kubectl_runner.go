@@ -10,9 +10,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"fmt"
+	"strings"
+
 	"github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega/gexec"
-	"strings"
 )
 
 type KubectlRunner struct {
@@ -53,7 +55,7 @@ func (runner KubectlRunner) RunKubectlCommand(args ...string) *gexec.Session {
 func (runner KubectlRunner) RunKubectlCommandInNamespace(namespace string, args ...string) *gexec.Session {
 	newArgs := append([]string{"--kubeconfig", runner.configPath, "--namespace", namespace}, args...)
 	command := exec.Command("kubectl", newArgs...)
-
+	fmt.Printf("%s\n", command.Args)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 
 	Expect(err).NotTo(HaveOccurred())
@@ -74,7 +76,7 @@ func GenerateRandomName() string {
 }
 
 func (runner KubectlRunner) CreateNamespace() {
-	Eventually(runner.RunKubectlCommand("create", "namespace", runner.namespace)).Should(gexec.Exit(0))
+	Eventually(runner.RunKubectlCommand("create", "namespace", runner.namespace), "10s").Should(gexec.Exit(0))
 }
 
 func (runner *KubectlRunner) GetOutput(kubectlArgs ...string) []string {
