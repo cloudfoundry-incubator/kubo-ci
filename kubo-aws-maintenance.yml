@@ -37,8 +37,7 @@ jobs:
   - task: claim-<%= env %>
     file: git-kubo-ci/tasks/claim-lock-manually.yml
     params:
-      ENV_NAME: <%= env %>
-      POOL_NAME: <%= pool %>
+      ENV_FILE: kubo-lock-repo/<%= pool %>/claimed/<%= env %>
     ensure:
       put: kubo-lock-repo
       params:
@@ -48,13 +47,11 @@ jobs:
   - task: cleanup-<%= env %>
     file: git-kubo-ci/tasks/cleanup-aws-environment.yml
     params:
-      ENV_NAME: <%= env %>
-      POOL_NAME: <%= pool %>
+      ENV_FILE: kubo-lock-repo/<%= pool %>/claimed/<%= env %>
   - task: unclaim-<%= env %>
     file: git-kubo-ci/tasks/unclaim-lock-manually.yml
     params:
-      ENV_NAME: <%= env %>
-      POOL_NAME: <%= pool %>
+      ENV_FILE: kubo-lock-repo/<%= pool %>/claimed/<%= env %>
     ensure:
       put: kubo-lock-repo
       params:

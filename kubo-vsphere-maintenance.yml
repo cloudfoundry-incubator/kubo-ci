@@ -44,8 +44,7 @@ jobs:
   - task: claim-<%= env["name"] %>
     file: git-kubo-ci/tasks/claim-lock-manually.yml
     params:
-      ENV_NAME: <%= env["name"] %>
-      POOL_NAME: <%= env["pool_name"] %>
+      ENV_FILE: kubo-lock-repo/<%= env['pool_name'] %>/claimed/<%= env['name'] %>
     ensure:
       put: kubo-lock-repo
       params:
@@ -56,14 +55,12 @@ jobs:
     file: git-kubo-ci/tasks/cleanup-vsphere-environment.yml
     tags: [vsphere]
     params:
-      ENV_NAME: <%= env["name"] %>
-      POOL_NAME: <%= env["pool_name"] %>
+      ENV_FILE: kubo-lock-repo/<%= env['pool_name'] %>/claimed/<%= env['name'] %>
 
   - task: unclaim-<%= env["name"] %>
     file: git-kubo-ci/tasks/unclaim-lock-manually.yml
     params:
-      ENV_NAME: <%= env["name"] %>
-      POOL_NAME: <%= env["pool_name"] %>
+      ENV_FILE: kubo-lock-repo/<%= env['pool_name'] %>/claimed/<%= env['name'] %>
     ensure:
       put: kubo-lock-repo
       params:

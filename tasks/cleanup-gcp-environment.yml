@@ -10,10 +10,6 @@ inputs:
 - name: git-kubo-ci
 
 params:
-  AWS_ACCESS_KEY_ID:
-  AWS_SECRET_ACCESS_KEY:
-  AWS_DEFAULT_REGION:
-  ENV_NAME:
-  POOL_NAME:
+  ENV_FILE:
 run:
   path: git-kubo-ci/scripts/cleanup-environment.sh

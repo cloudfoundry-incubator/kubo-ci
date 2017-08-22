@@ -2,12 +2,11 @@
 
 set -eu -o pipefail
 
-lock_file="kubo-lock-repo/${POOL_NAME}/claimed/${ENV_NAME}"
-director_ip="$(bosh-cli int "${lock_file}" --path=/internal_ip)"
-subnet_id="$(bosh-cli int "${lock_file}" --path=/subnet_id)"
-access_key_id="$(bosh-cli int "${lock_file}" --path=/access_key_id)"
-secret_access_key="$(bosh-cli int "${lock_file}" --path=/secret_access_key)"
-region="$(bosh-cli int "${lock_file}" --path=/region)"
+director_ip="$(bosh-cli int "${ENV_FILE}" --path=/internal_ip)"
+subnet_id="$(bosh-cli int "${ENV_FILE}" --path=/subnet_id)"
+access_key_id="$(bosh-cli int "${ENV_FILE}" --path=/access_key_id)"
+secret_access_key="$(bosh-cli int "${ENV_FILE}" --path=/secret_access_key)"
+region="$(bosh-cli int "${ENV_FILE}" --path=/region)"
 
 mkdir -p ~/.aws
 

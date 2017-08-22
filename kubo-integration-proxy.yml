@@ -31,11 +31,6 @@ groups:
 <% end %>
 
 resource_types:
-- name: terraform
-  type: docker-image
-  source:
-    repository: ljfranklin/terraform-resource
-
 - name: gcs
   type: docker-image
   source:

@@ -38,8 +38,7 @@ jobs:
   - task: claim-<%= env %>
     file: git-kubo-ci/tasks/claim-lock-manually.yml
     params:
-      ENV_NAME: <%= env %>
-      POOL_NAME: <%= pool %>
+      ENV_FILE: kubo-lock-repo/<%= pool %>/claimed/<%= env %>
     ensure:
       put: kubo-lock-repo
       params:
@@ -47,18 +46,13 @@ jobs:
         rebase: true
 
   - task: cleanup-<%= env %>
-    file: git-kubo-ci/tasks/cleanup-environment.yml
+    file: git-kubo-ci/tasks/cleanup-gcp-environment.yml
     params:
-      AWS_ACCESS_KEY_ID: ((aws-access-key-id))
-      AWS_SECRET_ACCESS_KEY: ((aws-secret-access-key))
-      AWS_DEFAULT_REGION: eu-west-1
-      ENV_NAME: <%= env %>
-      POOL_NAME: <%= pool %>
+      ENV_FILE: kubo-lock-repo/<%= pool %>/claimed/<%= env %>
   - task: unclaim-<%= env %>
     file: git-kubo-ci/tasks/unclaim-lock-manually.yml
     params:
-      ENV_NAME: <%= env %>
-      POOL_NAME: <%= pool %>
+      ENV_FILE: kubo-lock-repo/<%= pool %>/claimed/<%= env %>
     ensure:
       put: kubo-lock-repo
       params:

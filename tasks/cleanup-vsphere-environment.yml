@@ -10,10 +10,9 @@ inputs:
 - name: git-kubo-ci
 
 params:
-  ENV_NAME:
-  POOL_NAME:
+  ENV_FILE:
 run:
   path: bash
   args:
   - -ec
-  - vsphere-cleaner "kubo-lock-repo/$POOL_NAME/claimed/$ENV_NAME"
+  - vsphere-cleaner "$ENV_FILE"

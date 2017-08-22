@@ -10,7 +10,6 @@ inputs:
 - name: git-kubo-ci
 
 params:
-  ENV_NAME:
-  POOL_NAME:
+  ENV_FILE:
 run:
   path: git-kubo-ci/scripts/cleanup-openstack-environment.sh

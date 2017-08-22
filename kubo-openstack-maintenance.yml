@@ -38,8 +38,7 @@ jobs:
     tags: [openstack-lb]
     file: git-kubo-ci/tasks/claim-lock-manually.yml
     params:
-      ENV_NAME: <%= env %>
-      POOL_NAME: <%= pool %>
+      ENV_FILE: kubo-lock-repo/<%= pool %>/claimed/<%= env %>
     ensure:
       put: kubo-lock-repo
       params:
@@ -50,14 +49,12 @@ jobs:
     tags: [openstack-lb]
     file: git-kubo-ci/tasks/cleanup-openstack-environment.yml
     params:
-      ENV_NAME: <%= env %>
-      POOL_NAME: <%= pool %>
+      ENV_FILE: kubo-lock-repo/<%= pool %>/claimed/<%= env %>
   - task: unclaim-<%= env %>
     tags: [openstack-lb]
     file: git-kubo-ci/tasks/unclaim-lock-manually.yml
     params:
-      ENV_NAME: <%= env %>
-      POOL_NAME: <%= pool %>
+      ENV_FILE: kubo-lock-repo/<%= pool %>/claimed/<%= env %>
     ensure:
       put: kubo-lock-repo
       params:
