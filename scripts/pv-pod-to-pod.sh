@@ -7,7 +7,6 @@ deploy_guestbook() {
   # wait for deployment to finish
   kubectl rollout status deployment/frontend -w
   kubectl rollout status deployment/redis-master -w
-  kubectl rollout status deployment/redis-slave -w
   nodeport=$(kubectl describe svc/frontend | grep 'NodePort:' | awk '{print $3}' | sed -e 's/\/TCP//g')
 }
 

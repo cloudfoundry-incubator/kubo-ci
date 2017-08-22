@@ -45,6 +45,8 @@ spec:
           persistentVolumeClaim:
             claimName: ci-claim
 ---
+# For the PV stories it makes more sense to not have real redis-slaves
+# as we can't be sure where the data is coming from
 apiVersion: v1
 kind: Service
 metadata:
@@ -52,40 +54,14 @@ metadata:
   labels:
     app: redis
     tier: backend
-    role: slave
+    role: master
 spec:
   ports:
   - port: 6379
   selector:
     app: redis
     tier: backend
-    role: slave
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: redis-slave
-spec:
-  replicas: 2
-  template:
-    metadata:
-      labels:
-        app: redis
-        role: slave
-        tier: backend
-    spec:
-      containers:
-      - name: slave
-        image: gcr.io/google_samples/gb-redisslave:v1
-        resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
-        env:
-        - name: GET_HOSTS_FROM
-          value: dns
-        ports:
-        - containerPort: 6379
+    role: master
 ---
 apiVersion: v1
 kind: Service
