@@ -3,6 +3,7 @@ package pod_logs
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -16,11 +17,11 @@ var _ = Describe("Deploy workload", func() {
 		Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
 
 		getPodName := runner.RunKubectlCommand("get", "pods", "-o", "jsonpath='{.items[0].metadata.name}'")
-		Eventually(getPodName, "5s").Should(gexec.Exit())
+		Eventually(getPodName, "15s").Should(gexec.Exit(0))
 		podName := string(getPodName.Out.Contents())
 
 		getLogs := runner.RunKubectlCommand("logs", podName)
-		Eventually(getLogs, "5s").Should(gexec.Exit())
+		Eventually(getLogs, "15s").Should(gexec.Exit(0))
 		logContent := string(getLogs.Out.Contents())
 		// nginx pods do not log much, unless there is an error we should see an empty string as a result
 		Expect(logContent).To(Equal(""))

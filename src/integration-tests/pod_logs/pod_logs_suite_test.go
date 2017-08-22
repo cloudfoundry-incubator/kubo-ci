@@ -14,8 +14,8 @@ func TestPodLogs(t *testing.T) {
 }
 
 var (
-	runner        *test_helpers.KubectlRunner
-	nginxSpec     = test_helpers.PathFromRoot("specs/nginx.yml")
+	runner    *test_helpers.KubectlRunner
+	nginxSpec = test_helpers.PathFromRoot("specs/nginx.yml")
 )
 
 var _ = BeforeSuite(func() {
