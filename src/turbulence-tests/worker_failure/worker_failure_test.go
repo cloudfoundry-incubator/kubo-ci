@@ -45,7 +45,6 @@ var _ = Describe("Worker failure scenarios", func() {
 		Eventually(func() bool { return AllBoshWorkersHaveJoinedK8s(deployment, kubectl) }, 600, 20).Should(BeTrue())
 
 		By("Deploying nginx on 3 nodes")
-		kubectl.CreateNamespace()
 		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxSpec)).Should(gexec.Exit(0))
 		Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), "120s").Should(gexec.Exit(0))
 

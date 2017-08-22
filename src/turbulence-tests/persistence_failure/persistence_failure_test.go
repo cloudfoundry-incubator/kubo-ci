@@ -87,7 +87,7 @@ var _ = Describe("Worker failure scenarios", func() {
 			return getValueFromGuestBook(appAddress)
 		}, "120s", "2s").Should(ContainSubstring(testValue))
 
-		externalId := getExternalId(kubectl)
+		externalId := getExternalId(kubectl, iaas)
 		By(fmt.Sprintf("Deleting the node/worker (%s) the persisted data is still available to the application", externalId))
 		KillVMById(externalId, iaas)
 
@@ -112,9 +112,24 @@ func getAppAddress(deployment director.Deployment, kubectl *KubectlRunner) strin
 	return fmt.Sprintf("%s:%s", workerIP, nodePort)
 }
 
-func getExternalId(kubectl *KubectlRunner) string {
+func getExternalId(kubectl *KubectlRunner, iaas string) string {
+
+	var externalId string
+
 	nodeName := kubectl.GetOutput("get", "pods", "-l", "app=redis", "-o", "jsonpath={.items[0].spec.nodeName}")
-	return kubectl.GetOutput("get", "nodes", nodeName[0], "-o", "jsonpath={.spec.externalID}")[0]
+
+	switch iaas {
+	case "gcp":
+		externalId = nodeName[0]
+		break
+	case "aws":
+		externalId = kubectl.GetOutput("get", "nodes", nodeName[0], "-o", "jsonpath={.spec.externalID}")[0]
+		break
+	default:
+		Fail(fmt.Sprintf("Unsupported IaaS: %s", iaas))
+	}
+	return externalId
+
 }
 
 func undeployGuestBook(kubectl *KubectlRunner) {
