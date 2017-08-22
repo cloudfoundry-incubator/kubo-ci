@@ -60,7 +60,7 @@ var _ = Describe("Worker failure scenarios", func() {
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
 
-	FSpecify("K8s applications with persistence keeps their data when node is destroyed", func() {
+	Specify("K8s applications with persistence keeps their data when node is destroyed", func() {
 
 		By("Deploying the persistent application the value is persisted")
 
