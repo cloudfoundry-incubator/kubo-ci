@@ -36,7 +36,11 @@ var _ = Describe("Deploy workload", func() {
 		Eventually(func() int {
 			result, err := httpClient.Get(appUrl)
 			if err != nil {
+				fmt.Fprintf(GinkgoWriter, "Failed to get response from %s: %v", appUrl, err)
 				return -1
+			}
+			if result.StatusCode != 200 {
+				fmt.Fprintf(GinkgoWriter, "Failed to get response from %s: StatusCode %v", appUrl, result.StatusCode)
 			}
 			return result.StatusCode
 		}, "120s", "5s").Should(Equal(200))
