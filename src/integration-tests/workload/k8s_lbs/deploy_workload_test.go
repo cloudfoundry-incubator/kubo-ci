@@ -43,7 +43,7 @@ var _ = Describe("Deploy workload", func() {
 				fmt.Fprintf(GinkgoWriter, "Failed to get response from %s: StatusCode %v", appUrl, result.StatusCode)
 			}
 			return result.StatusCode
-		}, "120s", "5s").Should(Equal(200))
+		}, "300s", "5s").Should(Equal(200))
 	})
 
 	AfterEach(func() {
