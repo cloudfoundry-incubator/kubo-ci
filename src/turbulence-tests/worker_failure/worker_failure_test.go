@@ -13,6 +13,7 @@ var _ = Describe("Worker failure scenarios", func() {
 	var deployment director.Deployment
 	var countRunningWorkers func() int
 	var kubectl *KubectlRunner
+	var nginxSpec = PathFromRoot("specs/nginx.yml")
 
 	BeforeEach(func() {
 		var err error
@@ -23,9 +24,15 @@ var _ = Describe("Worker failure scenarios", func() {
 		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 
 		kubectl = NewKubectlRunner()
+		kubectl.CreateNamespace()
 
 		Expect(countRunningWorkers()).To(Equal(3))
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
+	})
+
+	AfterEach(func() {
+		kubectl.RunKubectlCommand("delete", "-f", nginxSpec)
+		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
 
 	Specify("K8s applications are scheduled on the resurrected node", func() {
@@ -39,7 +46,6 @@ var _ = Describe("Worker failure scenarios", func() {
 
 		By("Deploying nginx on 3 nodes")
 		kubectl.CreateNamespace()
-		nginxSpec := PathFromRoot("specs/nginx-specified-nodeport.yml")
 		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxSpec)).Should(gexec.Exit(0))
 		Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), "120s").Should(gexec.Exit(0))
 
@@ -48,7 +54,5 @@ var _ = Describe("Worker failure scenarios", func() {
 		_, err := NewVmId(vms, nodeNames)
 		Expect(err).ToNot(HaveOccurred())
 	})
-	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
-	})
+
 })

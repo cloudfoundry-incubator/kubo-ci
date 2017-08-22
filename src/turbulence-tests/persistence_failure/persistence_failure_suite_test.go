@@ -1,19 +1,20 @@
-package workload_test
+package persistence_failure_test
 
 import (
+	"fmt"
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"os"
 	"testing"
-	"fmt"
 )
 
 var iaas string
 
-func TestWorkerFailure(t *testing.T) {
+func TestPersistenceFailure(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "WorkerFailure Suite")
+	RunSpecs(t, "PersistenceFailure Suite")
 }
 
 var _ = BeforeSuite(func() {
@@ -21,5 +22,4 @@ var _ = BeforeSuite(func() {
 	platforms := []string{"aws", "gcp"}
 	message := fmt.Sprintf("Expected TURBULENCE_IAAS to be one of the following values: %#v", platforms)
 	Expect(platforms).To(ContainElement(iaas), message)
-
 })

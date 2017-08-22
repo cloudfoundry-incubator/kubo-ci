@@ -57,3 +57,4 @@ export BOSH_CA_CERT
 export BOSH_CLIENT
 export BOSH_CLIENT_SECRET
 ginkgo "$GOPATH/src/turbulence-tests/worker_failure" -progress -v
+ginkgo "$GOPATH/src/turbulence-tests/persistence_failure" -progress -v
