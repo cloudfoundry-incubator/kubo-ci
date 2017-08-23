@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
@@ -69,6 +71,14 @@ func GenerateRandomName() string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
+}
+
+func (runner *KubectlRunner) GetOutput(kubectlArgs ...string) []string {
+	session := runner.RunKubectlCommand(kubectlArgs...)
+	Eventually(session, "10s").Should(gexec.Exit(0))
+	output := session.Out.Contents()
+
+	return strings.Fields(string(output))
 }
 
 func init() {
