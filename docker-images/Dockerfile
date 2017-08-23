@@ -69,5 +69,9 @@ RUN pip install python-openstackclient
 # AWS CLI
 RUN pip install awscli
 
+# GOVC CLI
+RUN wget -O - -o /dev/null https://github.com/vmware/govmomi/releases/download/v0.15.0/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc && \
+  chmod +x /usr/local/bin/govc
+
 # Cleanup
 RUN rm -rf /tmp/docker-build && rm -rf /var/lib/apt/lists/*
