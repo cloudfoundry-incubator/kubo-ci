@@ -19,7 +19,7 @@ func TestPersistenceFailure(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	iaas = os.Getenv("TURBULENCE_IAAS")
-	platforms := []string{"aws", "gcp"}
+	platforms := []string{"aws", "gcp", "vsphere"}
 	message := fmt.Sprintf("Expected TURBULENCE_IAAS to be one of the following values: %#v", platforms)
 	Expect(platforms).To(ContainElement(iaas), message)
 })

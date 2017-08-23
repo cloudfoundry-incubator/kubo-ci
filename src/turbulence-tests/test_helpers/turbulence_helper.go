@@ -62,19 +62,28 @@ func contains(vmNames []string, vmName string) bool {
 }
 
 func KillVM(vms []director.VMInfo, iaas string) {
-	cid := vms[0].VMID
-	KillVMById(cid, iaas)
+	if iaas == "vsphere" {
+		cid := vms[0].IPs[0]
+		KillVMById(cid, iaas)
+	} else {
+		cid := vms[0].VMID
+		KillVMById(cid, iaas)
+	}
+
 }
 
-func KillVMById(vmId string, iaas string) {
+func KillVMById(iaasSpecificVmIdentifier string, iaas string) {
 	var cmd *exec.Cmd
 
 	switch iaas {
 	case "gcp":
-		cmd = exec.Command("gcloud", "-q", "compute", "instances", "delete", vmId)
+		cmd = exec.Command("gcloud", "-q", "compute", "instances", "delete", iaasSpecificVmIdentifier)
 		break
 	case "aws":
-		cmd = exec.Command("aws", "ec2", "terminate-instances", "--instance-ids", vmId)
+		cmd = exec.Command("aws", "ec2", "terminate-instances", "--instance-ids", iaasSpecificVmIdentifier)
+		break
+	case "vsphere":
+		cmd = exec.Command("govc", "vm.destroy", "-vm.ip", iaasSpecificVmIdentifier)
 		break
 	default:
 		Fail(fmt.Sprintf("Unsupported IaaS: %s", iaas))

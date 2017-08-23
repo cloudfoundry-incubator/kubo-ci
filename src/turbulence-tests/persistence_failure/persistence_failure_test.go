@@ -125,6 +125,8 @@ func getExternalId(kubectl *KubectlRunner, iaas string) string {
 	case "aws":
 		externalId = kubectl.GetOutput("get", "nodes", nodeName[0], "-o", "jsonpath={.spec.externalID}")[0]
 		break
+	case "vsphere":
+		externalId = kubectl.GetOutput("get", "nodes", nodeName[0], "-o", "jsonpath={.status.addresses[?(@.type==\"InternalIP\")].address}")[0]
 	default:
 		Fail(fmt.Sprintf("Unsupported IaaS: %s", iaas))
 	}

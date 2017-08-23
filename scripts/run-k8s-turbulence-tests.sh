@@ -18,6 +18,15 @@ case "${iaas}" in
     aws configure set aws_secret_access_key  "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/secret_access_key)"
     aws configure set default.region "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/region)"
     ;;
+  openstack)
+    ;;
+  vsphere)
+    GOVC_URL="$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/vcenter_ip)"
+    GOVC_USERNAME="$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/vcenter_user)"
+    GOVC_PASSWORD="$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/vcenter_password)"
+    GOVC_INSECURE=1
+    export GOVC_URL GOVC_USERNAME GOVC_PASSWORD GOVC_INSECURE
+    ;;
 esac
 
 . "$PWD/git-kubo-ci/scripts/lib/environment.sh"
@@ -56,5 +65,8 @@ export BOSH_ENVIRONMENT
 export BOSH_CA_CERT
 export BOSH_CLIENT
 export BOSH_CLIENT_SECRET
-ginkgo "$GOPATH/src/turbulence-tests/persistence_failure" -progress -v
+
 ginkgo "$GOPATH/src/turbulence-tests/worker_failure" -progress -v
+if [[ "${iaas}" != "openstack" ]]; then
+  ginkgo "$GOPATH/src/turbulence-tests/persistence_failure" -progress -v
+fi
