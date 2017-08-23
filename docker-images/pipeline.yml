@@ -61,6 +61,24 @@ resources:
     password: ((docker-hub-password))
     tag: stable
 
+- name: ulimit-latest
+  type: docker-image
+  source:
+    repository: pcfkubo/ulimit
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    tag: latest
+
+- name: ulimit-stable
+  type: docker-image
+  source:
+    repository: pcfkubo/ulimit
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    tag: stable
+
 - name: aws-maintenance-latest
   type: docker-image
   source:
@@ -199,6 +217,31 @@ jobs:
     params:
       cache: true
       pull_repository: pcfkubo/curl
+      pull_tag: latest
+
+- name: build-ulimit
+  plan:
+  - get: git-kubo-ci
+    trigger: true
+  - put: ulimit-latest
+    params:
+      build: git-kubo-ci/docker-images/ulimit
+  - task: test-docker-image
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/ulimit
+          tag: latest
+      inputs:
+      - name: git-kubo-ci
+      run:
+        path: git-kubo-ci/docker-images/ulimit/run_tests
+  - put: ulimit-stable
+    params:
+      cache: true
+      pull_repository: pcfkubo/ulimit
       pull_tag: latest
 
 - name: build-test-runner
