@@ -53,6 +53,7 @@ var _ = Describe("Worker failure scenarios", func() {
 	})
 
 	AfterEach(func() {
+		undeployGuestBook(kubectl)
 		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
 		Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
 		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
