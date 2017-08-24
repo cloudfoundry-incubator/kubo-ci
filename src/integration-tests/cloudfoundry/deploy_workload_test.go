@@ -70,13 +70,13 @@ var _ = Describe("Deploy workload", func() {
 		By("exposing it via TCP")
 		appUrl = fmt.Sprintf("http://%s:%s", tcpRouterDNSName, tcpPort)
 
-		result, err = http.Get(appUrl)
+		result, err = httpClient.Get(appUrl)
 		Expect(err).To(HaveOccurred())
 
 		tcpLabel := fmt.Sprintf("tcp-route-sync=%s", tcpPort)
 		Eventually(runner.RunKubectlCommand("label", "services", "nginx", tcpLabel), "10s").Should(gexec.Exit(0))
 		Eventually(func() error {
-			_, err := http.Get(appUrl)
+			_, err := httpClient.Get(appUrl)
 			return err
 		}, "120s", "5s").ShouldNot(HaveOccurred())
 	})
