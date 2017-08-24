@@ -83,7 +83,8 @@ func KillVMById(iaasSpecificVmIdentifier string, iaas string) {
 		cmd = exec.Command("aws", "ec2", "terminate-instances", "--instance-ids", iaasSpecificVmIdentifier)
 		break
 	case "vsphere":
-		cmd = exec.Command("govc", "vm.power", "-off=true", "-vm.ip", iaasSpecificVmIdentifier)
+		cmd = exec.Command("govc", "device.remove", "-vm.ip", iaasSpecificVmIdentifier, "-keep", "disk-1000-2")
+		cmd = exec.Command("govc", "vm.destroy", "-vm.ip", iaasSpecificVmIdentifier)
 		break
 	default:
 		Fail(fmt.Sprintf("Unsupported IaaS: %s", iaas))
