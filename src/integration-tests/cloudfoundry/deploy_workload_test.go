@@ -46,18 +46,18 @@ var _ = Describe("Deploy workload", func() {
 	It("exposes routes via CF routers", func() {
 		serviceName := runner.Namespace()
 		appUrl := fmt.Sprintf("http://%s.%s", serviceName, appsDomain)
+		httpClient := http.Client{
+			Timeout: time.Duration(5 * time.Second),
+		}
 
 		By("exposing it via HTTP")
-		result, err := http.Get(appUrl)
+		result, err := httpClient.Get(appUrl)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result.StatusCode).To(Equal(404))
 
 		httpLabel := fmt.Sprintf("http-route-sync=%s", serviceName)
 		Eventually(runner.RunKubectlCommand("label", "services", "nginx", httpLabel), "10s").Should(gexec.Exit(0))
 
-		httpClient := http.Client{
-			Timeout: time.Duration(5 * time.Second),
-		}
 		Eventually(func() int {
 			result, err := httpClient.Get(appUrl)
 			if err != nil {
