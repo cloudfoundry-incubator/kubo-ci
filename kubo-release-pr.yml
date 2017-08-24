@@ -136,7 +136,7 @@ jobs:
       status: pending
   - put: kubo-lock-<%= iaas %>
     params: { acquire: true }
-    on_failure: &on_failure_<%= iaas %>
+    on_failure:
       put: git-kubo-release
       params:
         path: git-kubo-release
@@ -164,7 +164,21 @@ jobs:
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure: *on_failure_<%= iaas %>
+    on_failure: &on_failure_<%= iaas %>
+      aggregate:
+      - put: git-kubo-release
+        params:
+          path: git-kubo-release
+          status: failure
+      - do:
+        - task: cleanup-<%= iaas %>
+          tags: [<%= iaas %>]
+          file: git-kubo-ci/tasks/cleanup-<%= iaas.split('-').first %>-environment.yml
+          params:
+            ENV_FILE: kubo-lock/metadata
+        - put: kubo-lock-<%= iaas %>
+          params: { release: kubo-lock-<%= iaas %> }
+
 
   - aggregate:
     - put: gcs-bosh-creds
