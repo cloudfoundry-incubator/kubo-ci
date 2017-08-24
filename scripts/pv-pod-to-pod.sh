@@ -62,6 +62,10 @@ testvalue="$(date +%s)"
 "git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
 
 cleanup() {
+  echo "Current frontend status"
+  kubectl get deployment/frontend -o yaml || true
+  echo "Current redis status"
+  kubectl get deployment/redis-master -o yaml || true
   delete_guestbook
   kubectl delete -f "git-kubo-ci/specs/persistent-volume-claim.yml"
   kubectl delete -f "git-kubo-ci/specs/storage-class-${iaas}.yml"
