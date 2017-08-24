@@ -19,6 +19,12 @@ case "${iaas}" in
     aws configure set default.region "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/region)"
     ;;
   openstack)
+    OS_REGION_NAME=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/region')
+    OS_PROJECT_NAME=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/openstack_project')
+    OS_PASSWORD=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/openstack_password')
+    OS_AUTH_URL=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/auth_url')
+    OS_USERNAME=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/openstack_username')
+    export OS_REGION_NAME OS_PROJECT_NAME OS_PASSWORD OS_AUTH_URL OS_USERNAME
     ;;
   vsphere)
     GOVC_URL="$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/vcenter_ip)"
