@@ -5,29 +5,8 @@ set -exu -o pipefail
 deploy_guestbook() {
   kubectl apply -f "git-kubo-ci/specs/pv-guestbook.yml"
   # wait for deployment to finish
-  if timeout 300 /bin/bash <<EOF
-    until kubectl rollout status deployment/frontend; do
-      sleep 5
-    done
-EOF
-  then
-    echo "Guestbook is deployed"
-  else
-    echo "Guestbook deployment failed"
-    exit 1
-  fi
-
-  if timeout 300 /bin/bash <<EOF
-    until kubectl rollout status deployment/redis-master; do
-      sleep 5
-    done
-EOF
-  then
-    echo "Redis is deployed"
-  else
-    echo "Redis deployment failed"
-    exit 1
-  fi
+  kubectl rollout status deployment/frontend -w
+  kubectl rollout status deployment/redis-master -w
   nodeport=$(kubectl describe svc/frontend | grep 'NodePort:' | awk '{print $3}' | sed -e 's/\/TCP//g')
 }
 
