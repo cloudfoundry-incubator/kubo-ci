@@ -1,23 +1,24 @@
 package cloudfoundry_test
 
 import (
-	"os"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
+
+	"integration-tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"integration-tests/test_helpers"
 )
 
 var _ = Describe("Deploy workload", func() {
 
 	var (
-		tcpPort          string
-		nginxSpec        = test_helpers.PathFromRoot("specs/nginx.yml")
-		runner           *test_helpers.KubectlRunner
+		tcpPort   string
+		nginxSpec = test_helpers.PathFromRoot("specs/nginx.yml")
+		runner    *test_helpers.KubectlRunner
 	)
 
 	BeforeEach(func() {
@@ -36,7 +37,7 @@ var _ = Describe("Deploy workload", func() {
 
 	AfterEach(func() {
 		Eventually(runner.RunKubectlCommand(
-      "delete", "-f", nginxSpec), "60s").Should(gexec.Exit())
+			"delete", "-f", nginxSpec), "60s").Should(gexec.Exit())
 
 		runner.RunKubectlCommand(
 			"delete", "namespace", runner.Namespace()).Wait("60s")
