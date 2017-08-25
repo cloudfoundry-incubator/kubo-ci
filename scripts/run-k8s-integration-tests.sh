@@ -45,7 +45,6 @@ if [[ ${routing_mode} == "cf" ]]; then
 
   ginkgo "$GOPATH/src/integration-tests/cloudfoundry"
 elif [[ ${routing_mode} == "iaas" ]]; then
-  ginkgo "$GOPATH/src/integration-tests/pod_logs"
   ginkgo "$GOPATH/src/integration-tests/workload/k8s_lbs"
 elif [[ ${routing_mode} == "proxy" ]]; then
   WORKLOAD_ADDRESS=$(call_bosh -d "${DEPLOYMENT_NAME}" vms | grep 'worker-haproxy/' | head -1 | awk '{print $4}')
@@ -54,4 +53,5 @@ elif [[ ${routing_mode} == "proxy" ]]; then
 
   ginkgo "$GOPATH/src/integration-tests/workload/haproxy"
 fi
+ginkgo "$GOPATH/src/integration-tests/pod_logs"
 ginkgo "$GOPATH/src/integration-tests/generic"
