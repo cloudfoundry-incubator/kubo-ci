@@ -16,7 +16,7 @@ var _ = Describe("Deploy workload", func() {
 		rolloutWatch := runner.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w")
 		Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
 
-		getPodName := runner.RunKubectlCommand("get", "pods", "-o", "jsonpath='{.items[0].metadata.name}'")
+		getPodName := runner.RunKubectlCommand("get", "pods", "-o", "jsonpath={.items[0].metadata.name}")
 		Eventually(getPodName, "15s").Should(gexec.Exit(0))
 		podName := string(getPodName.Out.Contents())
 
