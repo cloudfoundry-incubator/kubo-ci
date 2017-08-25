@@ -73,6 +73,6 @@ export BOSH_CLIENT
 export BOSH_CLIENT_SECRET
 
 ginkgo "$GOPATH/src/turbulence-tests/worker_failure" -progress -v
-if [[ "${iaas}" != "openstack" ]]; then
+if [[ "${iaas}" == "gcp" || "${iaas}" == "aws" ]]; then
   ginkgo "$GOPATH/src/turbulence-tests/persistence_failure" -progress -v
 fi
