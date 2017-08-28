@@ -27,7 +27,10 @@ iaas=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/iaas")
 director_name=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/director_name")
 GIT_KUBO_CI=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 GOPATH="$GIT_KUBO_CI"
-export GOPATH
+INTEGRATIONTEST_IAAS=${iaas}
+
+
+export GOPATH INTEGRATIONTEST_IAAS
 
 export PATH_TO_KUBECONFIG="$HOME/.kube/config"
 TLS_KUBERNETES_CERT=$(bosh-cli int <(credhub get -n "${director_name}/${DEPLOYMENT_NAME}/tls-kubernetes" --output-json) --path='/value/certificate')
@@ -45,6 +48,17 @@ if [[ ${routing_mode} == "cf" ]]; then
 
   ginkgo "$GOPATH/src/integration-tests/cloudfoundry"
 elif [[ ${routing_mode} == "iaas" ]]; then
+
+  case "${iaas}" in
+    aws)
+      aws configure set aws_access_key_id "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/access_key_id)"
+      aws configure set aws_secret_access_key  "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/secret_access_key)"
+      aws configure set default.region "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/region)"
+      AWS_INGRESS_GROUP_ID=$(bosh-cli int environment/director.yml --path=/default_security_groups/0)
+      export AWS_INGRESS_GROUP_ID
+      ;;
+  esac
+
   ginkgo "$GOPATH/src/integration-tests/workload/k8s_lbs"
 elif [[ ${routing_mode} == "proxy" ]]; then
   WORKLOAD_ADDRESS=$(call_bosh -d "${DEPLOYMENT_NAME}" vms | grep 'worker-haproxy/' | head -1 | awk '{print $4}')
