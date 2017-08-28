@@ -69,3 +69,4 @@ elif [[ ${routing_mode} == "proxy" ]]; then
 fi
 ginkgo "$GOPATH/src/integration-tests/pod_logs"
 ginkgo "$GOPATH/src/integration-tests/generic"
+ginkgo "$GOPATH/src/integration-tests/oss_only"

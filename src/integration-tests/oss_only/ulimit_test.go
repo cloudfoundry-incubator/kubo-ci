@@ -1,4 +1,4 @@
-package generic_test
+package oss_only_test
 
 import (
 	"integration-tests/test_helpers"
