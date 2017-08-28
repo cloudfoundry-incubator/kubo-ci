@@ -6,7 +6,7 @@ image_resource:
     tag: stable
 
 inputs:
-- name: kubo-lock-repo
+- name: kubo-lock
 - name: git-kubo-ci
 
 params:

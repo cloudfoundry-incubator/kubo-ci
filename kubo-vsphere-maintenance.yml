@@ -54,8 +54,9 @@ jobs:
   - task: cleanup-<%= env["name"] %>
     file: git-kubo-ci/tasks/cleanup-vsphere-environment.yml
     tags: [vsphere]
+    input_mapping: {kubo-lock: kubo-lock-repo}
     params:
-      ENV_FILE: kubo-lock-repo/<%= env['pool_name'] %>/claimed/<%= env['name'] %>
+      ENV_FILE: kubo-lock/<%= env['pool_name'] %>/claimed/<%= env['name'] %>
 
   - task: unclaim-<%= env["name"] %>
     file: git-kubo-ci/tasks/unclaim-lock-manually.yml
