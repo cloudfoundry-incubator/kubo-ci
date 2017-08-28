@@ -15,18 +15,17 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
 WORKDIR /tmp/docker-build
 
 # Golang
-RUN wget https://storage.googleapis.com/golang/go1.7.4.linux-amd64.tar.gz
-RUN tar -C /usr/local -xzf go1.7.4.linux-amd64.tar.gz
+RUN wget https://storage.googleapis.com/golang/go1.9.linux-amd64.tar.gz && \
+  tar -C /usr/local -xzf go1.9.linux-amd64.tar.gz && rm go1.9.linux-amd64.tar.gz
 ENV GOPATH /root/go
 RUN mkdir -p /root/go/bin
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
-RUN go get github.com/onsi/gomega
-RUN go get github.com/onsi/ginkgo
-RUN go install github.com/onsi/ginkgo/...
+RUN go get github.com/onsi/gomega && \
+   go get github.com/onsi/ginkgo/ginkgo
 
 # CF
-RUN wget -O /cf-cli_amd64.deb https://cli.run.pivotal.io/stable?release=debian64
-RUN dpkg -i /cf-cli_amd64.deb && rm /cf-cli_amd64.deb
+RUN wget -O /cf-cli_amd64.deb https://cli.run.pivotal.io/stable?release=debian64 && \
+ dpkg -i /cf-cli_amd64.deb && rm /cf-cli_amd64.deb
 
 # Google SDK
 ENV GCLOUD_VERSION=144.0.0
