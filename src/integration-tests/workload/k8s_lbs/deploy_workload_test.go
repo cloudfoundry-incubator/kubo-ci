@@ -40,7 +40,7 @@ var _ = Describe("Deploy workload", func() {
 
 		appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
 
-		timeout := time.Duration(5 * time.Second)
+		timeout := time.Duration(45 * time.Second)
 		httpClient := http.Client{
 			Timeout: timeout,
 		}
@@ -55,7 +55,7 @@ var _ = Describe("Deploy workload", func() {
 				fmt.Fprintf(GinkgoWriter, "Failed to get response from %s: StatusCode %v\n", appUrl, result.StatusCode)
 			}
 			return result.StatusCode
-		}, "300s", "5s").Should(Equal(200))
+		}, "300s", "45s").Should(Equal(200))
 	})
 
 	AfterEach(func() {
@@ -67,7 +67,7 @@ var _ = Describe("Deploy workload", func() {
 			if loadbalancerAddress != "" {
 				// Get the security group
 				cmd := exec.Command("aws", "elb", "describe-load-balancers", "--query",
-					fmt.Sprintf("'LoadBalancerDescriptions[?DNSName==`%s`].[SecurityGroups]'", loadbalancerAddress),
+					fmt.Sprintf("LoadBalancerDescriptions[?DNSName==`%s`].[SecurityGroups]", loadbalancerAddress),
 					"--output", "text")
 				fmt.Fprintf(GinkgoWriter, "Get LoadBalancer security group - %s\n", cmd.Args)
 				session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
@@ -90,8 +90,9 @@ var _ = Describe("Deploy workload", func() {
 			cmd := exec.Command("aws", "ec2", "revoke-security-group-ingress", "--group-id",
 				os.Getenv("AWS_INGRESS_GROUP_ID"), "--source-group", lbSecurityGroup, "--protocol", "all")
 			fmt.Fprintf(GinkgoWriter, "Teardown security groups - %s\n", cmd.Args)
-			_, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "10s").Should(gexec.Exit(0))
 		}
 
 	})
