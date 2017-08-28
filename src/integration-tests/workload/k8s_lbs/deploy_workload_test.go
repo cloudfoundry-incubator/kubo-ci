@@ -18,7 +18,7 @@ var _ = Describe("Deploy workload", func() {
 
 	var loadbalancerAddress string
 
-	FIt("exposes routes via LBs", func() {
+	It("exposes routes via LBs", func() {
 		deployNginx := runner.RunKubectlCommand("create", "-f", nginxLBSpec)
 		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
 		rolloutWatch := runner.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w")
