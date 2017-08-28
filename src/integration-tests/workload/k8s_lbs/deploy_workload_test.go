@@ -48,11 +48,11 @@ var _ = Describe("Deploy workload", func() {
 		Eventually(func() int {
 			result, err := httpClient.Get(appUrl)
 			if err != nil {
-				fmt.Fprintf(GinkgoWriter, "Failed to get response from %s: %v", appUrl, err)
+				fmt.Fprintf(GinkgoWriter, "Failed to get response from %s: %v\n", appUrl, err)
 				return -1
 			}
 			if result.StatusCode != 200 {
-				fmt.Fprintf(GinkgoWriter, "Failed to get response from %s: StatusCode %v", appUrl, result.StatusCode)
+				fmt.Fprintf(GinkgoWriter, "Failed to get response from %s: StatusCode %v\n", appUrl, result.StatusCode)
 			}
 			return result.StatusCode
 		}, "300s", "5s").Should(Equal(200))
@@ -68,10 +68,10 @@ var _ = Describe("Deploy workload", func() {
 				// Get the security group
 				cmd := exec.Command("aws", "elb", "describe-load-balancers", "--query",
 					fmt.Sprintf("'LoadBalancerDescriptions[?DNSName==`%s`].[SecurityGroups]'", loadbalancerAddress),
-					"--output text")
-				fmt.Printf("Get LoadBalancer security group - %s", cmd.Args)
+					"--output", "text")
+				fmt.Fprintf(GinkgoWriter, "Get LoadBalancer security group - %s\n", cmd.Args)
 				session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
-
+				Eventually(session, "10s").Should(gexec.Exit(0))
 				Expect(err).NotTo(HaveOccurred())
 				output := strings.Fields(string(session.Out.Contents()))
 				if len(output) != 0 {
@@ -89,7 +89,7 @@ var _ = Describe("Deploy workload", func() {
 		if lbSecurityGroup != "" {
 			cmd := exec.Command("aws", "ec2", "revoke-security-group-ingress", "--group-id",
 				os.Getenv("AWS_INGRESS_GROUP_ID"), "--source-group", lbSecurityGroup, "--protocol", "all")
-			fmt.Printf("Teardown security groups - %s", cmd.Args)
+			fmt.Fprintf(GinkgoWriter, "Teardown security groups - %s\n", cmd.Args)
 			_, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 		}
