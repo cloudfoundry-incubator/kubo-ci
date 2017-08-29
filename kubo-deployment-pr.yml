@@ -121,11 +121,11 @@ jobs:
         - task: cleanup-<%= iaas %>
           tags: [<%= iaas %>]
           file: git-kubo-ci/tasks/cleanup-<%= iaas.split('-').first %>-environment.yml
+          input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
           params:
             ENV_FILE: kubo-lock/metadata
         - put: kubo-lock-<%= iaas %>
           params: { release: kubo-lock-<%= iaas %> }
-
   - aggregate:
     - put: gcs-bosh-creds
       params:
