@@ -12,42 +12,41 @@ deploy() {
   manifest_template="$1"
 
   manifest_file=$(mktemp)
-  touch "$CONCOURSE_DIR/$IAAS/private.yml"
-  touch "$CONCOURSE_DIR/$IAAS/director.yml"
 
   concourse_secrets_lpass_note_id=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/concourse_secrets_lpass_note_id')
+  private_yml=$(lpass show --note "$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/private_note_id')")
+
+  BOSH_CLIENT=admin
+  BOSH_CLIENT_SECRET=$(bosh-cli int <(echo "$private_yml") --path /admin_password)
+  BOSH_CA_CERT=$(bosh-cli int <(echo "$private_yml") --path /default_ca/ca)
+  BOSH_ENVIRONMENT=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path /internal_ip)
+  export BOSH_CLIENT BOSH_CLIENT_SECRET BOSH_CA_CERT BOSH_ENVIRONMENT
 
   bosh-cli interpolate "$manifest_template"  \
       --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \
-      --vars-file "$CONCOURSE_DIR/$IAAS/private.yml" \
+      --vars-file <(echo "$private_yml") \
       --vars-file <(bosh int <(lpass show --note "$concourse_secrets_lpass_note_id")) \
       > "$manifest_file"
 
   echo "Updating cloud config..."
 
-  bosh-cli -n -e "$BOSH_ENV_NAME" update-cloud-config "$CONCOURSE_DIR/$IAAS/cloud-config.yml"  \
+  bosh-cli -n update-cloud-config "$CONCOURSE_DIR/$IAAS/cloud-config.yml"  \
       --vars-file "$CONCOURSE_DIR/$IAAS/director.yml"
 
   echo "Deploying concourse..."
 
   deployment_name=$(bosh-cli int "$manifest_file" --path /name)
 
-  bosh-cli -n -e "$BOSH_ENV_NAME" deploy "$manifest_file" \
+  bosh-cli -n deploy "$manifest_file" \
       -d "$deployment_name" \
-      --vars-file "$CONCOURSE_DIR/$IAAS/private.yml"
+      --vars-file <(echo "$private_yml")
 
   rm "$manifest_file"
 }
 
 IAAS="$1"
-BOSH_ENV_NAME="$2"
 
 if [ -z "$IAAS" ]; then
-  print_usage
-  exit 1
-fi
-
-if [ -z "$BOSH_ENV_NAME" ]; then
   print_usage
   exit 1
 fi
