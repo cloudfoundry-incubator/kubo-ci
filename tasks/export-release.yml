@@ -7,12 +7,12 @@ image_resource:
     repository: bosh/main-bosh-docker
 
 inputs:
-  - name: kubo-ci
-  - name: stemcell
-  - name: release
+- name: kubo-ci
+- name: stemcell
+- name: release
 
 outputs:
-  - name: compiled-release
+- name: compiled-release
 
 run:
   path: kubo-ci/scripts/export-release.sh

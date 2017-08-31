@@ -93,6 +93,13 @@ resources:
     bucket: kubo-pipeline-store
     regexp: kubo-release-(.*).tgz
 
+- name: gcs-kubo-deployment-tarball-untested
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    regexp: kubo-deployment-(.*).tgz
+
 - name: gcs-kubo-releases
   type: gcs
   source:
@@ -181,21 +188,40 @@ jobs:
     params:
       pre: dev
 
+- name: package-kubo-deployment-tarball
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed: [ 'build-kubo-release' ]
+    - get: kubo-version
+      passed: [ 'build-kubo-release' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'build-kubo-release' ]
+      trigger: true
+  - task: build-kubo-deployment-tarball
+    file: git-kubo-ci/tasks/build-kubo-deployment-tarball.yml
+  - put: gcs-kubo-deployment-tarball-untested
+    params:
+      file: kubo-deployment-tarball/kubo-deployment*.tgz
+
 <% iaas_list.each do |iaas| %>
 - name: claim-lock-<%= iaas %>
   max_in_flight: 1
   plan:
   - aggregate:
     - get: kubo-version
-      passed: [ 'build-kubo-release' ]
+      passed: [ 'package-kubo-deployment-tarball' ]
     - get: git-kubo-release
-      passed: [ 'build-kubo-release' ]
+      passed: [ 'package-kubo-deployment-tarball' ]
       trigger: true
     - get: git-kubo-deployment
-      passed: [ 'build-kubo-release' ]
+      passed: [ 'package-kubo-deployment-tarball' ]
       trigger: true
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'build-kubo-release' ]
+      passed: [ 'package-kubo-deployment-tarball' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'package-kubo-deployment-tarball' ]
   - put: kubo-lock-<%= iaas %>
     params: { acquire: true }
 
@@ -214,6 +240,8 @@ jobs:
   - get: git-kubo-release
     passed: [ 'claim-lock-<%= iaas %>' ]
   - get: kubo-version
+    passed: [ 'claim-lock-<%= iaas %>' ]
+  - get: gcs-kubo-deployment-tarball-untested
     passed: [ 'claim-lock-<%= iaas %>' ]
   - task: install
     tags: [<%= iaas %>]
@@ -247,6 +275,8 @@ jobs:
       passed: [ 'install-bosh-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'install-bosh-<%= iaas %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'install-bosh-<%= iaas %>' ]
   - task: deploy
     tags: [<%= iaas %>]
     input_mapping:
@@ -273,6 +303,8 @@ jobs:
     - get: git-kubo-release
       passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'deploy-k8s-<%= iaas %>' ]
   - task: integration-tests
     tags: [<%= iaas %>]
@@ -305,6 +337,8 @@ jobs:
       passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
   - task: destroy-k8s
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
@@ -329,6 +363,8 @@ jobs:
       passed: [ 'destroy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'destroy-k8s-<%= iaas %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
   - task: destroy
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-bosh.yml
@@ -350,15 +386,15 @@ jobs:
     - get: kubo-version
       passed: <%= destroy_bosh %>
       trigger: true
-  - task: create-kubo-deployment-tarball
-    file: git-kubo-ci/tasks/create-kubo-deployment-tarball.yml
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'destroy-bosh-<%= iaas %>' ]
   - aggregate:
     - put: gcs-kubo-deployment-tarball
       params:
-        file: tarballs/kubo-deployment-*.tgz
+        file: gcs-kubo-deployment-tarball-untested/kubo-deployment-*.tgz
     - put: gcs-kubo-deployments
       params:
-        file: tarballs/kubo-deployment-*.tgz
+        file: gcs-kubo-deployment-tarball-untested/kubo-deployment-*.tgz
 
 
 - name: upload-kubo-release
