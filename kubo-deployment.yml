@@ -7,6 +7,7 @@ groups:
   jobs:
   - run-unit-tests
   - build-kubo-release
+  - package-kubo-deployment-tarball
 <% iaas_list.each do |iaas| %>
   - claim-lock-<%= iaas %>
   - install-bosh-<%= iaas %>
@@ -171,7 +172,7 @@ jobs:
       trigger: true
     - get: ubuntu-trusty-3421-stemcell
       version:
-        version: "3421.11"
+        version: "3421.20"
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
   - task: export-release
@@ -199,6 +200,8 @@ jobs:
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'build-kubo-release' ]
       trigger: true
+    - get: git-kubo-release
+      passed: [ 'build-kubo-release' ]
   - task: build-kubo-deployment-tarball
     file: git-kubo-ci/tasks/build-kubo-deployment-tarball.yml
   - put: gcs-kubo-deployment-tarball-untested
@@ -387,7 +390,7 @@ jobs:
       passed: <%= destroy_bosh %>
       trigger: true
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'destroy-bosh-<%= iaas %>' ]
+      passed: <%= destroy_bosh %>
   - aggregate:
     - put: gcs-kubo-deployment-tarball
       params:
