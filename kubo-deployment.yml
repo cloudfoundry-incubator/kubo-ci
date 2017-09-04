@@ -215,12 +215,11 @@ jobs:
   - aggregate:
     - get: kubo-version
       passed: [ 'package-kubo-deployment-tarball' ]
+      trigger: true
     - get: git-kubo-release
       passed: [ 'package-kubo-deployment-tarball' ]
-      trigger: true
     - get: git-kubo-deployment
       passed: [ 'package-kubo-deployment-tarball' ]
-      trigger: true
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-deployment-tarball-untested
