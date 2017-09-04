@@ -1,54 +1,73 @@
+<%
+  pools = %w(aws aws-lb gcp gcp-lb gcp-turbulence openstack openstack-lb vsphere vsphere-lb)
+%>
+
+resource_types:
+- name: pool-trigger
+  type: docker-image
+  source:
+    repository: cfmobile/pool-trigger
+
 resources:
 - name: git-kubo-ci
   type: git
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
     branch: master
-- name: git-kubo-lock-gcp-lifecycle
-  type: git
-  source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-    branch: master
-    private_key: ((git-ssh-key))
-    paths:
-    - kubo-gcp-lifecycle/unclaimed/*
 
-- name: kubo-lock-gcp-lifecycle
+<% pools.each do |pool| %>
+- name: kubo-lock-<%= pool %>-lifecycle-trigger
+  type: pool-trigger
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    pool: kubo-<%= pool %>-lifecycle
+    private_key: ((git-ssh-key))
+
+- name: kubo-lock-<%= pool %>-lifecycle
   type: pool
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key))
-    pool: kubo-gcp-lifecycle
-- name: kubo-lock-gcp
+    pool: kubo-<%= pool %>-lifecycle
+
+- name: kubo-lock-<%= pool %>
   type: pool
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key))
-    pool: kubo-gcp
+    pool: kubo-<%= pool %>
+<% end %>
 
 jobs:
-- name: claim-lock
+<% pools.each do |pool| %>
+<% iaas = pool.gsub(/-.*/, '') %>
+- name: claim-lock-<%= pool %>
   plan:
-  - get: git-kubo-lock-gcp-lifecycle
+  - get: kubo-lock-<%= pool %>-lifecycle-trigger
     trigger: true
     version: every
-  - put: kubo-lock-gcp-lifecycle
+  - put: kubo-lock-<%= pool %>-lifecycle
     params: { acquire: true }
-- name: cleanup
+- name: cleanup-<%= pool %>
   plan:
   - aggregate:
-    - get: kubo-lock-gcp-lifecycle
+    - get: kubo-lock-<%= pool %>-lifecycle
       version: every
       trigger: true
-      passed: [ 'claim-lock' ]
+      passed: [ 'claim-lock-<%= pool %>' ]
     - get: git-kubo-ci
-  - task: cleanup-gcp
-    file: git-kubo-ci/tasks/recycle-cleanup-gcp.yml
+  - task: cleanup-<%= pool %>
+    file: git-kubo-ci/tasks/cleanup-<%= iaas %>-environment.yml
+    params: { ENV_FILE: 'kubo-lock/metadata' }
+    tags:
+    - <%= iaas %>
     input_mapping:
-      kubo-lock: kubo-lock-gcp-lifecycle
-  - put: kubo-lock-gcp
-    params: { add: kubo-lock-gcp-lifecycle }
-  - put: kubo-lock-gcp-lifecycle
-    params: { remove: kubo-lock-gcp-lifecycle }
+      kubo-lock: kubo-lock-<%= pool %>-lifecycle
+  - put: kubo-lock-<%= pool %>
+    params: { add: kubo-lock-<%= pool %>-lifecycle }
+  - put: kubo-lock-<%= pool %>-lifecycle
+    params: { remove: kubo-lock-<%= pool %>-lifecycle }
+<% end %>
