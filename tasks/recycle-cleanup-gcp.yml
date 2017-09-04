@@ -7,6 +7,7 @@ image_resource:
 
 inputs:
 - name: git-kubo-ci
+- name: kubo-lock-gcp-lifecycle
 
 run:
   path: git-kubo-ci/scripts/recycle-cleanup-gcp.sh
