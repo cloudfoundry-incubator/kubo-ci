@@ -1,0 +1,54 @@
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+- name: git-kubo-lock-gcp-lifecycle
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key))
+    paths:
+    - kubo-gcp-lifecycle/unclaimed/*
+
+- name: kubo-lock-gcp-lifecycle
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key))
+    pool: kubo-gcp-lifecycle
+- name: kubo-lock-gcp
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key))
+    pool: kubo-gcp
+
+jobs:
+- name: claim-lock
+  plan:
+  - get: git-kubo-lock-gcp-lifecycle
+    trigger: true
+    version: every
+  - put: kubo-lock-gcp-lifecycle
+    params: { acquire: true }
+- name: cleanup
+  plan:
+  - aggregate:
+    - get: kubo-lock-gcp-lifecycle
+      version: every
+      trigger: true
+      passed: [ 'claim-lock' ]
+    - get: git-kubo-ci
+  - task: cleanup-gcp
+    file: git-kubo-ci/tasks/recycle-cleanup-gcp.yml
+    input_mapping:
+      kubo-lock: kubo-lock-gcp-lifecycle
+  - put: kubo-lock-gcp
+    params: { add: kubo-lock-gcp-lifecycle }
+  - put: kubo-lock-gcp-lifecycle
+    params: { remove: kubo-lock-gcp-lifecycle }
