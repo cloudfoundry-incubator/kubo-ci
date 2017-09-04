@@ -1,5 +1,5 @@
 <%
-iaas_config = {"gcp-turbulence" => %w(static dynamic), "aws-lb" => %w(static), "vsphere" => %w(dynamic), "openstack" => %w(dynamic)}
+iaas_config = {"gcp-turbulence" => %w(static dynamic), "aws-lb" => %w(static), "vsphere" => %w(static), "openstack" => %w(dynamic)}
 %>
 ---
 resource_types:
