@@ -1,12 +1,14 @@
 package test_helpers
 
 import (
+	"errors"
 	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 
+	"github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -89,4 +91,25 @@ func (runner *KubectlRunner) GetOutput(kubectlArgs ...string) []string {
 
 func init() {
 	rand.Seed(config.GinkgoConfig.RandomSeed)
+}
+
+func (runner *KubectlRunner) GetNodePort(service string) (string, error) {
+	output := runner.GetOutput("describe", service)
+
+	for i := 0; i < len(output); i++ {
+		if output[i] == "NodePort:" {
+			nodePort := output[i+2]
+			return nodePort[:strings.Index(nodePort, "/")], nil
+		}
+	}
+
+	return "", errors.New("No nodePort found!")
+}
+
+func (runner *KubectlRunner) GetAppAddress(deployment director.Deployment, service string) string {
+	workerIP := GetWorkerIP(deployment)
+	nodePort, err := runner.GetNodePort(service)
+	Expect(err).ToNot(HaveOccurred())
+
+	return fmt.Sprintf("%s:%s", workerIP, nodePort)
 }

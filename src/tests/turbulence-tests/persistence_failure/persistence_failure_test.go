@@ -5,15 +5,7 @@ import (
 
 	"fmt"
 
-	"strings"
-
-	"errors"
-
-	"net/http"
-
 	"math/rand"
-
-	"io/ioutil"
 
 	"strconv"
 
@@ -53,7 +45,7 @@ var _ = Describe("Worker failure scenarios", func() {
 	})
 
 	AfterEach(func() {
-		undeployGuestBook(kubectl)
+		UndeployGuestBook(kubectl)
 		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
 		Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
 		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
@@ -65,27 +57,27 @@ var _ = Describe("Worker failure scenarios", func() {
 
 		By("Deploying the persistent application the value is persisted")
 
-		deployGuestBook(kubectl)
+		DeployGuestBook(kubectl)
 
-		appAddress := getAppAddress(deployment, kubectl)
+		appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
 
 		testValue := strconv.Itoa(rand.Int())
 		println(testValue)
 
-		postToGuestBook(appAddress, testValue)
+		PostToGuestBook(appAddress, testValue)
 
 		Eventually(func() string {
-			return getValueFromGuestBook(appAddress)
+			return GetValueFromGuestBook(appAddress)
 		}, "120s", "2s").Should(ContainSubstring(testValue))
 
 		By("Un-deploying the application and re-deploying the data is still available from the persisted source")
 
-		undeployGuestBook(kubectl)
-		deployGuestBook(kubectl)
+		UndeployGuestBook(kubectl)
+		DeployGuestBook(kubectl)
 
-		appAddress = getAppAddress(deployment, kubectl)
+		appAddress = kubectl.GetAppAddress(deployment, "svc/frontend")
 		Eventually(func() string {
-			return getValueFromGuestBook(appAddress)
+			return GetValueFromGuestBook(appAddress)
 		}, "120s", "2s").Should(ContainSubstring(testValue))
 
 		externalId := getExternalId(kubectl, iaas)
@@ -94,7 +86,7 @@ var _ = Describe("Worker failure scenarios", func() {
 
 		fmt.Println(time.Now())
 		Eventually(func() string {
-			return getValueFromGuestBook(appAddress)
+			return GetValueFromGuestBook(appAddress)
 		}, "600s", "2s").Should(ContainSubstring(testValue))
 		fmt.Println(time.Now())
 
@@ -104,14 +96,6 @@ var _ = Describe("Worker failure scenarios", func() {
 	})
 
 })
-
-func getAppAddress(deployment director.Deployment, kubectl *KubectlRunner) string {
-	workerIP := GetWorkerIP(deployment)
-	nodePort, err := GetNodePort(kubectl)
-	Expect(err).ToNot(HaveOccurred())
-
-	return fmt.Sprintf("%s:%s", workerIP, nodePort)
-}
 
 func getExternalId(kubectl *KubectlRunner, iaas string) string {
 
@@ -133,61 +117,4 @@ func getExternalId(kubectl *KubectlRunner, iaas string) string {
 	}
 	return externalId
 
-}
-
-func undeployGuestBook(kubectl *KubectlRunner) {
-	guestBookSpec := PathFromRoot("specs/pv-guestbook.yml")
-	Eventually(kubectl.RunKubectlCommand("delete", "-f", guestBookSpec), "120s").Should(gexec.Exit(0))
-}
-
-func deployGuestBook(kubectl *KubectlRunner) {
-
-	guestBookSpec := PathFromRoot("specs/pv-guestbook.yml")
-	Eventually(kubectl.RunKubectlCommand("apply", "-f", guestBookSpec), "120s").Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/frontend", "-w"), "120s").Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/redis-master", "-w"), "120s").Should(gexec.Exit(0))
-
-}
-
-func postToGuestBook(address string, testValue string) {
-
-	url := fmt.Sprintf("http://%s/guestbook.php?cmd=set&key=messages&value=%s", address, testValue)
-	_, err := http.Get(url)
-	Expect(err).ToNot(HaveOccurred())
-
-}
-
-func getValueFromGuestBook(address string) string {
-
-	httpClient := http.Client{
-		Timeout: time.Duration(5 * time.Second),
-	}
-	url := fmt.Sprintf("http://%s/guestbook.php?cmd=get&key=messages", address)
-	response, err := httpClient.Get(url)
-	if err != nil {
-		return fmt.Sprintf("error occured : %s", err.Error())
-	}
-
-	bodyBytes, err := ioutil.ReadAll(response.Body)
-	Expect(err).ToNot(HaveOccurred())
-	return string(bodyBytes)
-
-}
-
-func GetWorkerIP(deployment director.Deployment) string {
-	vms := DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
-	return vms[0].IPs[0]
-}
-
-func GetNodePort(kubectl *KubectlRunner) (string, error) {
-	output := kubectl.GetOutput("describe", "svc/frontend")
-
-	for i := 0; i < len(output); i++ {
-		if output[i] == "NodePort:" {
-			nodePort := output[i+2]
-			return nodePort[:strings.Index(nodePort, "/")], nil
-		}
-	}
-
-	return "", errors.New("No nodePort found!")
 }

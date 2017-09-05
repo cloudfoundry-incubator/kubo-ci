@@ -29,13 +29,19 @@ GIT_KUBO_CI=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 GOPATH="$GIT_KUBO_CI"
 INTEGRATIONTEST_IAAS=${iaas}
 
-
-export GOPATH INTEGRATIONTEST_IAAS
+export GOPATH INTEGRATIONTEST_IAAS DEPLOYMENT_NAME
 
 export PATH_TO_KUBECONFIG="$HOME/.kube/config"
 TLS_KUBERNETES_CERT=$(bosh-cli int <(credhub get -n "${director_name}/${DEPLOYMENT_NAME}/tls-kubernetes" --output-json) --path='/value/certificate')
 TLS_KUBERNETES_PRIVATE_KEY=$(bosh-cli int <(credhub get -n "${director_name}/${DEPLOYMENT_NAME}/tls-kubernetes" --output-json) --path='/value/private_key')
 export TLS_KUBERNETES_CERT TLS_KUBERNETES_PRIVATE_KEY
+
+BOSH_ENVIRONMENT=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/internal_ip')
+BOSH_CA_CERT=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path='/default_ca/ca')
+BOSH_CLIENT=bosh_admin
+BOSH_CLIENT_SECRET=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path='/bosh_admin_client_secret')
+
+export BOSH_ENVIRONMENT BOSH_CA_CERT BOSH_CLIENT BOSH_CLIENT_SECRET
 
 if [[ ${routing_mode} == "cf" ]]; then
   KUBERNETES_SERVICE_HOST=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/kubernetes_master_host")
@@ -70,3 +76,7 @@ fi
 ginkgo "$GOPATH/src/tests/integration-tests/pod_logs"
 ginkgo "$GOPATH/src/tests/integration-tests/generic"
 ginkgo "$GOPATH/src/tests/integration-tests/oss_only"
+
+if [[ "${iaas}" != "openstack" ]]; then
+    ginkgo "$GOPATH/src/tests/integration-tests/persistent_volume"
+fi

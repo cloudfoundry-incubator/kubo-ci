@@ -11,6 +11,11 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
+const (
+	WorkerVmType   = "worker"
+	VmRunningState = "running"
+)
+
 func CountDeploymentVmsOfType(deployment boshdir.Deployment, jobName, processState string) func() int {
 	return func() int {
 		return len(DeploymentVmsOfType(deployment, jobName, processState))
@@ -33,6 +38,11 @@ func VmsMatchingPredicate(vms []boshdir.VMInfo, f func(boshdir.VMInfo) bool) []b
 		}
 	}
 	return result
+}
+
+func GetWorkerIP(deployment boshdir.Deployment) string {
+	vms := DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
+	return vms[0].IPs[0]
 }
 
 func NewDirector() boshdir.Director {

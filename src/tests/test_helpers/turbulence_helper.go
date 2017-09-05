@@ -13,10 +13,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-const (
-	WorkerVmType   = "worker"
-	VmRunningState = "running"
-)
+
 
 func TurbulenceClient() client.Turbulence {
 	config := client.NewConfigFromEnv()
