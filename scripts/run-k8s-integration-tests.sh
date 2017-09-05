@@ -46,7 +46,7 @@ if [[ ${routing_mode} == "cf" ]]; then
   CF_APPS_DOMAIN=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing-cf-app-domain-name")
   export KUBERNETES_SERVICE_HOST KUBERNETES_SERVICE_PORT WORKLOAD_TCP_PORT INGRESS_CONTROLLER_TCP_PORT TCP_ROUTER_DNS_NAME CF_APPS_DOMAIN
 
-  ginkgo "$GOPATH/src/integration-tests/cloudfoundry"
+  ginkgo "$GOPATH/src/tests/integration-tests/cloudfoundry"
 elif [[ ${routing_mode} == "iaas" ]]; then
 
   case "${iaas}" in
@@ -59,14 +59,14 @@ elif [[ ${routing_mode} == "iaas" ]]; then
       ;;
   esac
 
-  ginkgo "$GOPATH/src/integration-tests/workload/k8s_lbs"
+  ginkgo "$GOPATH/src/tests/integration-tests/workload/k8s_lbs"
 elif [[ ${routing_mode} == "proxy" ]]; then
   WORKLOAD_ADDRESS=$(call_bosh -d "${DEPLOYMENT_NAME}" vms | grep 'worker-haproxy/' | head -1 | awk '{print $4}')
   WORKLOAD_PORT=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/worker_haproxy_tcp_frontend_port")
   export WORKLOAD_ADDRESS WORKLOAD_PORT
 
-  ginkgo "$GOPATH/src/integration-tests/workload/haproxy"
+  ginkgo "$GOPATH/src/tests/integration-tests/workload/haproxy"
 fi
-ginkgo "$GOPATH/src/integration-tests/pod_logs"
-ginkgo "$GOPATH/src/integration-tests/generic"
-ginkgo "$GOPATH/src/integration-tests/oss_only"
+ginkgo "$GOPATH/src/tests/integration-tests/pod_logs"
+ginkgo "$GOPATH/src/tests/integration-tests/generic"
+ginkgo "$GOPATH/src/tests/integration-tests/oss_only"
