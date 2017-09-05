@@ -1,7 +1,0 @@
-package: integration-tests
-import:
-- package: github.com/go-redis/redis
-  version: ^6.4.1
-testImport:
-- package: github.com/onsi/ginkgo
-- package: github.com/onsi/gomega
