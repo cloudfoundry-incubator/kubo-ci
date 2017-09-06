@@ -202,10 +202,6 @@ jobs:
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-  - task: pv-pod-to-pod
-    tags: [<%= iaas %>]
-    file: git-kubo-ci/tasks/pv-pod-to-pod.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
 
 - name: destroy-k8s-<%= iaas %>
   plan:
