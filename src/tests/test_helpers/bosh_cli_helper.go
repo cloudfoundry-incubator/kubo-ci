@@ -13,6 +13,7 @@ import (
 
 const (
 	WorkerVmType   = "worker"
+	MasterVmType   = "master"
 	VmRunningState = "running"
 )
 

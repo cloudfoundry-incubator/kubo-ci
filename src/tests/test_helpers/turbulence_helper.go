@@ -46,7 +46,7 @@ func NewVmId(oldVms []director.VMInfo, newVmIds []string) (string, error) {
 			return vmId, nil
 		}
 	}
-	return "", errors.New("No new VM found!")
+	return "", errors.New("no new VM found")
 }
 
 func contains(vmNames []string, vmName string) bool {
