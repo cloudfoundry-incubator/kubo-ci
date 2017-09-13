@@ -15,6 +15,7 @@ const (
 	WorkerVmType   = "worker"
 	MasterVmType   = "master"
 	VmRunningState = "running"
+	DeploymentName = "ci-service"
 )
 
 func CountDeploymentVmsOfType(deployment boshdir.Deployment, jobName, processState string) func() int {

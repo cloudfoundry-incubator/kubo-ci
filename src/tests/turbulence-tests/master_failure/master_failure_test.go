@@ -1,53 +1,39 @@
 package master_failure_test
 
 import (
-	. "tests/test_helpers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"fmt"
+	"tests/test_helpers"
 	"github.com/cloudfoundry/bosh-cli/director"
-	"github.com/onsi/gomega/gexec"
+	"github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/cppforlife/turbulence/incident"
 	"github.com/cppforlife/turbulence/incident/selector"
 	"github.com/cppforlife/turbulence/tasks"
 )
 
 var _ = Describe("A single master failure", func() {
-	var deployment director.Deployment
-	var countRunningMasters func() int
-	var kubectl *KubectlRunner
-	var nginxSpec = PathFromRoot("specs/nginx.yml")
-
-	BeforeEach(func() {
-		var err error
-
-		director := NewDirector()
-		deployment, err = director.FindDeployment("ci-service")
+	Specify("Master VM is resurrected within 10 minutes", func() {
+		boshDirector := test_helpers.NewDirector()
+		deployment, err := boshDirector.FindDeployment(test_helpers.DeploymentName)
 		Expect(err).NotTo(HaveOccurred())
-		countRunningMasters = CountDeploymentVmsOfType(deployment, MasterVmType, VmRunningState)
+		countRunningMasters := test_helpers.CountDeploymentVmsOfType(deployment, test_helpers.MasterVmType, test_helpers.VmRunningState)
 
-		kubectl = NewKubectlRunner()
-		kubectl.CreateNamespace()
+		Expect(countRunningMasters()).To(Equal(2))
 
-		Expect(countRunningMasters()).To(Equal(3))
-		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
-	})
+		By("Deleting the Master VM")
 
-	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", nginxSpec)
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
-	})
-
-	Specify("K8s applications are scheduled on the resurrected node", func() {
-		By("Deleting the Worker VM")
-		hellRaiser := TurbulenceClient()
+		hellRaiser := test_helpers.TurbulenceClient()
 		killOneMaster := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: "ci-service",
+					Name: test_helpers.DeploymentName,
 				},
 				Group: &selector.NameRequest{
-					Name: "worker",
+					Name: test_helpers.MasterVmType,
+				},
+				ID: &selector.IDRequest{
 					Limit: selector.MustNewLimitFromString("1"),
 				},
 			},
@@ -56,21 +42,33 @@ var _ = Describe("A single master failure", func() {
 			},
 		}
 
-		hellRaiser.CreateIncident(killOneMaster)
-		vms := DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
+		incident := hellRaiser.CreateIncident(killOneMaster)
+		By("Killing VM")
+		incident.Wait()
+		By("Waiting for Bosh to recognize dead VM")
+		Expect(countRunningMasters()).Should(Equal(1))
+		By("Waiting for resurrection")
 		Eventually(countRunningMasters, 600, 20).Should(Equal(2))
 
-		By("Verifying that the Worker VM has joined the K8s cluster")
-		Eventually(func() bool { return AllBoshWorkersHaveJoinedK8s(deployment, kubectl) }, 600, 20).Should(BeTrue())
-
-		By("Deploying nginx on 3 nodes")
-		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxSpec)).Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), "120s").Should(gexec.Exit(0))
-
-		By("Verifying nginx got deployed on new node")
-		nodeNames := GetNodeNamesForRunningPods(kubectl)
-		_, err := NewVmId(vms, nodeNames)
+		sshOpts, privateKey, err := director.NewSSHOpts(uuid.NewGenerator())
 		Expect(err).ToNot(HaveOccurred())
-	})
 
+		slug, err := director.NewAllOrInstanceGroupOrInstanceSlugFromString(test_helpers.MasterVmType)
+		Expect(err).ToNot(HaveOccurred())
+
+		By("Setting up SSH")
+		sshResult, err := deployment.SetUpSSH(slug, sshOpts)
+		Expect(err).ToNot(HaveOccurred())
+
+		//Verify both hosts, because figuring out which one to verify is too complicated
+		for _, host := range sshResult.Hosts {
+			By(fmt.Sprintf("Running SSH on %s", host.Host))
+			Eventually(func() string {
+				output, err := test_helpers.RunSSHCommand(host.Host, 22, sshOpts.Username, privateKey, "curl http://127.0.0.1:8080/healthz")
+				Expect(err).ToNot(HaveOccurred())
+				return output
+			}, "30s", "5s").Should(Equal("ok"))
+		}
+	})
 })
+

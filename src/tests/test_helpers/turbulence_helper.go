@@ -13,8 +13,6 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-
-
 func TurbulenceClient() client.Turbulence {
 	config := client.NewConfigFromEnv()
 	clientLogger := logger.NewLogger(logger.LevelNone)
