@@ -1,5 +1,5 @@
 <%
-  iaas_list = %w(gcp gcp-lb vsphere vsphere-lb openstack-lb aws-lb)
+  iaas_list = %w(gcp gcp-lb vsphere vsphere-lb openstack openstack-lb aws-lb)
 %>
 ---
 resource_types:
@@ -37,6 +37,14 @@ resources:
     private_key: ((git-ssh-key))
     pool: kubo-<%= iaas %>
 <% end %>
+
+- name: kubo-lock-openstack-global
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key))
+    pool: kubo-openstack-global
 
 - name: gcs-bosh-state
   type: gcs
@@ -106,6 +114,10 @@ jobs:
 - name: claim-lock-<%= iaas %>
   max_in_flight: 1
   plan:
+  <% if iaas.include? "openstack" %>
+  - put: kubo-lock-openstack-global
+    params: { acquire: true }
+  <% end %>
   - aggregate:
     - get: kubo-version
       passed: [ 'build-kubo-release' ]
@@ -120,22 +132,26 @@ jobs:
   - put: kubo-lock-<%= iaas %>
     params: { acquire: true }
 
-
 - name: install-bosh-<%= iaas %>
   plan:
-  - get: git-kubo-ci
-  - get: git-kubo-deployment
-    passed: [ 'claim-lock-<%= iaas %>' ]
-  - get: kubo-lock-<%= iaas %>
-    version: every
-    trigger: true
-    passed: [ 'claim-lock-<%= iaas %>' ]
-  - get: gcs-kubo-release-tarball-untested
-    passed: [ 'claim-lock-<%= iaas %>' ]
-  - get: git-kubo-release
-    passed: [ 'claim-lock-<%= iaas %>' ]
-  - get: kubo-version
-    passed: [ 'claim-lock-<%= iaas %>' ]
+  - aggregate: 
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed: [ 'claim-lock-<%= iaas %>' ]
+    - get: kubo-lock-<%= iaas %>
+      version: every
+      trigger: true
+      passed: [ 'claim-lock-<%= iaas %>' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'claim-lock-<%= iaas %>' ]
+    - get: git-kubo-release
+      passed: [ 'claim-lock-<%= iaas %>' ]
+    - get: kubo-version
+      passed: [ 'claim-lock-<%= iaas %>' ]
+    <% if iaas.include? "openstack" %>
+    - get: kubo-lock-openstack-global
+      passed: [ 'claim-lock-<%= iaas %>' ]
+    <% end %>      
   - task: install
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
@@ -168,6 +184,10 @@ jobs:
       passed: [ 'install-bosh-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'install-bosh-<%= iaas %>' ]
+    <% if iaas.include? "openstack" %>
+    - get: kubo-lock-openstack-global
+      passed: [ 'install-bosh-<%= iaas %>' ]
+    <% end %>      
   - task: deploy
     tags: [<%= iaas %>]
     input_mapping:
@@ -194,6 +214,10 @@ jobs:
       passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'deploy-k8s-<%= iaas %>' ]
+    <% if iaas.include? "openstack" %>
+    - get: kubo-lock-openstack-global
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
+    <% end %>            
   - task: integration-tests
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
@@ -202,6 +226,8 @@ jobs:
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+  - put: kubo-lock-openstack-global
+    params: { release: kubo-lock-openstack-global }
 
 - name: destroy-k8s-<%= iaas %>
   plan:
