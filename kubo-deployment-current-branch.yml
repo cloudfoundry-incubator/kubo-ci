@@ -226,8 +226,17 @@ jobs:
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-  - put: kubo-lock-openstack-global
-    params: { release: kubo-lock-openstack-global }
+  <% if iaas.include? "openstack" %>    
+  on_success:
+    do:
+    - put: kubo-lock-openstack-global
+      params: { release: kubo-lock-openstack-global }    
+  on_failure:
+    do:
+    - put: kubo-lock-openstack-global
+      params: { release: kubo-lock-openstack-global }    
+  <% end %> 
+
 
 - name: destroy-k8s-<%= iaas %>
   plan:
