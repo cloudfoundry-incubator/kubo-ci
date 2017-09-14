@@ -105,10 +105,20 @@ resources:
     username: ((docker-hub-username))
     password: ((docker-hub-password))
     tag: stable
+
 - name: kubectl
   type: docker-image
   source:
     repository: pcfkubo/alpine
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    tag: stable
+
+- name: cf-cli
+  type: docker-image
+  source:
+    repository: pcfkubo/cf-cli
     email: ((docker-hub-email))
     username: ((docker-hub-username))
     password: ((docker-hub-password))
@@ -253,6 +263,15 @@ jobs:
   - put: kubectl
     params:
       build: git-kubo-ci/docker-images/kubectl
+
+- name: build-cf-cli
+  plan:
+  - get: git-kubo-ci
+    trigger: true
+  - put: cf-cli
+    params:
+      build: git-kubo-ci/docker-images/cf-cli
+
 
 - name: build-aws-maintenance
   plan:
