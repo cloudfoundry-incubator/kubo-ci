@@ -2,8 +2,8 @@
 pins:
   - &CONCOURSE_VERSION {version: 3.4.1}
   - &GARDEN_RUNC_VERSION {version: 1.6.0}
-  - &STEMCELL_VERSION {version: "3445.2"}
-source_types:
+  - &STEMCELL_VERSION {version: "3445.7"}
+resource_types:
   - name: bosh-deployment
     type: docker-image
     source:
@@ -13,22 +13,31 @@ resources:
     type: bosh-io-stemcell
     source:
       name: bosh-vsphere-esxi-ubuntu-trusty-go_agent
+
   - name: concourse-vsphere-deployment
     type: bosh-deployment
     source:
-      target: ((vsphere_concourse_bosh_director))
-      client: ((vsphere_concourse_bosh_username))
-      client_secret: ((vsphere_concourse_bosh_password))
+      target: 10.74.42.5
+      client: admin
+      client_secret: ((admin_password))
+      ca_cert: ((director_ssl.ca))
       deployment: concourse-worker
-- name: concourse-release
-  type: bosh-io-release
-  source:
-    repository: concourse/concourse
 
-- name: garden-runc-release
-  type: bosh-io-release
-  source:
-    repository: cloudfoundry/garden-runc-release
+  - name: concourse-release
+    type: bosh-io-release
+    source:
+      repository: concourse/concourse
+
+  - name: garden-runc-release
+    type: bosh-io-release
+    source:
+      repository: cloudfoundry/garden-runc-release
+  - name: git-kubo-ci
+    type: git
+    source:
+      uri: https://github.com/pivotal-cf-experimental/kubo-ci
+      branch: master
+
 jobs:
   - name: deploy-concourse-workers-vsphere
     plan:
@@ -37,17 +46,24 @@ jobs:
           version: *CONCOURSE_VERSION
         - get: garden-runc-release
           version: *GARDEN_RUNC_VERSION
-        - get: git-kubo-ci
+
         - get: vsphere-stemcell
           version: *STEMCELL_VERSION
-        - get: bosh-init-director-deployment-vsphere
-          passed: [bosh-init-director-vsphere]
-        - put: concourse-vsphere-deployment
-          tags: [vsphere]
-          params:
-            manifest: git-kubo-ci/concourse/vsphere/workers.yml
-            releases:
-              - concourse-release/*.tgz
-              - garden-runc-release/*.tgz
-            stemcells:
-              - vsphere-stemcell/*.tgz
+        - get: git-kubo-ci
+      - put: concourse-vsphere-deployment
+        tags: [vsphere]
+        params:
+          dry_run: true
+          manifest: git-kubo-ci/concourse/vsphere/workers.yml
+          releases:
+            - concourse-release/*.tgz
+            - garden-runc-release/*.tgz
+          stemcells:
+            - vsphere-stemcell/*.tgz
+          vars_files:
+          - git-kubo-ci/concourse/vsphere/director.yml
+          vars:
+            worker-key:
+              private_key: ((worker-key.private_key))
+            tsa-host-key:
+              public_key: ((tsa-host-key.public_key))
