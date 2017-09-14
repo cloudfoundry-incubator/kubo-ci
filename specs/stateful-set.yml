@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pv-ex-svc
+  labels:
+    app: pv-ex
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+  selector:
+    app: pv-ex
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: web
+spec:
+  serviceName: "pv-ex-svc"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: pv-ex
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: pv-ex
+        image: pcfkubo/persistent-example
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/pv-ex
+        env:
+        - name: LOG_FILE
+          value: /usr/share/pv-ex/log.txt
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: [ "ReadOnlyMany" ]
+      storageClassName: ci-storage
+      resources:
+        requests:
+          storage: 1Gi
