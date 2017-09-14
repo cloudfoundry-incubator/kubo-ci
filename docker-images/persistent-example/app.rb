@@ -6,8 +6,10 @@ set :bind, '0.0.0.0'
 get '/' do
     log_file = ENV['LOG_FILE']
 
+    File.write(log_file, "")
+
     last_line = IO.readlines(log_file)[-1]
-    last_number = last_line.strip.to_i
+    last_number = last_line.nil? ? 0 : last_line.strip.to_i
 
     num_lines = File.open(log_file, "r").readlines.size
 
