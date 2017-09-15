@@ -18,11 +18,26 @@ resources:
     tags: [vsphere]
     type: bosh-deployment
     source:
-      target: 10.74.42.5
+      target: ((vsphere_director_internal_ip))
       client: admin
-      client_secret: ((admin_password))
-      ca_cert: ((director_ssl.ca))
+      client_secret: ((vsphere_admin_password))
+      ca_cert: ((vsphere_director_ssl_ca))
       deployment: concourse-worker
+
+  # - name: gcp-stemcell
+  #   type: bosh-io-stemcell
+  #   source:
+  #     name: bosh-google-kvm-ubuntu-trusty-go_agent
+
+  # - name: concourse-gcp-deployment
+  #   tags: [gcp]
+  #   type: bosh-deployment
+  #   source:
+  #     target: ((gcp_director_internal_ip))
+  #     client: admin
+  #     client_secret: ((gcp_admin_password))
+  #     ca_cert: ((gcp_director_ssl_ca))
+  #     deployment: concourse-worker
 
   - name: concourse-release
     type: bosh-io-release
@@ -58,3 +73,26 @@ jobs:
             - garden-runc-release/*.tgz
           stemcells:
             - vsphere-stemcell/*.tgz
+
+  # - name: deploy-concourse-workers-gcp
+  #   plan:
+  #     - aggregate:
+  #       - get: concourse-release
+  #         version: *CONCOURSE_VERSION
+  #       - get: garden-runc-release
+  #         version: *GARDEN_RUNC_VERSION
+
+  #       - get: gcp-stemcell
+  #         version: *STEMCELL_VERSION
+  #       - get: concourse-gcp-deployment
+  #         tags: [gcp]
+
+  #     - put: concourse-gcp-deployment
+  #       tags: [gcp]
+  #       params:
+  #         manifest: concourse-gcp-deployment/manifest.yml
+  #         releases:
+  #           - concourse-release/*.tgz
+  #           - garden-runc-release/*.tgz
+  #         stemcells:
+  #           - gcp-stemcell/*.tgz

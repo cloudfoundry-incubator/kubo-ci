@@ -1,0 +1,65 @@
+#!/bin/bash
+
+set -e -o pipefail
+
+[ -z "${DEBUG}" ] || set -x
+
+set -u
+
+ci_dir="$(cd "$(dirname "$0")"; pwd)"
+
+echo "============================================="
+echo "| Setting kubo Concourse UPDATE pipeline     |"
+echo "============================================="
+echo ""
+
+print_usage() {
+  echo "Usage:"
+  echo "    $0 <pipeline name> [branch name] "
+  echo ""
+  echo "    valid pipeline names:"
+  for name in ${ci_dir}/*.yml; do
+    local pipeline_name
+    pipeline_name="$(basename "${name}")"
+    echo "        - ${pipeline_name%.yml}"
+  done
+  echo
+  echo 'Use following command to set all pipelines'
+  echo 'find * -maxdepth 0 -name \*.yml -exec ./set_pipeline  {} \;'
+}
+
+main() {
+
+  if [ -z  "$(which lpass)" ]; then
+    echo "Unable to locate the LastPass CLI"
+    print_usage
+    exit 1
+  fi
+
+  local ssh_key service_account slack_url github_token
+  ssh_key="$(lpass show "Shared-Kubo/CI/git-ssh-key" --notes)"
+  service_account="$(lpass show "Shared-Kubo/CI/bosh-deployer service key" --notes)"
+  slack_url="$(lpass show "Shared-Kubo/CI/Slack Incoming Webhook" --url)"
+  github_token="$(lpass show "Shared-Kubo/CI/pr-github-token" --notes)"
+
+
+local vsphere_lpass vsphere_director_internal_ip vsphere_notes vsphere_admin_password vsphere_director_ssl_ca
+vsphere_lpass=$(bosh int concourse/vsphere/director.yml --path=/private_note_id)
+vsphere_director_internal_ip=$(bosh int concourse/vsphere/director.yml --path=/internal_ip)
+
+vsphere_notes=$(lpass show "$vsphere_lpass" --notes)
+vsphere_admin_password=$(bosh int <(echo "$vsphere_notes") --path=/admin_password)
+vsphere_director_ssl_ca=$(bosh int <(echo "$vsphere_notes") --path=/default_ca/ca)
+
+  fly --target kubo sync > /dev/null
+
+  fly --target kubo set-pipeline -p update-concourse \
+    --config update-concourse.yml \
+    --var vsphere_admin_password="${vsphere_admin_password}" \
+    --var vsphere_director_ssl_ca="${vsphere_director_ssl_ca}" \
+    --var vsphere_director_internal_ip="${vsphere_director_internal_ip}"
+}
+
+pushd "${ci_dir}" > /dev/null
+  main "$@"
+popd > /dev/null
