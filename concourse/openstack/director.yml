@@ -14,3 +14,4 @@ secrets_lpass_note_id: 6568959770663483364
 secrets_lpass_note_path: openstack_ci
 
 concourse_secrets_lpass_note_id: 1124880505947455779
+private_note_id: 5140057576373881347
