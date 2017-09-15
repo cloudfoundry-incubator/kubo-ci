@@ -1,13 +1,14 @@
 package master_failure_test
 
 import (
+	"github.com/cloudfoundry/bosh-cli/director"
+	"github.com/cloudfoundry/bosh-utils/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"fmt"
 	"tests/test_helpers"
-	"github.com/cloudfoundry/bosh-cli/director"
-	"github.com/cloudfoundry/bosh-utils/uuid"
+
 	"github.com/cppforlife/turbulence/incident"
 	"github.com/cppforlife/turbulence/incident/selector"
 	"github.com/cppforlife/turbulence/tasks"
@@ -18,9 +19,9 @@ var _ = Describe("A single master failure", func() {
 		boshDirector := test_helpers.NewDirector()
 		deployment, err := boshDirector.FindDeployment(test_helpers.DeploymentName)
 		Expect(err).NotTo(HaveOccurred())
-		countRunningMasters := test_helpers.CountDeploymentVmsOfType(deployment, test_helpers.MasterVmType, test_helpers.VmRunningState)
+		countRunningApiServerOnMaster := test_helpers.CountProcessesOnVmsOfType(deployment, test_helpers.MasterVmType, "kubernetes-api", test_helpers.VmRunningState)
 
-		Expect(countRunningMasters()).To(Equal(2))
+		Expect(countRunningApiServerOnMaster()).To(Equal(2))
 
 		By("Deleting the Master VM")
 
@@ -46,9 +47,9 @@ var _ = Describe("A single master failure", func() {
 		By("Killing VM")
 		incident.Wait()
 		By("Waiting for Bosh to recognize dead VM")
-		Expect(countRunningMasters()).Should(Equal(1))
+		Expect(countRunningApiServerOnMaster()).Should(Equal(1))
 		By("Waiting for resurrection")
-		Eventually(countRunningMasters, 600, 20).Should(Equal(2))
+		Eventually(countRunningApiServerOnMaster, 600, 20).Should(Equal(2))
 
 		sshOpts, privateKey, err := director.NewSSHOpts(uuid.NewGenerator())
 		Expect(err).ToNot(HaveOccurred())
@@ -71,4 +72,3 @@ var _ = Describe("A single master failure", func() {
 		}
 	})
 })
-

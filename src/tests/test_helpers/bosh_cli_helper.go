@@ -24,11 +24,29 @@ func CountDeploymentVmsOfType(deployment boshdir.Deployment, jobName, processSta
 	}
 }
 
+func CountProcessesOnVmsOfType(deployment boshdir.Deployment, jobName, processName, processState string) func() int {
+	return func() int {
+		return len(ProcessesOnVmsOfType(deployment, jobName, processName, processState))
+	}
+}
+
 func DeploymentVmsOfType(deployment boshdir.Deployment, jobName, processState string) []boshdir.VMInfo {
 	vms, err := deployment.VMInfos()
 	Expect(err).NotTo(HaveOccurred())
 	return VmsMatchingPredicate(vms, func(vmInfo boshdir.VMInfo) bool {
 		return vmInfo.JobName == jobName && vmInfo.ProcessState == processState
+	})
+}
+
+func ProcessesOnVmsOfType(deployment boshdir.Deployment, jobName, processName, processState string) []boshdir.VMInfo {
+	vms := DeploymentVmsOfType(deployment, jobName, VmRunningState)
+	return VmsMatchingPredicate(vms, func(vmInfo boshdir.VMInfo) bool {
+		for _, process := range vmInfo.Processes {
+			if process.Name == processName && process.State == processState {
+				return true
+			}
+		}
+		return false
 	})
 }
 
