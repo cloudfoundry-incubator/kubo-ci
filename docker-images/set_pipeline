@@ -26,7 +26,7 @@ fly --target kubo validate-pipeline \
   --var docker-hub-password="${password}"
 
 fly --target kubo set-pipeline --pipeline docker-image \
-  --config "$pipeline_dir/pipeline.yml" \
+  --config <(erb "$pipeline_dir/pipeline.yml") \
   --load-vars-from "$pipeline_dir/secrets.yml" \
   --var git-ssh-key="${ssh_key}" \
   --var docker-hub-password="${password}"

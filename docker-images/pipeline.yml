@@ -1,128 +1,37 @@
+<%
+  tested_images=%w(test-runner vsphere-cleaner curl aws-maintenance kubo-ci)
+  untested_images=%w(ulimit kubectl cf-cleaner)
+%>
 ---
 resources:
-- name: git-kubo-ci
+<% (tested_images + untested_images).each do |image_name| %>
+- name: git-kubo-ci-<%= image_name %>
   type: git
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
     branch: master
     paths:
-    - docker-images/*
-- name: test-runner-latest
+    - docker-images/<%= image_name %>
+
+- name: <%= image_name %>-stable
   type: docker-image
   source:
-    repository: pcfkubo/test-runner
+    repository: pcfkubo/<%= image_name %>
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    tag: stable
+<% if tested_images.include? image_name %>
+- name: <%= image_name %>-latest
+  type: docker-image
+  source:
+    repository: pcfkubo/<%= image_name %>
     email: ((docker-hub-email))
     username: ((docker-hub-username))
     password: ((docker-hub-password))
     tag: latest
-
-- name: test-runner-stable
-  type: docker-image
-  source:
-    repository: pcfkubo/test-runner
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: stable
-
-- name: vsphere-cleaner-latest
-  type: docker-image
-  source:
-    repository: pcfkubo/vsphere-cleaner
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: latest
-
-- name: vsphere-cleaner-stable
-  type: docker-image
-  source:
-    repository: pcfkubo/vsphere-cleaner
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: stable
-
-- name: curl-latest
-  type: docker-image
-  source:
-    repository: pcfkubo/curl
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: latest
-
-- name: curl-stable
-  type: docker-image
-  source:
-    repository: pcfkubo/curl
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: stable
-
-- name: ulimit
-  type: docker-image
-  source:
-    repository: pcfkubo/ulimit
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: stable
-
-- name: aws-maintenance-latest
-  type: docker-image
-  source:
-    repository: pcfkubo/aws-maintenance
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: latest
-
-- name: aws-maintenance-stable
-  type: docker-image
-  source:
-    repository: pcfkubo/aws-maintenance
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: stable
-
-- name: kubo-ci-latest
-  type: docker-image
-  source:
-    repository: pcfkubo/kubo-ci
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: latest
-
-- name: kubo-ci-stable
-  type: docker-image
-  source:
-    repository: pcfkubo/kubo-ci
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: stable
-
-- name: kubectl
-  type: docker-image
-  source:
-    repository: pcfkubo/alpine
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: stable
-
-- name: cf-cleaner
-  type: docker-image
-  source:
-    repository: pcfkubo/cf-cleaner
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: stable
+<% end %>
+<% end %>
 
 - name: gcs-vsphere-cleaner
   type: gcs
@@ -140,7 +49,7 @@ resource_types:
 jobs:
 - name: build-kubo-ci
   plan:
-  - get: git-kubo-ci
+  - get: git-kubo-ci-kubo-ci
     trigger: true
   - put: kubo-ci-latest
     params:
@@ -156,12 +65,12 @@ jobs:
           tag: latest
 
       inputs:
-      - name: git-kubo-ci
+      - name: git-kubo-ci-kubo-ci
       run:
         path: ginkgo
         args:
         - -r
-        - git-kubo-ci/docker-images/system_tests/
+        - git-kubo-ci-kubo-ci/docker-images/system_tests/
   - put: kubo-ci-stable
     params:
       cache: true
@@ -170,13 +79,13 @@ jobs:
 
 - name: build-vsphere-cleaner
   plan:
-  - get: git-kubo-ci
+  - get: git-kubo-ci-vsphere-cleaner
     trigger: true
   - get: gcs-vsphere-cleaner
     trigger: true
   - put: vsphere-cleaner-latest
     params:
-      build: git-kubo-ci/docker-images/vsphere-cleaner
+      build: git-kubo-ci-vsphere-cleaner/docker-images/vsphere-cleaner
   - task: test-docker-image
     config:
       platform: linux
@@ -188,7 +97,7 @@ jobs:
       inputs:
       - name: git-kubo-ci
       run:
-        path: git-kubo-ci/docker-images/vsphere-cleaner/run_tests
+        path: git-kubo-ci-vsphere-cleaner/docker-images/vsphere-cleaner/run_tests
   - put: vsphere-cleaner-stable
     params:
       cache: true
@@ -197,11 +106,11 @@ jobs:
 
 - name: build-curl
   plan:
-  - get: git-kubo-ci
+  - get: git-kubo-ci-curl
     trigger: true
   - put: curl-latest
     params:
-      build: git-kubo-ci/docker-images/curl
+      build: git-kubo-ci-curl/docker-images/curl
   - task: test-docker-image
     config:
       platform: linux
@@ -213,7 +122,7 @@ jobs:
       inputs:
       - name: git-kubo-ci
       run:
-        path: git-kubo-ci/docker-images/curl/run_tests
+        path: git-kubo-ci-curl/docker-images/curl/run_tests
   - put: curl-stable
     params:
       cache: true
@@ -222,19 +131,19 @@ jobs:
 
 - name: build-ulimit
   plan:
-  - get: git-kubo-ci
+  - get: git-kubo-ci-ulimit
     trigger: true
-  - put: ulimit
+  - put: ulimit-stable
     params:
-      build: git-kubo-ci/docker-images/ulimit
+      build: git-kubo-ci-ulimit/docker-images/ulimit
 
 - name: build-test-runner
   plan:
-  - get: git-kubo-ci
+  - get: git-kubo-ci-test-runner
     trigger: true
   - put: test-runner-latest
     params:
-      build: git-kubo-ci/docker-images/test-runner
+      build: git-kubo-ci-test-runner/docker-images/test-runner
   - task: test-docker-image
     config:
       platform: linux
@@ -249,7 +158,7 @@ jobs:
         path: ginkgo
         args:
         - -r
-        - git-kubo-ci/docker-images/test-runner/system_tests
+        - git-kubo-ci-test-runner/docker-images/test-runner/system_tests
   - put: test-runner-stable
     params:
       cache: true
@@ -258,28 +167,28 @@ jobs:
 
 - name: build-kubectl
   plan:
-  - get: git-kubo-ci
+  - get: git-kubo-ci-kubectl
     trigger: true
-  - put: kubectl
+  - put: kubectl-stable
     params:
-      build: git-kubo-ci/docker-images/kubectl
+      build: git-kubo-ci-kubectl/docker-images/kubectl
 
 - name: build-cf-cleaner
   plan:
-  - get: git-kubo-ci
+  - get: git-kubo-ci-cf-cleaner
     trigger: true
-  - put: cf-cleaner
+  - put: cf-cleaner-stable
     params:
-      build: git-kubo-ci/docker-images/cf-cleaner
+      build: git-kubo-ci-cf-cleaner/docker-images/cf-cleaner
 
 
 - name: build-aws-maintenance
   plan:
-   - get: git-kubo-ci
+   - get: git-kubo-ci-aws-maintenance
      trigger: true
    - put: aws-maintenance-latest
      params:
-       build: git-kubo-ci/docker-images/aws-maintenance
+       build: git-kubo-ci-aws-maintenance/docker-images/aws-maintenance
    - task: test-docker-image
      config:
        platform: linux
@@ -291,7 +200,7 @@ jobs:
        inputs:
        - name: git-kubo-ci
        run:
-         path: git-kubo-ci/docker-images/aws-maintenance/run_tests
+         path: git-kubo-ci-aws-maintenance/docker-images/aws-maintenance/run_tests
    - put: aws-maintenance-stable
      params:
        cache: true
