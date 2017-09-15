@@ -15,6 +15,7 @@ resources:
       name: bosh-vsphere-esxi-ubuntu-trusty-go_agent
 
   - name: concourse-vsphere-deployment
+    tags: [vsphere]
     type: bosh-deployment
     source:
       target: 10.74.42.5
@@ -32,11 +33,7 @@ resources:
     type: bosh-io-release
     source:
       repository: cloudfoundry/garden-runc-release
-  - name: git-kubo-ci
-    type: git
-    source:
-      uri: https://github.com/pivotal-cf-experimental/kubo-ci
-      branch: master
+
 
 jobs:
   - name: deploy-concourse-workers-vsphere
@@ -49,21 +46,15 @@ jobs:
 
         - get: vsphere-stemcell
           version: *STEMCELL_VERSION
-        - get: git-kubo-ci
+        - get: concourse-vsphere-deployment
+          tags: [vsphere]
+
       - put: concourse-vsphere-deployment
         tags: [vsphere]
         params:
-          dry_run: true
-          manifest: git-kubo-ci/concourse/vsphere/workers.yml
+          manifest: concourse-vsphere-deployment/manifest.yml
           releases:
             - concourse-release/*.tgz
             - garden-runc-release/*.tgz
           stemcells:
             - vsphere-stemcell/*.tgz
-          vars_files:
-          - git-kubo-ci/concourse/vsphere/director.yml
-          vars:
-            worker-key:
-              private_key: ((worker-key.private_key))
-            tsa-host-key:
-              public_key: ((tsa-host-key.public_key))
