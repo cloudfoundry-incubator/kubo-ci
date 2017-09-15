@@ -18,6 +18,13 @@ password=$(lpass show "Shared-Kubo/Docker Hub" --password)
 ssh_key="$(lpass show "Shared-Kubo/CI/git-ssh-key" --notes)"
 
 fly --target kubo sync
+
+fly --target kubo validate-pipeline \
+  --config <(erb "$pipeline_dir/pipeline.yml") \
+  --load-vars-from "$pipeline_dir/secrets.yml" \
+  --var git-ssh-key="${ssh_key}" \
+  --var docker-hub-password="${password}"
+
 fly --target kubo set-pipeline --pipeline docker-image \
   --config "$pipeline_dir/pipeline.yml" \
   --load-vars-from "$pipeline_dir/secrets.yml" \
