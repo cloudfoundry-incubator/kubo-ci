@@ -1,5 +1,5 @@
 <%
-iaas_config = {"gcp-turbulence" => %w(static dynamic), "aws-lb" => %w(static), "vsphere" => %w(static), "openstack" => %w(dynamic)}
+iaas_config = {"gcp-lb" => %w(static dynamic), "aws-lb" => %w(static), "vsphere" => %w(static), "openstack" => %w(dynamic)}
 %>
 ---
 resource_types:
@@ -73,8 +73,7 @@ resources:
 jobs:
 
 <% iaas_config.each do |iaas, network_list|
-  network_list.each do |network|
-  worker_tag = iaas.sub("-turbulence", "") %>
+  network_list.each do |network| %>
 - name: claim-lock-<%= iaas %>-<%= network %>
   plan:
   - aggregate:
@@ -108,11 +107,11 @@ jobs:
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    tags: ['<%= worker_tag %>']
+    tags: ['<%= iaas %>']
 
   - task: install
     file: git-kubo-ci/tasks/install-bosh.yml
-    tags: ['<%= worker_tag %>']
+    tags: ['<%= iaas %>']
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>-<%= network %>
     params:
@@ -148,17 +147,17 @@ jobs:
     <% end %>      
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    tags: ['<%= worker_tag %>']
+    tags: ['<%= iaas %>']
 
   - task: configure-bosh
-    tags: ['<%= worker_tag %>']
+    tags: ['<%= iaas %>']
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>-<%= network %>
     file: git-kubo-ci/tasks/configure-bosh.yml
-    tags: ['<%= worker_tag %>']
+    tags: ['<%= iaas %>']
 
   - task: deploy
-    tags: ['<%= worker_tag %>']
+    tags: ['<%= iaas %>']
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>-<%= network %>
       gcs-kubo-release-tarball: gcs-kubo-release-pre
@@ -188,11 +187,11 @@ jobs:
     <% end %>   
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    tags: ['<%= worker_tag %>']
+    tags: ['<%= iaas %>']
 
   - task: turbulence-tests
     file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
-    tags: ['<%= worker_tag %>']
+    tags: ['<%= iaas %>']
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
   <% if iaas.include? "openstack" %>    
   on_success:
@@ -224,11 +223,11 @@ jobs:
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    tags: ['<%= worker_tag %>']
+    tags: ['<%= iaas %>']
 
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-    tags: ['<%= worker_tag %>']
+    tags: ['<%= iaas %>']
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
 
 - name: destroy-bosh-<%= iaas %>-<%= network %>
@@ -252,11 +251,11 @@ jobs:
       - 'destroy-k8s-<%= iaas %>-<%= network %>'
 
   - task: unpack-kubo-deployment
-    tags: ['<%= worker_tag %>']
+    tags: ['<%= iaas %>']
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
 
   - task: destroy
-    tags: ['<%= worker_tag %>']
+    tags: ['<%= iaas %>']
     file: git-kubo-ci/tasks/destroy-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
 
