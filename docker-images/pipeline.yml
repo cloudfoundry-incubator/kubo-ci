@@ -115,10 +115,10 @@ resources:
     password: ((docker-hub-password))
     tag: stable
 
-- name: cf-cli
+- name: cf-cleaner
   type: docker-image
   source:
-    repository: pcfkubo/cf-cli
+    repository: pcfkubo/cf-cleaner
     email: ((docker-hub-email))
     username: ((docker-hub-username))
     password: ((docker-hub-password))
@@ -264,13 +264,13 @@ jobs:
     params:
       build: git-kubo-ci/docker-images/kubectl
 
-- name: build-cf-cli
+- name: build-cf-cleaner
   plan:
   - get: git-kubo-ci
     trigger: true
-  - put: cf-cli
+  - put: cf-cleaner
     params:
-      build: git-kubo-ci/docker-images/cf-cli
+      build: git-kubo-ci/docker-images/cf-cleaner
 
 
 - name: build-aws-maintenance
