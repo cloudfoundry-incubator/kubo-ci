@@ -43,21 +43,55 @@ main() {
   github_token="$(lpass show "Shared-Kubo/CI/pr-github-token" --notes)"
 
 
-local vsphere_lpass vsphere_director_internal_ip vsphere_notes vsphere_admin_password vsphere_director_ssl_ca
-vsphere_lpass=$(bosh int concourse/vsphere/director.yml --path=/private_note_id)
-vsphere_director_internal_ip=$(bosh int concourse/vsphere/director.yml --path=/internal_ip)
+  local vsphere_lpass vsphere_director_internal_ip vsphere_notes vsphere_admin_password vsphere_director_ssl_ca
+  vsphere_lpass=$(bosh int concourse/vsphere/director.yml --path=/private_note_id)
+  vsphere_director_internal_ip=$(bosh int concourse/vsphere/director.yml --path=/internal_ip)
 
-vsphere_notes=$(lpass show "$vsphere_lpass" --notes)
-vsphere_admin_password=$(bosh int <(echo "$vsphere_notes") --path=/admin_password)
-vsphere_director_ssl_ca=$(bosh int <(echo "$vsphere_notes") --path=/default_ca/ca)
+  vsphere_notes=$(lpass show "$vsphere_lpass" --notes)
+  vsphere_admin_password=$(bosh int <(echo "$vsphere_notes") --path=/admin_password)
+  vsphere_director_ssl_ca=$(bosh int <(echo "$vsphere_notes") --path=/default_ca/ca)
 
+  local gcp_lpass gcp_director_internal_ip gcp_notes gcp_admin_password gcp_director_ssl_ca
+  gcp_lpass=$(bosh int concourse/gcp/director.yml --path=/private_note_id)
+  gcp_director_internal_ip=$(bosh int concourse/gcp/director.yml --path=/internal_ip)
+
+  gcp_notes=$(lpass show "$gcp_lpass" --notes)
+  gcp_admin_password=$(bosh int <(echo "$gcp_notes") --path=/admin_password)
+  gcp_director_ssl_ca=$(bosh int <(echo "$gcp_notes") --path=/default_ca/ca)
+
+  local aws_lpass aws_director_internal_ip aws_notes aws_admin_password aws_director_ssl_ca
+  aws_lpass=$(bosh int concourse/aws/director.yml --path=/private_note_id)
+  aws_director_internal_ip=$(bosh int concourse/aws/director.yml --path=/internal_ip)
+
+  aws_notes=$(lpass show "$aws_lpass" --notes)
+  aws_admin_password=$(bosh int <(echo "$aws_notes") --path=/admin_password)
+  aws_director_ssl_ca=$(bosh int <(echo "$aws_notes") --path=/default_ca/ca)
+
+  local openstack_lpass openstack_director_internal_ip openstack_notes openstack_admin_password openstack_director_ssl_ca
+  openstack_lpass=$(bosh int concourse/openstack/director.yml --path=/private_note_id)
+  openstack_director_internal_ip=$(bosh int concourse/openstack/director.yml --path=/internal_ip)
+
+  openstack_notes=$(lpass show "$openstack_lpass" --notes)
+  openstack_admin_password=$(bosh int <(echo "$openstack_notes") --path=/admin_password)
+  openstack_director_ssl_ca=$(bosh int <(echo "$openstack_notes") --path=/default_ca/ca)
+  
   fly --target kubo sync > /dev/null
 
   fly --target kubo set-pipeline -p update-concourse \
     --config update-concourse.yml \
     --var vsphere_admin_password="${vsphere_admin_password}" \
     --var vsphere_director_ssl_ca="${vsphere_director_ssl_ca}" \
-    --var vsphere_director_internal_ip="${vsphere_director_internal_ip}"
+    --var vsphere_director_internal_ip="${vsphere_director_internal_ip}" \
+    --var gcp_admin_password="${gcp_admin_password}" \
+    --var gcp_director_ssl_ca="${gcp_director_ssl_ca}" \
+    --var gcp_director_internal_ip="${gcp_director_internal_ip}" \
+    --var aws_admin_password="${aws_admin_password}" \
+    --var aws_director_ssl_ca="${aws_director_ssl_ca}" \
+    --var aws_director_internal_ip="${aws_director_internal_ip}" \
+    --var openstack_admin_password="${openstack_admin_password}" \
+    --var openstack_director_ssl_ca="${openstack_director_ssl_ca}" \
+    --var openstack_director_internal_ip="${openstack_director_internal_ip}"
+  
 }
 
 pushd "${ci_dir}" > /dev/null
