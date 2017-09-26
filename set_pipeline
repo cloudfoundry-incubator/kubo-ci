@@ -75,28 +75,11 @@ main() {
     fi
   fi
 
-  local ssh_key service_account slack_url github_token
-  ssh_key="$(lpass show "Shared-Kubo/CI/git-ssh-key" --notes)"
-  service_account="$(lpass show "Shared-Kubo/CI/bosh-deployer service key" --notes)"
-  slack_url="$(lpass show "Shared-Kubo/CI/Slack Incoming Webhook" --url)"
-  github_token="$(lpass show "Shared-Kubo/CI/pr-github-token" --notes)"
-
-
-  trap 'rm "${ci_dir}/secrets.yml"' EXIT
-  echo "---" > "${ci_dir}/secrets.yml"
-  lpass show "Shared-Kubo/CI/kubo-ci" --notes >> "${ci_dir}/secrets.yml"
-  lpass show 4254727809438166206 --notes >> "${ci_dir}/secrets.yml"
-
   fly --target kubo sync > /dev/null
   erb "${pipeline_filename}" > /dev/null
 
   fly --target kubo set-pipeline --pipeline "${pipeline_name}" \
     --config <(erb "${pipeline_filename}") \
-    --load-vars-from "${ci_dir}/secrets.yml" \
-    --var git-ssh-key="${ssh_key}" \
-    --var gcp-service-account="${service_account}" \
-    --var slack-url="${slack_url}" \
-    --var github-token-key="${github_token}" \
     --var branch-name="${branch_name}"
 }
 
