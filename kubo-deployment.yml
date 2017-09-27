@@ -147,7 +147,7 @@ resources:
     region_name: us-east1
     endpoint: storage.googleapis.com
 # stemcell
-- name: ubuntu-trusty-3421-stemcell
+- name: ubuntu-trusty-stemcell
   type: bosh-io-stemcell
   source:
     name: bosh-warden-boshlite-ubuntu-trusty-go_agent
@@ -178,9 +178,9 @@ jobs:
     - get: git-kubo-release
       passed: [ 'run-unit-tests' ]
       trigger: true
-    - get: ubuntu-trusty-3421-stemcell
+    - get: ubuntu-trusty-stemcell
       version:
-        version: "3421.20"
+        version: "3445.11"
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
   - task: export-release
@@ -188,7 +188,7 @@ jobs:
     privileged: true
     input_mapping:
       kubo-ci: git-kubo-ci
-      stemcell: ubuntu-trusty-3421-stemcell
+      stemcell: ubuntu-trusty-stemcell
       release: kubo-release
   - put: gcs-kubo-release-tarball-untested
     params:
