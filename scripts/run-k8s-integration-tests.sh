@@ -36,10 +36,10 @@ TLS_KUBERNETES_CERT=$(bosh-cli int <(credhub get -n "${director_name}/${DEPLOYME
 TLS_KUBERNETES_PRIVATE_KEY=$(bosh-cli int <(credhub get -n "${director_name}/${DEPLOYMENT_NAME}/tls-kubernetes" --output-json) --path='/value/private_key')
 export TLS_KUBERNETES_CERT TLS_KUBERNETES_PRIVATE_KEY
 
-BOSH_ENVIRONMENT=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/internal_ip')
-BOSH_CA_CERT=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path='/default_ca/ca')
+BOSH_ENVIRONMENT=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path='/internal_ip')
+BOSH_CA_CERT=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path='/default_ca/ca')
 BOSH_CLIENT=bosh_admin
-BOSH_CLIENT_SECRET=$(bosh-cli int "$PWD/gcs-bosh-creds/creds.yml" --path='/bosh_admin_client_secret')
+BOSH_CLIENT_SECRET=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path='/bosh_admin_client_secret')
 
 export BOSH_ENVIRONMENT BOSH_CA_CERT BOSH_CLIENT BOSH_CLIENT_SECRET
 
@@ -57,10 +57,10 @@ elif [[ ${routing_mode} == "iaas" ]]; then
 
   case "${iaas}" in
     aws)
-      aws configure set aws_access_key_id "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/access_key_id)"
-      aws configure set aws_secret_access_key  "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/secret_access_key)"
-      aws configure set default.region "$(bosh-cli int "$PWD/kubo-lock/metadata" --path=/region)"
-      AWS_INGRESS_GROUP_ID=$(bosh-cli int environment/director.yml --path=/default_security_groups/0)
+      aws configure set aws_access_key_id "$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path=/access_key_id)"
+      aws configure set aws_secret_access_key  "$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path=/secret_access_key)"
+      aws configure set default.region "$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path=/region)"
+      AWS_INGRESS_GROUP_ID=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path=/default_security_groups/0)
       export AWS_INGRESS_GROUP_ID
       ;;
   esac
