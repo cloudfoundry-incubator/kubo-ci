@@ -152,7 +152,7 @@ jobs:
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir/ # dir name here?
+      git-kubo-deployment: unpacked_dir/kubo-deployment
 
   - aggregate:
     - put: gcs-bosh-creds
@@ -221,7 +221,7 @@ jobs:
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir/ # dir name here?
+      git-kubo-deployment: unpacked_dir/kubo-deployment
 
 
 - name: upgrade-k8s-<%= iaas %>
@@ -361,7 +361,7 @@ jobs:
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir
+      git-kubo-deployment: unpacked_dir/kubo-deployment
 
 
 - name: destroy-bosh-<%= iaas %>
@@ -395,7 +395,7 @@ jobs:
   - put: kubo-lock-<%= iaas %>
     params:
       release: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir
+      git-kubo-deployment: unpacked_dir/kubo-deployment
 
 <% end %>
 

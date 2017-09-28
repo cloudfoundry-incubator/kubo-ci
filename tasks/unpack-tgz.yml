@@ -9,7 +9,7 @@ run:
   args:
   - -exc
   - |
-    tar -xzf  "source_tarball/$SOURCE_TARBALL_REGEX" -C unpacked_dir/
+    tar -xzf source_tarball/$SOURCE_TARBALL_REGEX -C unpacked_dir/
 
 inputs:
 - name: source_tarball
