@@ -96,13 +96,15 @@ resources:
     owner: cloudfoundry-incubator
     repository: kubo-release
     pre_release: true
+    access_token:
 
-- name: old-kubo-deployment
+- name: old-kubo-deployment-tarball
   type: github-release
   source:
     owner: cloudfoundry-incubator
     repository: kubo-deployment
     pre_release: true
+    access_token:
 
 
 ##########################################
@@ -126,7 +128,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: old-kubo-deployment
+    - get: old-kubo-deployment-tarball
       version: { tag: 'v0.7.0' }
     - get: kubo-lock-<%= iaas %>
       version: every
@@ -142,7 +144,7 @@ jobs:
     file: git-kubo-ci/tasks/unpack-tgz.yml
     tags: ['<%= iaas %>']
     input_mapping:
-      source_tarball: old-kubo-deployment
+      source_tarball: old-kubo-deployment-tarball
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
       COLLAPSE_DIR: kubo-deployment
@@ -170,7 +172,7 @@ jobs:
       version: every
       trigger: true
       passed: [ 'install-bosh-<%= iaas %>' ]
-    - get: old-kubo-deployment
+    - get: old-kubo-deployment-tarball
       passed: [ 'install-bosh-<%= iaas %>' ]
     - get: gcs-bosh-state
       passed: [ 'install-bosh-<%= iaas %>' ]
@@ -182,11 +184,22 @@ jobs:
     <% end %>
     - get: old-kubo-release
       version: { tag: 'v0.7.0' }
+
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= iaas %>']
+    input_mapping:
+      source_tarball: old-kubo-deployment-tarball
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      COLLAPSE_DIR: kubo-deployment
+
   - task: deploy
     tags: [<%= iaas %>]
     input_mapping:
       gcs-kubo-release-tarball: old-kubo-release
       kubo-lock: kubo-lock-<%= iaas %>
+      git-kubo-deployment: unpacked_dir
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
 
 - name: upgrade-bosh-<%= iaas %>
