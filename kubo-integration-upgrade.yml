@@ -145,14 +145,14 @@ jobs:
       source_tarball: old-kubo-deployment
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      # output dir = unpacked_dir
+      COLLAPSE_DIR: kubo-deployment
 
   - task: install
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir/kubo-deployment
+      git-kubo-deployment: unpacked_dir
 
   - aggregate:
     - put: gcs-bosh-creds
@@ -214,15 +214,14 @@ jobs:
       source_tarball: new-kubo-deployment-tarball
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      # output dir = unpacked_dir
+      COLLAPSE_DIR: kubo-deployment
 
   - task: install
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir/kubo-deployment
-
+      git-kubo-deployment: unpacked_dir
 
 - name: upgrade-k8s-<%= iaas %>
   plan:
@@ -251,7 +250,7 @@ jobs:
       source_tarball: new-kubo-deployment-tarball
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      # output dir = unpacked_dir
+      COLLAPSE_DIR: kubo-deployment
 
   - task: deploy
     tags: [<%= iaas %>]
@@ -354,14 +353,14 @@ jobs:
       source_tarball: new-kubo-deployment-tarball
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      # output dir = unpacked_dir
+      COLLAPSE_DIR: kubo-deployment
 
   - task: destroy-k8s
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir/kubo-deployment
+      git-kubo-deployment: unpacked_dir
 
 
 - name: destroy-bosh-<%= iaas %>
@@ -386,7 +385,7 @@ jobs:
       source_tarball: new-kubo-deployment-tarball
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      # output dir = unpacked_dir
+      COLLAPSE_DIR: kubo-deployment
 
   - task: destroy
     tags: [<%= iaas %>]
@@ -395,7 +394,7 @@ jobs:
   - put: kubo-lock-<%= iaas %>
     params:
       release: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir/kubo-deployment
+      git-kubo-deployment: unpacked_dir
 
 <% end %>
 

@@ -10,11 +10,16 @@ run:
   - -exc
   - |
     tar -xzf source_tarball/$SOURCE_TARBALL_REGEX -C unpacked_dir/
+    if [ "replace-me" != "$COLLAPSE_DIR" ]; then
+      mv unpacked_dir/$COLLAPSE_DIR/* unpacked_dir/
+      rm -r unpacked_dir/$COLLAPSE_DIR
+    fi
 
 inputs:
 - name: source_tarball
 outputs:
 - name: unpacked_dir
-
+  
 params:
   SOURCE_TARBALL_REGEX: replace-me
+  COLLAPSE_DIR: replace-me
