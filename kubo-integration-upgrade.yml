@@ -1,0 +1,404 @@
+<%
+  iaas_list = %w(aws)
+%>
+---
+groups:
+- name: all
+  jobs:
+<% iaas_list.each do |iaas| %>
+  - claim-lock-<%= iaas %>
+  - install-bosh-<%= iaas %>
+  - deploy-old-k8s-<%= iaas %>
+  - upgrade-k8s-<%= iaas %>
+  - upgrade-bosh-<%= iaas %>
+  # - run-k8s-integration-tests-<%= iaas %>
+  - destroy-k8s-<%= iaas %>
+  - destroy-bosh-<%= iaas %>
+<% end %>
+  # - upload-kubo-deployment
+  # - upload-kubo-release
+  # - success-notification
+<% iaas_list.each do |iaas| %>
+- name: <%= iaas %>
+  jobs:
+  - claim-lock-<%= iaas %>
+  - install-bosh-<%= iaas %>
+  - deploy-old-k8s-<%= iaas %>
+  - upgrade-k8s-<%= iaas %>
+  - upgrade-bosh-<%= iaas %>
+  # - run-k8s-integration-tests-<%= iaas %>
+  - destroy-k8s-<%= iaas %>
+  - destroy-bosh-<%= iaas %>
+<% end %>
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+
+<% iaas_list.each do |iaas| %>
+- name: kubo-lock-<%= iaas %>
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key))
+    pool: kubo-<%= iaas %>
+<% end %>
+
+# - name: kubo-lock-openstack-global
+#   type: pool
+#   source:
+#     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+#     branch: master
+#     private_key: ((git-ssh-key))
+#     pool: kubo-openstack-global
+
+- name: gcs-bosh-state
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/state.json
+
+- name: gcs-bosh-creds
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/creds.yml
+
+- name: new-kubo-release-tarball
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-public
+    versioned_file: kubo-release-latest.tgz
+
+- name: new-kubo-deployment-tarball
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-public
+    versioned_file: kubo-deployment-latest.tgz
+
+# old version of kubo
+- name: old-kubo-release
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: kubo-release
+    pre_release: true
+
+- name: old-kubo-deployment
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: kubo-deployment
+    pre_release: true
+
+
+##########################################
+# Jobs
+##########################################
+
+jobs:
+
+<% iaas_list.each do |iaas| %>
+- name: claim-lock-<%= iaas %>
+  max_in_flight: 1
+  plan:
+  <% if iaas.include? "openstack" %>
+  - put: kubo-lock-openstack-global
+    params: { acquire: true }
+  <% end %>  
+  - put: kubo-lock-<%= iaas %>
+    params: { acquire: true }
+
+- name: install-bosh-<%= iaas %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: old-kubo-deployment
+      version: { tag: 'v0.7.0' }
+    - get: kubo-lock-<%= iaas %>
+      version: every
+      trigger: true
+      passed: [ 'claim-lock-<%= iaas %>' ]
+    <% if iaas.include? "openstack" %>
+    - get: kubo-lock-openstack-global
+      passed: [ 'claim-lock-<%= iaas %>' ]
+    <% end %> 
+
+
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= iaas %>']
+    input_mapping:
+      source_tarball: old-kubo-deployment
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      # output dir = unpacked_dir
+
+  - task: install
+    tags: [<%= iaas %>]
+    file: git-kubo-ci/tasks/install-bosh.yml
+    input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>
+      git-kubo-deployment: unpacked_dir/ # dir name here?
+
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+
+- name: deploy-old-k8s-<%= iaas %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= iaas %>
+      version: every
+      trigger: true
+      passed: [ 'install-bosh-<%= iaas %>' ]
+    - get: old-kubo-deployment
+      passed: [ 'install-bosh-<%= iaas %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'install-bosh-<%= iaas %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'install-bosh-<%= iaas %>' ]
+    <% if iaas.include? "openstack" %>
+    - get: kubo-lock-openstack-global
+      passed: [ 'install-bosh-<%= iaas %>' ]
+    <% end %>
+    - get: old-kubo-release
+      version: { tag: 'v0.7.0' }
+  - task: deploy
+    tags: [<%= iaas %>]
+    input_mapping:
+      gcs-kubo-release-tarball: old-kubo-release
+      kubo-lock: kubo-lock-<%= iaas %>
+    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+
+- name: upgrade-bosh-<%= iaas %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= iaas %>
+      version: every
+      trigger: true
+      passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+    - get: new-kubo-deployment-tarball
+    - get: gcs-bosh-state
+      passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+    <% if iaas.include? "openstack" %>
+    - get: kubo-lock-openstack-global
+      passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+    <% end %>    
+
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= iaas %>']
+    input_mapping:
+      source_tarball: new-kubo-deployment-tarball
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      # output dir = unpacked_dir
+
+  - task: install
+    tags: [<%= iaas %>]
+    file: git-kubo-ci/tasks/install-bosh.yml
+    input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>
+      git-kubo-deployment: unpacked_dir/ # dir name here?
+
+
+- name: upgrade-k8s-<%= iaas %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= iaas %>
+      version: every
+      trigger: true
+      passed: [ 'upgrade-bosh-<%= iaas %>' ]
+    - get: new-kubo-release-tarball
+    - get: new-kubo-deployment-tarball
+      passed: [ 'upgrade-bosh-<%= iaas %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'upgrade-bosh-<%= iaas %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'upgrade-bosh-<%= iaas %>' ]
+    <% if iaas.include? "openstack" %>
+    - get: kubo-lock-openstack-global
+      passed: [ 'upgrade-bosh-<%= iaas %>' ]
+    <% end %>       
+
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= iaas %>']
+    input_mapping:
+      source_tarball: new-kubo-deployment-tarball
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      # output dir = unpacked_dir
+
+  - task: deploy
+    tags: [<%= iaas %>]
+    input_mapping:
+      git-kubo-deployment: unpacked_dir
+      gcs-kubo-release-tarball: new-kubo-release-tarball
+      kubo-lock: kubo-lock-<%= iaas %>
+    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+
+# - name: run-k8s-integration-tests-<%= iaas %>
+#   plan:
+#   - aggregate:
+#     - get: git-kubo-ci
+#     - get: kubo-lock-<%= iaas %>
+#       version: every
+#       trigger: true
+#       passed: [ 'deploy-k8s-<%= iaas %>' ]
+#     - get: git-kubo-deployment
+#       passed: [ 'deploy-k8s-<%= iaas %>' ]
+#     - get: gcs-bosh-state
+#       passed: [ 'deploy-k8s-<%= iaas %>' ]
+#     - get: gcs-bosh-creds
+#       passed: [ 'deploy-k8s-<%= iaas %>' ]
+#     - get: kubo-version
+#       passed: [ 'deploy-k8s-<%= iaas %>' ]
+#     - get: git-kubo-release
+#       passed: [ 'deploy-k8s-<%= iaas %>' ]
+#     - get: gcs-kubo-release-tarball-untested
+#       passed: [ 'deploy-k8s-<%= iaas %>' ]
+#     - get: gcs-kubo-deployment-tarball-untested
+#       passed: [ 'deploy-k8s-<%= iaas %>' ]
+#     <% if iaas.include? "openstack" %>
+#     - get: kubo-lock-openstack-global
+#       passed: [ 'deploy-k8s-<%= iaas %>' ]
+#     <% end %>         
+#   - task: integration-tests
+#     tags: [<%= iaas %>]
+#     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
+#     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+#   - task: pod-to-pod
+#     tags: [<%= iaas %>]
+#     file: git-kubo-ci/tasks/pod-to-pod.yml
+#     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+#   <% if iaas.include? "openstack" %>    
+#   on_success:
+#     do:
+#     - put: kubo-lock-openstack-global
+#       params: { release: kubo-lock-openstack-global }    
+#   on_failure:
+#     do:
+#     - put: kubo-lock-openstack-global
+#       params: { release: kubo-lock-openstack-global }    
+#   <% end %> 
+
+# - name: destroy-k8s-<%= iaas %>
+#   plan:
+#   - aggregate:
+#     - get: git-kubo-ci
+#     - get: kubo-lock-<%= iaas %>
+#       version: every
+#       trigger: true
+#       passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+#     - get: kubo-version
+#       passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+#     - get: git-kubo-deployment
+#       passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+#     - get: gcs-bosh-state
+#       passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+#     - get: gcs-bosh-creds
+#       passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+#     - get: gcs-kubo-release-tarball-untested
+#       passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+#     - get: gcs-kubo-deployment-tarball-untested
+#       passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+#   - task: destroy-k8s
+#     tags: [<%= iaas %>]
+#     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+#     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+
+
+- name: destroy-k8s-<%= iaas %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= iaas %>
+      version: every
+      trigger: true
+      passed: [ 'upgrade-k8s-<%= iaas %>' ]
+    - get: new-kubo-deployment-tarball
+      passed: [ 'upgrade-k8s-<%= iaas %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'upgrade-k8s-<%= iaas %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'upgrade-k8s-<%= iaas %>' ]
+
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= iaas %>']
+    input_mapping:
+      source_tarball: new-kubo-deployment-tarball
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      # output dir = unpacked_dir
+
+  - task: destroy-k8s
+    tags: [<%= iaas %>]
+    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+    input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>
+      git-kubo-deployment: unpacked_dir
+
+
+- name: destroy-bosh-<%= iaas %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: new-kubo-deployment-tarball
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
+    - get: kubo-lock-<%= iaas %>
+      version: every
+      trigger: true
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
+
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= iaas %>']
+    input_mapping:
+      source_tarball: new-kubo-deployment-tarball
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      # output dir = unpacked_dir
+
+  - task: destroy
+    tags: [<%= iaas %>]
+    file: git-kubo-ci/tasks/destroy-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+  - put: kubo-lock-<%= iaas %>
+    params:
+      release: kubo-lock-<%= iaas %>
+      git-kubo-deployment: unpacked_dir
+
+<% end %>
+
+<%
+ destroy_bosh = iaas_list.map {|iaas| "destroy-bosh-#{iaas}"}
+%>
