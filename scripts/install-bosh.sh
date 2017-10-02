@@ -7,7 +7,7 @@ set -exu -o pipefail
 # This means DO_UPGRADE is set and not blank #Bashisms
 if [[ ! -z ${DO_UPGRADE+x} ]] && [[ ! -z "${DO_UPGRADE}" ]]; then
   cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}"
-  cp "$PWD/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}" 
+  cp "$PWD/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}"
 fi
 
 export BOSH_LOG_LEVEL=debug

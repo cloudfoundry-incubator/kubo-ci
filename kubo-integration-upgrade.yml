@@ -41,7 +41,7 @@ resources:
   type: git
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
-    branch: master
+    branch: upgrade-with-persistent-volumes
 
 <% iaas_list.each do |iaas| %>
 - name: kubo-lock-<%= iaas %>
@@ -229,14 +229,14 @@ jobs:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
       COLLAPSE_DIR: kubo-deployment
 
-  - task: upgrade 
+  - task: upgrade
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/upgrade-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
       git-kubo-deployment: unpacked_dir
-      bosh-state: gcs-bosh-state
-      bosh-creds: gcs-bosh-creds
+    params:
+      DO_UPGRADE: 1
 
 - name: upgrade-k8s-<%= iaas %>
   plan:
