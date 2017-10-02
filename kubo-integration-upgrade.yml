@@ -229,12 +229,14 @@ jobs:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
       COLLAPSE_DIR: kubo-deployment
 
-  - task: install
+  - task: upgrade 
     tags: [<%= iaas %>]
-    file: git-kubo-ci/tasks/install-bosh.yml
+    file: git-kubo-ci/tasks/upgrade-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
       git-kubo-deployment: unpacked_dir
+      bosh-state: gcs-bosh-state
+      bosh-creds: gcs-bosh-creds
 
 - name: upgrade-k8s-<%= iaas %>
   plan:
