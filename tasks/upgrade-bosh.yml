@@ -14,8 +14,8 @@ inputs:
 - name: git-kubo-ci
 - name: git-kubo-deployment
 - name: kubo-lock
-- name: bosh-state
-- name: bosh-creds
+- name: gcs-bosh-state
+- name: gcs-bosh-creds
 outputs:
 - name: bosh-state
 - name: bosh-creds
