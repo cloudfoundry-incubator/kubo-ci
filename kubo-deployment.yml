@@ -1,6 +1,10 @@
 <%
   iaas_list = %w(gcp vsphere vsphere-lb gcp-lb aws-lb openstack-lb aws openstack)
 %>
+
+<%
+  iaas_list_no_openstack = %w(gcp vsphere vsphere-lb gcp-lb aws-lb aws)
+%>
 ---
 groups:
 - name: all
@@ -406,7 +410,7 @@ jobs:
 <% end %>
 
 <%
- destroy_bosh = iaas_list.map {|iaas| "destroy-bosh-#{iaas}"}
+ destroy_bosh = iaas_list_no_openstack.map {|iaas| "destroy-bosh-#{iaas}"}
 %>
 
 - name: upload-kubo-deployment
