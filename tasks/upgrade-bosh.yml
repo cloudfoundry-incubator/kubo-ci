@@ -5,7 +5,7 @@ image_resource:
     repository: pcfkubo/kubo-ci
     tag: stable
 run:
-  path: git-kubo-ci/scripts/install-bosh.sh
+  path: git-kubo-ci/scripts/upgrade-bosh-test-ha.sh
 params:
   USE_TURBULENCE:
   DO_UPGRADE:
