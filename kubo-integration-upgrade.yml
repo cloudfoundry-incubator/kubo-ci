@@ -212,6 +212,7 @@ jobs:
       version: every
       trigger: true
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+    - get: new-kubo-deployment-tarball
     - get: gcs-bosh-state
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     - get: gcs-bosh-creds
@@ -221,9 +222,21 @@ jobs:
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     <% end %>
 
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= iaas %>']
+    input_mapping:
+      source_tarball: new-kubo-deployment-tarball
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      COLLAPSE_DIR: kubo-deployment
+
   - task: deploy
     tags: ['<%= iaas %>']
     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
+    input_mapping:
+      git-kubo-deployment: unpacked_dir
+      kubo-lock: kubo-lock-<%= iaas %>
 
 - name: upgrade-bosh-<%= iaas %>
   plan:
@@ -234,6 +247,7 @@ jobs:
       trigger: true
       passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: new-kubo-deployment-tarball
+      passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: gcs-bosh-state
       passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: gcs-bosh-creds
