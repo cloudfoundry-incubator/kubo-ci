@@ -33,6 +33,8 @@ query_loop() {
     if [ "$response_code" != "200" ]; then
       echo "Error: response from $url is not 200 (got $response_code)"
       exit 1
+    else
+      echo "Service successfully returned response code 200"
     fi
   done
 }
