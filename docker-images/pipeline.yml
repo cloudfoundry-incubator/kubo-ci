@@ -70,7 +70,7 @@ jobs:
         path: ginkgo
         args:
         - -r
-        - git-kubo-ci-kubo-ci/docker-images/system_tests/
+        - git-kubo-ci-kubo-ci/docker-images/kubo-ci/system_tests/
   - put: kubo-ci-stable
     params:
       cache: true
