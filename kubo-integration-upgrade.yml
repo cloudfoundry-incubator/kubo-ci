@@ -131,7 +131,7 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: old-kubo-deployment-tarball
-      version: { tag: '<%= k8s_170 %>'}
+      version: { tag: '<%= k8s_170 %>' }
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
