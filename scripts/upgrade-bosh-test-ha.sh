@@ -28,10 +28,13 @@ query_loop() {
   while kill -0 "$pid_to_wait" >/dev/null 2>&1; do
     sleep 1
 
-    response_code=$(curl -L --max-time "$timeout_seconds" -s -o /dev/null -I -w "%{http_code}" "$url")
+    curl -L --max-time ${timeout_seconds} -I ${url} > query_loop_last_output.txt
 
-    if [ "$response_code" != "200" ]; then
-      echo "Error: response from $url is not 200 (got $response_code)"
+    grep "HTTP/1.1 200 OK" query_loop_last_output.txt
+
+    if [ "$?" -ne 0 ]; then
+      echo "Error: response from $url is not 200. Last output below:"
+      cat query_loop_last_output.txt
       exit 1
     else
       echo "Service successfully returned response code 200"
@@ -104,6 +107,10 @@ main() {
 
   wait_for_success "$update_pid" "Update BOSH"
   wait_for_success "$query_pid" "HA query loop"
+  if [ "$?" -ne 0 ]; then
+    echo "Output of last query below:"
+    cat query_loop_last_output.txt
+  fi
 }
 
 main $@
