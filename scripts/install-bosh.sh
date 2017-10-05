@@ -4,12 +4,6 @@ set -exu -o pipefail
 
 . "$(dirname "$0")/lib/environment.sh"
 
-# This means DO_UPGRADE is set and not blank #Bashisms
-if [[ ! -z ${DO_UPGRADE+x} ]] && [[ ! -z "${DO_UPGRADE}" ]]; then
-  cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}"
-  cp "$PWD/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}"
-fi
-
 export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 export DEBUG=1

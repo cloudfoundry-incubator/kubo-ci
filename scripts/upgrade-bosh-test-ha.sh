@@ -6,9 +6,14 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 . "${DIR}/lib/environment.sh"
 
+cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}"
+cp "$PWD/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}"
+cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
+touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
+
 update() {
   echo "Updating BOSH..."
-  DO_UPGRADE=1 "${DIR}/install-bosh.sh"
+  ${DIR}/install-bosh.sh
 }
 
 query_loop() {
