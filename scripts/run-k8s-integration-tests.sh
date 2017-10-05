@@ -20,7 +20,9 @@ GIT_KUBO_DEPLOYMENT_DIR=$1
 DEPLOYMENT_NAME=$2
 KUBO_ENVIRONMENT_DIR=$3
 
-"$GIT_KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
+if [ -z "${SKIP_KUBECONFIG+1}" ]; then 
+  "$GIT_KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
+fi
 
 routing_mode=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing_mode")
 iaas=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/iaas")
