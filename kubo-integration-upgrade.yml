@@ -272,8 +272,6 @@ jobs:
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
       git-kubo-deployment: unpacked_dir
-    params:
-      DO_UPGRADE: 1
 
 - name: upgrade-k8s-<%= iaas %>
   plan:

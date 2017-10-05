@@ -7,8 +7,6 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/upgrade-bosh-test-ha.sh
 params:
-  USE_TURBULENCE:
-  DO_UPGRADE:
 
 inputs:
 - name: git-kubo-ci

@@ -1,33 +1,54 @@
 #!/bin/bash
 
-set -eo pipefail
+set -o pipefail
 
-upgrade() {
-  echo upgrading...
-  sleep 3
+update() {
+  echo "Updating BOSH..."
+  DO_UPGRADE=1 ./install-bosh.sh
 }
 
-query() {
-  echo querying...
+query_loop() {
   timeout=10
-  url="example.com"
-  response_code=$(curl -L --max-time "$timeout" -s -o /dev/null -I -w "%{http_code}" "$url")
+  pid_to_wait="$1"
+  url="$2"
 
-  if [ "$response_code" -ne 200 ]; then
-    echo "error: response from $url is not 200 (got $response_code)"
+  echo "Querying $url while waiting for process with pid $pid_to_wait to finish..."
+
+  while kill -0 "$pid_to_wait" >/dev/null 2>&1; do
+    sleep 1
+
+    response_code=$(curl -L --max-time "$timeout" -s -o /dev/null -I -w "%{http_code}" "$url")
+
+    if [ "$response_code" -ne 200 ]; then
+      echo "Error: response from $url is not 200 (got $response_code)"
+      exit 1
+    fi
+  done
+}
+
+wait_for_success() {
+  pid_to_wait="$1"
+  work_description="$2"
+
+  wait "$pid_to_wait"
+  if [ "$?" -ne 0 ]; then
+    echo "$work_description failed"
     exit 1
   fi
+
+  echo "$work_description succeeded"
 }
 
 main() {
-  upgrade &
-  upgrade_pid="$!"
+  update &
+  update_pid="$!"
 
-  # loop as long as upgrade is ongoing
-  while kill -0 "$upgrade_pid" >/dev/null 2>&1; do
-    sleep 1
-    query
-  done
+  url="example.com"
+  query_loop "$update_pid" "$url" &
+  query_pid="$!"
+
+  wait_for_success "$update_pid" "Update BOSH"
+  wait_for_success "$query_pid" "HA query loop"
 }
 
 main $@
