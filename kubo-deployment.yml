@@ -52,7 +52,6 @@ resources:
     uri: https://github.com/cloudfoundry-incubator/kubo-deployment
     branch: master
     ignore_paths:
-    - 'docs/**/*'
     - '*.md'
     - 'LICENSE'
     - 'NOTICE'
