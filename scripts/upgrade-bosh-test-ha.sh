@@ -6,6 +6,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 . "${DIR}/lib/environment.sh"
 
+# copy state and creds so that deploy_bosh has the correct context
 cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}"
 cp "$PWD/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}"
 cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
@@ -17,18 +18,19 @@ update() {
 }
 
 query_loop() {
-  timeout=10
+  timeout_seconds=10
   pid_to_wait="$1"
   url="$2"
 
   echo "Querying $url while waiting for process with pid $pid_to_wait to finish..."
 
+  # loop while process is not finished
   while kill -0 "$pid_to_wait" >/dev/null 2>&1; do
     sleep 1
 
-    response_code=$(curl -L --max-time "$timeout" -s -o /dev/null -I -w "%{http_code}" "$url")
+    response_code=$(curl -L --max-time "$timeout_seconds" -s -o /dev/null -I -w "%{http_code}" "$url")
 
-    if [ "$response_code" -ne 200 ]; then
+    if [ "$response_code" != "200" ]; then
       echo "Error: response from $url is not 200 (got $response_code)"
       exit 1
     fi
@@ -37,6 +39,7 @@ query_loop() {
 
 lb_ip_blocking() {
   service_name="$1"
+
 	lb_ip=""
   current_attempt=0
   max_attempts=10
@@ -82,9 +85,11 @@ main() {
   lb_url="http://$lb_ip"
   echo "The load balancer's URL is $lb_url"
 
+  # update BOSH in the background
   update &
   update_pid="$!"
 
+  # exercise the load balancer URL while BOSH is updating
   query_url="$lb_url"
   query_loop "$update_pid" "$query_url" &
   query_pid="$!"
