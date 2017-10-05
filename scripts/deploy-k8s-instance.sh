@@ -27,4 +27,10 @@ elif [[ -f "$iaas_cc_opsfile" ]]; then
 fi
 export CLOUD_CONFIG_OPS_FILES
 
-"git-kubo-deployment/bin/deploy_k8s" "${KUBO_ENVIRONMENT_DIR}" ci-service local
+release_source="local"
+if [[ ! -z ${PERFORM_UPGRADE+x} ]] && [[ ! -z "${PERFORM_UPGRADE}" ]]; then
+  echo "Performing upgrade via building from source"
+  release_source="dev"
+fi
+
+"git-kubo-deployment/bin/deploy_k8s" "${KUBO_ENVIRONMENT_DIR}" ci-service ${release_source}
