@@ -3,6 +3,7 @@ MAINTAINER pcf-kubo@pivotal.io
 
 # Packages
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
+  curl \
   gcc \
   git-core \
   make \
