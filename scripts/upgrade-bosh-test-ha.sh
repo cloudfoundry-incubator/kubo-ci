@@ -4,9 +4,11 @@ set -o pipefail
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+. "${DIR}/lib/environment.sh"
+
 update() {
   echo "Updating BOSH..."
-  DO_UPGRADE=1 ${DIR}/install-bosh.sh
+  DO_UPGRADE=1 "${DIR}/install-bosh.sh"
 }
 
 query_loop() {
@@ -33,13 +35,15 @@ lb_ip_blocking() {
 	lb_ip=""
   current_attempt=0
   max_attempts=10
-  
+
   while [ -z "$lb_ip" ]; do
     current_attempt=$((current_attempt+1))
     if [ ${current_attempt} -gt ${max_attempts} ]; then
       echo "Error: reached max attempts trying to obtain load balancer IP"
       exit 1
     fi
+
+    "${KUBO_DEPLOYMENT_DIR}/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
 
     # AWS specific?
     lb_ip=$(kubectl get service ${service_name} -o jsonpath={.status.loadBalancer.ingress[0].hostname})
