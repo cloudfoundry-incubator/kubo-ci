@@ -21,7 +21,8 @@ resources:
     username: ((docker-hub-username))
     password: ((docker-hub-password))
     tag: stable
-<% if tested_images.include? image_name %>
+
+  <% if tested_images.include? image_name %>
 - name: <%= image_name %>-latest
   type: docker-image
   source:
@@ -30,7 +31,7 @@ resources:
     username: ((docker-hub-username))
     password: ((docker-hub-password))
     tag: latest
-<% end %>
+  <% end %>
 <% end %>
 
 - name: gcs-vsphere-cleaner
@@ -53,7 +54,7 @@ jobs:
     trigger: true
   - put: kubo-ci-latest
     params:
-      build: git-kubo-ci/docker-images
+      build: git-kubo-ci-kubo-ci/docker-images/kubo-ci
       cache: true
   - task: test-docker-image
     config:
