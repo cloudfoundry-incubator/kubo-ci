@@ -8,7 +8,7 @@ groups:
   jobs:
 <% iaas_list.each do |iaas| %>
   - claim-lock-<%= iaas %>
-  - install-bosh-<%= iaas %>
+  - install-old-bosh-<%= iaas %>
   - deploy-old-k8s-<%= iaas %>
   - deploy-workload-<%= iaas %>
   - upgrade-bosh-<%= iaas %>
@@ -21,7 +21,7 @@ groups:
 - name: <%= iaas %>
   jobs:
   - claim-lock-<%= iaas %>
-  - install-bosh-<%= iaas %>
+  - install-old-bosh-<%= iaas %>
   - deploy-old-k8s-<%= iaas %>
   - deploy-workload-<%= iaas %>
   - upgrade-bosh-<%= iaas %>
@@ -92,7 +92,7 @@ resources:
     versioned_file: kubo-deployment-latest.tgz
 
 # old version of kubo
-- name: old-kubo-release
+- name: old-kubo-release-tarball
   type: github-release
   source:
     owner: cloudfoundry-incubator
@@ -126,7 +126,7 @@ jobs:
   - put: kubo-lock-<%= iaas %>
     params: { acquire: true }
 
-- name: install-bosh-<%= iaas %>
+- name: install-old-bosh-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -173,18 +173,18 @@ jobs:
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-old-bosh-<%= iaas %>' ]
     - get: old-kubo-deployment-tarball
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-old-bosh-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-old-bosh-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-old-bosh-<%= iaas %>' ]
     <% if iaas.include? "openstack" %>
     - get: kubo-lock-openstack-global
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-old-bosh-<%= iaas %>' ]
     <% end %>
-    - get: old-kubo-release
+    - get: old-kubo-release-tarball
       version: { tag: '<%= k8s_170 %>' }
 
   - task: unpack-tgz
@@ -199,7 +199,7 @@ jobs:
   - task: deploy
     tags: [<%= iaas %>]
     input_mapping:
-      gcs-kubo-release-tarball: old-kubo-release
+      gcs-kubo-release-tarball: old-kubo-release-tarball
       kubo-lock: kubo-lock-<%= iaas %>
       git-kubo-deployment: unpacked_dir
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
