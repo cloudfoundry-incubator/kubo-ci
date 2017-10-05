@@ -14,5 +14,5 @@ director_ip=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/inter
 
 "git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
 
-kubectl create -f git-kubo-ci/specs/nginx-specified-nodeport.yml
+kubectl create -f git-kubo-ci/specs/nginx-lb.yml
 kubectl rollout status -w deployment/nginx
