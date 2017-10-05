@@ -39,14 +39,17 @@ query_loop() {
   done
 }
 
-lb_ip_blocking() {
+# query the API for the load balancer address and sets $lb_address
+lb_address_blocking() {
   service_name="$1"
 
-	lb_ip=""
+  iaas=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/iaas")
+
+	lb_address=""
   current_attempt=0
   max_attempts=10
 
-  while [ -z "$lb_ip" ]; do
+  while [ -z "$lb_address" ]; do
     current_attempt=$((current_attempt+1))
     if [ ${current_attempt} -gt ${max_attempts} ]; then
       echo "Error: reached max attempts trying to obtain load balancer IP"
@@ -55,10 +58,13 @@ lb_ip_blocking() {
 
     "${KUBO_DEPLOYMENT_DIR}/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
 
-    # AWS specific?
-    lb_ip=$(kubectl get service ${service_name} -o jsonpath={.status.loadBalancer.ingress[0].hostname})
+    if [ ${iaas} = "gcp" ]; then
+			lb_address=$(kubectl get service ${service_name} -o jsonpath={.status.loadBalancer.ingress[0].ip})
+    else
+      lb_address=$(kubectl get service ${service_name} -o jsonpath={.status.loadBalancer.ingress[0].hostname})
+    fi
 
-    if [ -z "$lb_ip" ]; then sleep 10; fi
+    if [ -z "$lb_address" ]; then sleep 10; fi
   done
 }
 
@@ -78,13 +84,13 @@ wait_for_success() {
 main() {
   service_name="nginx"
 
-  lb_ip_blocking ${service_name}
-  if [ -z "$lb_ip" ]; then
-    echo "Error: couldn't obtain load balancer IP"
+  lb_address_blocking ${service_name}
+  if [ -z "$lb_address" ]; then
+    echo "Error: couldn't obtain load balancer address"
     exit 1
   fi
 
-  lb_url="http://$lb_ip"
+  lb_url="http://$lb_address"
   echo "The load balancer's URL is $lb_url"
 
   # update BOSH in the background

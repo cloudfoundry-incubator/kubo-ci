@@ -1,6 +1,6 @@
 <%
-  iaas_list = %w(aws-lb)
   k8s_170 = 'v0.6.0'
+  iaas_list = %w(gcp-lb)
 %>
 ---
 groups:
