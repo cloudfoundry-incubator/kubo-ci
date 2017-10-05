@@ -28,7 +28,7 @@ query_loop() {
   while kill -0 "$pid_to_wait" >/dev/null 2>&1; do
     sleep 1
 
-    curl -L --max-time ${timeout_seconds} -I ${url} > query_loop_last_output.txt
+    curl -L --max-time ${timeout_seconds} -I ${url} &> query_loop_last_output.txt
 
     grep "HTTP/1.1 200 OK" query_loop_last_output.txt
 
