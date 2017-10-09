@@ -1,0 +1,40 @@
+{
+    "director_id": "2425081a-0131-48df-6812-94f29bdb2ccb",
+    "installation_id": "f7f03f6e-bb88-49bd-7f01-41e7b1e21aef",
+    "current_vm_cid": "45db71e8-026a-4a17-a94e-6cce18ec632d",
+    "current_stemcell_id": "60c78bab-7013-4393-7286-484db7d91456",
+    "current_disk_id": "de00643b-9779-476f-405e-c355c9ffc030",
+    "current_release_ids": [
+        "4205669f-b9c6-4b9c-5747-8e5b3ec4e8f8",
+        "67ab8475-1e36-4cf6-4b00-902bbe17669c"
+    ],
+    "current_manifest_sha": "f5462e32e511a912e3b94478d3b591f78ee77763fd842668d7c27462a8c57a5b538b417563f1c2e37bc1e1fc52e810c5a3b6a4c3f34230ee7f41211b5bef6c9b",
+    "disks": [
+        {
+            "id": "de00643b-9779-476f-405e-c355c9ffc030",
+            "cid": "62f267c7-5365-4914-b804-2872da39daec",
+            "size": 32768,
+            "cloud_properties": {}
+        }
+    ],
+    "stemcells": [
+        {
+            "id": "60c78bab-7013-4393-7286-484db7d91456",
+            "name": "bosh-openstack-kvm-ubuntu-trusty-go_agent",
+            "version": "3445.7",
+            "cid": "87d52869-e497-4764-9453-d69987c5187d"
+        }
+    ],
+    "releases": [
+        {
+            "id": "4205669f-b9c6-4b9c-5747-8e5b3ec4e8f8",
+            "name": "bosh",
+            "version": "263.2.0"
+        },
+        {
+            "id": "67ab8475-1e36-4cf6-4b00-902bbe17669c",
+            "name": "bosh-openstack-cpi",
+            "version": "33"
+        }
+    ]
+}

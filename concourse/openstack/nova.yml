@@ -1,0 +1,3 @@
+- type: replace
+  path: /cloud_provider/properties/openstack/use_nova_networking?
+  value: true

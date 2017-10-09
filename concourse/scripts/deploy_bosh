@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -o pipefail
+set -ex -o pipefail
 
 bin_dir=$(dirname "${BASH_SOURCE[0]}")
 CONCOURSE_DIR="$(cd "$bin_dir/.."; pwd)"
@@ -41,6 +41,14 @@ if [ "$IAAS" == "vsphere" ]; then
   bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
     --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
     --ops-file "$BOSH_DEPLOYMENT/vsphere/resource-pool.yml" \
+    --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \
+    --vars-file <(echo -n "$secret") \
+    > "$manifest_file"
+elif [ "$IAAS" == "openstack" ]; then
+  bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
+    --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
+    --ops-file "$CONCOURSE_DIR/$IAAS/nova.yml" \
+    --ops-file "$BOSH_DEPLOYMENT/openstack/keystone-v2.yml" \
     --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \
     --vars-file <(echo -n "$secret") \
     > "$manifest_file"
