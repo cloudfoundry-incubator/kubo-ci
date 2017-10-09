@@ -1,0 +1,3 @@
+internal_ip: 192.36.56.2
+reserved_ips: [192.36.56.3-192.36.56.5]
+internal_cidr: 192.36.56.0/29
