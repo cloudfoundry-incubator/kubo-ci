@@ -49,6 +49,12 @@ jobs:
     input_mapping: {kubo-lock: kubo-lock-repo}
     params:
       ENV_FILE: kubo-lock/<%= pool %>/claimed/<%= env %>
+  - task: cleanup-cf
+    file: git-kubo-ci/tasks/cleanup-cf.yml
+    params:
+      CF_PASSWORD: ((cf_password_aws))
+      ENV_FILE: kubo-lock/<%= pool %>/claimed/<%= env %>
+      ENV_NAME: <%= env %>
   - task: unclaim-<%= env %>
     file: git-kubo-ci/tasks/unclaim-lock-manually.yml
     params:
