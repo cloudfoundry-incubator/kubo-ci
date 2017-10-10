@@ -11,7 +11,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   python-dev \
   python-software-properties \
   software-properties-common \
-  wget
+  wget \
+  ipcalc
 
 WORKDIR /tmp/docker-build
 
