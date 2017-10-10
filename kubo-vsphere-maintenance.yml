@@ -58,6 +58,13 @@ jobs:
     params:
       ENV_FILE: kubo-lock/<%= env['pool_name'] %>/claimed/<%= env['name'] %>
 
+  - task: cleanup-cf
+    file: git-kubo-ci/tasks/cleanup-cf.yml
+    params:
+      CF_PASSWORD: ((cf_password_vsphere))
+      ENV_FILE: kubo-lock/<%= env['pool_name'] %>/claimed/<%= env['name'] %>
+      ENV_NAME: <%= env['name'] %>
+
   - task: unclaim-<%= env["name"] %>
     file: git-kubo-ci/tasks/unclaim-lock-manually.yml
     params:
