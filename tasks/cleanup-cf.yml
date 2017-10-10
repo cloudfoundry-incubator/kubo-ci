@@ -7,6 +7,7 @@ image_resource:
 
 inputs:
 - name: git-kubo-ci
+- name: kubo-lock
 
 params:
   ENV_FILE:

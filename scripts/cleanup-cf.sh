@@ -54,12 +54,8 @@ cleanup_cf() {
 }
 
 main() {
-  local routing_mode=$(bosh-cli int "$ENV_FILE" --path=/routing_mode)
-
-  if [ "$routing_mode" == "cf" ]; then
     local cf_api_url=$(bosh-cli int "$ENV_FILE" --path=/routing-cf-api-url)
     cleanup_cf "$cf_api_url" "$CF_PASSWORD" "$ENV_NAME"
-  fi
 }
 
 main $@
