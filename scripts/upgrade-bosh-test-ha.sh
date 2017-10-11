@@ -20,7 +20,7 @@ update() {
 }
 
 query_loop() {
-  timeout_seconds=10
+  timeout_seconds=20
   pid_to_wait="$1"
   url="$2"
 
@@ -30,16 +30,14 @@ query_loop() {
   while kill -0 "$pid_to_wait" >/dev/null 2>&1; do
     sleep 1
 
-    curl -L --max-time ${timeout_seconds} -I ${url} &> query_loop_last_output.txt
-
-    grep "HTTP/1.1 200 OK" query_loop_last_output.txt
+    curl -L --max-time ${timeout_seconds} -IfsS ${url} &> query_loop_last_output.txt
 
     if [ "$?" -ne 0 ]; then
-      echo "Error: response from $url is not 200. Last output below:"
+      echo "Error: request to $url failed"
       cat query_loop_last_output.txt
-      exit 1
+      return 1
     else
-      echo "Service successfully returned response code 200"
+      echo "Service $url successfully responded"
     fi
   done
 }
@@ -54,14 +52,17 @@ lb_address_blocking() {
   current_attempt=0
   max_attempts=10
 
+  set -e
+    "${KUBO_DEPLOYMENT_DIR}/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
+  set +e
+
   while [ -z "$lb_address" ]; do
     current_attempt=$((current_attempt+1))
     if [ ${current_attempt} -gt ${max_attempts} ]; then
       echo "Error: reached max attempts trying to obtain load balancer IP"
-      exit 1
+      return 1
     fi
 
-    "${KUBO_DEPLOYMENT_DIR}/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
 
     if [ ${iaas} = "gcp" ]; then
 			lb_address=$(kubectl get service ${service_name} -o jsonpath={.status.loadBalancer.ingress[0].ip})
@@ -77,10 +78,11 @@ wait_for_success() {
   pid_to_wait="$1"
   work_description="$2"
 
+  echo "PID to wait on: $pid_to_wait"
   wait "$pid_to_wait"
   if [ "$?" -ne 0 ]; then
     echo "$work_description failed"
-    exit 1
+    return 1
   fi
 
   echo "$work_description succeeded"
@@ -92,7 +94,7 @@ main() {
   lb_address_blocking ${service_name}
   if [ -z "$lb_address" ]; then
     echo "Error: couldn't obtain load balancer address"
-    exit 1
+    return 1
   fi
 
   lb_url="http://$lb_address"
