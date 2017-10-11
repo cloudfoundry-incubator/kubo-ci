@@ -7,10 +7,12 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "${DIR}/lib/environment.sh"
 
 # copy state and creds so that deploy_bosh has the correct context
-cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}"
-cp "$PWD/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}"
-cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
-touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
+if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
+  cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}"
+  cp "$PWD/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}"
+  cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
+  touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
+fi
 
 update() {
   echo "Updating BOSH..."
