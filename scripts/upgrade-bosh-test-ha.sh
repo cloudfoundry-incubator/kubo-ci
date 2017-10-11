@@ -4,7 +4,8 @@ set -o pipefail
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-. "${DIR}/lib/environment.sh"
+. "$DIR/lib/environment.sh"
+. "$DIR/lib/lb-info.sh"
 
 # copy state and creds so that deploy_bosh has the correct context
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
@@ -42,38 +43,6 @@ query_loop() {
   done
 }
 
-# query the API for the load balancer address and sets $lb_address
-lb_address_blocking() {
-  service_name="$1"
-
-  iaas=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/iaas")
-
-	lb_address=""
-  current_attempt=0
-  max_attempts=10
-
-  set -e
-    "${KUBO_DEPLOYMENT_DIR}/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
-  set +e
-
-  while [ -z "$lb_address" ]; do
-    current_attempt=$((current_attempt+1))
-    if [ ${current_attempt} -gt ${max_attempts} ]; then
-      echo "Error: reached max attempts trying to obtain load balancer IP"
-      return 1
-    fi
-
-
-    if [ ${iaas} = "gcp" ]; then
-			lb_address=$(kubectl get service ${service_name} -o jsonpath={.status.loadBalancer.ingress[0].ip})
-    else
-      lb_address=$(kubectl get service ${service_name} -o jsonpath={.status.loadBalancer.ingress[0].hostname})
-    fi
-
-    if [ -z "$lb_address" ]; then sleep 10; fi
-  done
-}
-
 wait_for_success() {
   pid_to_wait="$1"
   work_description="$2"
@@ -91,7 +60,7 @@ wait_for_success() {
 main() {
   service_name="nginx"
 
-  lb_address_blocking ${service_name}
+  lb_address_blocking "$service_name" "$KUBO_ENVIRONMENT_DIR" "$KUBO_DEPLOYMENT_DIR"
   if [ -z "$lb_address" ]; then
     echo "Error: couldn't obtain load balancer address"
     return 1
