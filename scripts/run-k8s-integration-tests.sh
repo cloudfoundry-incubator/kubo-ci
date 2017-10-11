@@ -16,11 +16,29 @@ function call_bosh {
   bosh-cli "$@"
 }
 
+function credHub_login {
+    local director_name credhub_user_password credhub_api_url
+    director_name=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/director_name")
+    credhub_user_password=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path="/credhub_cli_password")
+    credhub_api_url="https://$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_ip"):8844"
+
+    tmp_uaa_ca_file="$(mktemp)"
+    bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path="/uaa_ssl/ca" > "${tmp_uaa_ca_file}"
+    tmp_credhub_ca_file="$(mktemp)"
+    bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path="/credhub_tls/ca" > "${tmp_credhub_ca_file}"
+
+    credhub login -u credhub-cli -p "${credhub_user_password}" -s "${credhub_api_url}" --ca-cert "${tmp_credhub_ca_file}" --ca-cert "${tmp_uaa_ca_file}"
+}
+
 GIT_KUBO_DEPLOYMENT_DIR=$1
 DEPLOYMENT_NAME=$2
 KUBO_ENVIRONMENT_DIR=$3
 
-"$GIT_KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
+credHub_login()
+
+if [ -z "${SKIP_KUBECONFIG+1}" ]; then
+  "$GIT_KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
+fi
 
 routing_mode=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing_mode")
 iaas=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/iaas")
