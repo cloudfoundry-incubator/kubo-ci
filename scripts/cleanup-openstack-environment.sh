@@ -37,10 +37,12 @@ delete_vms() {
 
   # Delete the director first
   internal_ip=$(bosh-cli int "$ENV_FILE" --path='/internal_ip')
-  delete_by_ip "$internal_ip"
+  echo "Will delete $internal_ip"
+#  delete_by_ip "$internal_ip"
 
   for address in ${network_prefix}{${min_ip_char}..${max_ip_char}}; do
-    delete_by_ip "$address"
+    echo "Will delete $address"
+#    delete_by_ip "$address"
   done
 }
 
