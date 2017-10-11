@@ -34,7 +34,7 @@ GIT_KUBO_DEPLOYMENT_DIR=$1
 DEPLOYMENT_NAME=$2
 KUBO_ENVIRONMENT_DIR=$3
 
-credHub_login()
+credHub_login
 
 if [ -z "${SKIP_KUBECONFIG+1}" ]; then
   "$GIT_KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
