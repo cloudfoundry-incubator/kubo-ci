@@ -2,43 +2,46 @@
 
 set -xue
 
+delete_by_ip() {
+    local address=$1
+    local server_name=$(openstack server list -f value --ip ${address} | awk '{print $1}')
+    if openstack server show ${server_name} -f yaml | bosh-cli int --path=/properties - | grep -E "job='(master|worker|etcd|route-sync|bosh)"; then
+      local volume_name=$(openstack server show "${server_name}" -f yaml | bosh-cli int --path /volumes_attached - | cut -d "'" -f2)
+      if [ ! "${volume_name}" == "" ]; then
+        openstack server remove volume "${server_name}" "${volume_name}"
+
+        if timeout 120 /bin/bash <<EOF
+          until openstack volume show "${volume_name}" -f yaml | bosh-cli int --path /status - | grep "available"; do
+            sleep 2
+          done
+EOF
+        then
+          openstack volume delete "${volume_name}" --force
+          echo "The volume became available and was deleted"
+        else
+          echo "The volume never became available and wasn't deleted"
+        fi
+      fi
+
+      openstack server delete "${server_name}"
+    fi
+
+}
 delete_vms() {
-  network_id=$(bosh-cli int "$ENV_FILE" --path='/net_id')
-  network_name=$(openstack network list -f value | grep "$network_id" | awk '{print $2}')
-  server_names=$(openstack server list -f value | grep "$network_name" | awk '{print $1}')
+  local internal_cidr=$(bosh-cli int "$ENV_FILE" --path=/internal_cidr)
+  local network_prefix=$(echo ${internal_cidr} | awk -F "." '{print $1"."$2"."$3"."}')
+  local min_ip_char=$(ipcalc ${internal_cidr} | grep HostMin | awk '{print $2}' | awk -F "." '{print $4}')
+  local max_ip_char=$(ipcalc ${internal_cidr} | grep HostMax | awk '{print $2}' | awk -F "." '{print $4}')
 
   openstack volume list --status available -c ID -f value | awk '{print $1}' | xargs -I{} openstack volume delete {}
 
+  # Delete the director first
   internal_ip=$(bosh-cli int "$ENV_FILE" --path='/internal_ip')
-  openstack port list | grep "$internal_ip" | awk '{print $2}' | xargs -I{} openstack port delete {}
-  internal_ip=$(bosh-cli int "$ENV_FILE" --path='/internal_ip')
-  openstack port list | grep "$internal_ip" | awk '{print $2}' | xargs -I{} openstack port delete {}
+  delete_by_ip "$internal_ip"
 
-  for server_name in ${server_names}
-  do
-    volume_name=$(openstack server show "${server_name}" -f yaml | bosh-cli int --path /volumes_attached - | cut -d "'" -f2)
-    if [ ! "${volume_name}" == "" ]; then
-      openstack server remove volume "${server_name}" "${volume_name}"
-
-      if timeout 120 /bin/bash <<EOF
-        until openstack volume show "${volume_name}" -f yaml | bosh-cli int --path /status - | grep "available"; do
-          sleep 2
-        done
-EOF
-      then
-        openstack volume delete "${volume_name}" --force
-        echo "The volume became available and was deleted"
-      else
-        echo "The volume never became available and wasn't deleted"
-      fi
-    fi
-
-    openstack server delete "${server_name}"
+  for address in ${network_prefix}{${min_ip_char}..${max_ip_char}}; do
+    delete_by_ip "$address"
   done
-
-
-  internal_ip=$(bosh-cli int "$ENV_FILE" --path='/internal_ip')
-  openstack port list -f value | grep "$internal_ip" | awk '{print $1}' | xargs -I{} openstack port delete {}
 }
 
 
