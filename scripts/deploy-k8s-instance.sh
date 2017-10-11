@@ -21,10 +21,10 @@ iaas=$(bosh-cli int ${KUBO_ENVIRONMENT_DIR}/director.yml --path=/iaas)
 iaas_cc_opsfile="${PWD}/git-kubo-ci/manifests/ops-files/${iaas}-k8s-cloud-config.yml"
 
 if [[ -f "${PWD}/git-kubo-ci/manifests/ops-files/$CLOUD_CONFIG_OPS_FILE" ]]; then
-  CLOUD_CONFIG_OPS_FILE="${PWD}/git-kubo-ci/manifests/ops-files/${CLOUD_CONFIG_OPS_FILE}"
+  CLOUD_CONFIG_OPS_FILES="${PWD}/git-kubo-ci/manifests/ops-files/${CLOUD_CONFIG_OPS_FILE}"
 elif [[ -f "$iaas_cc_opsfile" ]]; then
-  CLOUD_CONFIG_OPS_FILE="${iaas_cc_opsfile}"
+  CLOUD_CONFIG_OPS_FILES="${iaas_cc_opsfile}"
 fi
-export CLOUD_CONFIG_OPS_FILE
+export CLOUD_CONFIG_OPS_FILES
 
 "git-kubo-deployment/bin/deploy_k8s" "${KUBO_ENVIRONMENT_DIR}" ci-service local
