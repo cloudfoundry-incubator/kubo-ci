@@ -28,5 +28,22 @@ if [ "$?" != 0 ]; then exit 1; fi
 
 lb_url="http://$lb_address"
 
-timeout_seconds=20
-curl -L --max-time ${timeout_seconds} -IfsS ${lb_url}
+timeout_seconds=10
+max_attempts=30
+current_attempt=0
+retry=true
+
+# Probe the workload to ensure that it is servicing requests
+while $retry; do
+  curl -L --max-time ${timeout_seconds} -IfsS ${lb_url}
+
+  if [ $? -eq 0 ]; then
+    retry=false
+  else
+    current_attempt=$((current_attempt+1))
+    if [ $current_attempt -gt $max_attempts ]; then
+      echo "Reached maximum attempts trying to query $lb_url"
+      exit 1
+    fi
+  fi
+done
