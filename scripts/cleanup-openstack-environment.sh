@@ -25,8 +25,8 @@ EOF
 
       openstack server delete "${server_name}"
     fi
-
 }
+
 delete_vms() {
   local internal_cidr=$(bosh-cli int "$ENV_FILE" --path=/internal_cidr)
   local network_prefix=$(echo ${internal_cidr} | awk -F "." '{print $1"."$2"."$3"."}')
@@ -37,12 +37,10 @@ delete_vms() {
 
   # Delete the director first
   internal_ip=$(bosh-cli int "$ENV_FILE" --path='/internal_ip')
-  echo "Will delete $internal_ip"
-#  delete_by_ip "$internal_ip"
+  delete_by_ip "$internal_ip"
 
-  for address in ${network_prefix}{${min_ip_char}..${max_ip_char}}; do
-    echo "Will delete $address"
-#    delete_by_ip "$address"
+  for address in $(bash -c "echo ${network_prefix}{${min_ip_char}..${max_ip_char}}"); do
+    delete_by_ip "$address"
   done
 }
 
