@@ -5,7 +5,7 @@ set -xue
 delete_by_ip() {
     local address=$1
     local server_name=$(openstack server list -f value --ip ${address} | awk '{print $1}')
-    if openstack server show ${server_name} -f yaml | bosh-cli int --path=/properties - | grep -E "job='(master|worker|etcd|route-sync|bosh)"; then
+    if [ ! -z "$server_name" ] && openstack server show ${server_name} -f yaml | bosh-cli int --path=/properties - | grep -E "job='(master|worker|etcd|route-sync|bosh)"; then
       local volume_name=$(openstack server show "${server_name}" -f yaml | bosh-cli int --path /volumes_attached - | cut -d "'" -f2)
       if [ ! "${volume_name}" == "" ]; then
         openstack server remove volume "${server_name}" "${volume_name}"
