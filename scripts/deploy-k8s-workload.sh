@@ -23,7 +23,7 @@ kubectl create -f "$KUBO_CI_DIR/specs/nginx-lb.yml"
 kubectl rollout status -w deployment/nginx
 
 # get the load balancer's address
-lb_address_blocking "$service_name" "$KUBO_ENVIRONMENT_DIR" "$KUBO_DEPLOYMENT_DIR"
+lb_address_blocking nginx "$KUBO_ENVIRONMENT_DIR" "$KUBO_DEPLOYMENT_DIR"
 if [ "$?" != 0 ]; then exit 1; fi
 
 lb_url="http://$lb_address"
