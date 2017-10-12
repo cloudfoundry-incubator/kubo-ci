@@ -8,20 +8,25 @@ export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 export DEBUG=1
 
-tarball_name=$(ls $PWD/gcs-kubo-release-tarball/kubo-*.tgz | head -n1)
 
-cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
-cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
+metadata_path="${KUBO_ENVIRONMENT_DIR}/director.yml"
+if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
+  cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+  cp "kubo-lock/metadata" "$metadata_path"
+  tarball_name=$(ls $PWD/gcs-kubo-release-tarball/kubo-*.tgz | head -n1)
+else
+  tarball_name="$KUBO_RELEASE_TARBALL"
+fi
 
-cp "$tarball_name" "git-kubo-deployment/../kubo-release.tgz"
+cp "$tarball_name" "$KUBO_DEPLOYMENT_DIR/../kubo-release.tgz"
 
-"git-kubo-deployment/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
+"$KUBO_DEPLOYMENT_DIR/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
 
-iaas=$(bosh-cli int ${KUBO_ENVIRONMENT_DIR}/director.yml --path=/iaas)
-iaas_cc_opsfile="${PWD}/git-kubo-ci/manifests/ops-files/${iaas}-k8s-cloud-config.yml"
+iaas=$(bosh-cli int $metadata_path --path=/iaas)
+iaas_cc_opsfile="$KUBO_CI_DIR/manifests/ops-files/${iaas}-k8s-cloud-config.yml"
 
-if [[ -f "${PWD}/git-kubo-ci/manifests/ops-files/$CLOUD_CONFIG_OPS_FILE" ]]; then
-  CLOUD_CONFIG_OPS_FILES="${PWD}/git-kubo-ci/manifests/ops-files/${CLOUD_CONFIG_OPS_FILE}"
+if [[ -f "$KUBO_CI_DIR/manifests/ops-files/$CLOUD_CONFIG_OPS_FILE" ]]; then
+  CLOUD_CONFIG_OPS_FILES="$KUBO_CI_DIR/manifests/ops-files/$CLOUD_CONFIG_OPS_FILE"
 elif [[ -f "$iaas_cc_opsfile" ]]; then
   CLOUD_CONFIG_OPS_FILES="${iaas_cc_opsfile}"
 fi
@@ -33,4 +38,4 @@ if [[ ! -z ${PERFORM_UPGRADE+x} ]] && [[ ! -z "${PERFORM_UPGRADE}" ]]; then
   release_source="dev"
 fi
 
-"git-kubo-deployment/bin/deploy_k8s" "${KUBO_ENVIRONMENT_DIR}" ci-service ${release_source}
+"$KUBO_DEPLOYMENT_DIR/bin/deploy_k8s" "$KUBO_ENVIRONMENT_DIR" ci-service "$release_source"

@@ -1,6 +1,6 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-. "$DIR/lib/lb-info.sh"
+. "$DIR/lb-info.sh"
 
 # copy state and creds so that deploy_bosh has the correct context
 copy_state_and_creds() {

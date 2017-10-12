@@ -271,7 +271,7 @@ jobs:
       kubo-lock: kubo-lock-<%= iaas %>
       git-kubo-deployment: unpacked_dir
 
-- name: upgrade-k8s-<%= iaas %>
+- name: upgrade-kubo-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -306,9 +306,7 @@ jobs:
       git-kubo-deployment: unpacked_dir
       gcs-kubo-release-tarball: new-kubo-release-tarball
       kubo-lock: kubo-lock-<%= iaas %>
-    params:
-      PERFORM_UPGRADE: 1
-    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    file: git-kubo-ci/tasks/upgrade-kubo.yml
 
 
 - name: destroy-k8s-<%= iaas %>
