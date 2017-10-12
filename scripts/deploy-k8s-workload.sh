@@ -7,7 +7,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$DIR/lib/environment.sh"
 . "$DIR/lib/lb-info.sh"
 
-if [ -z ${LOCAL_DEV+x} ] && [ "$LOCAL_DEV" != "1" ]; then
+if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   cp "gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
   cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 fi
@@ -33,7 +33,7 @@ max_attempts=30
 current_attempt=0
 retry=true
 
-# Probe the workload to ensure that it is servicing requests
+# Probe the workload to ensure that it eventually comes up
 while $retry; do
   curl -L --max-time ${timeout_seconds} -IfsS ${lb_url}
 

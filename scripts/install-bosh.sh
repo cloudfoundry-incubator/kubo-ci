@@ -9,7 +9,7 @@ export BOSH_LOG_PATH="$PWD/bosh.log"
 export DEBUG=1
 
 metadata_path="${KUBO_ENVIRONMENT_DIR}/director.yml"
-if [ -z ${LOCAL_DEV+x} ] && [ "$LOCAL_DEV" != "1" ]; then
+if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   cp "kubo-lock/metadata" "$metadata_path"
   touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
 fi

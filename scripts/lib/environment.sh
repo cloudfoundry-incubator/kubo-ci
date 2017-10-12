@@ -8,7 +8,7 @@ if [ ! -d "$KUBO_CI_DIR" ]; then
   exit 1
 fi
 
-if ([ -z ${LOCAL_DEV+x} ] && [ "$LOCAL_DEV" != "1" ]) || [ -z "$KUBO_ENVIRONMENT_DIR" ]; then
+if ([ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]) || [ -z "$KUBO_ENVIRONMENT_DIR" ]; then
   export KUBO_ENVIRONMENT_DIR="${PWD}/environment"
   mkdir -p "${KUBO_ENVIRONMENT_DIR}"
 fi
