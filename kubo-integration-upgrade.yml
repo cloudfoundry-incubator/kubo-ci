@@ -12,7 +12,7 @@ groups:
   - deploy-old-k8s-<%= iaas %>
   - deploy-workload-<%= iaas %>
   - upgrade-bosh-<%= iaas %>
-  - upgrade-k8s-<%= iaas %>
+  - upgrade-kubo-<%= iaas %>
   - destroy-k8s-<%= iaas %>
   - destroy-bosh-<%= iaas %>
 <% end %>
@@ -24,7 +24,7 @@ groups:
   - deploy-old-k8s-<%= iaas %>
   - deploy-workload-<%= iaas %>
   - upgrade-bosh-<%= iaas %>
-  - upgrade-k8s-<%= iaas %> # watch for the workload to be accessible
+  - upgrade-kubo-<%= iaas %> # watch for the workload to be accessible
   - destroy-k8s-<%= iaas %>
   - destroy-bosh-<%= iaas %>
 <% end %>
@@ -316,16 +316,16 @@ jobs:
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'upgrade-k8s-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
     - get: new-kubo-deployment-tarball
-      passed: [ 'upgrade-k8s-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'upgrade-k8s-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'upgrade-k8s-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
     <% if iaas.include? "openstack" %>
     - get: kubo-lock-openstack-global
-      passed: [ 'upgrade-k8s-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
     <% end %>
 
   - task: unpack-tgz
