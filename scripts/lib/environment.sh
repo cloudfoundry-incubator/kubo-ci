@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export KUBO_DEPLOYMENT_DIR="${KUBO_DEPLOYMENT_LOCATION:-"git-kubo-deployment"}"
+export KUBO_DEPLOYMENT_DIR="${KUBO_DEPLOYMENT_DIR:-"git-kubo-deployment"}"
 
 export KUBO_CI_DIR="${KUBO_CI_DIR:-"git-kubo-ci"}"
 if [ ! -d "$KUBO_CI_DIR" ]; then

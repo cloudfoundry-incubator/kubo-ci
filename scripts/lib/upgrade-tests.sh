@@ -1,6 +1,4 @@
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-. "$DIR/lb-info.sh"
+. "$DIR/lib/lb-info.sh"
 
 # copy state and creds so that deploy_bosh has the correct context
 copy_state_and_creds() {
@@ -75,7 +73,7 @@ run_upgrade_test() {
   query_loop "$update_pid" "$query_url" &
   local query_pid="$!"
 
-  wait_for_success "$update_pid" "Update BOSH"
+  wait_for_success "$update_pid" "Update"
   wait_for_success "$query_pid" "HA query loop"
   if [ "$?" -ne 0 ]; then
     echo "Output of last query below:"

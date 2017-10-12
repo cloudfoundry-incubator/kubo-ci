@@ -25,6 +25,7 @@ cp "$tarball_name" "$KUBO_DEPLOYMENT_DIR/../kubo-release.tgz"
 iaas=$(bosh-cli int $metadata_path --path=/iaas)
 iaas_cc_opsfile="$KUBO_CI_DIR/manifests/ops-files/${iaas}-k8s-cloud-config.yml"
 
+CLOUD_CONFIG_OPS_FILE=${CLOUD_CONFIG_OPS_FILE:-""}
 if [[ -f "$KUBO_CI_DIR/manifests/ops-files/$CLOUD_CONFIG_OPS_FILE" ]]; then
   CLOUD_CONFIG_OPS_FILES="$KUBO_CI_DIR/manifests/ops-files/$CLOUD_CONFIG_OPS_FILE"
 elif [[ -f "$iaas_cc_opsfile" ]]; then
