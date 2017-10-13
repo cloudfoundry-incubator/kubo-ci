@@ -376,11 +376,13 @@ jobs:
   - task: destroy
     tags: [ '<%= iaas %>' ]
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+    input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>
+      git-kubo-deployment: unpacked_dir
+
   - put: kubo-lock-<%= iaas %>
     params:
       release: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir
   <% if iaas.include? "openstack" %>
   - put: kubo-lock-openstack-global
     params:
