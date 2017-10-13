@@ -1,13 +1,5 @@
 . "$DIR/lib/lb-info.sh"
 
-# copy state and creds so that deploy_bosh has the correct context
-copy_state_and_creds() {
-  cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
-  cp "$PWD/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}/"
-  cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
-  touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
-}
-
 query_loop() {
   local timeout_seconds=20
   local pid_to_wait="$1"
@@ -50,10 +42,6 @@ wait_for_success() {
 run_upgrade_test() {
   local service_name="nginx"
   local update_function=$1
-
-  if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
-    copy_state_and_creds
-  fi
 
   lb_address_blocking "$service_name" "$KUBO_ENVIRONMENT_DIR" "$KUBO_DEPLOYMENT_DIR"
   if [ -z "$lb_address" ]; then
