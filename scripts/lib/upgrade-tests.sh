@@ -27,7 +27,7 @@ query_loop() {
     curl -L --max-time ${timeout_seconds} -IfsS ${url} &> query_loop_last_output.txt
 
     if [ "$?" -ne 0 ]; then
-      printf "[$timestamp][$query_success_count/$query_loop_count] ${red}Error: request to $url failed${no_color}\n"
+      echo -e "[$timestamp][$query_success_count/$query_loop_count] ${red}Error: request to $url failed${no_color}"
       cat query_loop_last_output.txt
     else
       (( query_success_count+=1 ))
