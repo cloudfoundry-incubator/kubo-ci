@@ -52,6 +52,7 @@ jobs:
     params:
       ENV_FILE: kubo-lock/<%= pool %>/claimed/<%= env %>
   - task: cleanup-cf
+    tags: [openstack-lb]
     file: git-kubo-ci/tasks/cleanup-cf.yml
     params:
       CF_PASSWORD: ((cf_password_openstack))

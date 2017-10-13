@@ -60,6 +60,7 @@ jobs:
 
   - task: cleanup-cf
     file: git-kubo-ci/tasks/cleanup-cf.yml
+    tags: [vsphere]
     params:
       CF_PASSWORD: ((cf_password_vsphere))
       ENV_FILE: kubo-lock-repo/<%= env['pool_name'] %>/claimed/<%= env['name'] %>
