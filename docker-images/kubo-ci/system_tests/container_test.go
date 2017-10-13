@@ -24,6 +24,7 @@ var _ = Describe("Docker Image", func() {
 		"aws":      []string{"--version"},
 		"govc":     []string{"version"},
 		"ipcalc":   []string{},
+		"java":     []string{"-version"},
 	}
 
 	for executable, args := range commands {

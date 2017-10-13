@@ -65,6 +65,7 @@ RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.27-linux-amd64
   mv bosh-cli-2.0.27-linux-amd64 /usr/local/bin/bosh-cli
 
 # Openstack CLI
+RUN pip install cryptography==2.0.3
 RUN pip install python-openstackclient
 
 # AWS CLI
@@ -73,6 +74,14 @@ RUN pip install awscli
 # GOVC CLI
 RUN wget -O - -o /dev/null https://github.com/vmware/govmomi/releases/download/v0.15.0/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc && \
   chmod +x /usr/local/bin/govc
+
+# Install Java
+RUN DEBIAN_FRONTEND=noninteractive add-apt-repository ppa:webupd8team/java -y && \
+  apt-get update && \
+  echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections && \
+  apt-get install -y \
+  oracle-java8-installer \
+  oracle-java8-set-default
 
 # Cleanup
 RUN rm -rf /tmp/docker-build && rm -rf /var/lib/apt/lists/*
