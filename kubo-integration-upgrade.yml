@@ -307,6 +307,8 @@ jobs:
       kubo-lock: kubo-lock-<%= iaas %>
       git-kubo-deployment: unpacked_dir
       gcs-kubo-release-tarball: new-kubo-release-tarball
+    params:
+      HA_MIN_SERVICE_AVAILABILITY: "0.99999"
 
 
 - name: destroy-k8s-<%= iaas %>

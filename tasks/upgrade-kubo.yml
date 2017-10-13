@@ -9,6 +9,7 @@ run:
 
 params:
   CLOUD_CONFIG_OPS_FILE:
+  HA_MIN_SERVICE_AVAILABILITY:
 
 inputs:
   - name: git-kubo-ci
