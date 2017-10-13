@@ -1,5 +1,5 @@
 <%
-  k8s_170 = 'v0.6.0'
+  k8s_171 = 'v0.7.0'
   iaas_list = %w(gcp-lb)
 %>
 ---
@@ -129,7 +129,7 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: old-kubo-deployment-tarball
-      version: { tag: '<%= k8s_170 %>' }
+      version: { tag: '<%= k8s_171 %>' }
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
@@ -183,7 +183,7 @@ jobs:
       passed: [ 'install-old-bosh-<%= iaas %>' ]
     <% end %>
     - get: old-kubo-release-tarball
-      version: { tag: '<%= k8s_170 %>' }
+      version: { tag: '<%= k8s_171 %>' }
 
   - task: unpack-tgz
     file: git-kubo-ci/tasks/unpack-tgz.yml
