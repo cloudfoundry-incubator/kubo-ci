@@ -301,12 +301,12 @@ jobs:
       COLLAPSE_DIR: kubo-deployment
 
   - task: upgrade
-    tags: [<%= iaas %>]
+    tags: ['<%= iaas %>']
+    file: git-kubo-ci/tasks/upgrade-kubo.yml
     input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>
       git-kubo-deployment: unpacked_dir
       gcs-kubo-release-tarball: new-kubo-release-tarball
-      kubo-lock: kubo-lock-<%= iaas %>
-    file: git-kubo-ci/tasks/upgrade-kubo.yml
 
 
 - name: destroy-k8s-<%= iaas %>

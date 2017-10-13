@@ -78,5 +78,6 @@ run_upgrade_test() {
   if [ "$?" -ne 0 ]; then
     echo "Output of last query below:"
     cat query_loop_last_output.txt
+    return 1
   fi
 }
