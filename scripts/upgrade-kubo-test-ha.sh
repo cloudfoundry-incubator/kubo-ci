@@ -14,7 +14,8 @@ update_kubo() {
 
 upload_new_releases() {
   if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
-    copy_state_and_creds
+    cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+    cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
   fi
   BOSH_ENV="$KUBO_ENVIRONMENT_DIR" source "$KUBO_DEPLOYMENT_DIR/bin/set_bosh_environment"
 
