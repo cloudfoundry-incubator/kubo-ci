@@ -270,6 +270,8 @@ jobs:
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
       git-kubo-deployment: unpacked_dir
+    params:
+      HA_MIN_SERVICE_AVAILABILITY: "0.99"
 
 - name: upgrade-kubo-<%= iaas %>
   plan:
@@ -308,7 +310,7 @@ jobs:
       git-kubo-deployment: unpacked_dir
       gcs-kubo-release-tarball: new-kubo-release-tarball
     params:
-      HA_MIN_SERVICE_AVAILABILITY: "0.99999"
+      HA_MIN_SERVICE_AVAILABILITY: "0.99"
 
 
 - name: destroy-k8s-<%= iaas %>

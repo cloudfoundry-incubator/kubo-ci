@@ -7,6 +7,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$DIR/lib/environment.sh"
 . "$DIR/lib/upgrade-tests.sh"
 
+HA_MIN_SERVICE_AVAILABILITY="${HA_MIN_SERVICE_AVAILABILITY:-1}"
+
 update_bosh() {
   echo "Updating BOSH..."
   ${DIR}/install-bosh.sh
@@ -23,4 +25,4 @@ copy_state_and_creds() {
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   copy_state_and_creds
 fi
-run_upgrade_test update_bosh
+run_upgrade_test update_bosh $HA_MIN_SERVICE_AVAILABILITY
