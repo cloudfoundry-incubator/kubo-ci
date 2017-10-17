@@ -96,7 +96,7 @@ jobs:
           repository: pcfkubo/vsphere-cleaner
           tag: latest
       inputs:
-      - name: git-kubo-ci
+      - name: git-kubo-ci-vsphere-cleaner
       run:
         path: git-kubo-ci-vsphere-cleaner/docker-images/vsphere-cleaner/run_tests
   - put: vsphere-cleaner-stable
@@ -121,7 +121,7 @@ jobs:
           repository: pcfkubo/curl
           tag: latest
       inputs:
-      - name: git-kubo-ci
+      - name: git-kubo-ci-curl
       run:
         path: git-kubo-ci-curl/docker-images/curl/run_tests
   - put: curl-stable
@@ -154,7 +154,7 @@ jobs:
           repository: pcfkubo/test-runner
           tag: latest
       inputs:
-      - name: git-kubo-ci
+      - name: git-kubo-ci-test-runner
       run:
         path: ginkgo
         args:
@@ -199,7 +199,7 @@ jobs:
            repository: pcfkubo/aws-maintenance
            tag: latest
        inputs:
-       - name: git-kubo-ci
+       - name: git-kubo-ci-aws-maintenance
        run:
          path: git-kubo-ci-aws-maintenance/docker-images/aws-maintenance/run_tests
    - put: aws-maintenance-stable
