@@ -60,9 +60,9 @@ RUN wget -O /usr/local/bin/direnv https://github.com/direnv/direnv/releases/down
   chmod +x /usr/local/bin/direnv
 
 # BOSH CLI
-RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.27-linux-amd64 && \
-  chmod +x bosh-cli-2.0.27-linux-amd64 && \
-  mv bosh-cli-2.0.27-linux-amd64 /usr/local/bin/bosh-cli
+RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.42-linux-amd64 && \
+  chmod +x bosh-cli-2.0.42-linux-amd64 && \
+  mv bosh-cli-2.0.42-linux-amd64 /usr/local/bin/bosh-cli
 
 # Openstack CLI
 RUN pip install cryptography==2.0.3

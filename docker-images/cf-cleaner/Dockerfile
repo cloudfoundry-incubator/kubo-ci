@@ -6,6 +6,6 @@ RUN apk add --update openssl jq && \
   rm cf.tgz && \
   chmod a+x cf && \
   mv cf /usr/bin && \
-  wget 'https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.31-linux-amd64' -O bosh-cli && \
+  wget 'https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.42-linux-amd64' -O bosh-cli && \
   chmod a+x bosh-cli && \
   mv bosh-cli /usr/bin
