@@ -9,7 +9,7 @@ run:
 
 params:
   CLOUD_CONFIG_OPS_FILE:
-  PERFORM_UPGRADE:
+
 inputs:
   - name: git-kubo-ci
   - name: gcs-kubo-release-tarball
