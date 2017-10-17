@@ -9,14 +9,18 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 HA_MIN_SERVICE_AVAILABILITY="${HA_MIN_SERVICE_AVAILABILITY:-1}"
 
+if ([ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]) || [ -z "$BOSH_STEMCELL_VERSION" ]; then
+  BOSH_STEMCELL_VERSION=$(cat ${PWD}/new-bosh-stemcell/version)
+fi
+
 update_stemcell() {
-  echo "Updating Stemcell..."
-
-  echo "Updating kubo-deployment manifest..."
-  local new_stemcell_version="3445.11"
   local manifest_path="${KUBO_DEPLOYMENT_DIR}/manifests/kubo.yml"
-  ruby -e "require 'yaml'; data = YAML.load_file(\"${manifest_path}\"); data[\"stemcells\"][0][\"version\"] = \"${new_stemcell_version}\"; File.open(\"${manifest_path}\", 'w') { |f| f.write(data.to_yaml.gsub(\"---\n\", \"\")) }"
+  local existing_version=$(bosh int $manifest_path --path=/stemcells/0/version)
 
+  echo "Updating $manifest_path's stemcell version from '$existing_version' to '$BOSH_STEMCELL_VERSION'"
+  ruby -e "require 'yaml'; data = YAML.load_file(\"${manifest_path}\"); data[\"stemcells\"][0][\"version\"] = \"${BOSH_STEMCELL_VERSION}\"; File.open(\"${manifest_path}\", 'w') { |f| f.write(data.to_yaml.gsub(\"---\n\", \"\")) }"
+
+  echo "Updating Stemcell..."
   ${DIR}/deploy-k8s-instance.sh
 }
 

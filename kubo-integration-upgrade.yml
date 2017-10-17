@@ -106,6 +106,17 @@ resources:
     pre_release: true
     access_token:
 
+<% iaas_list.each do |iaas| %>
+- name: new-bosh-stemcell-<%= iaas %>
+  type: bosh-io-stemcell
+  source:
+    <% if iaas.equals?("gcp-lb") %>
+    name: bosh-google-kvm-ubuntu-trusty-go_agent
+    <% else %>
+    name: bosh-<%= iaas %>-kvm-ubuntu-trusty-go_agent
+    <% end %>
+    version: latest
+<% end %>
 
 ##########################################
 # Jobs
@@ -236,7 +247,7 @@ jobs:
       git-kubo-deployment: unpacked_dir
       kubo-lock: kubo-lock-<%= iaas %>
 
-- name: upgrade-bosh-<%= iaas %>
+- name: upgrade-stemcell-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -244,15 +255,57 @@ jobs:
       version: every
       trigger: true
       passed: [ 'deploy-workload-<%= iaas %>' ]
-    - get: new-kubo-deployment-tarball
+    - get: old-kubo-deployment-tarball
       passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: gcs-bosh-state
       passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-workload-<%= iaas %>' ]
+    - get: new-bosh-stemcell-<%= iaas %>
+      params:
+        tarball: false
+      passed: [ 'deploy-workload-<%= iaas %>' ]
     <% if iaas.include? "openstack" %>
     - get: kubo-lock-openstack-global
       passed: [ 'deploy-workload-<%= iaas %>' ]
+    <% end %>
+
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= iaas %>']
+    input_mapping:
+      source_tarball: old-kubo-deployment-tarball
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      COLLAPSE_DIR: kubo-deployment
+
+  - task: upgrade
+    tags: ['<%= iaas %>']
+    file: git-kubo-ci/tasks/upgrade-stemcell.yml
+    input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>
+      git-kubo-deployment: unpacked_dir
+      new-bosh-stemcell: new-bosh-stemcell-<%= iaas %>
+    params:
+      HA_MIN_SERVICE_AVAILABILITY: "0.99"
+
+- name: upgrade-bosh-<%= iaas %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= iaas %>
+      version: every
+      trigger: true
+      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+    - get: new-kubo-deployment-tarball
+      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+    <% if iaas.include? "openstack" %>
+    - get: kubo-lock-openstack-global
+      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
     <% end %>    
 
   - task: unpack-tgz
