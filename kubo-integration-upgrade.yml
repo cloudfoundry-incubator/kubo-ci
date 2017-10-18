@@ -110,7 +110,7 @@ resources:
 - name: new-bosh-stemcell-<%= iaas %>
   type: bosh-io-stemcell
   source:
-    <% if iaas.equals?("gcp-lb") %>
+    <% if iaas.contains? "gcp-lb" %>
     name: bosh-google-kvm-ubuntu-trusty-go_agent
     <% else %>
     name: bosh-<%= iaas %>-kvm-ubuntu-trusty-go_agent
