@@ -115,7 +115,7 @@ resources:
     <% else %>
     name: bosh-<%= iaas %>-kvm-ubuntu-trusty-go_agent
     <% end %>
-    version: latest
+    version: 3445.11
 <% end %>
 
 ##########################################

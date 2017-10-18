@@ -31,7 +31,9 @@ query_loop() {
       cat query_loop_last_output.txt
     else
       (( query_success_count+=1 ))
-      echo "[$timestamp][$query_success_count/$query_loop_count] Service $url successfully responded"
+      if [ -z ${RUN_QUERIES_SILENTLY+x} ] || [ "$RUN_QUERIES_SILENTLY" != "1" ]; then
+        echo "[$timestamp][$query_success_count/$query_loop_count] Service $url successfully responded"
+      fi
     fi
   done
 
