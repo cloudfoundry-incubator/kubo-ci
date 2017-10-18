@@ -11,6 +11,7 @@ groups:
   - install-old-bosh-<%= iaas %>
   - deploy-old-k8s-<%= iaas %>
   - deploy-workload-<%= iaas %>
+  - upgrade-stemcell-<%= iaas %>
   - upgrade-bosh-<%= iaas %>
   - upgrade-kubo-<%= iaas %>
   - destroy-k8s-<%= iaas %>
@@ -23,6 +24,7 @@ groups:
   - install-old-bosh-<%= iaas %>
   - deploy-old-k8s-<%= iaas %>
   - deploy-workload-<%= iaas %>
+  - upgrade-stemcell-<%= iaas %>
   - upgrade-bosh-<%= iaas %>
   - upgrade-kubo-<%= iaas %> # watch for the workload to be accessible
   - destroy-k8s-<%= iaas %>
@@ -256,7 +258,6 @@ jobs:
       trigger: true
       passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: old-kubo-deployment-tarball
-      passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: gcs-bosh-state
       passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: gcs-bosh-creds
@@ -264,7 +265,6 @@ jobs:
     - get: new-bosh-stemcell-<%= iaas %>
       params:
         tarball: false
-      passed: [ 'deploy-workload-<%= iaas %>' ]
     <% if iaas.include? "openstack" %>
     - get: kubo-lock-openstack-global
       passed: [ 'deploy-workload-<%= iaas %>' ]
@@ -298,7 +298,6 @@ jobs:
       trigger: true
       passed: [ 'upgrade-stemcell-<%= iaas %>' ]
     - get: new-kubo-deployment-tarball
-      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
     - get: gcs-bosh-state
       passed: [ 'upgrade-stemcell-<%= iaas %>' ]
     - get: gcs-bosh-creds
