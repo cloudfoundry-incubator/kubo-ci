@@ -11,6 +11,7 @@ params:
 inputs:
 - name: git-kubo-ci
 - name: git-kubo-deployment
+- name: gcs-kubo-release-tarball
 - name: kubo-lock
 - name: gcs-bosh-state
 - name: gcs-bosh-creds

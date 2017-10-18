@@ -258,6 +258,7 @@ jobs:
       trigger: true
       passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: old-kubo-deployment-tarball
+    - get: old-kubo-release-tarball
     - get: gcs-bosh-state
       passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: gcs-bosh-creds
@@ -285,6 +286,7 @@ jobs:
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
       git-kubo-deployment: unpacked_dir
+      gcs-kubo-release-tarball: old-kubo-release-tarball
       new-bosh-stemcell: new-bosh-stemcell-<%= iaas %>
     params:
       HA_MIN_SERVICE_AVAILABILITY: "0.99"
