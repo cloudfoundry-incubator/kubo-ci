@@ -18,12 +18,6 @@ resources:
     uri: https://github.com/pivotal-cf-experimental/kubo-etcd
     branch: master
 
-- name: git-infrastructure-ci
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/infrastructure-ci
-    branch: master
-
 - name: kubo-lock
   type: pool
   source:
@@ -83,34 +77,32 @@ jobs:
     - get: git-kubo-etcd
       trigger: true
     - get: git-kubo-ci
-    - get: git-infrastructure-ci
-      version: { ref: "b10479cd5c79e3ae0202664f6c50b4f583261132" }
   - aggregate:
     - task: test-etcd-proxy
-      file: git-infrastructure-ci/scripts/etcd/run-unit-test-suite/task.yml
+      file: git-kubo-ci/scripts/etcd/run-unit-test-suite/task.yml
       input_mapping:
-        ci: git-infrastructure-ci
+        ci: git-kubo-ci
         etcd-release: git-kubo-etcd
       params:
         TEST_SUITE: etcd-proxy
     - task: test-etcd-consistency-checker
-      file: git-infrastructure-ci/scripts/etcd/run-unit-test-suite/task.yml
+      file: git-kubo-ci/scripts/etcd/run-unit-test-suite/task.yml
       input_mapping:
-        ci: git-infrastructure-ci
+        ci: git-kubo-ci
         etcd-release: git-kubo-etcd
       params:
         TEST_SUITE: etcd-consistency-checker
     - task: test-etcdfab
-      file: git-infrastructure-ci/scripts/etcd/run-unit-test-suite/task.yml
+      file: git-kubo-ci/scripts/etcd/run-unit-test-suite/task.yml
       input_mapping:
-        ci: git-infrastructure-ci
+        ci: git-kubo-ci
         etcd-release: git-kubo-etcd
       params:
         TEST_SUITE: etcdfab
     - task: test-etcd-metrics-server
-      file: git-infrastructure-ci/scripts/etcd/test-etcd-metrics-server/task.yml
+      file: git-kubo-ci/scripts/etcd/test-etcd-metrics-server/task.yml
       input_mapping:
-        ci: git-infrastructure-ci
+        ci: git-kubo-ci
         etcd-release: git-kubo-etcd
 
 
@@ -122,8 +114,6 @@ jobs:
       trigger: true
       passed: [ run-unit-tests ]
     - get: git-kubo-ci
-    - get: git-infrastructure-ci
-      version: { ref: "b10479cd5c79e3ae0202664f6c50b4f583261132" }
     - get: gcs-kubo-deployment-pre
   - put: kubo-lock
     params: { acquire: true }
@@ -160,8 +150,6 @@ jobs:
       resource: git-kubo-etcd
       passed:
       - setup-eats-infrastructure
-    - get: git-infrastructure-ci
-      version: { ref: "b10479cd5c79e3ae0202664f6c50b4f583261132" }
     - get: stemcell
       resource: gcp-stemcell
     - get: turbulence-release
@@ -171,7 +159,7 @@ jobs:
   - task: run-eats
     file: git-kubo-ci/tasks/etcd/run-eats.yml
     input_mapping:
-      ci: git-infrastructure-ci
+      ci: git-kubo-ci
     params:
       TEST_enable_turbulence_tests: false
       TEST_parallel_nodes: 5
@@ -194,8 +182,6 @@ jobs:
       resource: git-kubo-etcd
       passed:
       - eats
-    - get: git-infrastructure-ci
-      version: { ref: "b10479cd5c79e3ae0202664f6c50b4f583261132" }
     - get: stemcell
       resource: gcp-stemcell
     - get: turbulence-release
@@ -205,7 +191,7 @@ jobs:
   - task: run-eats
     file: git-kubo-ci/tasks/etcd/run-eats.yml
     input_mapping:
-      ci: git-infrastructure-ci
+      ci: git-kubo-ci
     params:
       TEST_enable_turbulence_tests: true
       TEST_parallel_nodes: 3
