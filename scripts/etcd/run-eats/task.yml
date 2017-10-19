@@ -1,0 +1,24 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: cfinfrastructure/deployment
+
+inputs:
+  - name: ci
+  - name: etcd-release
+  - name: consul-release
+  - name: stemcell
+  - name: turbulence-release
+  - name: latest-etcd-release
+  - name: bbl-states-repo
+
+run:
+  path: ci/scripts/etcd/run-eats/task
+
+params:
+  BBL_STATE_DIR:
+  PARALLEL_NODES:
+  ENABLE_TURBULENCE_TESTS:

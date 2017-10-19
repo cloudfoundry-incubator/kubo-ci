@@ -1,0 +1,53 @@
+#!/bin/bash -exu
+
+export ROOT="${PWD}"
+
+function setup_bosh_env_vars() {
+  set +x
+  pushd "${ROOT}/bbl-states-repo/${BBL_STATE_DIR}" > /dev/null
+    eval "$(bbl print-env)"
+  popd > /dev/null
+  set -x
+}
+
+function create_integration_config() {
+  cat > eats_config.json <<EOF
+  {
+    "bosh":{
+      "target": "${BOSH_ENVIRONMENT}",
+      "username": "${BOSH_CLIENT}",
+      "password": "${BOSH_CLIENT_SECRET}",
+      "deployment_vars_path": "${ROOT}/bbl-states-repo/${BBL_STATE_DIR}/deployment-vars.yml"
+    },
+    "cf": {
+      "domain": "${CF_DOMAIN}",
+      "username": "${CF_USER}",
+      "password": "${CF_PASSWORD}"
+    }
+  }
+EOF
+}
+
+function main() {
+  setup_bosh_env_vars
+
+  mkdir -p "${GOPATH}/src/github.com/cloudfoundry-incubator"
+
+  pushd "${GOPATH}/src/github.com/cloudfoundry-incubator" > /dev/null
+    ln -s "${ROOT}/etcd-release"
+
+    pushd "${GOPATH}/src/github.com/cloudfoundry-incubator/etcd-release" > /dev/null
+      create_integration_config
+      EATS_CONFIG="${PWD}/eats_config.json" ginkgo \
+        -r \
+        -randomizeAllSpecs \
+        -randomizeSuites \
+        -failFast \
+        -succinct \
+        -slowSpecThreshold 300 \
+        ./src/acceptance-tests/cf-tls-upgrade/
+    popd > /dev/null
+  popd > /dev/null
+}
+
+main

@@ -1,0 +1,10 @@
+---
+etcd_release_version: some-etcd-release-version
+latest_etcd_release_version: some-latest-etcd-release-version
+stemcell_version: some-stemcell-version
+bosh_environment: some-bosh-target
+bosh_client: some-bosh-username
+bosh_client_secret: some-bosh-password
+bosh_director_ca_cert: some-bosh-director-ca-cert
+enable_turbulence_tests: true
+parallel_nodes: 10

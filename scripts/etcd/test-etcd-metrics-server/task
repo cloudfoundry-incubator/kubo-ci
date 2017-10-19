@@ -1,0 +1,26 @@
+#!/bin/bash -exu
+
+function main() {
+  local root_dir
+  root_dir="${1}"
+
+  rm -rf "${root_dir}/etcd-release/blobs/etcd"
+  bosh sync-blobs --dir="${root_dir}/etcd-release"
+  local etcd_binary
+  etcd_binary="$(tar tzf "${root_dir}"/etcd-release/blobs/etcd/etcd-*.tar.gz | grep etcd$)"
+  tar zxf "${root_dir}"/etcd-release/blobs/etcd/etcd-*.tar.gz -C /tmp "$etcd_binary"
+
+  mkdir -p "${GOPATH}/src/github.com/cloudfoundry-incubator"
+  ln -s "${root_dir}/etcd-release/src/etcd-metrics-server" "${GOPATH}/src/github.com/cloudfoundry-incubator"
+  server_dir="${GOPATH}/src/github.com/cloudfoundry-incubator/etcd-metrics-server"
+  export GOPATH="${server_dir}/Godeps/_workspace:${GOPATH}"
+  export PATH="${server_dir}/Godeps/_workspace/bin:${PATH}"
+
+  mkdir -p "${server_dir}/Godeps/_workspace/bin"
+  mv "/tmp/$etcd_binary" "${server_dir}/Godeps/_workspace/bin/"
+
+  ginkgo -r -race -randomizeAllSpecs -randomizeSuites "$server_dir"
+
+}
+
+main "${PWD}"

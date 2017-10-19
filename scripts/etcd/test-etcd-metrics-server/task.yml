@@ -1,0 +1,14 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: cfinfrastructure/deployment
+
+inputs:
+- name: etcd-release
+- name: ci
+
+run:
+  path: ci/scripts/etcd/test-etcd-metrics-server/task

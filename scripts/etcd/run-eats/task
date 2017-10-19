@@ -1,0 +1,99 @@
+#!/bin/bash -exu
+
+export ROOT="${PWD}"
+export ETCD_RELEASE_VERSION="99999+dev.$(date +%s)"
+export STEMCELL_VERSION="$(cat ${ROOT}/stemcell/version)"
+export CONSUL_RELEASE_VERSION="$(cat ${ROOT}/consul-release/version)"
+export TURBULENCE_RELEASE_VERSION="$(cat ${ROOT}/turbulence-release/version)"
+export LATEST_ETCD_RELEASE_VERSION="$(cat ${ROOT}/latest-etcd-release/version)"
+
+function main() {
+  setup_bosh_env_vars
+
+  upload_stemcell
+  upload_releases
+  generate_vars_file
+  force_compilation
+
+  bosh -d eats -n deploy "${ROOT}/etcd-release/manifests/eats.yml" --vars-file "${ROOT}/vars.yml"
+  bosh -d eats run-errand acceptance-tests --keep-alive
+
+  bosh -n clean-up --all
+}
+
+function setup_bosh_env_vars() {
+  set +x
+  pushd "${ROOT}/bbl-states-repo/${BBL_STATE_DIR}" > /dev/null
+    eval "$(bbl print-env)"
+  popd > /dev/null
+  set -x
+}
+
+function upload_stemcell() {
+  pushd "${ROOT}/stemcell" > /dev/null
+    bosh upload-stemcell stemcell.tgz
+  popd > /dev/null
+}
+
+function upload_releases() {
+  pushd "${ROOT}/turbulence-release" > /dev/null
+    bosh upload-release release.tgz
+  popd > /dev/null
+
+  pushd "${ROOT}/consul-release" > /dev/null
+    bosh upload-release release.tgz
+  popd > /dev/null
+
+  pushd "${ROOT}/etcd-release" > /dev/null
+    bosh -n create-release --force --version "${ETCD_RELEASE_VERSION}"
+    bosh upload-release
+  popd > /dev/null
+
+  pushd "${ROOT}/latest-etcd-release" > /dev/null
+    bosh upload-release release.tgz
+  popd > /dev/null
+}
+
+function generate_vars_file() {
+  mkdir -p "${GOPATH}/src/github.com/cloudfoundry"
+
+  pushd "${GOPATH}/src/github.com/cloudfoundry" > /dev/null
+    ln -s "${ROOT}/ci" "infrastructure-ci"
+
+    pushd "${GOPATH}/src/github.com/cloudfoundry/infrastructure-ci" > /dev/null
+      go run \
+        "./scripts/etcd/run-eats/generate_vars_file.go" \
+        > "${ROOT}/vars.yml"
+    popd > /dev/null
+  popd > /dev/null
+}
+
+function force_compilation() {
+  pushd /tmp > /dev/null
+    sed -e "s/CONSUL_RELEASE_VERSION/${CONSUL_RELEASE_VERSION}/g" \
+      -e "s/ETCD_RELEASE_VERSION/${ETCD_RELEASE_VERSION}/g" \
+      -e "s/TURBULENCE_RELEASE_VERSION/${TURBULENCE_RELEASE_VERSION}/g" \
+      -e "s/STEMCELL_VERSION/${STEMCELL_VERSION}/g" \
+      "${ROOT}/ci/scripts/etcd/run-eats/fixtures/eats_compilation.yml" \
+      > "${ROOT}/eats_compilation.yml"
+
+    bosh -d compilation -n deploy "${ROOT}/eats_compilation.yml"
+    bosh -d compilation export-release "etcd/${ETCD_RELEASE_VERSION}" "ubuntu-trusty/${STEMCELL_VERSION}"
+    bosh -d compilation export-release "consul/${CONSUL_RELEASE_VERSION}" "ubuntu-trusty/${STEMCELL_VERSION}"
+    bosh -d compilation export-release "turbulence/${TURBULENCE_RELEASE_VERSION}" "ubuntu-trusty/${STEMCELL_VERSION}"
+    bosh -d compilation -n delete-deployment
+  popd > /dev/null
+}
+
+function teardown() {
+  set +e
+  bosh -d eats -n delete-deployment
+  bosh -n delete-release etcd
+  bosh -n delete-release consul
+  bosh -n delete-release turbulence
+  set -e
+}
+
+trap teardown EXIT
+
+main

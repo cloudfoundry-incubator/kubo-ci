@@ -1,0 +1,155 @@
+# --- Scale up doppler ---
+- type: replace
+  path: /instance_groups/name=doppler/instances
+  value: 4
+
+# --- Remove consul agent job on etcd ---
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=consul_agent
+
+# --- Remove cluster properties on etcd ---
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=etcd/properties/etcd/cluster
+
+# --- Add static ips for the etcd machines ---
+- type: replace
+  path: /instance_groups/name=etcd/networks/name=default
+  value:
+    name: default
+    static_ips:
+    - 10.0.31.231
+    - 10.0.47.247
+    - 10.0.63.203
+
+- type: replace
+  path: /instance_groups/name=etcd/jobs/name=etcd/properties/etcd/machines?
+  value:
+  - 10.0.31.231
+  - 10.0.47.247
+  - 10.0.63.203
+
+# --- Disable ssl requirements and remove certs/keys on etcd ---
+- type: replace
+  path: /instance_groups/name=etcd/jobs/name=etcd/properties/etcd/peer_require_ssl
+  value: false
+
+- type: replace
+  path: /instance_groups/name=etcd/jobs/name=etcd/properties/etcd/require_ssl
+  value: false
+
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=etcd/properties/etcd/ca_cert
+
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=etcd/properties/etcd/client_cert
+
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=etcd/properties/etcd/client_key
+
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=etcd/properties/etcd/server_cert
+
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=etcd/properties/etcd/server_key
+
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=etcd/properties/etcd/peer_ca_cert
+
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=etcd/properties/etcd/peer_cert
+
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=etcd/properties/etcd/peer_key
+
+# --- Specify an etcd instance for the etcd metrics server ---
+- type: replace
+  path: /instance_groups/name=etcd/jobs/name=etcd_metrics_server/properties/etcd_metrics_server/etcd/machine?
+  value: 10.0.31.231
+
+# --- Disable tls communication for etcd_metrics_server-etcd ---
+- type: replace
+  path: /instance_groups/name=etcd/jobs/name=etcd_metrics_server/properties/etcd_metrics_server/etcd/require_ssl
+  value: false
+
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=etcd_metrics_server/properties/etcd_metrics_server/etcd/ca_cert
+
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=etcd_metrics_server/properties/etcd_metrics_server/etcd/client_cert
+
+- type: remove
+  path: /instance_groups/name=etcd/jobs/name=etcd_metrics_server/properties/etcd_metrics_server/etcd/client_key
+
+# 7
+- type: replace
+  path: /instance_groups/name=diego-api/jobs/name=bbs/properties/diego/bbs/etcd/require_ssl?
+  value: false
+
+- type: replace
+  path: /instance_groups/name=diego-api/jobs/name=bbs/properties/diego/bbs/etcd/machines
+  value:
+  - 10.0.31.231
+  - 10.0.47.247
+  - 10.0.63.203
+
+# --- Disable tls communication for doppler-etcd ---
+- type: remove
+  path: /instance_groups/name=doppler/jobs/name=doppler/properties/doppler/etcd/client_cert
+
+- type: remove
+  path: /instance_groups/name=doppler/jobs/name=doppler/properties/doppler/etcd/client_key
+
+- type: replace
+  path: /instance_groups/name=doppler/jobs/name=doppler/properties/loggregator/etcd/require_ssl
+  value: false
+
+- type: remove
+  path: /instance_groups/name=doppler/jobs/name=doppler/properties/loggregator/etcd/ca_cert
+
+- type: replace
+  path: /instance_groups/name=doppler/jobs/name=doppler/properties/loggregator/etcd/machines
+  value:
+  - 10.0.31.231
+  - 10.0.47.247
+  - 10.0.63.203
+
+- type: replace
+  path: /instance_groups/name=doppler/jobs/name=syslog_drain_binder/properties/loggregator/etcd/require_ssl
+  value: false
+
+- type: remove
+  path: /instance_groups/name=doppler/jobs/name=syslog_drain_binder/properties/loggregator/etcd/ca_cert
+
+- type: replace
+  path: /instance_groups/name=doppler/jobs/name=syslog_drain_binder/properties/loggregator/etcd/machines
+  value:
+  - 10.0.31.231
+  - 10.0.47.147
+  - 10.0.63.203
+
+- type: remove
+  path: /instance_groups/name=doppler/jobs/name=syslog_drain_binder/properties/syslog_drain_binder/etcd/client_cert
+
+- type: remove
+  path: /instance_groups/name=doppler/jobs/name=syslog_drain_binder/properties/syslog_drain_binder/etcd/client_key
+
+# --- Disable tls communication for log api-etcd ---
+- type: remove
+  path: /instance_groups/name=log-api/jobs/name=loggregator_trafficcontroller/properties/traffic_controller/etcd/client_cert
+
+- type: remove
+  path: /instance_groups/name=log-api/jobs/name=loggregator_trafficcontroller/properties/traffic_controller/etcd/client_key
+
+- type: replace
+  path: /instance_groups/name=log-api/jobs/name=loggregator_trafficcontroller/properties/loggregator/etcd/require_ssl
+  value: false
+
+- type: remove
+  path: /instance_groups/name=log-api/jobs/name=loggregator_trafficcontroller/properties/loggregator/etcd/ca_cert
+
+- type: replace
+  path: /instance_groups/name=log-api/jobs/name=loggregator_trafficcontroller/properties/loggregator/etcd/machines
+  value:
+  - 10.0.31.231
+  - 10.0.47.147
+  - 10.0.63.203

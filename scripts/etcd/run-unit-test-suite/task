@@ -1,0 +1,15 @@
+#!/bin/bash -exu
+
+function main() {
+  local root_dir
+  root_dir="${1}"
+
+  mkdir -p "${GOPATH}/src/github.com/cloudfoundry-incubator"
+
+  pushd "${GOPATH}/src/github.com/cloudfoundry-incubator" > /dev/null
+    ln -s "${root_dir}/etcd-release"
+    chpst -u testuser:testuser ginkgo -race -r "./etcd-release/src/${TEST_SUITE}"
+  popd > /dev/null
+}
+
+main "${PWD}"

@@ -1,0 +1,24 @@
+---
+name: compilation
+
+releases:
+- name: etcd
+  version: "ETCD_RELEASE_VERSION"
+- name: consul
+  version: "CONSUL_RELEASE_VERSION"
+- name: turbulence
+  version: "TURBULENCE_RELEASE_VERSION"
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  serial: false
+  canary_watch_time: 1000-60000
+  update_watch_time: 1000-60000
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: "STEMCELL_VERSION"
+
+instance_groups: []
