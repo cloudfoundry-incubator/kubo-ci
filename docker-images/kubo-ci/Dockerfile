@@ -75,13 +75,9 @@ RUN pip install awscli
 RUN wget -O - -o /dev/null https://github.com/vmware/govmomi/releases/download/v0.15.0/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc && \
   chmod +x /usr/local/bin/govc
 
-# Install Java
-RUN DEBIAN_FRONTEND=noninteractive add-apt-repository ppa:webupd8team/java -y && \
-  apt-get update && \
-  echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections && \
-  apt-get install -y \
-  oracle-java8-installer \
-  oracle-java8-set-default
+ADD https://java-buildpack.cloudfoundry.org/openjdk-jdk/trusty/x86_64/openjdk-1.8.0_141.tar.gz /tmp/current-jdk
 
-# Cleanup
-RUN rm -rf /tmp/docker-build && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /usr/local/java && tar xvf /tmp/current-jdk --directory /usr/local/java
+
+ENV JAVA_HOME=/usr/local/java
+ENV PATH=$PATH:/usr/local/java/bin
