@@ -59,10 +59,9 @@ resources:
     name: bosh-google-kvm-ubuntu-trusty-go_agent
 
 - name: turbulence-release
-  type: github-release
+  type: bosh-io-release
   source:
-    user: christianang
-    repository: turbulence-release
+    repository: cppforlife/turbulence-release
 
 - name: consul-release
   type: bosh-io-release
