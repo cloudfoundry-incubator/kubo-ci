@@ -84,6 +84,7 @@ jobs:
       trigger: true
     - get: git-kubo-ci
     - get: git-infrastructure-ci
+      version: { ref: "b10479cd5c79e3ae0202664f6c50b4f583261132" }
   - aggregate:
     - task: test-etcd-proxy
       file: git-infrastructure-ci/scripts/etcd/run-unit-test-suite/task.yml
@@ -160,6 +161,7 @@ jobs:
       passed:
       - setup-eats-infrastructure
     - get: git-infrastructure-ci
+      version: { ref: "b10479cd5c79e3ae0202664f6c50b4f583261132" }
     - get: stemcell
       resource: gcp-stemcell
     - get: turbulence-release
@@ -193,6 +195,7 @@ jobs:
       passed:
       - eats
     - get: git-infrastructure-ci
+      version: { ref: "b10479cd5c79e3ae0202664f6c50b4f583261132" }
     - get: stemcell
       resource: gcp-stemcell
     - get: turbulence-release
