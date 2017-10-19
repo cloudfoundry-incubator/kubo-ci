@@ -123,6 +123,7 @@ jobs:
       passed: [ run-unit-tests ]
     - get: git-kubo-ci
     - get: git-infrastructure-ci
+      version: { ref: "b10479cd5c79e3ae0202664f6c50b4f583261132" }
     - get: gcs-kubo-deployment-pre
   - put: kubo-lock
     params: { acquire: true }
