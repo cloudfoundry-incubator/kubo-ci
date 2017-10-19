@@ -26,3 +26,9 @@ if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   copy_state_and_creds
 fi
 run_upgrade_test update_bosh $HA_MIN_SERVICE_AVAILABILITY
+
+# for Concourse outputs
+if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
+  cp "${KUBO_ENVIRONMENT_DIR}/creds.yml" "$PWD/bosh-creds/"
+  cp "${KUBO_ENVIRONMENT_DIR}/state.json" "$PWD/bosh-state/"
+fi

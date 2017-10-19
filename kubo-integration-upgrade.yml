@@ -152,7 +152,6 @@ jobs:
       passed: [ 'claim-lock-<%= iaas %>' ]
     <% end %> 
 
-
   - task: unpack-tgz
     file: git-kubo-ci/tasks/unpack-tgz.yml
     tags: ['<%= iaas %>']
@@ -326,6 +325,14 @@ jobs:
       git-kubo-deployment: unpacked_dir
     params:
       HA_MIN_SERVICE_AVAILABILITY: "0.99"
+
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
 
 - name: upgrade-kubo-<%= iaas %>
   plan:
