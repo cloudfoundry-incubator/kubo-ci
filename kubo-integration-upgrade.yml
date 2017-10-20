@@ -41,7 +41,7 @@ resources:
   type: git
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
-    branch: upgrade-with-persistent-volumes
+    branch: master
 
 <% iaas_list.each do |iaas| %>
 - name: kubo-lock-<%= iaas %>
