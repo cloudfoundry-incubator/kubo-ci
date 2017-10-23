@@ -2,8 +2,8 @@ instance_groups:
 - azs: [z1, z2, z3]
   instances: 1
   jobs:
-  - name: postgresql
-    release: concourse
+  - name: postgres
+    release: postgres
   lifecycle: service
   name: db
   networks:
@@ -11,9 +11,12 @@ instance_groups:
   persistent_disk_type: large
   properties:
     databases:
-    - name: atc
-      password: ((atc-db-password))
-      role: atc
+      port: 5432
+      databases:
+      - name: atc
+      roles:
+      - name: atc
+        password: ((postgresql-password))
   stemcell: bosh-google-kvm-ubuntu-trusty-go_agent
   update:
     max_in_flight: 1
@@ -32,16 +35,28 @@ instance_groups:
             teams: [ pcf-kubo ]
           - organization: cloudfoundry-incubator
             teams: [ cf-kubo ]
+          - organization: pivotal-cf
+            teams: [ vmware-kubo ]
           - user: johnsonj
           - user: mkjelland
           - user: evandbrown
           - user: erjohnso
       external_url: https://ci.kubo.sh
-      postgresql_database: atc
       tls_cert: ((atc-certificate.certificate))((atc-certificate.ca))
       tls_key: ((atc-certificate.private_key))
       tls_bind_port: 443
       bind_port: 80
+      postgresql:
+        database: atc
+        role:
+          name: atc
+          password: ((postgresql-password))
+      credhub:
+        url: https://10.1.0.2:8844
+        tls:
+          ca_cert: ((credhub_ca.ca))
+        client_id: director_to_credhub
+        client_secret: ((uaa_clients_director_to_credhub))
     release: concourse
   - name: tsa
     properties:
@@ -127,13 +142,17 @@ instance_groups:
 name: kubo-ci
 releases:
 - name: concourse
-  version: 3.4.0
-  url: https://bosh.io/d/github.com/concourse/concourse?v=3.4.0
-  sha1: e262b0fb209df6134ea15917e2b9b8bfb8d0d0d1
+  sha1: 65a974b3831bb9908661a5ffffbe456e10185149
+  url: https://bosh.io/d/github.com/concourse/concourse?v=3.5.0
+  version: 3.5.0
 - name: garden-runc
-  version: 1.6.0
-  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.6.0
   sha1: 58fbc64aff303e6d76899441241dd5dacef50cb7
+  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.6.0
+  version: 1.6.0
+- name: postgres
+  version: 20
+  sha1: 3f378bcab294e20316171d4e656636df88763664
+  url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=20
 stemcells:
 - alias: bosh-google-kvm-ubuntu-trusty-go_agent
   os: ubuntu-trusty
@@ -147,5 +166,5 @@ update:
   update_watch_time: 30000-300000
 
 variables:
-- name: atc-db-password
+- name: postgresql-password
   type: password
