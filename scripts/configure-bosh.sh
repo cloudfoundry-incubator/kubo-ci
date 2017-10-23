@@ -19,4 +19,4 @@ bosh-cli -n -e "${BOSH_ENVIRONMENT}" upload-release "$turbulence_release_url"
 
 runtime_config=$(bosh-cli int "git-kubo-ci/manifests/turbulence/runtime-config.yml" --vars-file ${KUBO_ENVIRONMENT_DIR}/director.yml --vars-file ${KUBO_ENVIRONMENT_DIR}/creds.yml)
 
-echo "$runtime_config"  |  bosh-cli -n -e "${BOSH_ENVIRONMENT}" update-runtime-config -
+echo "$runtime_config"  |  bosh-cli -n -e "${BOSH_ENVIRONMENT}" update-runtime-config --name=turbulence -
