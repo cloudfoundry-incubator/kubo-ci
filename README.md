@@ -5,3 +5,7 @@ Repos covered by the pipelines:
 - [Kubo deployment](https://www.github.com/cloudfoundry-incubator/kubo-deployment) - repo with scripts to deploy single Kubernetes cluster
 
 Maintenance pipelines for GCP, AWS, vSphere and Openstack environments
+
+## OpenStack
+
+Work in progress: [Configuring OpenStack and Creating New Environments](openstack.md)
