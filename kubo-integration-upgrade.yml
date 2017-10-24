@@ -98,7 +98,7 @@ resources:
     owner: cloudfoundry-incubator
     repository: kubo-release
     pre_release: true
-    access_token:
+    access_token: ((github-kubo-gitbot-access-token))
 
 - name: old-kubo-deployment-tarball
   type: github-release
@@ -106,7 +106,7 @@ resources:
     owner: cloudfoundry-incubator
     repository: kubo-deployment
     pre_release: true
-    access_token:
+    access_token: ((github-kubo-gitbot-access-token))
 
 <% iaas_list.each do |iaas| %>
 - name: new-bosh-stemcell-<%= iaas %>
