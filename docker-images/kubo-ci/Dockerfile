@@ -51,7 +51,7 @@ ENV PATH=$PATH:/google-cloud-sdk/bin
 # Ruby required for bosh-cli create-env
 RUN git clone https://github.com/postmodern/ruby-install.git /usr/local/ruby-install
 ENV PATH /usr/local/ruby-install/bin:/usr/local/bin:$PATH
-RUN ruby-install --system ruby 2.3.3
+RUN ruby-install --system ruby 2.4.1
 
 # Credhub
 RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/1.4.0/credhub-linux-1.4.0.tgz \
@@ -87,3 +87,8 @@ RUN mkdir -p /usr/local/java && tar xvf /tmp/current-jdk --directory /usr/local/
 
 ENV JAVA_HOME=/usr/local/java
 ENV PATH=$PATH:/usr/local/java/bin
+
+COPY Gemfile .
+COPY Gemfile.lock .
+RUN gem install bundler --no-ri --no-rdoc
+RUN bundle install

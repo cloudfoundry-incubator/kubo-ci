@@ -1,0 +1,7 @@
+source 'https://rubygems.org' do
+  gem 'rake'
+  gem 'rspec', '~> 3.4'
+  gem 'vara'
+  gem 'pry'
+  gem 'pry-nav'
+end
