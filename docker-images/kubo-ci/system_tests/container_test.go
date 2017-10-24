@@ -26,10 +26,11 @@ var _ = Describe("Docker Image", func() {
 		"ipcalc":   []string{},
 		"java":     []string{"-version"},
 		"om":       []string{"--version"},
-		"vara":       []string{"help"},
-		"pry":       []string{"--version"},
-		"rspec":       []string{"--version"},
-		"rake":       []string{"--version"},
+		"vara":     []string{"help"},
+		"pry":      []string{"--version"},
+		"rspec":    []string{"--version"},
+		"rake":     []string{"--version"},
+		"zip":      []string{"--version"},
 	}
 
 	for executable, args := range commands {

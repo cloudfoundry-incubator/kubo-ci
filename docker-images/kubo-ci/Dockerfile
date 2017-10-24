@@ -12,7 +12,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   python-software-properties \
   software-properties-common \
   wget \
-  ipcalc
+  ipcalc \
+  zip
 
 WORKDIR /tmp/docker-build
 
