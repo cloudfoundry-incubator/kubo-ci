@@ -1,6 +1,6 @@
 <%
   k8s_171 = 'v0.7.0'
-  iaas_list = %w(gcp-lb)
+  iaas_list = %w(gcp-lb vsphere)
 %>
 ---
 groups:
