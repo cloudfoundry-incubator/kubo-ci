@@ -19,10 +19,10 @@ update_kubo() {
   credhub login \
     -u credhub-cli \
     -p "$credhub_password" \
-    -s "$(credhub_api)" \
+    -s "$credhub_api" \
     --ca-cert=<(bosh-cli int environment/creds.yml --path=/credhub_tls/ca) \
     --ca-cert=<(bosh-cli int environment/creds.yml --path=/default_ca/ca)
-  credhub delete "$(bosh-cli int environment/director.yml --path=/director_name)/ci-service/tls-kubernetes"
+  credhub delete -n "$(bosh-cli int environment/director.yml --path=/director_name)/ci-service/tls-kubernetes"
 
   echo "Updating Kubo..."
   ${DIR}/deploy-k8s-instance.sh
