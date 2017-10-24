@@ -120,6 +120,14 @@ resources:
     version: 3445.11
 <% end %>
 
+- name: nightly
+  type: time
+  source:
+    start: 5:00 AM
+    stop: 6:00 AM
+    location: Europe/Dublin
+
+
 ##########################################
 # Jobs
 ##########################################
@@ -130,6 +138,8 @@ jobs:
 - name: claim-lock-<%= iaas %>
   max_in_flight: 1
   plan:
+  - get: nightly
+    trigger: true
   <% if iaas.include? "openstack" %>
   - put: kubo-lock-openstack-global
     params: { acquire: true }
