@@ -29,6 +29,12 @@ RUN go get github.com/onsi/gomega && \
 RUN wget -O /cf-cli_amd64.deb https://cli.run.pivotal.io/stable?release=debian64 && \
  dpkg -i /cf-cli_amd64.deb && rm /cf-cli_amd64.deb
 
+# om
+
+RUN wget -q -O - https://raw.githubusercontent.com/starkandwayne/homebrew-cf/master/public.key | apt-key add - && \
+echo "deb http://apt.starkandwayne.com stable main" | tee /etc/apt/sources.list.d/starkandwayne.list &&\
+apt-get update && apt-get install om
+
 # Google SDK
 ENV GCLOUD_VERSION=144.0.0
 ENV GCLOUD_SHA1SUM=4ef237d6d2696b353a5a1ef927462ef3833d261f
