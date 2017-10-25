@@ -6,7 +6,7 @@ lb_address_blocking() {
 
   iaas=$(bosh-cli int "${kubo_environment_dir}/director.yml" --path="/iaas")
 
-	lb_address=""
+  lb_address=""
   current_attempt=0
   max_attempts=30
 
@@ -23,7 +23,7 @@ lb_address_blocking() {
 
 
     if [ ${iaas} = "gcp" ]; then
-			lb_address=$(kubectl get service ${service_name} -o jsonpath={.status.loadBalancer.ingress[0].ip})
+      lb_address=$(kubectl get service ${service_name} -o jsonpath={.status.loadBalancer.ingress[0].ip})
     else
       lb_address=$(kubectl get service ${service_name} -o jsonpath={.status.loadBalancer.ingress[0].hostname})
     fi
