@@ -19,19 +19,28 @@ director_ip=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/inter
 
 "$KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
 
-kubectl create -f "$KUBO_CI_DIR/specs/nginx-lb.yml"
-kubectl rollout status -w deployment/nginx
+
+randomString() {
+  head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo ''
+}
 
 # get the load balancer's address
 routing_mode=$(bosh-cli int environment/director.yml --path=/routing_mode)
 if  [[ "$routing_mode" == "iaas" ]]; then
-    lb_address_blocking nginx "$KUBO_ENVIRONMENT_DIR" "$KUBO_DEPLOYMENT_DIR"
-    if [ "$?" != 0 ]; then exit 1; fi
+  kubectl create -f "$KUBO_CI_DIR/specs/nginx-lb.yml"
+  kubectl rollout status -w deployment/nginx
+  lb_address_blocking nginx "$KUBO_ENVIRONMENT_DIR" "$KUBO_DEPLOYMENT_DIR"
+  if [ "$?" != 0 ]; then exit 1; fi
 elif [[ "$routing_mode" == "cf" ]]; then
-    lb_address=$(get_cf_tcp_router_name)
+  kubectl create -f "$KUBO_CI_DIR/specs/nginx-lb.yml"
+  kubectl rollout status -w deployment/nginx
+  service_name=$(randomString)
+  kubectl label services nginx "http-route-sync=$service_name"
+  cf_apps_domain=$(bosh-cli int environment/director.yml --path=/routing-cf-app-domain-name)
+  lb_address="$service_name"."$(cf_apps_domain)"
 else
-    echo "Routing mode '$routing_mode' is not supported in this test"
-    exit 1
+  echo "Routing mode '$routing_mode' is not supported in this test"
+  exit 1
 fi
 
 lb_url="http://$lb_address"
