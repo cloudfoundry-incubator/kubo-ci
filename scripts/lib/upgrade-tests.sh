@@ -74,7 +74,6 @@ run_upgrade_test() {
     lb_address_blocking "$service_name" "$KUBO_ENVIRONMENT_DIR" "$KUBO_DEPLOYMENT_DIR"
   elif [[ "$routing_mode" == "cf" ]]; then
     generated_service_name="$(kubectl describe service "$service_name" | grep http-route-sync | cut -d= -f2)"
-    service_name="$(random_string)"
     cf_apps_domain="$(bosh-cli int environment/director.yml --path=/routing-cf-app-domain-name)"
     lb_address="$generated_service_name"."$cf_apps_domain"
   else
