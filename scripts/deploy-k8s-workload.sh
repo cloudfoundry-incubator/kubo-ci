@@ -35,7 +35,7 @@ elif [[ "$routing_mode" == "cf" ]]; then
   kubectl apply -f "$KUBO_CI_DIR/specs/nginx.yml"
   kubectl rollout status -w deployment/nginx
   service_name=$(randomString)
-  kubectl label services nginx "http-route-sync=$service_name"
+  kubectl label services nginx "http-route-sync=$service_name" --overwrite
   cf_apps_domain=$(bosh-cli int environment/director.yml --path=/routing-cf-app-domain-name)
   lb_address="$service_name"."$cf_apps_domain"
 else
