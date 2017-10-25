@@ -17,7 +17,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Worker failure scenarios", func() {
+var _ = Describe("Persistence failure scenarios", func() {
 
 	var deployment director.Deployment
 	var countRunningWorkers func() int
