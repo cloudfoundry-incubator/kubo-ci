@@ -63,10 +63,6 @@ wait_for_success() {
   echo "$work_description succeeded"
 }
 
-random_string() {
-  head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo ''
-}
-
 run_upgrade_test() {
   local service_name="nginx"
   local update_function="$1"
@@ -77,9 +73,10 @@ run_upgrade_test() {
   if [[ "$routing_mode" == "iaas" ]]; then
     lb_address_blocking "$service_name" "$KUBO_ENVIRONMENT_DIR" "$KUBO_DEPLOYMENT_DIR"
   elif [[ "$routing_mode" == "cf" ]]; then
+    generated_service_name="$(kubectl describe service "$service_name" | grep http-route-sync | cut -d= -f2)"
     service_name="$(random_string)"
     cf_apps_domain="$(bosh-cli int environment/director.yml --path=/routing-cf-app-domain-name)"
-    lb_address="$service_name"."$cf_apps_domain"
+    lb_address="$generated_service_name"."$cf_apps_domain"
   else
     echo "Routing mode '$routing_mode' is not supported in this test"
     exit 1
