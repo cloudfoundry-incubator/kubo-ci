@@ -27,12 +27,12 @@ randomString() {
 # get the load balancer's address
 routing_mode=$(bosh-cli int environment/director.yml --path=/routing_mode)
 if  [[ "$routing_mode" == "iaas" ]]; then
-  kubectl create -f "$KUBO_CI_DIR/specs/nginx-lb.yml"
+  kubectl apply -f "$KUBO_CI_DIR/specs/nginx-lb.yml"
   kubectl rollout status -w deployment/nginx
   lb_address_blocking nginx "$KUBO_ENVIRONMENT_DIR" "$KUBO_DEPLOYMENT_DIR"
   if [ "$?" != 0 ]; then exit 1; fi
 elif [[ "$routing_mode" == "cf" ]]; then
-  kubectl create -f "$KUBO_CI_DIR/specs/nginx-lb.yml"
+  kubectl apply -f "$KUBO_CI_DIR/specs/nginx.yml"
   kubectl rollout status -w deployment/nginx
   service_name=$(randomString)
   kubectl label services nginx "http-route-sync=$service_name"
