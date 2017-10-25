@@ -60,5 +60,6 @@ while $retry; do
       echo "Reached maximum attempts trying to query $lb_url"
       exit 1
     fi
+    sleep 1
   fi
 done
