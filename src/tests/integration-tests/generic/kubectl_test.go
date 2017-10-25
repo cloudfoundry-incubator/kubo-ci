@@ -29,7 +29,12 @@ var _ = Describe("Kubectl", func() {
 	})
 
 	It("Should be able to run kubectl commands within pod", func() {
-		podName := test_helpers.GenerateRandomName()
+
+        roleBindingName := runner.Namespace()+"-admin"
+        s := runner.RunKubectlCommand("create", "rolebinding", roleBindingName, "--clusterrole=admin", "--user=system:serviceaccount:"+runner.Namespace()+":default")
+        Eventually(s, "15s").Should(gexec.Exit(0))
+
+        podName := test_helpers.GenerateRandomName()
 		session := runner.RunKubectlCommand("run", podName, "--image", "pcfkubo/alpine:stable", "--restart=Never", "--image-pull-policy=Always", "-ti", "--rm", "--", "kubectl", "get", "services")
 		session.Wait(120)
 		Expect(session).To(gexec.Exit(0))
