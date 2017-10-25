@@ -37,7 +37,7 @@ elif [[ "$routing_mode" == "cf" ]]; then
   service_name=$(randomString)
   kubectl label services nginx "http-route-sync=$service_name"
   cf_apps_domain=$(bosh-cli int environment/director.yml --path=/routing-cf-app-domain-name)
-  lb_address="$service_name"."$(cf_apps_domain)"
+  lb_address="$service_name"."$cf_apps_domain"
 else
   echo "Routing mode '$routing_mode' is not supported in this test"
   exit 1
