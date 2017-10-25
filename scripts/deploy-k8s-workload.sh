@@ -52,9 +52,7 @@ retry=true
 
 # Probe the workload to ensure that it eventually comes up
 while $retry; do
-  curl -L --max-time ${timeout_seconds} -IfsS ${lb_url}
-
-  if [ $? -eq 0 ]; then
+  if curl -L --max-time ${timeout_seconds} -IfsS ${lb_url}; then
     retry=false
   else
     current_attempt=$((current_attempt+1))
