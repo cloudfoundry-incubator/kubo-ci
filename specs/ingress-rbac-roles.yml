@@ -13,6 +13,8 @@ rules:
       - pods
       - secrets
     verbs:
+      - create
+      - get
       - list
       - watch
   - apiGroups:

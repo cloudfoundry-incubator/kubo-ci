@@ -48,16 +48,17 @@ var _ = Describe("Testing Ingress Controller", func() {
 
 		Eventually(runner.RunKubectlCommand("create", "serviceaccount",
 			rbacServiceAccount)).Should(gexec.Exit(0))
-		Eventually(runner.RunKubectlCommand("apply", "-f", ingressRoles)).Should(gexec.Exit(0))
+		Eventually(runner.RunKubectlCommand("apply", "-f", ingressRoles))
 		Eventually(runner.RunKubectlCommand("create", "clusterrolebinding",
 			"nginx-ingress-clusterrole-binding", "--clusterrole", "nginx-ingress-clusterrole",
-			"--serviceaccount", rbacServiceAccount))
+            "--serviceaccount", runner.Namespace() + ":" + rbacServiceAccount))
 		Eventually(runner.RunKubectlCommand("create", "rolebinding",
 			"nginx-ingress-role-binding", "--role", "nginx-ingress-role",
-			"--serviceaccount", rbacServiceAccount))
+            "--serviceaccount", runner.Namespace() + ":" + rbacServiceAccount))
 		Eventually(runner.RunKubectlCommand(
 			"create", "-f", rbacIngressSpec), "60s").Should(gexec.Exit(0))
 	}
+
 
 	BeforeEach(func() {
 		tcpPort = os.Getenv("INGRESS_CONTROLLER_TCP_PORT")
