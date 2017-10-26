@@ -3,11 +3,11 @@ package generic_test
 import (
 	"tests/test_helpers"
 
-    "regexp"
+	"regexp"
 
 	. "github.com/onsi/ginkgo"
-    . "github.com/onsi/ginkgo/extensions/table"
-    . "github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("API Versions", func() {
@@ -19,21 +19,13 @@ var _ = Describe("API Versions", func() {
 		runner = test_helpers.NewKubectlRunner()
 	})
 
-    DescribeTable("api-versions", func(api_regex string) {
-        regex, err := regexp.Compile(api_regex)
-        Expect(err).NotTo(HaveOccurred())
+	It("has RBAC enabled", func() {
+		lines := runner.GetOutput("api-versions")
 
-		output := runner.GetOutput("api-versions")
-	    for i := 0; i < len(output); i++ {
-		    if regex.MatchString(output[i]) {
-			    return
-		    }
-	    }
-        Fail("Unable to find api-version: '" + api_regex + "'")
-    },
-        Entry("RBAC v1alpha1 is enabled", "^rbac.*/v1alpha1"),
-        Entry("RBAC v1beta1 is enabled", "^rbac.*/v1beta1"),
-        Entry("RBAC v1 is enabled", "^rbac.*/v1"),
-    )
+		Expect(lines).To(ContainElement(SatisfyAny(
+			MatchRegexp("^rbac.*/v1alpha1"),
+			MatchRegexp("^rbac.*/v1beta1"),
+			MatchRegexp("^rbac.*/v1"))))
+	})
 
 })
