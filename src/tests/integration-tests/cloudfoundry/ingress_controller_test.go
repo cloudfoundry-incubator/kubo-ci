@@ -59,6 +59,12 @@ var _ = Describe("Testing Ingress Controller", func() {
 			"create", "-f", rbacIngressSpec), "60s").Should(gexec.Exit(0))
 	}
 
+    deleteRbacIngressController := func() {
+        // Delete ingress roles and clusterrolebinding - everything else should be deleted with the namespace
+		Eventually(runner.RunKubectlCommand("delete", "-f", ingressRoles))
+		Eventually(runner.RunKubectlCommand("delete", "clusterrolebinding", "nginx-ingress-clusterrole-binding")
+    }
+
 
 	BeforeEach(func() {
 		tcpPort = os.Getenv("INGRESS_CONTROLLER_TCP_PORT")
