@@ -9,6 +9,8 @@ import (
 
 	"tests/test_helpers"
 
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -26,7 +28,36 @@ var _ = Describe("Testing Ingress Controller", func() {
 		ingressSpec = test_helpers.PathFromRoot("specs/ingress.yml")
 		runner      *test_helpers.KubectlRunner
 		hasPassed   bool
+
+		ingressRoles       = test_helpers.PathFromRoot("specs/ingress-rbac-roles.yml")
+		rbacIngressSpec    = test_helpers.PathFromRoot("specs/ingress-rbac.yml")
+		rbacServiceAccount = "nginx-ingress-serviceaccount"
 	)
+
+	const (
+		authPolicyAttribute = "ABAC"
+		authPolicyRole      = "RBAC"
+	)
+
+	createAbacIngressController := func() {
+		Eventually(runner.RunKubectlCommand(
+			"create", "-f", ingressSpec), "60s").Should(gexec.Exit(0))
+	}
+
+	createRbacIngressController := func() {
+
+		Eventually(runner.RunKubectlCommand("create", "serviceaccount",
+			rbacServiceAccount)).Should(gexec.Exit(0))
+		Eventually(runner.RunKubectlCommand("apply", "-f", ingressRoles)).Should(gexec.Exit(0))
+		Eventually(runner.RunKubectlCommand("create", "clusterrolebinding",
+			"nginx-ingress-clusterrole-binding", "--clusterrole", "nginx-ingress-clusterrole",
+			"--serviceaccount", rbacServiceAccount))
+		Eventually(runner.RunKubectlCommand("create", "rolebinding",
+			"nginx-ingress-role-binding", "--role", "nginx-ingress-role",
+			"--serviceaccount", rbacServiceAccount))
+		Eventually(runner.RunKubectlCommand(
+			"create", "-f", rbacIngressSpec), "60s").Should(gexec.Exit(0))
+	}
 
 	BeforeEach(func() {
 		tcpPort = os.Getenv("INGRESS_CONTROLLER_TCP_PORT")
@@ -48,6 +79,12 @@ var _ = Describe("Testing Ingress Controller", func() {
 		tlsKubernetesPrivateKey = os.Getenv("TLS_KUBERNETES_PRIVATE_KEY")
 		if tlsKubernetesPrivateKey == "" {
 			Fail("Correct TLS_KUBERNETES_PRIVATE_KEY has to be set")
+		}
+
+		authenticationPolicy := strings.ToUpper(os.Getenv("KUBERNETES_AUTHENTICATION_POLICY"))
+
+		if authenticationPolicy != authPolicyAttribute && authenticationPolicy != authPolicyRole {
+			authenticationPolicy = authPolicyAttribute
 		}
 
 		certFile, _ := ioutil.TempFile(os.TempDir(), "cert")
@@ -82,8 +119,11 @@ var _ = Describe("Testing Ingress Controller", func() {
 			"60s",
 		).Should(gexec.Exit(0))
 
-		Eventually(runner.RunKubectlCommand(
-			"create", "-f", ingressSpec), "60s").Should(gexec.Exit(0))
+		if authenticationPolicy == authPolicyRole {
+			createRbacIngressController()
+		} else {
+			createAbacIngressController()
+		}
 
 		Eventually(runner.RunKubectlCommand(
 			"rollout", "status", "deployments/default-http-backend", "-w"), "300s").Should(gexec.Exit(0))
@@ -151,4 +191,5 @@ var _ = Describe("Testing Ingress Controller", func() {
 		}, "120s", "5s").ShouldNot(HaveOccurred())
 		hasPassed = true
 	})
+
 })

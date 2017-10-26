@@ -7,6 +7,9 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/run-k8s-integration-tests-ci.sh
 
+params:
+  KUBERNETES_AUTHENTICATION_POLICY:
+
 inputs:
   - name: git-kubo-ci
   - name: git-kubo-deployment
