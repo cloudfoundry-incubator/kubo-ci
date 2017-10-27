@@ -3,13 +3,13 @@ name: concourse-worker-openstack
 
 releases:
 - name: concourse
-  version: 3.5.0
-  url: https://bosh.io/d/github.com/concourse/concourse?v=3.5.0
-  sha1: 65a974b3831bb9908661a5ffffbe456e10185149
+  sha1: 1257bdcd3181ab0a669bc9e34cd87aff584f007b
+  url: https://bosh.io/d/github.com/concourse/concourse?v=3.6.0
+  version: 3.6.0
 - name: garden-runc
-  version: 1.6.0
-  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.6.0
-  sha1: 58fbc64aff303e6d76899441241dd5dacef50cb7
+  sha1: d5ddb4eaf7c04705cd1c07445b1668556783774f
+  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.9.5
+  version: 1.9.5
 
 stemcells:
 - alias: trusty

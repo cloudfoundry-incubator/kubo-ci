@@ -22,7 +22,7 @@ deploy() {
   BOSH_ENVIRONMENT=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path /internal_ip)
   export BOSH_CLIENT BOSH_CLIENT_SECRET BOSH_CA_CERT BOSH_ENVIRONMENT
   
-  bosh-cli upload-stemcell https://s3.amazonaws.com/bosh-core-stemcells/openstack/bosh-stemcell-3445.11-openstack-kvm-ubuntu-trusty-go_agent.tgz
+  # bosh-cli upload-stemcell https://s3.amazonaws.com/bosh-core-stemcells/openstack/bosh-stemcell-3445.11-openstack-kvm-ubuntu-trusty-go_agent.tgz
 
   bosh-cli interpolate "$manifest_template"  \
       --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \

@@ -146,13 +146,13 @@ releases:
   url: https://bosh.io/d/github.com/concourse/concourse?v=3.5.0
   version: 3.5.0
 - name: garden-runc
-  sha1: 58fbc64aff303e6d76899441241dd5dacef50cb7
-  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.6.0
-  version: 1.6.0
+  sha1: d5ddb4eaf7c04705cd1c07445b1668556783774f
+  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.9.5
+  version: 1.9.5
 - name: postgres
-  version: 20
-  sha1: 3f378bcab294e20316171d4e656636df88763664
-  url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=20
+  version: 21
+  sha1: b37916b709fb45ac7de3e195456301cb01a1ae22
+  url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=21
 stemcells:
 - alias: bosh-google-kvm-ubuntu-trusty-go_agent
   os: ubuntu-trusty
