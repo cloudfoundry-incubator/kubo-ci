@@ -10,5 +10,7 @@ tags:
   - internal
 zone: us-east4-a
 
+iaas: gcp
+
 concourse_secrets_lpass_note_id: 1124880505947455779
 private_note_id: 1801783889520479013
