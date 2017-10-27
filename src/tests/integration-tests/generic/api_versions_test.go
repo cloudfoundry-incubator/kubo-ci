@@ -3,10 +3,7 @@ package generic_test
 import (
 	"tests/test_helpers"
 
-	"regexp"
-
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 )
 
@@ -22,10 +19,9 @@ var _ = Describe("API Versions", func() {
 	It("has RBAC enabled", func() {
 		lines := runner.GetOutput("api-versions")
 
-		Expect(lines).To(ContainElement(SatisfyAny(
-			MatchRegexp("^rbac.*/v1alpha1"),
-			MatchRegexp("^rbac.*/v1beta1"),
-			MatchRegexp("^rbac.*/v1"))))
+		Expect(lines).To(ContainElement(MatchRegexp("^rbac.*/v1alpha1")))
+		Expect(lines).To(ContainElement(MatchRegexp("^rbac.*/v1beta1")))
+		Expect(lines).To(ContainElement(MatchRegexp("^rbac.*/v1")))
 	})
 
 })
