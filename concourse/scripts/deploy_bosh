@@ -24,15 +24,16 @@ fi
 set -u
 
 BOSH_DEPLOYMENT=$(cd "$BOSH_DEPLOYMENT"; pwd)
+director_yml="$CONCOURSE_DIR/$IAAS/director.yml"
 
-secrets_lpass_note_id=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/secrets_lpass_note_id')
+secrets_lpass_note_id=$(bosh-cli int "${director_yml}" --path='/private_note_id')
 
 manifest_file=$(mktemp)
 
 secret=$(lpass show --note "$secrets_lpass_note_id")
 
-if bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/secrets_lpass_note_path'; then
-  secrets_lpass_note_path=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/secrets_lpass_note_path')
+if bosh-cli int "${director_yml}" --path='/secrets_lpass_note_path'; then
+  secrets_lpass_note_path=$(bosh-cli int "${director_yml}" --path='/secrets_lpass_note_path')
   secret=$(echo -n "$secret" | bosh int - --path="/$secrets_lpass_note_path")
 fi
 echo "$secret"
@@ -41,7 +42,7 @@ if [ "$IAAS" == "vsphere" ]; then
   bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
     --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
     --ops-file "$BOSH_DEPLOYMENT/vsphere/resource-pool.yml" \
-    --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \
+    --vars-file "${director_yml}" \
     --vars-file <(echo -n "$secret") \
     > "$manifest_file"
 elif [ "$IAAS" == "openstack" ]; then
@@ -49,13 +50,13 @@ elif [ "$IAAS" == "openstack" ]; then
     --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
     --ops-file "$CONCOURSE_DIR/$IAAS/nova.yml" \
     --ops-file "$BOSH_DEPLOYMENT/openstack/keystone-v2.yml" \
-    --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \
+    --vars-file "${director_yml}" \
     --vars-file <(echo -n "$secret") \
     > "$manifest_file"
 else
   bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
-      --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
-      --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \
+    --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
+    --vars-file "${director_yml}" \
     --vars-file <(echo -n "$secret") \
     > "$manifest_file"
 fi
