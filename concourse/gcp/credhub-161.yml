@@ -1,0 +1,7 @@
+- type: replace                 # Remove this ops file once the Credhub in
+  path: /releases/name=credhub  # bosh-deployment is updated to 1.6.1 or later
+  value:
+    name: credhub
+    version: 1.6.1
+    url: https://bosh.io/d/github.com/pivotal-cf/credhub-release?v=1.6.1
+    sha1: 5b3a4ff2cd51d6167bc53eeb8abd47b292e2186f

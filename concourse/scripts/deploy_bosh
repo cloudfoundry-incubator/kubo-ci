@@ -53,6 +53,29 @@ elif [ "$IAAS" == "openstack" ]; then
     --vars-file "${director_yml}" \
     --vars-file <(echo -n "$secret") \
     > "$manifest_file"
+elif [[ "${IAAS}" == "gcp" ]]; then
+  # Main concourse director
+  echo "+==========+"
+  echo "| WARNING! |"
+  echo "+==========+"
+  echo ""
+  echo "Credhub version is overridden to install 1.6.1"
+  echo "Please remove the override once bosh-deployment"
+  echo "is updated to install a newer version"
+  echo ""
+
+  gcp_credentials_note_id="$(bosh-cli int "${director_yml}" --path='/service_account_lpass_note_id')"
+  gcp_credentials="$(lpass show --note ${gcp_credentials_note_id})"
+
+  bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
+    --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
+    --ops-file "$BOSH_DEPLOYMENT/uaa.yml" \
+    --ops-file "$BOSH_DEPLOYMENT/credhub.yml" \
+    --ops-file "$CONCOURSE_DIR/$IAAS/credhub-161.yml" \
+    --vars-file "${director_yml}" \
+    --var-file gcp_credentials_json=<(echo -n ${gcp_credentials}) \
+    --vars-file <(echo -n "$secret") \
+    > "$manifest_file"
 else
   bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
     --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
