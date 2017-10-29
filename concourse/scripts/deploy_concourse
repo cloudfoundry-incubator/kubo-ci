@@ -5,7 +5,7 @@ bin_dir=$(dirname "${BASH_SOURCE[0]}")
 CONCOURSE_DIR="$(cd "$bin_dir/.."; pwd)"
 
 print_usage() {
-  echo "Usage: $0 <iaas> <bosh-env-name>"
+  echo "Usage: $0 <iaas>"
 }
 
 deploy() {

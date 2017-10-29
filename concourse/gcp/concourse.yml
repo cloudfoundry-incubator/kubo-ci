@@ -55,6 +55,7 @@ instance_groups:
         url: https://10.1.0.2:8844
         tls:
           ca_cert: ((credhub_ca.ca))
+          insecure_skip_verify: true
         client_id: director_to_credhub
         client_secret: ((uaa_clients_director_to_credhub))
     release: concourse
@@ -142,9 +143,9 @@ instance_groups:
 name: kubo-ci
 releases:
 - name: concourse
-  sha1: 65a974b3831bb9908661a5ffffbe456e10185149
-  url: https://bosh.io/d/github.com/concourse/concourse?v=3.5.0
-  version: 3.5.0
+  sha1: 1257bdcd3181ab0a669bc9e34cd87aff584f007b
+  url: https://bosh.io/d/github.com/concourse/concourse?v=3.6.0
+  version: 3.6.0
 - name: garden-runc
   sha1: d5ddb4eaf7c04705cd1c07445b1668556783774f
   url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.9.5
