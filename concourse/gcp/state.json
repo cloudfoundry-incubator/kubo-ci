@@ -1,11 +1,17 @@
 {
     "director_id": "d017e1a0-7fba-46a2-55da-424b9829ad16",
     "installation_id": "37c2eb9d-09f4-46fd-74bf-11bb3a3243bf",
-    "current_vm_cid": "vm-5d8e3cb8-b7ca-4665-415f-89c70e614de6",
+    "current_vm_cid": "vm-e0ec9e6e-80d7-49c0-6e56-c12c8b4506d4",
     "current_stemcell_id": "76a7584e-3f9d-474c-6f92-5c00272e54ee",
     "current_disk_id": "579d96b1-14ec-468e-48a5-ce45f15e98c2",
-    "current_release_ids": [],
-    "current_manifest_sha": "",
+    "current_release_ids": [
+        "6fceb4a0-c103-4843-606e-6dd304987203",
+        "9be0c2b9-15ea-42cc-6651-32e82a2b3f82",
+        "7d884758-47c9-4801-62a0-8d66800588cb",
+        "5daf794e-b635-4ad7-4d4e-8845406cb3ca",
+        "4405b6fa-bb7a-42df-40e3-20a3d79201a4"
+    ],
+    "current_manifest_sha": "ab573355f393389caf043fa172fd84b4b3b898df25672c9e1f3c17103ea9f674ad1a5e2b4bc42b15f8b9a658056873374b1ff208771085865ab7ec37ee8c3c71",
     "disks": [
         {
             "id": "579d96b1-14ec-468e-48a5-ce45f15e98c2",
@@ -24,5 +30,31 @@
             "cid": "stemcell-8f58dfff-18ed-412c-4d6d-38f57d6ee0c2"
         }
     ],
-    "releases": []
+    "releases": [
+        {
+            "id": "6fceb4a0-c103-4843-606e-6dd304987203",
+            "name": "bosh",
+            "version": "263.2.0"
+        },
+        {
+            "id": "9be0c2b9-15ea-42cc-6651-32e82a2b3f82",
+            "name": "uaa",
+            "version": "45.3"
+        },
+        {
+            "id": "7d884758-47c9-4801-62a0-8d66800588cb",
+            "name": "credhub",
+            "version": "1.6.1"
+        },
+        {
+            "id": "5daf794e-b635-4ad7-4d4e-8845406cb3ca",
+            "name": "bosh-google-cpi",
+            "version": "25.10.0"
+        },
+        {
+            "id": "4405b6fa-bb7a-42df-40e3-20a3d79201a4",
+            "name": "os-conf",
+            "version": "12"
+        }
+    ]
 }
