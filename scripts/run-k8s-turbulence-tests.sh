@@ -74,6 +74,7 @@ export BOSH_CLIENT_SECRET
 
 ginkgo "$GOPATH/src/tests/turbulence-tests/worker_failure" -progress -v
 ginkgo "$GOPATH/src/tests/turbulence-tests/master_failure" -progress -v
+ginkgo "$GOPATH/src/tests/turbulence-tests/etcd_failure" -progress -v
 if [[ "${iaas}" == "gcp" || "${iaas}" == "aws" ]]; then
   ginkgo "$GOPATH/src/tests/turbulence-tests/persistence_failure" -progress -v
 fi

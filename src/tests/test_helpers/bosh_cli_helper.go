@@ -13,7 +13,9 @@ import (
 
 const (
 	WorkerVmType   = "worker"
+	EtcdVmType     = "etcd"
 	MasterVmType   = "master"
+	EtcdVmType     = "etcd"
 	VmRunningState = "running"
 	DeploymentName = "ci-service"
 )
