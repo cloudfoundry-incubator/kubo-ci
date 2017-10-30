@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"regexp"
+	"strings"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/logger"
@@ -28,8 +30,28 @@ func AllBoshWorkersHaveJoinedK8s(deployment director.Deployment, kubectl *Kubect
 	return true
 }
 
+func AllEtcdHaveJoinedK8s(deployment director.Deployment, kubectl *KubectlRunner) bool {
+	Eventually(func() []director.VMInfo {
+		return DeploymentVmsOfType(deployment, EtcdVmType, VmRunningState)
+	}, "600s", "30s").Should(HaveLen(3))
+
+	Eventually(func() int {
+		output := GetComponentStatus(kubectl)
+		joinedOutput := strings.Join(output, " ")
+		re := regexp.MustCompile("etcd-\\d\\s*Healthy")
+		match := re.FindAllString(joinedOutput, -1)
+		return len(match)
+	}, "120s", "5s").Should(Equal(3))
+
+	return true
+}
+
 func GetNodes(kubectl *KubectlRunner) []string {
 	return kubectl.GetOutput("get", "nodes", "-o", "name")
+}
+
+func GetComponentStatus(kubectl *KubectlRunner) []string {
+	return kubectl.GetOutput("get", "componentstatus")
 }
 
 func GetNodeNamesForRunningPods(kubectl *KubectlRunner) []string {
