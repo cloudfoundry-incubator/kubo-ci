@@ -90,7 +90,7 @@ var _ = Describe("Testing Ingress Controller", func() {
 		authenticationPolicy := strings.ToUpper(os.Getenv("KUBERNETES_AUTHENTICATION_POLICY"))
 
 		if authenticationPolicy != authPolicyAttribute && authenticationPolicy != authPolicyRole {
-			authenticationPolicy = authPolicyAttribute
+			authenticationPolicy = authPolicyRole
 		}
 
 		certFile, _ := ioutil.TempFile(os.TempDir(), "cert")

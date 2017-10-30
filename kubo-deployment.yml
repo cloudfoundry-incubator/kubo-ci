@@ -351,6 +351,8 @@ jobs:
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+    params:
+      KUBERNETES_AUTHENTICATION_POLICY: RBAC
   <% if iaas.include? "openstack" %>
   on_success:
     do:
