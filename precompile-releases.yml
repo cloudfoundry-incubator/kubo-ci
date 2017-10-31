@@ -1,100 +1,91 @@
-resource_types:
-- name: gcs
-  type: docker-image
-  source:
-    repository: frodenas/gcs-resource
-
+groups: []
 resources:
-- name: kubo-ci
-  type: git
+- name: ubuntu-trusty
+  type: bosh-io-stemcell
   source:
-    uri: https://github.com/pivotal-cf-experimental/kubo-ci
-    branch: master
-
-# releases
-- name: docker-boshrelease
-  type: bosh-io-release
-  source:
-    repository: cf-platform-eng/docker-boshrelease
-- name: haproxy-boshrelease
-  type: bosh-io-release
-  source:
-    repository: cloudfoundry-community/haproxy-boshrelease
+    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
 - name: kubo-etcd-release
   type: github-release
   source:
     owner: pivotal-cf-experimental
     repository: kubo-etcd
-
-# stemcell
-- name: ubuntu-trusty-3421-stemcell
-  type: bosh-io-stemcell
+- name: docker-boshrelease
+  type: bosh-io-release
   source:
-    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
-
-# output
+    repository: cf-platform-eng/docker-boshrelease
 - name: compiled-releases
   type: gcs
   source:
-    json_key: ((gcs-json-key))
     bucket: kubo-public
-    regexp: ".*-(\\d+).tgz"
-
+    json_key: ((gcs-json-key))
+    regexp: .*-(\d+).tgz
+- name: kubo-ci
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+- name: haproxy-boshrelease
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-community/haproxy-boshrelease
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
 jobs:
-- name: compile-docker-release-ubuntu-trusty-3421
+- name: compile-docker-release-ubuntu-trusty-3445
   plan:
-    - aggregate:
-      - get: kubo-ci
-      - get: docker-boshrelease
-        version:
-          version: "28.0.1"
-      - get: ubuntu-trusty-3421-stemcell
-        version:
-          version: "3421.11"
-    - task: export-release
-      file: kubo-ci/tasks/export-release.yml
-      privileged: true
-      input_mapping:
-        stemcell: ubuntu-trusty-3421-stemcell
-        release: docker-boshrelease
-    - put: compiled-releases
-      params:
-        file: "compiled-release/*.tgz"
-
-- name: compile-haproxy-release-ubuntu-trusty-3421
+  - aggregate:
+    - get: kubo-ci
+    - get: docker-boshrelease
+      version:
+        version: 28.0.1
+    - get: ubuntu-trusty
+      version:
+        version: "3445.11"
+  - task: export-release
+    privileged: true
+    file: kubo-ci/tasks/export-release.yml
+    input_mapping:
+      release: docker-boshrelease
+      stemcell: ubuntu-trusty
+  - put: compiled-releases
+    params:
+      file: compiled-release/*.tgz
+- name: compile-haproxy-release-ubuntu-trusty-3445
   plan:
-    - aggregate:
-      - get: kubo-ci
-      - get: haproxy-boshrelease
-        version:
-          version: "8.3.0"
-      - get: ubuntu-trusty-3421-stemcell
-        version:
-          version: "3421.11"
-    - task: export-release
-      file: kubo-ci/tasks/export-release.yml
-      privileged: true
-      input_mapping:
-        stemcell: ubuntu-trusty-3421-stemcell
-        release: haproxy-boshrelease
-    - put: compiled-releases
-      params:
-        file: "compiled-release/*.tgz"
-
-- name: compile-kubo-etcd-release-ubuntu-trusty-3421
+  - aggregate:
+    - get: kubo-ci
+    - get: haproxy-boshrelease
+      version:
+        version: 8.4.0
+    - get: ubuntu-trusty
+      version:
+        version: "3445.11"
+  - task: export-release
+    privileged: true
+    file: kubo-ci/tasks/export-release.yml
+    input_mapping:
+      release: haproxy-boshrelease
+      stemcell: ubuntu-trusty
+  - put: compiled-releases
+    params:
+      file: compiled-release/*.tgz
+- name: compile-kubo-etcd-release-ubuntu-trusty-3445
   plan:
-    - aggregate:
-      - get: kubo-ci
-      - get: kubo-etcd-release
-      - get: ubuntu-trusty-3421-stemcell
-        version:
-          version: "3421.11"
-    - task: export-release
-      file: kubo-ci/tasks/export-release.yml
-      privileged: true
-      input_mapping:
-        stemcell: ubuntu-trusty-3421-stemcell
-        release: kubo-etcd-release
-    - put: compiled-releases
-      params:
-        file: "compiled-release/*.tgz"
+  - aggregate:
+    - get: kubo-ci
+    - get: kubo-etcd-release
+    - get: ubuntu-trusty
+      version:
+        version: "3445.11"
+  - task: export-release
+    privileged: true
+    file: kubo-ci/tasks/export-release.yml
+    input_mapping:
+      release: kubo-etcd-release
+      stemcell: ubuntu-trusty
+  - put: compiled-releases
+    params:
+      file: compiled-release/*.tgz
