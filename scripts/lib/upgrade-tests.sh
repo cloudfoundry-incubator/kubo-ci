@@ -69,6 +69,7 @@ run_upgrade_test() {
   local service_name="nginx"
   local update_function="$1"
   local min_success_rate="${2:-1}"
+  local component_name="${3:"not provided"}"
 
   routing_mode="$(bosh-cli int environment/director.yml --path=/routing_mode)"
 
@@ -98,10 +99,10 @@ run_upgrade_test() {
   query_loop "$update_pid" "$query_url" "$min_success_rate" &
   local query_loop_pid="$!"
 
-  wait_for_success "$update_pid" "Update"
+  wait_for_success "$update_pid" "Update $component_name"
   update_code="$?"
 
-  wait_for_success "$query_loop_pid" "HA query loop"
+  wait_for_success "$query_loop_pid" "HA query loop for $component_name"
   query_code="$?"
 
   if [ "$update_code" != "0" ] || [ "$query_code" != "0" ]; then
