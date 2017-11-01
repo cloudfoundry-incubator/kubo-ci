@@ -45,13 +45,11 @@ var _ = Describe("Testing Ingress Controller", func() {
 	}
 
 	createRbacIngressController := func() {
-		Eventually(runner.RunKubectlCommand("create", "serviceaccount", rbacServiceAccount)).Should(gexec.Exit(0))
-		Eventually(runner.RunKubectlCommand("apply", "-f", ingressRoles)).Should(gexec.Exit(0))
-		Eventually(runner.RunKubectlCommand("create", "clusterrolebinding", "nginx-ingress-clusterrole-binding", "--clusterrole", "nginx-ingress-clusterrole", "--serviceaccount", runner.Namespace()+":"+rbacServiceAccount)).
-			Should(gexec.Exit(0))
-		Eventually(runner.RunKubectlCommand("create", "rolebinding", "nginx-ingress-role-binding", "--role", "nginx-ingress-role", "--serviceaccount", runner.Namespace()+":"+rbacServiceAccount)).
-			Should(gexec.Exit(0))
-		Eventually(runner.RunKubectlCommand("create", "-f", rbacIngressSpec), "60s").Should(gexec.Exit(0))
+		runner.RunKubectlCommandWithTimeout("create", "serviceaccount", rbacServiceAccount)
+		runner.RunKubectlCommandWithTimeout("apply", "-f", ingressRoles)
+		runner.RunKubectlCommandWithTimeout("create", "clusterrolebinding", "nginx-ingress-clusterrole-binding", "--clusterrole", "nginx-ingress-clusterrole", "--serviceaccount", runner.Namespace()+":"+rbacServiceAccount)
+		runner.RunKubectlCommandWithTimeout("create", "rolebinding", "nginx-ingress-role-binding", "--role", "nginx-ingress-role", "--serviceaccount", runner.Namespace()+":"+rbacServiceAccount)
+		runner.RunKubectlCommandWithTimeout("create", "-f", rbacIngressSpec)
 	}
 
 	deleteRbacIngressController := func() {

@@ -54,6 +54,10 @@ func (runner KubectlRunner) RunKubectlCommand(args ...string) *gexec.Session {
 	return runner.RunKubectlCommandInNamespace(runner.namespace, args...)
 }
 
+func (runner KubectlRunner) RunKubectlCommandWithTimeout(args ...string) {
+	Eventually(runner.RunKubectlCommandInNamespace(runner.namespace, args...), "60s").Should(gexec.Exit(0))
+}
+
 func (runner KubectlRunner) RunKubectlCommandInNamespace(namespace string, args ...string) *gexec.Session {
 	newArgs := append([]string{"--kubeconfig", runner.configPath, "--namespace", namespace}, args...)
 	command := exec.Command("kubectl", newArgs...)
