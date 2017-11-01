@@ -4,6 +4,9 @@ import (
 	. "tests/test_helpers"
 
 	"github.com/cloudfoundry/bosh-cli/director"
+	"github.com/cppforlife/turbulence/incident"
+	"github.com/cppforlife/turbulence/incident/selector"
+	"github.com/cppforlife/turbulence/tasks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -17,7 +20,7 @@ var _ = Describe("Etcd failure scenarios", func() {
 		var err error
 
 		director := NewDirector()
-		deployment, err = director.FindDeployment("ci-service")
+		deployment, err = director.FindDeployment(DeploymentName)
 		Expect(err).NotTo(HaveOccurred())
 		countRunningEtcd = CountDeploymentVmsOfType(deployment, EtcdVmType, VmRunningState)
 
@@ -33,10 +36,36 @@ var _ = Describe("Etcd failure scenarios", func() {
 	})
 
 	Specify("Etcd nodes rejoin the cluster and contain up-to-date data", func() {
+
 		By("Deleting the Etcd VM")
-		vms := DeploymentVmsOfType(deployment, EtcdVmType, VmRunningState)
-		KillVM(vms, iaas)
+
+		turbulenceClient := TurbulenceClient()
+		killOneEtcd := incident.Request{
+			Selector: selector.Request{
+				Deployment: &selector.NameRequest{
+					Name: DeploymentName,
+				},
+				Group: &selector.NameRequest{
+					Name: EtcdVmType,
+				},
+				ID: &selector.IDRequest{
+					Limit: selector.MustNewLimitFromString("1"),
+				},
+			},
+			Tasks: tasks.OptionsSlice{
+				tasks.KillOptions{},
+			},
+		}
+		incident := turbulenceClient.CreateIncident(killOneEtcd)
+
+		By("Killing VM")
+		incident.Wait()
+
+		By("Waiting for Bosh to recognize dead VMs")
 		Eventually(countRunningEtcd, 600, 20).Should(Equal(2))
+
+		By("Waiting for resurrection")
+		Eventually(countRunningEtcd, 600, 20).Should(Equal(3))
 
 		By("Verifying that the Etcd VM has joined the K8s cluster")
 		Eventually(func() bool { return AllEtcdHaveJoinedK8s(deployment, kubectl) }, 600, 20).Should(BeTrue())
