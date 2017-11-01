@@ -53,7 +53,7 @@ wait_for_success() {
   local pid_to_wait="$1"
   local work_description="$2"
 
-  echo "PID to wait on: $pid_to_wait"
+  echo "PID to wait on: $pid_to_wait, for work: $work_description"
   if ps -p $pid_to_wait > /dev/null #check PID still exists. wait will return 127 if PID is already finished
   then
     wait "$pid_to_wait"
