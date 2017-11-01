@@ -45,25 +45,20 @@ var _ = Describe("Testing Ingress Controller", func() {
 	}
 
 	createRbacIngressController := func() {
-
-		Eventually(runner.RunKubectlCommand("create", "serviceaccount",
-			rbacServiceAccount)).Should(gexec.Exit(0))
-		Eventually(runner.RunKubectlCommand("apply", "-f", ingressRoles))
-		Eventually(runner.RunKubectlCommand("create", "clusterrolebinding",
-			"nginx-ingress-clusterrole-binding", "--clusterrole", "nginx-ingress-clusterrole",
-            "--serviceaccount", runner.Namespace() + ":" + rbacServiceAccount))
-		Eventually(runner.RunKubectlCommand("create", "rolebinding",
-			"nginx-ingress-role-binding", "--role", "nginx-ingress-role",
-            "--serviceaccount", runner.Namespace() + ":" + rbacServiceAccount))
-		Eventually(runner.RunKubectlCommand(
-			"create", "-f", rbacIngressSpec), "60s").Should(gexec.Exit(0))
+		Eventually(runner.RunKubectlCommand("create", "serviceaccount", rbacServiceAccount)).Should(gexec.Exit(0))
+		Eventually(runner.RunKubectlCommand("apply", "-f", ingressRoles)).Should(gexec.Exit(0))
+		Eventually(runner.RunKubectlCommand("create", "clusterrolebinding", "nginx-ingress-clusterrole-binding", "--clusterrole", "nginx-ingress-clusterrole", "--serviceaccount", runner.Namespace()+":"+rbacServiceAccount)).
+			Should(gexec.Exit(0))
+		Eventually(runner.RunKubectlCommand("create", "rolebinding", "nginx-ingress-role-binding", "--role", "nginx-ingress-role", "--serviceaccount", runner.Namespace()+":"+rbacServiceAccount)).
+			Should(gexec.Exit(0))
+		Eventually(runner.RunKubectlCommand("create", "-f", rbacIngressSpec), "60s").Should(gexec.Exit(0))
 	}
 
-    deleteRbacIngressController := func() {
-        // Delete ingress roles and clusterrolebinding - everything else should be deleted with the namespace
-		Eventually(runner.RunKubectlCommand("delete", "-f", ingressRoles))
-		Eventually(runner.RunKubectlCommand("delete", "clusterrolebinding", "nginx-ingress-clusterrole-binding"))
-    }
+	deleteRbacIngressController := func() {
+		// Delete ingress roles and clusterrolebinding - everything else should be deleted with the namespace
+		Eventually(runner.RunKubectlCommand("delete", "-f", ingressRoles)).Should(gexec.Exit())
+		Eventually(runner.RunKubectlCommand("delete", "clusterrolebinding", "nginx-ingress-clusterrole-binding")).Should(gexec.Exit())
+	}
 
 	BeforeEach(func() {
 		tcpPort = os.Getenv("INGRESS_CONTROLLER_TCP_PORT")
@@ -141,15 +136,15 @@ var _ = Describe("Testing Ingress Controller", func() {
 
 	AfterEach(func() {
 		if hasPassed {
-		    authenticationPolicy := strings.ToUpper(os.Getenv("KUBERNETES_AUTHENTICATION_POLICY"))
+			authenticationPolicy := strings.ToUpper(os.Getenv("KUBERNETES_AUTHENTICATION_POLICY"))
 
-		    if authenticationPolicy != authPolicyAttribute && authenticationPolicy != authPolicyRole {
-		        authenticationPolicy = authPolicyAttribute
-		    }
+			if authenticationPolicy != authPolicyAttribute && authenticationPolicy != authPolicyRole {
+				authenticationPolicy = authPolicyAttribute
+			}
 
-		    if authenticationPolicy == authPolicyRole {
-	            deleteRbacIngressController()
-		    }
+			if authenticationPolicy == authPolicyRole {
+				deleteRbacIngressController()
+			}
 
 			Eventually(runner.RunKubectlCommand(
 				"delete", "-f", ingressSpec), "60s").Should(gexec.Exit())
