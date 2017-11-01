@@ -54,12 +54,14 @@ wait_for_success() {
   local work_description="$2"
 
   echo "PID to wait on: $pid_to_wait"
-  wait "$pid_to_wait"
-  if [ "$?" -ne 0 ]; then
-    echo "$work_description failed"
-    return 1
+  if ps -p $pid_to_wait > /dev/null #check PID still exists. wait will return 127 if PID is already finished
+  then
+    wait "$pid_to_wait"
+    if [ "$?" -ne 0 ]; then
+      echo "$work_description failed"
+     return 1
+   fi
   fi
-
   echo "$work_description succeeded"
 }
 
