@@ -66,6 +66,11 @@ func GetWorkerIP(deployment boshdir.Deployment) string {
 	return vms[0].IPs[0]
 }
 
+func GetEtcdIP(deployment boshdir.Deployment) string {
+	vms := DeploymentVmsOfType(deployment, EtcdVmType, VmRunningState)
+	return vms[0].IPs[0]
+}
+
 func NewDirector() boshdir.Director {
 	uaa, err := buildUAA()
 	if err != nil {

@@ -11,10 +11,14 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+const testKey = "foo"
+const testValue = "bar"
+
 var _ = Describe("Etcd failure scenarios", func() {
 	var deployment director.Deployment
 	var countRunningEtcd func() int
 	var kubectl *KubectlRunner
+	var etcdNodeIP string
 
 	BeforeEach(func() {
 		var err error
@@ -33,12 +37,16 @@ var _ = Describe("Etcd failure scenarios", func() {
 
 	AfterEach(func() {
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		DeleteKeyFromEtcd(etcdNodeIP, testKey)
 	})
 
 	Specify("Etcd nodes rejoin the cluster and contain up-to-date data", func() {
 
-		By("Deleting the Etcd VM")
+		By("Writing data to the Etcd leader")
+		etcdNodeIP = GetEtcdIP(deployment)
+		PutKeyToEtcd(etcdNodeIP, testKey, testValue)
 
+		By("Deleting the Etcd VM")
 		turbulenceClient := TurbulenceClient()
 		killOneEtcd := incident.Request{
 			Selector: selector.Request{
@@ -69,6 +77,9 @@ var _ = Describe("Etcd failure scenarios", func() {
 
 		By("Verifying that the Etcd VM has joined the K8s cluster")
 		Eventually(func() bool { return AllEtcdHaveJoinedK8s(deployment, kubectl) }, 600, 20).Should(BeTrue())
+
+		By("Reading the data from the Etcd cluster")
+		Expect(GetKeyFromEtcd(etcdNodeIP, testKey)).To(Equal(testValue))
 	})
 
 })
