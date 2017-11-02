@@ -31,6 +31,7 @@ var _ = Describe("Docker Image", func() {
 		"rspec":    []string{"--version"},
 		"rake":     []string{"--version"},
 		"zip":      []string{"--version"},
+		"jq":       []string{"--version"},
 	}
 
 	for executable, args := range commands {

@@ -13,7 +13,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   software-properties-common \
   wget \
   ipcalc \
-  zip
+  zip \
+  jq
 
 WORKDIR /tmp/docker-build
 
@@ -93,3 +94,4 @@ COPY Gemfile .
 COPY Gemfile.lock .
 RUN gem install bundler --no-ri --no-rdoc
 RUN bundle install
+
