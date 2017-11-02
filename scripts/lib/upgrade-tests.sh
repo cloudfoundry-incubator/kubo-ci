@@ -55,7 +55,6 @@ wait_for_success() {
 
   echo "PID to wait on: $pid_to_wait, for work: $work_description"
   wait "$pid_to_wait"
-  ps -p "${pid_to_wait}"
   if [ "$?" -ne 0 ]; then
     echo "$work_description failed"
     exit 1
