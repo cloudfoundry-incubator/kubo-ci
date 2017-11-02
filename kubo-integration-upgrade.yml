@@ -262,7 +262,9 @@ jobs:
       trigger: true
       passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: old-kubo-deployment-tarball
+      passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     - get: old-kubo-release-tarball
+      passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     - get: gcs-bosh-state
       passed: [ 'deploy-workload-<%= iaas %>' ]
     - get: gcs-bosh-creds
