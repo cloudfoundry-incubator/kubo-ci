@@ -54,13 +54,11 @@ wait_for_success() {
   local work_description="$2"
 
   echo "PID to wait on: $pid_to_wait, for work: $work_description"
-  if ps -p $pid_to_wait > /dev/null #check PID still exists. wait will return 127 if PID is already finished
-  then
-    wait "$pid_to_wait"
-    if [ "$?" -ne 0 ]; then
-      echo "$work_description failed"
-     return 1
-   fi
+  wait "$pid_to_wait"
+  ps -p "${pid_to_wait}"
+  if [ "$?" -ne 0 ]; then
+    echo "$work_description failed"
+    exit 1
   fi
   echo "$work_description succeeded"
 }
@@ -69,7 +67,7 @@ run_upgrade_test() {
   local service_name="nginx"
   local update_function="$1"
   local min_success_rate="${2:-1}"
-  local component_name="${3:"not provided"}"
+  local component_name="${3:-"not provided"}"
 
   routing_mode="$(bosh-cli int environment/director.yml --path=/routing_mode)"
 
@@ -93,11 +91,13 @@ run_upgrade_test() {
   # update BOSH in the background
   $update_function &
   local update_pid="$!"
+  echo "Update function PID: ${update_pid}"
 
   # exercise the load balancer URL while BOSH is updating
   local query_url="$lb_url"
   query_loop "$update_pid" "$query_url" "$min_success_rate" &
   local query_loop_pid="$!"
+  echo "Query loop PID: ${query_loop_pid}"
 
   wait_for_success "$update_pid" "Update $component_name"
   update_code="$?"
