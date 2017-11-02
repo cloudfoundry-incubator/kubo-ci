@@ -101,10 +101,7 @@ run_upgrade_test() {
   wait_for_success "$update_pid" "Update $component_name"
   update_code="$?"
 
-  wait_for_success "$query_loop_pid" "HA query loop for $component_name"
-  query_code="$?"
-
-  if [ "$update_code" != "0" ] || [ "$query_code" != "0" ]; then
+  if [ "$update_code" != "0" ]; then
     return 1
   fi
 }
