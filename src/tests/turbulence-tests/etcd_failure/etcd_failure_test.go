@@ -40,7 +40,7 @@ var _ = Describe("Etcd failure scenarios", func() {
 		DeleteKeyFromEtcd(etcdNodeIP, testKey)
 	})
 
-	Specify("Etcd nodes rejoin the cluster and contain up-to-date data", func() {
+	XSpecify("Etcd nodes rejoin the cluster and contain up-to-date data", func() {
 
 		By("Writing data to the Etcd leader")
 		etcdNodeIP = GetEtcdIP(deployment)
