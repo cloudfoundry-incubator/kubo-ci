@@ -13,7 +13,7 @@ resources:
   type: git
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
-    branch: master
+    branch: single-node-etcd
 
 <% iaas_config.each do |iaas, network_list|
   network_list.each do |network|
