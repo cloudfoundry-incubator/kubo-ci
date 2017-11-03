@@ -1,5 +1,5 @@
 <%
-iaas_config = {"gcp-lb" => %w(static dynamic), "aws-lb" => %w(static), "vsphere" => %w(static), "openstack" => %w(dynamic)}
+iaas_config = {"aws-lb" => %w(static), "openstack" => %w(dynamic)}
 %>
 ---
 resource_types:
