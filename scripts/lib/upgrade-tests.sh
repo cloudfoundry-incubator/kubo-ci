@@ -94,14 +94,9 @@ run_upgrade_test() {
 
   # exercise the load balancer URL while BOSH is updating
   local query_url="$lb_url"
-  query_loop "$update_pid" "$query_url" "$min_success_rate" &
-  local query_loop_pid="$!"
-  echo "Query loop PID: ${query_loop_pid}"
+  query_loop "$update_pid" "$query_url" "$min_success_rate"
 
-  wait_for_success "$update_pid" "Update $component_name"
-  update_code="$?"
-
-  if [ "$update_code" != "0" ]; then
+  if [ "$?" != "0" ]; then
     return 1
   fi
 }
