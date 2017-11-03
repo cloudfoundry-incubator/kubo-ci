@@ -9,8 +9,6 @@ import (
 
 	"strconv"
 
-	"time"
-
 	"github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -53,51 +51,48 @@ var _ = Describe("Persistence failure scenarios", func() {
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
 
+
 	Specify("K8s applications with persistence keeps their data when node is destroyed", func() {
-
-		By("Deploying the persistent application the value is persisted")
-
-		DeployGuestBook(kubectl)
-
-		appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
-
 		testValue := strconv.Itoa(rand.Int())
-		println(testValue)
 
-		PostToGuestBook(appAddress, testValue)
+		By("Deploying the persistent application", func() {
+			DeployGuestBook(kubectl)
+			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
 
-		Eventually(func() string {
-			return GetValueFromGuestBook(appAddress)
-		}, "120s", "2s").Should(ContainSubstring(testValue))
+			PostToGuestBook(appAddress, testValue)
 
-		By("Un-deploying the application and re-deploying the data is still available from the persisted source")
+			Eventually(func() string {
+				return GetValueFromGuestBook(appAddress)
+			}, "120s", "2s").Should(ContainSubstring(testValue))
+		})
 
-		UndeployGuestBook(kubectl)
-		DeployGuestBook(kubectl)
+		By("Un-deploying and re-deploying the app", func() {
+			UndeployGuestBook(kubectl)
+			DeployGuestBook(kubectl)
+			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
 
-		appAddress = kubectl.GetAppAddress(deployment, "svc/frontend")
-		Eventually(func() string {
-			return GetValueFromGuestBook(appAddress)
-		}, "120s", "2s").Should(ContainSubstring(testValue))
+			Eventually(func() string {
+				return GetValueFromGuestBook(appAddress)
+			}, "120s", "2s").Should(ContainSubstring(testValue))
+		})
 
-		externalId := getExternalId(kubectl, iaas)
-		By(fmt.Sprintf("Deleting the node/worker (%s) the persisted data is still available to the application", externalId))
-		KillVMById(externalId, iaas)
 
-		fmt.Println(time.Now())
-		Eventually(func() string {
-			return GetValueFromGuestBook(appAddress)
-		}, "600s", "2s").Should(ContainSubstring(testValue))
-		fmt.Println(time.Now())
+		By("Deleting the node/worker with persistent volume", func() {
+			redisVMId := VMIdOfRedis(kubectl, iaas)
+			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
+			KillVMById(redisVMId, iaas)
 
-		By("Deleting the worker a new worker replaces it")
+			Eventually(func() string {
+				return GetValueFromGuestBook(appAddress)
+			}, "600s", "2s").Should(ContainSubstring(testValue))
+		})
+
 		Eventually(func() bool { return AllBoshWorkersHaveJoinedK8s(deployment, kubectl) }, 600, 20).Should(BeTrue())
-
 	})
 
 })
 
-func getExternalId(kubectl *KubectlRunner, iaas string) string {
+func VMIdOfRedis(kubectl *KubectlRunner, iaas string) string {
 
 	var externalId string
 
