@@ -24,6 +24,8 @@ query_loop() {
 
     local timestamp=`date`
 
+    set +e
+
     curl -L --max-time ${timeout_seconds} -IfsS ${url} &> query_loop_last_output.txt
 
     if [ "$?" -ne 0 ]; then
@@ -35,6 +37,8 @@ query_loop() {
         echo "[$timestamp][$query_success_count/$query_loop_count] Service $url successfully responded"
       fi
     fi
+
+    set -e
   done
 
   echo "$query_success_count out of $query_loop_count queries succeeded"
