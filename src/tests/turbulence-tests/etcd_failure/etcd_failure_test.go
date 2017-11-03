@@ -31,7 +31,7 @@ var _ = Describe("Etcd failure scenarios", func() {
 		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()
 
-		Expect(countRunningEtcd()).To(Equal(3))
+		Expect(countRunningEtcd()).To(Equal(1))
 		Expect(AllEtcdHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 
@@ -40,7 +40,7 @@ var _ = Describe("Etcd failure scenarios", func() {
 		DeleteKeyFromEtcd(etcdNodeIP, testKey)
 	})
 
-	XSpecify("Etcd nodes rejoin the cluster and contain up-to-date data", func() {
+	Specify("Etcd nodes rejoin the cluster and contain up-to-date data", func() {
 
 		By("Writing data to the Etcd leader")
 		etcdNodeIP = GetEtcdIP(deployment)
@@ -70,10 +70,10 @@ var _ = Describe("Etcd failure scenarios", func() {
 		incident.Wait()
 
 		By("Waiting for Bosh to recognize dead VMs")
-		Eventually(countRunningEtcd, 600, 20).Should(Equal(2))
+		Eventually(countRunningEtcd, 600, 20).Should(Equal(0))
 
 		By("Waiting for resurrection")
-		Eventually(countRunningEtcd, 600, 20).Should(Equal(3))
+		Eventually(countRunningEtcd, 600, 20).Should(Equal(1))
 
 		By("Verifying that the Etcd VM has joined the K8s cluster")
 		Eventually(func() bool { return AllEtcdHaveJoinedK8s(deployment, kubectl) }, 600, 20).Should(BeTrue())

@@ -1,0 +1,265 @@
+<%
+iaas_config = {"gcp-lb" => %w(static dynamic), "aws-lb" => %w(static), "vsphere" => %w(static), "openstack" => %w(dynamic)}
+%>
+---
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+
+<% iaas_config.each do |iaas, network_list|
+  network_list.each do |network|
+%>
+- name: kubo-lock-<%= iaas %>-<%= network %>
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key))
+    pool: kubo-<%= iaas %>
+<% end %>
+<% end %>
+
+- name: kubo-lock-openstack-global
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key))
+    pool: kubo-openstack-global
+
+- name: gcs-bosh-state
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/state.json
+
+
+# Creds
+- name: gcs-bosh-creds
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/creds.yml
+
+# Source Artifacts - to be tested
+- name: gcs-kubo-release-pre
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-public
+    versioned_file: kubo-release-latest.tgz
+
+- name: gcs-kubo-deployment-pre
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: bsnchan
+    versioned_file: kubo-deployment-latest.tgz
+
+############################################
+# Jobs
+############################################
+jobs:
+
+<% iaas_config.each do |iaas, network_list|
+  network_list.each do |network| %>
+- name: claim-lock-<%= iaas %>-<%= network %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: gcs-kubo-release-pre
+      trigger: true
+    - get: gcs-kubo-deployment-pre
+  - put: kubo-lock-<%= iaas %>-<%= network %>
+    params: { acquire: true }
+  <% if iaas.include? "openstack" %>
+  - put: kubo-lock-openstack-global
+    params: { acquire: true }
+  <% end %>      
+
+- name: install-bosh-<%= iaas %>-<%= network %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: gcs-kubo-release-pre
+      passed: [ 'claim-lock-<%= iaas %>-<%= network %>' ]
+    - get: gcs-kubo-deployment-pre
+      passed: [ 'claim-lock-<%= iaas %>-<%= network %>' ]
+    - get: kubo-lock-<%= iaas %>-<%= network %>
+      version: every
+      trigger: true
+      passed: [ 'claim-lock-<%= iaas %>-<%= network %>' ]
+    <% if iaas.include? "openstack" %>
+    - get: kubo-lock-openstack-global
+      passed: [ 'claim-lock-<%= iaas %>-<%= network %>' ]
+    <% end %>       
+
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    tags: ['<%= iaas %>']
+
+  - task: install
+    file: git-kubo-ci/tasks/install-bosh.yml
+    tags: ['<%= iaas %>']
+    input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>-<%= network %>
+    params:
+      USE_TURBULENCE: 1
+
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+
+- name: deploy-k8s-<%= iaas %>-<%= network %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= iaas %>-<%= network %>
+      version: every
+      trigger: true
+      passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
+    - get: gcs-kubo-deployment-pre
+      passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
+    - get: gcs-kubo-release-pre
+      passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
+    <% if iaas.include? "openstack" %>
+    - get: kubo-lock-openstack-global
+      passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
+    <% end %>      
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    tags: ['<%= iaas %>']
+
+  - task: configure-bosh
+    tags: ['<%= iaas %>']
+    input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>-<%= network %>
+    file: git-kubo-ci/tasks/configure-bosh.yml
+    tags: ['<%= iaas %>']
+
+  - task: deploy
+    tags: ['<%= iaas %>']
+    input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>-<%= network %>
+      gcs-kubo-release-tarball: gcs-kubo-release-pre
+    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    params:
+      CLOUD_CONFIG_OPS_FILE: <%= network %>-network-k8s-cloud-config.yml
+
+- name: run-turbulence-tests-<%= iaas %>-<%= network %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= iaas %>-<%= network %>
+      version: every
+      trigger: true
+      passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
+    - get: gcs-kubo-release-pre
+      passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
+    - get: gcs-kubo-deployment-pre
+      passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
+    <% if iaas.include? "openstack" %>
+    - get: kubo-lock-openstack-global
+      passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
+    <% end %>   
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    tags: ['<%= iaas %>']
+
+  - task: turbulence-tests
+    file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
+    tags: ['<%= iaas %>']
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
+  <% if iaas.include? "openstack" %>    
+  on_success:
+    do:
+    - put: kubo-lock-openstack-global
+      params: { release: kubo-lock-openstack-global }    
+  on_failure:
+    do:
+    - put: kubo-lock-openstack-global
+      params: { release: kubo-lock-openstack-global }    
+  <% end %> 
+
+- name: destroy-k8s-<%= iaas %>-<%= network %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= iaas %>-<%= network %>
+      version: every
+      trigger: true
+      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
+    - get: gcs-kubo-deployment-pre
+      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
+    - get: gcs-kubo-release-pre
+      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
+
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    tags: ['<%= iaas %>']
+
+  - task: destroy-k8s
+    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+    tags: ['<%= iaas %>']
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
+
+- name: destroy-bosh-<%= iaas %>-<%= network %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= iaas %>-<%= network %>
+      version: every
+      trigger: true
+      passed:
+      - 'destroy-k8s-<%= iaas %>-<%= network %>'
+    - get: gcs-kubo-deployment-pre
+      passed:
+      - 'destroy-k8s-<%= iaas %>-<%= network %>'
+    - get: gcs-kubo-release-pre
+      passed: [ 'destroy-k8s-<%= iaas %>-<%= network %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'destroy-k8s-<%= iaas %>-<%= network %>' ]
+    - get: gcs-bosh-creds
+      passed:
+      - 'destroy-k8s-<%= iaas %>-<%= network %>'
+
+  - task: unpack-kubo-deployment
+    tags: ['<%= iaas %>']
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+
+  - task: destroy
+    tags: ['<%= iaas %>']
+    file: git-kubo-ci/tasks/destroy-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
+
+  - put: kubo-lock-<%= iaas %>-<%= network %>
+    params: { release: kubo-lock-<%= iaas %>-<%= network %> }
+<% end %>
+<% end %>
