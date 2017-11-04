@@ -41,7 +41,7 @@ func AllEtcdHaveJoinedK8s(deployment director.Deployment, kubectl *KubectlRunner
 		re := regexp.MustCompile("etcd-\\d\\s*Healthy")
 		match := re.FindAllString(joinedOutput, -1)
 		return len(match)
-	}, "120s", "5s").Should(Equal(3))
+	}, "120s", "5s").Should(Equal(1))
 
 	return true
 }
