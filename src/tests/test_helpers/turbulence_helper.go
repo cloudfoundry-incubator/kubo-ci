@@ -33,7 +33,7 @@ func AllBoshWorkersHaveJoinedK8s(deployment director.Deployment, kubectl *Kubect
 func AllEtcdHaveJoinedK8s(deployment director.Deployment, kubectl *KubectlRunner) bool {
 	Eventually(func() []director.VMInfo {
 		return DeploymentVmsOfType(deployment, EtcdVmType, VmRunningState)
-	}, "600s", "30s").Should(HaveLen(3))
+	}, "600s", "30s").Should(HaveLen(1))
 
 	Eventually(func() int {
 		output := GetComponentStatus(kubectl)
