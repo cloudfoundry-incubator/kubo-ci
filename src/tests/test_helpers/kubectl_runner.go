@@ -81,7 +81,7 @@ func GenerateRandomName() string {
 }
 
 func (runner KubectlRunner) CreateNamespace() {
-	Eventually(runner.RunKubectlCommand("create", "namespace", runner.namespace), "10s").Should(gexec.Exit(0))
+	Eventually(runner.RunKubectlCommand("create", "namespace", runner.namespace), "20s").Should(gexec.Exit(0))
 }
 
 func (runner *KubectlRunner) GetOutput(kubectlArgs ...string) []string {
