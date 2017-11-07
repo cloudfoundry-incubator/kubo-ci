@@ -79,6 +79,8 @@ var _ = Describe("Etcd failure scenarios", func() {
 		Eventually(func() bool { return AllEtcdHaveJoinedK8s(deployment, kubectl) }, 600, 20).Should(BeTrue())
 
 		By("Reading the data from the Etcd cluster")
+		// The etcd vm will get a new IP in environments that use dynamic networks
+		etcdNodeIP = GetEtcdIP(deployment)
 		Expect(GetKeyFromEtcd(etcdNodeIP, testKey)).To(Equal(testValue))
 	})
 
