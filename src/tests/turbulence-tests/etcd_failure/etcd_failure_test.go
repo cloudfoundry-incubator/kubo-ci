@@ -19,11 +19,12 @@ var _ = Describe("Etcd failure scenarios", func() {
 	var countRunningEtcd func() int
 	var kubectl *KubectlRunner
 	var etcdNodeIP string
+	var director director.Director
 
 	BeforeEach(func() {
 		var err error
 
-		director := NewDirector()
+		director = NewDirector()
 		deployment, err = director.FindDeployment(DeploymentName)
 		Expect(err).NotTo(HaveOccurred())
 		countRunningEtcd = CountDeploymentVmsOfType(deployment, EtcdVmType, VmRunningState)
@@ -80,6 +81,8 @@ var _ = Describe("Etcd failure scenarios", func() {
 
 		By("Reading the data from the Etcd cluster")
 		// The etcd vm will get a new IP in environments that use dynamic networks
+		deployment, err := director.FindDeployment(DeploymentName)
+		Expect(err).NotTo(HaveOccurred())
 		etcdNodeIP = GetEtcdIP(deployment)
 		Expect(GetKeyFromEtcd(etcdNodeIP, testKey)).To(Equal(testValue))
 	})
