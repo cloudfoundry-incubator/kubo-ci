@@ -68,7 +68,8 @@ if [[ ${routing_mode} == "cf" ]]; then
   INGRESS_CONTROLLER_TCP_PORT=$(expr "$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/kubernetes_master_port")" + 20)
   TCP_ROUTER_DNS_NAME=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/kubernetes_master_host")
   CF_APPS_DOMAIN=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing-cf-app-domain-name")
-  export KUBERNETES_SERVICE_HOST KUBERNETES_SERVICE_PORT WORKLOAD_TCP_PORT INGRESS_CONTROLLER_TCP_PORT TCP_ROUTER_DNS_NAME CF_APPS_DOMAIN
+  KUBERNETES_AUTHENTICATION_POLICY=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/authorization_mode")
+  export KUBERNETES_SERVICE_HOST KUBERNETES_SERVICE_PORT WORKLOAD_TCP_PORT INGRESS_CONTROLLER_TCP_PORT TCP_ROUTER_DNS_NAME CF_APPS_DOMAIN KUBERNETES_AUTHENTICATION_POLICY
 
   ginkgo "$GOPATH/src/tests/integration-tests/cloudfoundry"
 elif [[ ${routing_mode} == "iaas" ]]; then
