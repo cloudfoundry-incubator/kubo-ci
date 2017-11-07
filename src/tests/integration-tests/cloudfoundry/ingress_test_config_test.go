@@ -78,7 +78,7 @@ func (tc IngressTestConfig) createIngressController() {
 
 func (tc IngressTestConfig) deleteIngressController() {
 	if tc.authenticationPolicy == rbac {
-		Eventually(tc.runner.RunKubectlCommand("delete", "-f", tc.ingressRoles)).Should(gexec.Exit())
+		Eventually(tc.runner.RunKubectlCommand("delete", "-f", tc.ingressRoles), "10s").Should(gexec.Exit())
 		Eventually(tc.runner.RunKubectlCommand("delete", "clusterrolebinding", "nginx-ingress-clusterrole-binding")).Should(gexec.Exit())
 	}
 }
