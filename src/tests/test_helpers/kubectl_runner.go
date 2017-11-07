@@ -86,7 +86,7 @@ func (runner KubectlRunner) CreateNamespace() {
 
 func (runner *KubectlRunner) GetOutput(kubectlArgs ...string) []string {
 	session := runner.RunKubectlCommand(kubectlArgs...)
-	Eventually(session, "10s").Should(gexec.Exit(0))
+	Eventually(session, "20s").Should(gexec.Exit(0))
 	output := session.Out.Contents()
 
 	return strings.Fields(string(output))
