@@ -187,7 +187,7 @@ jobs:
       trigger: true
     - get: ubuntu-trusty-stemcell
       version:
-        version: "3445.11"
+        version: "3468.5"
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
   - task: export-release
