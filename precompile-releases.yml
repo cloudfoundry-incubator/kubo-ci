@@ -1,3 +1,5 @@
+pins:
+  stemcell_version: &stemcell_version "3468.5"
 groups: []
 resources:
 - name: ubuntu-trusty
@@ -34,7 +36,7 @@ resource_types:
   source:
     repository: frodenas/gcs-resource
 jobs:
-- name: compile-docker-release-ubuntu-trusty-3445
+- name: compile-docker-release-ubuntu-trusty
   plan:
   - aggregate:
     - get: kubo-ci
@@ -43,7 +45,7 @@ jobs:
         version: 28.0.1
     - get: ubuntu-trusty
       version:
-        version: "3445.11"
+        version: *stemcell_version
   - task: export-release
     privileged: true
     file: kubo-ci/tasks/export-release.yml
@@ -53,7 +55,7 @@ jobs:
   - put: compiled-releases
     params:
       file: compiled-release/*.tgz
-- name: compile-haproxy-release-ubuntu-trusty-3445
+- name: compile-haproxy-release-ubuntu-trusty
   plan:
   - aggregate:
     - get: kubo-ci
@@ -62,7 +64,7 @@ jobs:
         version: 8.4.0
     - get: ubuntu-trusty
       version:
-        version: "3445.11"
+        version: *stemcell_version
   - task: export-release
     privileged: true
     file: kubo-ci/tasks/export-release.yml
@@ -72,14 +74,14 @@ jobs:
   - put: compiled-releases
     params:
       file: compiled-release/*.tgz
-- name: compile-kubo-etcd-release-ubuntu-trusty-3445
+- name: compile-kubo-etcd-release-ubuntu-trusty
   plan:
   - aggregate:
     - get: kubo-ci
     - get: kubo-etcd-release
     - get: ubuntu-trusty
       version:
-        version: "3445.11"
+        version: *stemcell_version
   - task: export-release
     privileged: true
     file: kubo-ci/tasks/export-release.yml
