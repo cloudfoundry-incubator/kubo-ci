@@ -18,7 +18,6 @@ var _ = Describe("Etcd failure scenarios", func() {
 	var deployment director.Deployment
 	var countRunningEtcd func() int
 	var kubectl *KubectlRunner
-	var etcdNodeIP string
 	var director director.Director
 
 	BeforeEach(func() {
