@@ -43,10 +43,6 @@ var _ = Describe("Etcd failure scenarios", func() {
 
 	Specify("Etcd nodes rejoin the cluster and contain up-to-date data", func() {
 
-		By("Writing data to the Etcd leader")
-		etcdNodeIP = GetEtcdIP(deployment)
-		PutKeyToEtcd(etcdNodeIP, testKey, testValue)
-
 		By("Deleting the Etcd VM")
 		turbulenceClient := TurbulenceClient()
 		killOneEtcd := incident.Request{
@@ -78,13 +74,6 @@ var _ = Describe("Etcd failure scenarios", func() {
 
 		By("Verifying that the Etcd VM has joined the K8s cluster")
 		Eventually(func() bool { return AllEtcdHaveJoinedK8s(deployment, kubectl) }, 600, 20).Should(BeTrue())
-
-		By("Reading the data from the Etcd cluster")
-		// The etcd vm will get a new IP in environments that use dynamic networks
-		deployment, err := director.FindDeployment(DeploymentName)
-		Expect(err).NotTo(HaveOccurred())
-		etcdNodeIP = GetEtcdIP(deployment)
-		Expect(GetKeyFromEtcd(etcdNodeIP, testKey)).To(Equal(testValue))
 	})
 
 })
