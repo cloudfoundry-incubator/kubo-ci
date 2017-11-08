@@ -33,6 +33,7 @@ update:
   canary_watch_time: 1000-30000
   update_watch_time: 1000-30000
 
+variables:
 # This can be removed once BOSH supports variables in the runtime-config
 - name: /dns_healthcheck_tls_ca
   type: certificate
