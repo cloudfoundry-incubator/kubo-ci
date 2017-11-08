@@ -38,10 +38,9 @@ var _ = Describe("Etcd failure scenarios", func() {
 
 	AfterEach(func() {
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
-		DeleteKeyFromEtcd(etcdNodeIP, testKey)
 	})
 
-	Specify("Etcd nodes rejoin the cluster and contain up-to-date data", func() {
+	Specify("Etcd nodes rejoin the cluster", func() {
 
 		By("Deleting the Etcd VM")
 		turbulenceClient := TurbulenceClient()
