@@ -9,10 +9,8 @@ import (
 	"github.com/cppforlife/turbulence/tasks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/cppforlife/turbulence/client"
 )
-
-const testKey = "foo"
-const testValue = "bar"
 
 var _ = Describe("Etcd failure scenarios", func() {
 	var deployment director.Deployment
@@ -32,7 +30,7 @@ var _ = Describe("Etcd failure scenarios", func() {
 		kubectl.CreateNamespace()
 
 		Expect(countRunningEtcd()).To(Equal(1))
-		Expect(AllEtcdHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
+		Expect(AllEtcdNodesAreHealthy(deployment, kubectl)).To(BeTrue())
 	})
 
 	AfterEach(func() {
@@ -40,38 +38,33 @@ var _ = Describe("Etcd failure scenarios", func() {
 	})
 
 	Specify("Etcd nodes rejoin the cluster", func() {
-
-		By("Deleting the Etcd VM")
-		turbulenceClient := TurbulenceClient()
-		killOneEtcd := incident.Request{
-			Selector: selector.Request{
-				Deployment: &selector.NameRequest{
-					Name: DeploymentName,
+		By("Deleting the Etcd VM", func() {
+			turbulenceClient := TurbulenceClient()
+			killOneEtcd := incident.Request{
+				Selector: selector.Request{
+					Deployment: &selector.NameRequest{
+						Name: DeploymentName,
+					},
+					Group: &selector.NameRequest{
+						Name: EtcdVmType,
+					},
+					ID: &selector.IDRequest{
+						Limit: selector.MustNewLimitFromString("1"),
+					},
 				},
-				Group: &selector.NameRequest{
-					Name: EtcdVmType,
+				Tasks: tasks.OptionsSlice{
+					tasks.KillOptions{},
 				},
-				ID: &selector.IDRequest{
-					Limit: selector.MustNewLimitFromString("1"),
-				},
-			},
-			Tasks: tasks.OptionsSlice{
-				tasks.KillOptions{},
-			},
-		}
-		incident := turbulenceClient.CreateIncident(killOneEtcd)
+			}
+			incident := turbulenceClient.CreateIncident(killOneEtcd)
+			incident.Wait()
+			Eventually(countRunningEtcd, 600, 20).Should(Equal(0))
+		})
 
-		By("Killing VM")
-		incident.Wait()
-
-		By("Waiting for Bosh to recognize dead VMs")
-		Eventually(countRunningEtcd, 600, 20).Should(Equal(0))
-
-		By("Waiting for resurrection")
-		Eventually(countRunningEtcd, 600, 20).Should(Equal(1))
-
-		By("Verifying that the Etcd VM has joined the K8s cluster")
-		Eventually(func() bool { return AllEtcdHaveJoinedK8s(deployment, kubectl) }, 600, 20).Should(BeTrue())
+		By("Waiting for Bosh Resurrection", func() {
+			Eventually(countRunningEtcd, 600, 20).Should(Equal(1))
+			Eventually(func() bool { return AllEtcdNodesAreHealthy(deployment, kubectl) }, 600, 20).Should(BeTrue())
+		})
 	})
 
 })
