@@ -312,8 +312,9 @@ jobs:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
       kubo-lock: kubo-lock-<%= iaas %>
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-    <% if iaas.include? 'openstack' %>
     params:
+      ADDITIONAL_MANIFEST_OPS_FILE: compiled-versions.yml
+    <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
     <% end %>
 
