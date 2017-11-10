@@ -85,7 +85,6 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: gcs-kubo-release-pre
-      trigger: true
     - get: gcs-kubo-deployment-pre
   - put: kubo-lock-<%= iaas %>-<%= network %>
     params: { acquire: true }
