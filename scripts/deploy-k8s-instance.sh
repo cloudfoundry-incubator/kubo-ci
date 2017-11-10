@@ -33,12 +33,6 @@ elif [[ -f "$iaas_cc_opsfile" ]]; then
 fi
 export CLOUD_CONFIG_OPS_FILES
 
-ADDITIONAL_MANIFEST_OPS_FILE=${ADDITIONAL_MANIFEST_OPS_FILE:-""}
-if [[ -f "$KUBO_CI_DIR/manifests/ops-files/$ADDITIONAL_MANIFEST_OPS_FILE" ]]; then
-  ADDITIONAL_MANIFEST_OPS_FILES="$KUBO_CI_DIR/manifests/ops-files/$ADDITIONAL_MANIFEST_OPS_FILE"
-fi
-export ADDITIONAL_MANIFEST_OPS_FILES
-
 release_source="local"
 
 "$KUBO_DEPLOYMENT_DIR/bin/deploy_k8s" "$KUBO_ENVIRONMENT_DIR" ci-service "$release_source"

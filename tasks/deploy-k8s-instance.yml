@@ -9,7 +9,6 @@ run:
 
 params:
   CLOUD_CONFIG_OPS_FILE:
-  ADDITIONAL_MANIFEST_OPS_FILE:
 
 inputs:
   - name: git-kubo-ci
