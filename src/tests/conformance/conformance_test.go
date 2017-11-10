@@ -33,11 +33,11 @@ var _ = Describe("Conformance Tests", func() {
 
 		By("Applying the conformance spec")
 		session := kubectl.RunKubectlCommandInNamespace("sonobuoy", "apply", "-f", conformanceSpec)
-		Eventually(session, "10s").Should(gexec.Exit(0))
+		Eventually(session, "30s").Should(gexec.Exit(0))
 
 		By("Waiting for sonobuoy pod to be running")
 		session = kubectl.RunKubectlCommandInNamespace("sonobuoy", "get", "pod/sonobuoy", "-o", "jsonpath={.status.phase}")
-		Eventually(session, "10s").Should(gexec.Exit(0))
+		Eventually(session, "30s").Should(gexec.Exit(0))
 		Eventually(func() string {
 			return string(session.Out.Contents())
 		}, "120s", "2s").Should(Equal("Running"))
