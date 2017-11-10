@@ -192,9 +192,10 @@ jobs:
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
     params:
       CONFORMANCE_RESULTS_PATH: conformance-results/results.tar.gz
-  ensure:
-  - put: conformance-results
-    file: conformance-results/results.tar.gz
+    ensure:
+      put: conformance-results
+      params:
+        file: conformance-results/results.tar.gz
   <% if iaas.include? "openstack" %>
   on_success:
     do:
