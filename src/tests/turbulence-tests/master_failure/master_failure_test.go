@@ -1,13 +1,16 @@
 package master_failure_test
 
 import (
-	"github.com/cloudfoundry/bosh-cli/director"
-	"github.com/cloudfoundry/bosh-utils/uuid"
+	"crypto/tls"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"fmt"
 	"tests/test_helpers"
+
+	"io/ioutil"
+	"net/http"
 
 	"github.com/cppforlife/turbulence/incident"
 	"github.com/cppforlife/turbulence/incident/selector"
@@ -21,10 +24,9 @@ var _ = Describe("A single master failure", func() {
 		Expect(err).NotTo(HaveOccurred())
 		countRunningApiServerOnMaster := test_helpers.CountProcessesOnVmsOfType(deployment, test_helpers.MasterVmType, "kubernetes-api", test_helpers.VmRunningState)
 
-		Expect(countRunningApiServerOnMaster()).To(Equal(2))
+		Expect(countRunningApiServerOnMaster()).To(Equal(1))
 
 		By("Deleting the Master VM")
-
 		hellRaiser := test_helpers.TurbulenceClient()
 		killOneMaster := incident.Request{
 			Selector: selector.Request{
@@ -42,33 +44,23 @@ var _ = Describe("A single master failure", func() {
 				tasks.KillOptions{},
 			},
 		}
-
 		incident := hellRaiser.CreateIncident(killOneMaster)
-		By("Killing VM")
 		incident.Wait()
-		By("Waiting for Bosh to recognize dead VM")
-		Expect(countRunningApiServerOnMaster()).Should(Equal(1))
+		Expect(countRunningApiServerOnMaster()).Should(Equal(0))
+
 		By("Waiting for resurrection")
-		Eventually(countRunningApiServerOnMaster, 600, 20).Should(Equal(2))
-
-		sshOpts, privateKey, err := director.NewSSHOpts(uuid.NewGenerator())
-		Expect(err).ToNot(HaveOccurred())
-
-		slug, err := director.NewAllOrInstanceGroupOrInstanceSlugFromString(test_helpers.MasterVmType)
-		Expect(err).ToNot(HaveOccurred())
+		Eventually(countRunningApiServerOnMaster, "10m", "20s").Should(Equal(1))
 
 		By("Setting up SSH")
-		sshResult, err := deployment.SetUpSSH(slug, sshOpts)
-		Expect(err).ToNot(HaveOccurred())
-
-		//Verify both hosts, because figuring out which one to verify is too complicated
-		for _, host := range sshResult.Hosts {
-			By(fmt.Sprintf("Running SSH on %s", host.Host))
-			Eventually(func() string {
-				output, err := test_helpers.RunSSHCommand(host.Host, 22, sshOpts.Username, privateKey, "curl http://127.0.0.1:8080/healthz")
-				Expect(err).ToNot(HaveOccurred())
-				return output
-			}, "30s", "5s").Should(Equal("ok"))
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
+		client := &http.Client{Transport: tr}
+		result, err := client.Get(fmt.Sprintf("https://%s:8443/healthz", test_helpers.GetMasterIP(deployment)))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(result.StatusCode).To(Equal(http.StatusOK))
+		response, err := ioutil.ReadAll(result.Body)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(string(response)).To(Equal("ok"))
 	})
 })

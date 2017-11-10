@@ -66,8 +66,8 @@ func GetWorkerIP(deployment boshdir.Deployment) string {
 	return vms[0].IPs[0]
 }
 
-func GetEtcdIP(deployment boshdir.Deployment) string {
-	vms := DeploymentVmsOfType(deployment, EtcdVmType, VmRunningState)
+func GetMasterIP(deployment boshdir.Deployment) string {
+	vms := DeploymentVmsOfType(deployment, MasterVmType, VmRunningState)
 	return vms[0].IPs[0]
 }
 
