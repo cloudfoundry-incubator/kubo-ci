@@ -28,13 +28,13 @@ resources:
 <% end %>
 <% end %>
 
-- name: kubo-lock-openstack-global
-  type: pool
-  source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-    branch: master
-    private_key: ((git-ssh-key))
-    pool: kubo-openstack-global
+# - name: kubo-lock-openstack-global
+#   type: pool
+#   source:
+#     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+#     branch: master
+#     private_key: ((git-ssh-key))
+#     pool: kubo-openstack-global
 
 - name: gcs-bosh-state
   type: gcs
@@ -43,6 +43,12 @@ resources:
     bucket: kubo-pipeline-store
     versioned_file: bosh/state.json
 
+- name: conformance-results
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: conformance-results
+    versioned_file: results.tar.gz
 
 # Creds
 - name: gcs-bosh-creds
@@ -147,13 +153,6 @@ jobs:
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     tags: ['<%= iaas %>']
 
-  - task: configure-bosh
-    tags: ['<%= iaas %>']
-    input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>-<%= network %>
-    file: git-kubo-ci/tasks/configure-bosh.yml
-    tags: ['<%= iaas %>']
-
   - task: deploy
     tags: ['<%= iaas %>']
     input_mapping:
@@ -163,7 +162,7 @@ jobs:
     params:
       CLOUD_CONFIG_OPS_FILE: <%= network %>-network-k8s-cloud-config.yml
 
-- name: run-turbulence-tests-<%= iaas %>-<%= network %>
+- name: run-conformance-tests-<%= iaas %>-<%= network %>
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -187,10 +186,15 @@ jobs:
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     tags: ['<%= iaas %>']
 
-  - task: turbulence-tests
-    file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
+  - task: conformance-tests
+    file: git-kubo-ci/tasks/run-conformance-tests.yml
     tags: ['<%= iaas %>']
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
+    params:
+      CONFORMANCE_RESULTS_PATH: conformance-results/results.tar.gz
+  ensure:
+  - put: conformance-results
+    file: conformance-results/results.tar.gz
   <% if iaas.include? "openstack" %>
   on_success:
     do:
@@ -209,15 +213,15 @@ jobs:
     - get: kubo-lock-<%= iaas %>-<%= network %>
       version: every
       trigger: true
-      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
+      passed: [ 'run-conformance-tests-<%= iaas %>-<%= network %>' ]
     - get: gcs-kubo-deployment-pre
-      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
+      passed: [ 'run-conformance-tests-<%= iaas %>-<%= network %>' ]
     - get: gcs-kubo-release-pre
-      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
+      passed: [ 'run-conformance-tests-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-state
-      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
+      passed: [ 'run-conformance-tests-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'run-turbulence-tests-<%= iaas %>-<%= network %>' ]
+      passed: [ 'run-conformance-tests-<%= iaas %>-<%= network %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml

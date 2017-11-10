@@ -5,15 +5,28 @@
 set -eu
 set -o pipefail
 
-. "$PWD/git-kubo-ci/scripts/lib/environment.sh"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
-cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
+. "$DIR/lib/environment.sh"
 
-"$PWD/git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "ci-service"
-export PATH_TO_KUBECONFIG="$HOME/.kube/config"
+copy_state_and_creds() {
+  cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+  cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
+  "$PWD/git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "ci-service"
+}
 
-GIT_KUBO_CI=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
-GOPATH="$GIT_KUBO_CI"
+if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
+  copy_state_and_creds
+fi
+
+if [ -z ${CONFORMANCE_RESULTS_PATH+x} ]; then
+  echo "Error: CONFORMANCE_RESULTS_PATH is not set, exiting..."
+  exit 1
+fi
+
+GOPATH="$KUBO_CI_DIR"
 export GOPATH
+export PATH_TO_KUBECONFIG="$HOME/.kube/config"
+export CONFORMANCE_RESULTS_PATH="$PWD/$CONFORMANCE_RESULTS_PATH"
 
+ginkgo -progress -v "$GOPATH/src/tests/conformance"
