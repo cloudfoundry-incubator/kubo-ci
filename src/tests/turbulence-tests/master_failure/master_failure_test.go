@@ -17,8 +17,8 @@ import (
 	"github.com/cppforlife/turbulence/tasks"
 )
 
-var _ = Describe("A single master failure", func() {
-	Specify("Master VM is resurrected within 10 minutes", func() {
+var _ = Describe("A single master and etcd failure", func() {
+	Specify("The cluster is healthy after master is resurrected", func() {
 		boshDirector := test_helpers.NewDirector()
 		deployment, err := boshDirector.FindDeployment(test_helpers.DeploymentName)
 		Expect(err).NotTo(HaveOccurred())
