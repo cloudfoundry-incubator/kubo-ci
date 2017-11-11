@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 	. "tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
@@ -37,14 +38,14 @@ var _ = Describe("Conformance Tests", func() {
 
 		By("Waiting for sonobuoy pod to be running")
 		Eventually(func() string {
-			session = kubectl.RunKubectlCommandInNamespace("sonobuoy", "get", "pod/sonobuoy", "-o", "jsonpath={.status.phase}")
-			return string(session.Out.Contents())
-		}, "120s", "2s").Should(Equal("Running"))
+			outputs := kubectl.GetOutput("get", "pod/sonobuoy", "-n", "sonobuoy", "-o", "jsonpath={.status.phase}")
+			return string(outputs[0])
+		}, "60s", "2s").Should(Equal("Running"))
 
 		By("Waiting for conformance tests to complete")
 		Eventually(func() string {
-			session = kubectl.RunKubectlCommandInNamespace("sonobuoy", "log", "sonobuoy")
-			return string(session.Out.Contents())
+			outputs := kubectl.GetOutput("log", "sonobuoy", "-n", "sonobuoy")
+			return strings.Join(outputs, " ")
 		}, "60m", "1m").Should(ContainSubstring("no-exit was specified, sonobuoy is now blocking"))
 
 		By("Extracting the conformance test results")
