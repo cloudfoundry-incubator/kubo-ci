@@ -50,8 +50,13 @@ var _ = Describe("Conformance Tests", func() {
 
 		By("Extracting the conformance test results")
 		session = kubectl.RunKubectlCommandInNamespace("sonobuoy", "log", "sonobuoy")
+		Eventually(session, "20s").Should(gexec.Exit(0))
 		re := regexp.MustCompile(`/tmp/sonobuoy/.*\.tar.gz`)
-		matches := re.FindStringSubmatch(string(session.Out.Contents()))
+
+		conformanceLogs := string(session.Out.Contents())
+		fmt.Println("Grabbing logs tarball...")
+		fmt.Println(conformanceLogs)
+		matches := re.FindStringSubmatch(conformanceLogs)
 		Expect(len(matches)).To(Equal(1))
 		logPath := matches[0]
 		containerAddressedLogPath := fmt.Sprintf("sonobuoy:%s", logPath)
