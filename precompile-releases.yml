@@ -42,7 +42,7 @@ jobs:
     - get: kubo-ci
     - get: docker-boshrelease
       version:
-        version: 28.0.1
+        version: 30.1.3
     - get: ubuntu-trusty
       version:
         version: *stemcell_version
