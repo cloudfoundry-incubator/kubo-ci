@@ -48,7 +48,7 @@ resources:
   source:
     json_key: ((gcs-json-key))
     bucket: conformance-results
-    versioned_file: results.tar.gz
+    regexp: conformance-results-(.*).tar.gz
 
 # Creds
 - name: gcs-bosh-creds
@@ -190,11 +190,11 @@ jobs:
     tags: ['<%= iaas %>']
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
     params:
-      CONFORMANCE_RESULTS_PATH: conformance-results/results.tar.gz
+      CONFORMANCE_RESULTS_DIR: conformance-results
     ensure:
       put: conformance-results
       params:
-        file: conformance-results/results.tar.gz
+        file: conformance-results/conformance-results-*.tar.gz
   <% if iaas.include? "openstack" %>
   on_success:
     do:

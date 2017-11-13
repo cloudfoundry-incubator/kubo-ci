@@ -48,7 +48,7 @@ var _ = Describe("Conformance Tests", func() {
 			return strings.Join(outputs, " ")
 		}, "60m", "1m").Should(ContainSubstring("no-exit was specified, sonobuoy is now blocking"))
 
-		By("Extracting the conformance test results")
+		By("Locate test results")
 		session = kubectl.RunKubectlCommandInNamespace("sonobuoy", "log", "sonobuoy")
 		Eventually(session, "20s").Should(gexec.Exit(0))
 		re := regexp.MustCompile(`/tmp/sonobuoy/.*\.tar.gz`)
@@ -60,11 +60,17 @@ var _ = Describe("Conformance Tests", func() {
 		Expect(len(matches)).To(Equal(1))
 		logPath := matches[0]
 		containerAddressedLogPath := fmt.Sprintf("sonobuoy:%s", logPath)
-		conformanceResultsPath := os.Getenv("CONFORMANCE_RESULTS_PATH")
+
+		By("Move results to output dir")
+		releaseVersion := "some-version"
+		conformanceResultsDir := os.Getenv("CONFORMANCE_RESULTS_DIR")
+		conformanceResultsPath := filepath.Join(conformanceResultsDir, fmt.Sprintf("conformance-results-%s.tar.gz", releaseVersion))
 		session = kubectl.RunKubectlCommandInNamespace("sonobuoy", "cp", containerAddressedLogPath, conformanceResultsPath)
 		Eventually(session, "60s").Should(gexec.Exit(0))
 		dir, err := ioutil.TempDir("", "results")
 		Expect(err).NotTo(HaveOccurred())
+
+		By("Extract results")
 		command := exec.Command("tar", "xvf", conformanceResultsPath, "-C", dir)
 		err = command.Run()
 		Expect(err).NotTo(HaveOccurred())

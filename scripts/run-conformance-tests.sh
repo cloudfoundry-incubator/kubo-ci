@@ -19,14 +19,14 @@ if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   copy_state_and_creds
 fi
 
-if [ -z ${CONFORMANCE_RESULTS_PATH+x} ]; then
-  echo "Error: CONFORMANCE_RESULTS_PATH is not set, exiting..."
+if [ -z ${CONFORMANCE_RESULTS_DIR+x} ]; then
+  echo "Error: CONFORMANCE_RESULTS_DIR is not set, exiting..."
   exit 1
 fi
 
 GOPATH="$PWD/$KUBO_CI_DIR"
 export GOPATH
 export PATH_TO_KUBECONFIG="$HOME/.kube/config"
-export CONFORMANCE_RESULTS_PATH="$PWD/$CONFORMANCE_RESULTS_PATH"
+export CONFORMANCE_RESULTS_DIR="$PWD/$CONFORMANCE_RESULTS_DIR"
 
 ginkgo -progress -v "$GOPATH/src/tests/conformance"
