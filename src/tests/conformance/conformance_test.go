@@ -11,10 +11,16 @@ import (
 	"strings"
 	. "tests/test_helpers"
 
+	yaml "gopkg.in/yaml.v2"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )
+
+type Manifest struct {
+	Version string `yaml:"version"`
+}
 
 var _ = Describe("Conformance Tests", func() {
 	var conformanceSpec string
@@ -59,12 +65,28 @@ var _ = Describe("Conformance Tests", func() {
 		matches := re.FindStringSubmatch(conformanceLogs)
 		Expect(len(matches)).To(Equal(1))
 		logPath := matches[0]
-		containerAddressedLogPath := fmt.Sprintf("sonobuoy:%s", logPath)
+
+		By("Get the release version")
+		releaseTarball := os.Getenv("RELEASE_TARBALL")
+		kuboReleaseTmpDir, err := ioutil.TempDir("", "kubo-release-")
+		Expect(err).NotTo(HaveOccurred())
+
+		versionCmd := exec.Command("tar", "zxf", releaseTarball, "-C", kuboReleaseTmpDir)
+		err = versionCmd.Run()
+		Expect(err).NotTo(HaveOccurred())
+		var manifest Manifest
+		manifestPath := filepath.Join(kuboReleaseTmpDir, "release.MF")
+		manifestBytes, err := ioutil.ReadFile(manifestPath)
+		Expect(err).NotTo(HaveOccurred())
+		err = yaml.Unmarshal(manifestBytes, &manifest)
+		Expect(err).NotTo(HaveOccurred())
+		releaseVersion := manifest.Version
+		fmt.Println(fmt.Sprintf("release version: %s", releaseVersion))
 
 		By("Move results to output dir")
-		releaseVersion := "some-version"
 		conformanceResultsDir := os.Getenv("CONFORMANCE_RESULTS_DIR")
 		conformanceResultsPath := filepath.Join(conformanceResultsDir, fmt.Sprintf("conformance-results-%s.tar.gz", releaseVersion))
+		containerAddressedLogPath := fmt.Sprintf("sonobuoy:%s", logPath)
 		session = kubectl.RunKubectlCommandInNamespace("sonobuoy", "cp", containerAddressedLogPath, conformanceResultsPath)
 		Eventually(session, "60s").Should(gexec.Exit(0))
 		dir, err := ioutil.TempDir("", "results")
