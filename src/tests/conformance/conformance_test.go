@@ -66,7 +66,7 @@ var _ = Describe("Conformance Tests", func() {
 		dir, err := ioutil.TempDir("", "results")
 		Expect(err).NotTo(HaveOccurred())
 		command := exec.Command("tar", "xvf", conformanceResultsPath, "-C", dir)
-		err = command.Start()
+		err = command.Run()
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Reading the test results")
