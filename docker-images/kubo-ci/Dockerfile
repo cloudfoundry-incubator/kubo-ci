@@ -14,7 +14,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   wget \
   ipcalc \
   zip \
-  jq
+  jq \
+  sshuttle
 
 WORKDIR /tmp/docker-build
 
