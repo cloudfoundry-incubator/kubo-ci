@@ -28,6 +28,6 @@ GOPATH="$PWD/$KUBO_CI_DIR"
 export GOPATH
 export PATH_TO_KUBECONFIG="$HOME/.kube/config"
 export CONFORMANCE_RESULTS_DIR="$PWD/$CONFORMANCE_RESULTS_DIR"
-export RELEASE_TARBALL="$KUBO_CI_DIR/release.tgz"
+export RELEASE_TARBALL="$PWD/$KUBO_DEPLOYMENT_DIR/release.tgz"
 
 ginkgo -progress -v "$GOPATH/src/tests/conformance"
