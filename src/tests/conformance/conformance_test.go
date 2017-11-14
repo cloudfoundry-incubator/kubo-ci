@@ -71,9 +71,12 @@ var _ = Describe("Conformance Tests", func() {
 		kuboReleaseTmpDir, err := ioutil.TempDir("", "kubo-release-")
 		Expect(err).NotTo(HaveOccurred())
 
+		fmt.Fprintf(GinkgoWriter, "releaseTarBall: %s, kuboReleaseTmpDir: %s\n", releaseTarball, kuboReleaseTmpDir)
 		versionCmd := exec.Command("tar", "zxf", releaseTarball, "-C", kuboReleaseTmpDir)
-		err = versionCmd.Run()
+		session, err = gexec.Start(versionCmd, GinkgoWriter, GinkgoWriter)
+		Eventually(session, "20s").Should(gexec.Exit(0))
 		Expect(err).NotTo(HaveOccurred())
+
 		var manifest Manifest
 		manifestPath := filepath.Join(kuboReleaseTmpDir, "release.MF")
 		manifestBytes, err := ioutil.ReadFile(manifestPath)
