@@ -2,21 +2,21 @@
 
 ## Our OpenStack
 
-The OpenStack installation the CFCR team uses is managed by the toolsmiths team. It is accessed through http://openstack-mitaka-02.mos9.cf-app.com and the login credentials is in LastPass note `kubo-openstack-ci`.
+The OpenStack installation the CFCR team uses is managed by the toolsmiths team. It is accessed through https://openstack-01.pez.pivotal.io and the login credentials is in LastPass note `Openstack Pez Dashboard user account (pcf-kubo)`.
 
-On the left hand nav, go to Identity -> Projects to see the list of all projects. The CFCR team uses the `clay` project. Projects sit above VMs in the organizational hierarchy. They allow operators to allow access to users access to OpenStack resources, and set quotas for the maximum number of volumes, security groups, floating IPs, etc.
+Go to Identity -> Projects to see the list of all projects. The CFCR team uses `pcf-kubo-project`. Projects sit above VMs in the organizational hierarchy. They allow operators to allow access to users access to OpenStack resources, and set quotas for the maximum number of volumes, security groups, floating IPs, etc.
 
-Go to Project -> Compute -> Instances to see a list of all VMs in `clay`.
+Go to Project -> Compute -> Instances to see a list of all VMs in the project.
 
 ## OpenStack CLI
+
+From the OpenStack dashboard, go to `Project > Compute > Access & Security > API Access tab` and download the RC file (v3).
 
 ```bash
 $ pip install python-openstackclient
 
-$ export OS_AUTH_URL=http://openstack-mitaka-02.mos9.cf-app.com:5000/v2.0
-$ export OS_PROJECT_NAME=clay
-$ export OS_USERNAME=clay
-$ export OS_PASSWORD=<password> # optional
+$ source openrc.sh
+# provide the password for pcf-kubo service account
 
 # list networks
 $ openstack network list
@@ -30,11 +30,15 @@ $ openstack server list
 ## Install PCF
 
 1. Follow the guide on [Installing PCF on OpenStack](https://docs.pivotal.io/pivotalcf/1-12/customizing/openstack.html) on the Pivotal docs website.
+   - Ensure DHCP is enabled when creating your subnet
+   - Ensure all subnets have the DNS `8.8.8.8`
+   - To create a floating IP, you must first create an instance.  The subnet should be connected to the router (create an interface from the router to the subnet 'port').  From the instance UI, you can then associate a floating IP.
+   - To set up a FQDN for Ops Manager in the external DNS, you will need the `Dev DNS Management (AWS)` credentials in LastPass, in the `Shared-Opensource Common` folder.  Log in to AWS and go to Route53.
 1. Follow [Jaime's docs](https://docs.google.com/document/d/1PCnr4Lf0Y09OhW0yzPerorNrMPZQ7mAzA8vZNPd0oRU/edit#) on deploying CFCR on OpenStack.
 
 ## Deploy Concourse Worker
 
-1. Log into the [OpenStack dashboard](http://openstack-mitaka-02.mos9.cf-app.com) as an admin.
+1. Log into the [OpenStack dashboard](https://openstack-01.pez.pivotal.io) as an admin.
 1. On the left-hand navigation bar, click **Project** &rarr; **Network** &rarr; **Networks**.
 1. Click the **+ Create Network** button on the top right corner.
 1. Create a network for Concourse (i.e. `clay_net`)
