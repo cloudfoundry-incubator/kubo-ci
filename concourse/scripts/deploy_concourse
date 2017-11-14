@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e -o pipefail
+set -x
 
 bin_dir=$(dirname "${BASH_SOURCE[0]}")
 CONCOURSE_DIR="$(cd "$bin_dir/.."; pwd)"
@@ -38,6 +39,8 @@ deploy() {
   echo "Deploying concourse..."
 
   deployment_name=$(bosh-cli int "$manifest_file" --path /name)
+
+  echo ${deployment_name}
 
   bosh-cli -n deploy "$manifest_file" \
       -d "$deployment_name" \

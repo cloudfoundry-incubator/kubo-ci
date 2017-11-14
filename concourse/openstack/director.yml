@@ -1,16 +1,16 @@
 net_id: cc60607a-435a-4c89-8506-f25a5df31286
-internal_cidr: 192.168.122.0/24
-internal_gw: 192.168.122.1
-internal_ip: 192.168.122.3
-reserved_ips: "192.168.122.8/30"
+internal_cidr: 192.168.1.0/24
+internal_gw: 192.168.1.1
+internal_ip: 192.168.1.3
+reserved_ips: "192.168.1.8/30"
 
 az: nova
 
-director_name: clay-bosh
-network_name: clay_net
-deployments_network: clay_net
+director_name: pez-bosh
+network_name: concourse
+deployments_network: concourse
 
-secrets_lpass_note_id: 6568959770663483364
+secrets_lpass_note_id: 2844482016687245826
 secrets_lpass_note_path: openstack_ci
 
 concourse_secrets_lpass_note_id: 1124880505947455779
