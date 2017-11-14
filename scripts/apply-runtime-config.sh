@@ -35,7 +35,7 @@ target_bosh_director() {
 }
 
 update_runtime_config() {
-  bosh-cli -n update-runtime-config <(echo "$RUNTIME_CONFIG_YML")
+  bosh-cli -n update-runtime-config --name=tinyproxy <(echo "$RUNTIME_CONFIG_YML")
 }
 
 LOCK_FILE_PATH="$1"
