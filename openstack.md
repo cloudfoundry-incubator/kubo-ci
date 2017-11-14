@@ -53,6 +53,7 @@ $ openstack server list
 1. Attach the network the router by clicking on the **Routers** page from the left navigation bar.
 1. Click **+ Add Interface** and select the newly created subnet to the router.
 1. Create a security group called `clay` and allow TCP access from everywhere.
+1. `sshuttle` into the jumpbox created in the section above.
 1. Use scripts in `kubo-ci/concourse/scripts` to install the concourse worker (make sure the security group and network you created are being used).
 
 ## Creating a New Environment and Adding it to a Concourse Pool
