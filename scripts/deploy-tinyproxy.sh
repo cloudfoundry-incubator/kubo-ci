@@ -26,4 +26,7 @@ bosh-cli -n -e "${BOSH_ENVIRONMENT}" \
   update-cloud-config "${KUBO_DEPLOYMENT_DIR}/configurations/${IAAS}/cloud-config.yml" \
   -l "${KUBO_ENVIRONMENT_DIR}/director.yml"
 bosh-cli -n -e "${BOSH_ENVIRONMENT}" upload-stemcell "${stemcell_url}"
-bosh-cli -n -e "${BOSH_ENVIRONMENT}" deploy "${manifest_file}" -d "tinyproxy"
+bosh-cli -n -e "${BOSH_ENVIRONMENT}" deploy "${bosh-cli int manifest_file \
+    --ops-file "${KUBO_DEPLOYMENT_DIR}/bosh-deployment/local-dns.yml" \
+    --ops-file "${KUBO_DEPLOYMENT_DIR}/configurations/generic/dns-addresses.yml" \
+    }" -d "tinyproxy"
