@@ -62,5 +62,9 @@ var _ = Describe("A single master and etcd failure", func() {
 		response, err := ioutil.ReadAll(result.Body)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(string(response)).To(Equal("ok"))
+
+		By("Checking that all nodes are available")
+		kubectl := test_helpers.NewKubectlRunner()
+		Expect(test_helpers.AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 })
