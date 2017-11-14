@@ -36,6 +36,13 @@ $ openstack server list
    - To set up a FQDN for Ops Manager in the external DNS, you will need the `Dev DNS Management (AWS)` credentials in LastPass, in the `Shared-Opensource Common` folder.  Log in to AWS and go to Route53.
 1. Follow [Jaime's docs](https://docs.google.com/document/d/1PCnr4Lf0Y09OhW0yzPerorNrMPZQ7mAzA8vZNPd0oRU/edit#) on deploying CFCR on OpenStack.
 
+## Create a jumpbox
+
+1. Locally create a ssh key pair using `ssh-keygen`, and save this to OpenStack, Compute>Access & Security>Key Pairs.
+1. Store this key pair in Lastpass in the shared `jumpbox` folder
+1. Create a new instance (use a lightweight ubuntu image, e.g. Cirros-QCOW or Alpine), and in the Key Pair dialog select the newly created key pair.
+1. Run the `sync-jumpbox` script in kubo-home repo.  This requires you to be logged in to the lastpass CLI.
+
 ## Deploy Concourse Worker
 
 1. Log into the [OpenStack dashboard](https://openstack-01.pez.pivotal.io) as an admin.
