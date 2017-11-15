@@ -32,7 +32,8 @@ var _ = Describe("Conformance Tests", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommandInNamespace("sonobuoy", "delete", "-f", conformanceSpec)
+		session := kubectl.RunKubectlCommandInNamespace("sonobuoy", "delete", "-f", conformanceSpec)
+		Eventually(session, "30s").Should(gexec.Exit(0))
 		os.Remove(conformanceSpec)
 	})
 
