@@ -2,7 +2,7 @@
 
 export KUBO_DEPLOYMENT_DIR="${KUBO_DEPLOYMENT_LOCATION:-"git-kubo-deployment"}"
 
-export KUBO_CI_DIR="${KUBO_CI_DIR:-"git-kubo-ci"}"
+export KUBO_CI_DIR="${KUBO_CI_DIR:-"$PWD/git-kubo-ci"}"
 if [ ! -d "$KUBO_CI_DIR" ]; then
   echo "KUBO_CI_DIR $KUBO_CI_DIR does not exists"
   exit 1
