@@ -1,16 +1,10 @@
 package master_failure_test
 
 import (
-	"crypto/tls"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"fmt"
 	"tests/test_helpers"
-
-	"io/ioutil"
-	"net/http"
 
 	"github.com/cppforlife/turbulence/incident"
 	"github.com/cppforlife/turbulence/incident/selector"
@@ -47,24 +41,13 @@ var _ = Describe("A single master and etcd failure", func() {
 		incident := hellRaiser.CreateIncident(killOneMaster)
 		incident.Wait()
 		Expect(countRunningApiServerOnMaster()).Should(Equal(0))
+		kubectl := test_helpers.NewKubectlRunner()
 
 		By("Waiting for resurrection")
 		Eventually(countRunningApiServerOnMaster, "10m", "20s").Should(Equal(1))
-
-		By("Setting up SSH")
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		client := &http.Client{Transport: tr}
-		result, err := client.Get(fmt.Sprintf("https://%s:8443/healthz", test_helpers.GetMasterIP(deployment)))
-		Expect(err).ToNot(HaveOccurred())
-		Expect(result.StatusCode).To(Equal(http.StatusOK))
-		response, err := ioutil.ReadAll(result.Body)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(string(response)).To(Equal("ok"))
+		test_helpers.ExpectAllComponentsToBeHealthy(kubectl)
 
 		By("Checking that all nodes are available")
-		kubectl := test_helpers.NewKubectlRunner()
 		Expect(test_helpers.AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 })

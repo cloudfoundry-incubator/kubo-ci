@@ -85,11 +85,15 @@ func (runner KubectlRunner) CreateNamespace() {
 }
 
 func (runner *KubectlRunner) GetOutput(kubectlArgs ...string) []string {
+	output := runner.GetOutputBytes(kubectlArgs...)
+	return strings.Fields(string(output))
+}
+
+func (runner *KubectlRunner) GetOutputBytes(kubectlArgs ...string) []byte {
 	session := runner.RunKubectlCommand(kubectlArgs...)
 	Eventually(session, "20s").Should(gexec.Exit(0))
 	output := session.Out.Contents()
-
-	return strings.Fields(string(output))
+	return output
 }
 
 func init() {

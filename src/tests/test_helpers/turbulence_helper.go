@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
-	"regexp"
-	"strings"
+
+	"encoding/json"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/logger"
@@ -26,28 +26,65 @@ func AllBoshWorkersHaveJoinedK8s(deployment director.Deployment, kubectl *Kubect
 		return DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 	}, "600s", "30s").Should(HaveLen(3))
 
-	Eventually(func() []string { return GetNodes(kubectl) }, "120s", "5s").Should(HaveLen(3))
+	Eventually(func() []string { return GetNodes(kubectl) }).Should(HaveLen(3))
 	return true
 }
 
-func AllEtcdNodesAreHealthy(deployment director.Deployment, kubectl *KubectlRunner) bool {
-	Eventually(func() int {
-		output := GetComponentStatus(kubectl)
-		joinedOutput := strings.Join(output, " ")
-		re := regexp.MustCompile("etcd-\\d\\s*Healthy")
-		match := re.FindAllString(joinedOutput, -1)
-		return len(match)
-	}, "120s", "5s").Should(Equal(1))
+func ExpectAllComponentsToBeHealthy(kubectl *KubectlRunner) {
+	components := GetComponentStatus(kubectl)
+	Expect(components).ToNot(BeEmpty())
+	for _, component := range components {
+		Expect(component.Conditions[0].Status).To(Equal("True"))
+	}
+}
 
-	return true
+type Condition struct {
+	ConditionType string `json:"type"`
+	Status        string `json:"status"`
+}
+
+type Node struct {
+	Metadata struct {
+		Name string `json:"name"`
+	} `json:"metadata"`
+	Status struct {
+		Conditions []Condition `json:"conditions"`
+	} `json:"status"`
+}
+
+type NodesArray struct {
+	Items []Node `json:"items"`
+}
+
+type ComponentStatus struct {
+	Conditions []Condition `json:"conditions"`
+}
+
+type ComponentStatusResponse struct {
+	Items []ComponentStatus `json:"items"`
 }
 
 func GetNodes(kubectl *KubectlRunner) []string {
-	return kubectl.GetOutput("get", "nodes", "-o", "name")
+	nodes := NodesArray{}
+	bytes := kubectl.GetOutputBytes("get", "nodes", "-o", "json")
+	err := json.Unmarshal(bytes, &nodes)
+	Expect(err).ToNot(HaveOccurred())
+
+	names := []string{}
+	for _, item := range nodes.Items {
+		names = append(names, item.Metadata.Name)
+	}
+	return names
 }
 
-func GetComponentStatus(kubectl *KubectlRunner) []string {
-	return kubectl.GetOutput("get", "componentstatus")
+
+func GetComponentStatus(kubectl *KubectlRunner) []ComponentStatus {
+	response := ComponentStatusResponse{}
+	bytes := kubectl.GetOutputBytes("get", "componentstatus", "-o", "json")
+	fmt.Println(string(bytes))
+	err := json.Unmarshal(bytes, &response)
+	Expect(err).ToNot(HaveOccurred())
+	return response.Items
 }
 
 func GetNodeNamesForRunningPods(kubectl *KubectlRunner) []string {
