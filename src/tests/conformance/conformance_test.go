@@ -11,11 +11,10 @@ import (
 	"strings"
 	. "tests/test_helpers"
 
-	yaml "gopkg.in/yaml.v2"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type Manifest struct {
@@ -116,7 +115,7 @@ var _ = Describe("Conformance Tests", func() {
 })
 
 func GetLatestConformanceSpec() string {
-	resp, err := http.Get("https://raw.githubusercontent.com/cncf/k8s-conformance/master/sonobuoy-conformance.yaml")
+	resp, err := http.Get("https://raw.githubusercontent.com/cloudfoundry-incubator/k8s-conformance/e2e-fix/sonobuoy-conformance.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	defer resp.Body.Close()
 
