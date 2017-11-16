@@ -102,14 +102,17 @@ var _ = Describe("Conformance Tests", func() {
 
 		By("Reading the test results")
 		e2eLogPath := filepath.Join(dir, "plugins/e2e/results/e2e.log")
-		re = regexp.MustCompile(`(\d+) Failed .* TestE2E`)
+		re = regexp.MustCompile(`^(FAIL|SUCCESS)! -- (\d+) Passed \| (\d+) Failed \| (\d+) Pending \| (\d+) Skipped`)
 		e2eLogContents, err := ioutil.ReadFile(e2eLogPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		matches = re.FindStringSubmatch(string(e2eLogContents))
-		Expect(len(matches)).To(Equal(2))
+		Expect(len(matches)).To(Equal(6))
 
-		numFailures := matches[1]
+		testSuiteResult := matches[1]
+		Expect(testSuiteResult).To(Equal("SUCCESS"))
+
+		numFailures := matches[3]
 		Expect(numFailures).To(Equal("0"))
 	})
 })
