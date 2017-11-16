@@ -26,8 +26,22 @@ func AllBoshWorkersHaveJoinedK8s(deployment director.Deployment, kubectl *Kubect
 		return DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 	}, "600s", "30s").Should(HaveLen(3))
 
-	Eventually(func() []string { return GetNodes(kubectl) }).Should(HaveLen(3))
+
+	Eventually(func() []string { return GetReadyNodes(GetNodes(kubectl))}, "180s", "5s").Should(HaveLen(3))
 	return true
+}
+
+func GetReadyNodes(nodes []Node) []string {
+	readyNodes := []string{}
+	for _, node := range nodes {
+		for _, condition := range node.Status.Conditions {
+			if (condition.ConditionType == "Ready" && condition.Status == "True") {
+				readyNodes = append(readyNodes, node.Metadata.Name)
+				break
+			}
+		}
+	}
+	return readyNodes
 }
 
 func ExpectAllComponentsToBeHealthy(kubectl *KubectlRunner) {
@@ -64,17 +78,12 @@ type ComponentStatusResponse struct {
 	Items []ComponentStatus `json:"items"`
 }
 
-func GetNodes(kubectl *KubectlRunner) []string {
+func GetNodes(kubectl *KubectlRunner) []Node {
 	nodes := NodesArray{}
 	bytes := kubectl.GetOutputBytes("get", "nodes", "-o", "json")
 	err := json.Unmarshal(bytes, &nodes)
 	Expect(err).ToNot(HaveOccurred())
-
-	names := []string{}
-	for _, item := range nodes.Items {
-		names = append(names, item.Metadata.Name)
-	}
-	return names
+	return nodes.Items
 }
 
 
