@@ -26,8 +26,7 @@ func AllBoshWorkersHaveJoinedK8s(deployment director.Deployment, kubectl *Kubect
 		return DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 	}, "600s", "30s").Should(HaveLen(3))
 
-
-	Eventually(func() []string { return GetReadyNodes(GetNodes(kubectl))}, "180s", "5s").Should(HaveLen(3))
+	Eventually(func() []string { return GetReadyNodes(GetNodes(kubectl)) }, "240s", "5s").Should(HaveLen(3))
 	return true
 }
 
@@ -35,7 +34,7 @@ func GetReadyNodes(nodes []Node) []string {
 	readyNodes := []string{}
 	for _, node := range nodes {
 		for _, condition := range node.Status.Conditions {
-			if (condition.ConditionType == "Ready" && condition.Status == "True") {
+			if condition.ConditionType == "Ready" && condition.Status == "True" {
 				readyNodes = append(readyNodes, node.Metadata.Name)
 				break
 			}
@@ -85,7 +84,6 @@ func GetNodes(kubectl *KubectlRunner) []Node {
 	Expect(err).ToNot(HaveOccurred())
 	return nodes.Items
 }
-
 
 func GetComponentStatus(kubectl *KubectlRunner) []ComponentStatus {
 	response := ComponentStatusResponse{}
