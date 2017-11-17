@@ -102,7 +102,7 @@ var _ = Describe("Conformance Tests", func() {
 
 		By("Reading the test results")
 		e2eLogPath := filepath.Join(dir, "plugins/e2e/results/e2e.log")
-		re = regexp.MustCompile(`^(FAIL|SUCCESS)! -- (\d+) Passed \| (\d+) Failed \| (\d+) Pending \| (\d+) Skipped`)
+		re = regexp.MustCompile(`(FAIL|SUCCESS)! -- (\d+) Passed \| (\d+) Failed \| (\d+) Pending \| (\d+) Skipped`)
 		e2eLogContents, err := ioutil.ReadFile(e2eLogPath)
 		Expect(err).NotTo(HaveOccurred())
 
