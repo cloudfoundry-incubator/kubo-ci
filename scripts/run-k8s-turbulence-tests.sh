@@ -5,6 +5,9 @@
 set -eu
 set -o pipefail
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. "$DIR/lib/run_test_suite.sh"
+
 iaas=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/iaas')
 
 case "${iaas}" in
@@ -72,8 +75,8 @@ export BOSH_CA_CERT
 export BOSH_CLIENT
 export BOSH_CLIENT_SECRET
 
-ginkgo "$GOPATH/src/tests/turbulence-tests/worker_failure" -progress -v
-ginkgo "$GOPATH/src/tests/turbulence-tests/master_failure" -progress -v
+kubo::tests::run_test_suite "$GOPATH/src/tests/turbulence-tests/worker_failure"
+kubo::tests::run_test_suite "$GOPATH/src/tests/turbulence-tests/master_failure"
 if [[ "${iaas}" == "gcp" || "${iaas}" == "aws" || "${iaas}" == "vsphere" ]]; then
-  ginkgo "$GOPATH/src/tests/turbulence-tests/persistence_failure" -progress -v
+  kubo::tests::run_test_suite "$GOPATH/src/tests/turbulence-tests/persistence_failure"
 fi

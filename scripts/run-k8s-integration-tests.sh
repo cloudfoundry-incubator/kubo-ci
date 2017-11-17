@@ -5,6 +5,9 @@
 set -eu
 set -o pipefail
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. "$DIR/lib/run_test_suite.sh"
+
 if [[ $# -lt 3 ]]; then
     echo "Usage:" >&2
     echo "$0 GIT_KUBO_DEPLOYMENT_DIR DEPLOYMENT_NAME KUBO_ENVIRONMENT_DIR" >&2
@@ -71,7 +74,7 @@ if [[ ${routing_mode} == "cf" ]]; then
   KUBERNETES_AUTHENTICATION_POLICY=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/authorization_mode")
   export KUBERNETES_SERVICE_HOST KUBERNETES_SERVICE_PORT WORKLOAD_TCP_PORT INGRESS_CONTROLLER_TCP_PORT TCP_ROUTER_DNS_NAME CF_APPS_DOMAIN KUBERNETES_AUTHENTICATION_POLICY
 
-  ginkgo "$GOPATH/src/tests/integration-tests/cloudfoundry"
+  kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/cloudfoundry"
 elif [[ ${routing_mode} == "iaas" ]]; then
 
   case "${iaas}" in
@@ -84,18 +87,18 @@ elif [[ ${routing_mode} == "iaas" ]]; then
       ;;
   esac
 
-  ginkgo "$GOPATH/src/tests/integration-tests/workload/k8s_lbs"
+  kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/workload/k8s_lbs"
 elif [[ ${routing_mode} == "proxy" ]]; then
   WORKLOAD_ADDRESS=$(call_bosh -d "${DEPLOYMENT_NAME}" vms | grep 'worker-haproxy/' | head -1 | awk '{print $4}')
   WORKLOAD_PORT=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/worker_haproxy_tcp_frontend_port")
   export WORKLOAD_ADDRESS WORKLOAD_PORT
 
-  ginkgo "$GOPATH/src/tests/integration-tests/workload/haproxy"
+  kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/workload/haproxy"
 fi
-ginkgo "$GOPATH/src/tests/integration-tests/pod_logs"
-ginkgo "$GOPATH/src/tests/integration-tests/generic"
-ginkgo "$GOPATH/src/tests/integration-tests/oss_only"
+kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/pod_logs"
+kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/generic"
+kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/oss_only"
 
 if [[ "${iaas}" != "openstack" ]]; then
-    ginkgo "$GOPATH/src/tests/integration-tests/persistent_volume"
+    kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/persistent_volume"
 fi

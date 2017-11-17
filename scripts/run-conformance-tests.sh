@@ -8,6 +8,7 @@ set -o pipefail
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 . "$DIR/lib/environment.sh"
+. "$DIR/lib/run_test_suite.sh"
 
 copy_state_and_creds() {
   cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
@@ -30,4 +31,4 @@ export PATH_TO_KUBECONFIG="$HOME/.kube/config"
 export CONFORMANCE_RESULTS_DIR="$PWD/$CONFORMANCE_RESULTS_DIR"
 export RELEASE_TARBALL="$PWD/$KUBO_DEPLOYMENT_DIR/kubo-release.tgz"
 
-ginkgo -progress -v "$GOPATH/src/tests/conformance"
+kubo::tests::run_test_suite "$GOPATH/src/tests/conformance"
