@@ -33,6 +33,7 @@ var _ = Describe("Docker Image", func() {
 		"zip":      []string{"--version"},
 		"jq":       []string{"--version"},
 		"which":    []string{"sshuttle"},
+		"bats":     []string{"--version"},
 	}
 
 	for executable, args := range commands {
