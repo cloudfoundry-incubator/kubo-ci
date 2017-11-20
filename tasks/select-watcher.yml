@@ -17,4 +17,4 @@ run:
   - -exc
   - |
     cat gcs-slack-watcher-list/slack-watcher-list.txt | sed '1,1{H;1h;d;};$G' > slack-watcher-list-out/slack-watcher-list.txt
-    echo "==> The OSS watcher for this week is <@$(head -1 slack-watcher-list-out/slack-watcher-list.txt | tr -d '\n')> <==" > slack-message/announcement.txt
+    echo "==> The OSS watcher for this week is <@$(head -1 slack-watcher-list-out/slack-watcher-list.txt | awk '{ print $2; }')> <==" > slack-message/announcement.txt
