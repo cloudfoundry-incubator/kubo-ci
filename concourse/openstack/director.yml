@@ -14,4 +14,4 @@ private_note_id: 2844482016687245826 # openstack_ci/...
 secrets_lpass_note_path: openstack_ci
 
 concourse_secrets_lpass_note_id: 1124880505947455779 # shared secrets
-secrets_lpass_note_id: 1329572035351678832 # creds.yml
+secrets_lpass_note_id: 1329572035351678832 # private.yml

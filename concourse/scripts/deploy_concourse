@@ -15,7 +15,7 @@ deploy() {
   manifest_file=$(mktemp)
 
   concourse_secrets_lpass_note_id=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/concourse_secrets_lpass_note_id')
-  private_yml=$(lpass show --note "$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/private_note_id')")
+  private_yml=$(lpass show "$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/secrets_lpass_note_id')")
 
   BOSH_CLIENT=admin
   BOSH_CLIENT_SECRET=$(bosh-cli int <(echo "$private_yml") --path /admin_password)
