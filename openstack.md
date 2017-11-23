@@ -33,7 +33,7 @@ $ openstack server list
    - Ensure DHCP is enabled when creating your subnet
    - Ensure all subnets have the DNS `8.8.8.8`
    - To create a floating IP, you must first create an instance.  The subnet should be connected to the router (create an interface from the router to the subnet 'port').  From the instance UI, you can then associate a floating IP.
-   - The validator step requires an image to be uploaded. You'll have to download the .img file for [Ubuntu Trusty](http://cloud-images.ubuntu.com/trusty) and then create the image from the command line (it does not work from the Web GUI) `openstack image create --file ~/Downloads/trusty-server-cloudimg-amd64-disk1.img --disk-format raw "ubuntu-trusty"`.
+   - The validator step requires an image to be uploaded. You'll have to download the .img file for [Ubuntu](https://docs.openstack.org/image-guide/obtain-images.html) and then create the image from the command line (it does not work from the Web GUI) `openstack image create --file ~/Downloads/image-file-name.img --disk-format raw "ubuntu-xenial"`.
    - Creating an image in step 4 may require you to do this from bash: `openstack image create --file ~/Downloads/pcf-openstack-1.12.5.raw --disk-format raw --private --protected --min-disk 20 --min-ram 8192 "ops manager 1.12.5"`
    - To set up a FQDN for Ops Manager in the external DNS, you will need the `Dev DNS Management (AWS)` credentials in LastPass, in the `Shared-Opensource Common` folder.  Log in to AWS and go to Route53.
 1. Follow [Jaime's docs](https://docs.google.com/document/d/1PCnr4Lf0Y09OhW0yzPerorNrMPZQ7mAzA8vZNPd0oRU/edit#) on deploying CFCR on OpenStack.
