@@ -35,8 +35,27 @@ $ openstack server list
    - To create a floating IP, you must first create an instance.  The subnet should be connected to the router (create an interface from the router to the subnet 'port').  From the instance UI, you can then associate a floating IP.
    - The validator step requires an image to be uploaded. You'll have to download the .img file for [Ubuntu](https://docs.openstack.org/image-guide/obtain-images.html) and then create the image from the command line (it does not work from the Web GUI) `openstack image create --file ~/Downloads/image-file-name.img --disk-format raw "ubuntu-xenial"`.
    - Creating an image in step 4 may require you to do this from bash: `openstack image create --file ~/Downloads/pcf-openstack-1.12.5.raw --disk-format raw --private --protected --min-disk 20 --min-ram 8192 "ops manager 1.12.5"`
-   - To set up a FQDN for Ops Manager in the external DNS, you will need the `Dev DNS Management (AWS)` credentials in LastPass, in the `Shared-Opensource Common` folder.  Log in to AWS and go to Route53.
-1. Follow [Jaime's docs](https://docs.google.com/document/d/1PCnr4Lf0Y09OhW0yzPerorNrMPZQ7mAzA8vZNPd0oRU/edit#) on deploying CFCR on OpenStack.
+   - To set up a FQDN (e.g. `openstack-pez-01.cf-app.com`) for Ops Manager in the external DNS, you will need the `Dev DNS Management (AWS)` credentials in LastPass, in the `Shared-Opensource Common` folder.  Log in to AWS and go to Route53.
+1. Follow the guide on [Installing Elastic Runtime](https://docs.pivotal.io/pivotalcf/1-12/customizing/openstack-er-config.html) on the Pivotal docs website.
+  - Create two new floating IP addresses (Compute > Access & Security > Floating IPs).  Go to Route 53 (use the `Dev DNS Management (AWS)` credentials in LastPass, in the `Shared-Opensource Common` folder) and create a wildcard domain for systems and applications; e.g. `*.sys.openstack-pez-01.cf-app.com` and `*.app.openstack-pez-01.cf-app.com` assigning each one of the floating IP addresses.
+  - Only the following tabs and parameters of Pivotal Elastic Runtime options need to be altered.  Retain the defaults unless noted otherwise below:
+    - _Assign AZs and Networks_: save defaults
+    - _Domains_: enter the wildcard domains created in Route53 (described above)
+    - _Networking_:
+      - _Certificate and Private Key for HAProxy and Router_: Click __Generate RSA Certificate__ and give it the root FQDN e.g. `*.openstack-pez-01.cf-app.com`
+      - _TLS Cipher Suites for Router_: Copy the default from the tooltip shown when you click in the textbox
+      - _TLS Cipher Suites for HAProxy_: Copy the default from the tooltip shown beneath the textbox
+      - _HAProxy forwards requests to Router over TLS..._: Disable
+      - _Disable SSL certificate verification for this environment_: Select this checkbox
+      - _Enable TCP Routing_: Select this checkbox
+      - _TCP Routing Ports_: `1025-4096`
+    - _Application Security Groups_: type `x`
+    - _UAA_: _SAML Service Provider Credentials_: Click __Generate RSA Certificate__ and give it the root FQDN e.g. `*.openstack-pez-01.cf-app.com`
+    - _Internal MySQL_:
+      - _Email address (required)_: type `pcf-kubo@pivotal.io`
+      - _Server Activity Logging_: disable
+      
+You may also wish to read [Jaime's docs](https://docs.google.com/document/d/1PCnr4Lf0Y09OhW0yzPerorNrMPZQ7mAzA8vZNPd0oRU/edit#) on deploying CFCR on OpenStack.
 
 ## Create a jumpbox
 
