@@ -42,19 +42,20 @@ $ openstack server list
 
 1. Locally create a ssh key pair using `ssh-keygen`, and save this to OpenStack, Compute>Access & Security>Key Pairs.
 1. Store this key pair in Lastpass in the shared `jumpbox` folder
-1. Create a new instance (use a lightweight ubuntu image, e.g. Cirros-QCOW or Alpine), and in the Key Pair dialog select the newly created key pair.
-1. Run the `sync-jumpbox` script in kubo-home repo.  This requires you to be logged in to the lastpass CLI.
+1. Create a new security group called `jumpbox`, and give it rules for SSH ingress only but all egress.
+1. Create a new instance (use an ubuntu trusty image), assign it to the `jumpbox` security group and in the Key Pair dialog select the newly created key pair.
+1. Run the `sync-jumpbox` script in kubo-home repo.  This requires you to be logged in to the Lastpass CLI.
 
 ## Deploy Concourse Worker
 
 1. Log into the [OpenStack dashboard](https://openstack-01.pez.pivotal.io) as an admin.
 1. On the left-hand navigation bar, click **Project** &rarr; **Network** &rarr; **Networks**.
 1. Click the **+ Create Network** button on the top right corner.
-1. Create a network for Concourse (i.e. `clay_net`)
-1. Create a subnet with the CIDR block 192.168.130.0/24 and name it `concourse_subnet`.
+1. Create a network for Concourse (i.e. `concourse`)
+1. Create a subnet with the CIDR block `192.168.1.0/24` and name it `concourse-subnet`.
 1. Attach the network the router by clicking on the **Routers** page from the left navigation bar.
 1. Click **+ Add Interface** and select the newly created subnet to the router.
-1. Create a security group called `clay` and allow TCP access from everywhere.
+1. Create a security group called `concourse` and allow TCP access from everywhere.
 1. `sshuttle` into the jumpbox created in the section above.
 1. Use scripts in `kubo-ci/concourse/scripts` to install the concourse worker (make sure the security group and network you created are being used).
 
