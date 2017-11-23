@@ -49,7 +49,6 @@ elif [ "$IAAS" == "openstack" ]; then
   bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
     --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
     --ops-file "$CONCOURSE_DIR/$IAAS/nova.yml" \
-    --ops-file "$BOSH_DEPLOYMENT/openstack/keystone-v2.yml" \
     --vars-file "${director_yml}" \
     --vars-file <(echo -n "$secret") \
     > "$manifest_file"
