@@ -94,13 +94,28 @@ You may also wish to read [Jaime's docs](https://docs.google.com/document/d/1PCn
     * Host Routes: none
 1. Connect the network to a router - Go to Network -> Routers and click on `clay-router`. Click `Add Interface`. Use `example-subnet` as the Subnet and leave everything as default.
 1. Add a lock file to the [`kubo-locks`](https://github.com/pivotal-cf-experimental/kubo-locks) repository. Navigate to the directory `kubo-openstack/unclaimed`. Create a new lock file by copy-and-pasting another lock file from this directory. Name your new lock file after the environment, in our case it would be `example`. Here're the properties you'll need to update:
-    * `net_id`: `f351f900-16d0-426c-9616-c20e93c17e93`
-    * `internal_ip`: `192.168.145.3`
-    * `reserved_ips`: `192.168.145.1-192.168.145.2`
-    * `director_name`: `example`
-    * `internal_cidr`: `192.168.145.0/24`
-    * `internal_gw`: `192.168.145.1`
-    * `kubernetes_master_port`: [choose a unique port separate from the other locks]
+  * `net_id`: `f351f900-16d0-426c-9616-c20e93c17e93` The ID of the network in which the environment will create VMs
+  * `internal_ip`: `192.168.145.3` Ensure this is within the CIDR of the network specified below.  The master will be automatically created at this IP.
+  * `reserved_ips`: `192.168.145.1-192.168.145.2` . Within the CIDR of the network specified below
+  * `director_name`: `example` .  The name of your environment
+  * `internal_cidr`: `192.168.145.0/24` The CIDR of the subnet related to the above network ID
+  * `internal_gw`: `192.168.145.1` Default is `1`, within your CIDR
+  * `kubernetes_master_port`: [choose a unique port separate from the other locks] You will have to create a floating IP
+  * `private_key`: The private rsa key for the bosh director
+  * For LB (`routing_mode: proxy`) environments:
+    * `worker_haproxy_ip_addresses` : [choose a unique IP address separate from other locks]. You will have to create a floating IP
+  * For `routing_mode: cf` environments:
+    * `kubernetes_master_host`: e.g. `tcp.openstack-pez-01.cf-app.com`. Use the FQDN you set up in Route53, described above.
+    * `routing-cf-api-url`: e.g. `https://api.sys.openstack-pez-01.cf-app.com`. Prepend `https://api.` to the FQDN for sys you set up in Route53, described above.
+    * `routing-cf-client-id`: [The username for Ops Manager]
+    * `routing-cf-client-secret`: [The decryption passphrase for Ops Manager]
+    * `routing-cf-uaa-url`: e.g. `https://uaa.sys.openstack-pez-01.cf-app.com`. Prepend `https://uaa.` to the FQDN for sys you set up in Route53, described above.
+    * `routing-cf-app-domain-name`: e.g. `app.openstack-pez-01.cf-app.com`. Use the FQDN for apps you set up in Route53, described above
+    * `routing-cf-sys-domain-name`: e.g. `sys.openstack-pez-01.cf-app.com`. Use the FQDN for sys you set up in Route53, described above
+    * `routing-cf-nats-internal-ips`: This can be found in the Ops Manager Pivotal Elastic Runtime tile, in the Status tab. For a 'full' footprint deployment the IP is the IP for the NATS VM, for a small footprint deployment it is the [IP for the Database VM](https://docs.pivotal.io/pivotalcf/1-12/customizing/small-footprint.html).
+    * `routing-cf-nats-password`: Can be found in Ops Manager tile for Pivotal Elastic Runtime, in the Credentials tab.  Go to Jobs>NATS>Credentials.
+
+
 1. Create an ops file for this environment in the [`kubo-odb-ci`](https://github.com/pivotal-cf-experimental/kubo-odb-ci) repository. Navigate to the directory `environments` and create a new directory and within that create a new ops file. In our case we would create a directory named `openstack-example`, and within we would create `openstack-example.yml`. Start by copy-and-pasting an ops file from another OpenStack environment. Here're the properties you'll need to update:
     * `.../service_catalog/id`: [generate a new GUID]
     * `.../plans/name=demo/plan_id`: [generate a new GUID]
