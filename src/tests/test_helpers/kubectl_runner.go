@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -126,4 +127,13 @@ func (runner *KubectlRunner) GetServiceAccount(deployment, namespace string) str
 		"-o", "jsonpath='{.spec.template.spec.serviceAccountName}'")
 	Eventually(s, "15s").Should(gexec.Exit(0))
 	return string(s.Out.Contents())
+}
+
+func (runner *KubectlRunner) GetPodStatus(namespace string, podName string) string {
+	session := runner.RunKubectlCommandInNamespace(namespace, "describe", "pod", podName)
+	Eventually(session, "120s").Should(gexec.Exit(0))
+	re := regexp.MustCompile(`Status:\s+(\w+)`)
+	matches := re.FindStringSubmatch(string(session.Out.Contents()))
+	podStatus := matches[1]
+	return podStatus
 }
