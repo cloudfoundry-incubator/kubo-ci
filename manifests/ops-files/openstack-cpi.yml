@@ -1,5 +1,5 @@
 - type: replace
   path: /resource_pools/name=vms/cloud_properties?
   value:
-    instance_type: ci.kubo
+    instance_type: m1.large
     availability_zone: ((az))
