@@ -28,14 +28,6 @@ resources:
 <% end %>
 <% end %>
 
-# - name: kubo-lock-openstack-global
-#   type: pool
-#   source:
-#     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-#     branch: master
-#     private_key: ((git-ssh-key))
-#     pool: kubo-openstack-global
-
 - name: gcs-bosh-state
   type: gcs
   source:
@@ -89,10 +81,6 @@ jobs:
     - get: gcs-kubo-deployment-pre
   - put: kubo-lock-<%= iaas %>-<%= network %>
     params: { acquire: true }
-  <% if iaas.include? "openstack" %>
-  - put: kubo-lock-openstack-global
-    params: { acquire: true }
-  <% end %>
 
 - name: install-bosh-<%= iaas %>-<%= network %>
   plan:
@@ -106,10 +94,6 @@ jobs:
       version: every
       trigger: true
       passed: [ 'claim-lock-<%= iaas %>-<%= network %>' ]
-    <% if iaas.include? "openstack" %>
-    - get: kubo-lock-openstack-global
-      passed: [ 'claim-lock-<%= iaas %>-<%= network %>' ]
-    <% end %>
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -145,10 +129,6 @@ jobs:
       passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-creds
       passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
-    <% if iaas.include? "openstack" %>
-    - get: kubo-lock-openstack-global
-      passed: [ 'install-bosh-<%= iaas %>-<%= network %>' ]
-    <% end %>
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     tags: ['<%= iaas %>']
@@ -178,10 +158,6 @@ jobs:
       passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
     - get: gcs-kubo-deployment-pre
       passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
-    <% if iaas.include? "openstack" %>
-    - get: kubo-lock-openstack-global
-      passed: [ 'deploy-k8s-<%= iaas %>-<%= network %>' ]
-    <% end %>
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     tags: ['<%= iaas %>']
@@ -196,16 +172,6 @@ jobs:
       put: conformance-results
       params:
         file: conformance-results/conformance-results-*.tar.gz
-  <% if iaas.include? "openstack" %>
-  on_success:
-    do:
-    - put: kubo-lock-openstack-global
-      params: { release: kubo-lock-openstack-global }
-  on_failure:
-    do:
-    - put: kubo-lock-openstack-global
-      params: { release: kubo-lock-openstack-global }
-  <% end %>
 
 - name: destroy-k8s-<%= iaas %>-<%= network %>
   plan:

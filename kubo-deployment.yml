@@ -72,22 +72,6 @@ resources:
     pool: kubo-<%= iaas %>
 <% end %>
 
-- name: kubo-lock-openstack-global
-  type: pool
-  source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-    branch: master
-    private_key: ((git-ssh-key))
-    pool: kubo-openstack-global
-
-- name: kubo-lock-openstack-lb-global
-  type: pool
-  source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-    branch: master
-    private_key: ((git-ssh-key))
-    pool: kubo-openstack-lb-global
-
 - name: gcs-bosh-state
   type: gcs
   source:
@@ -227,10 +211,6 @@ jobs:
 - name: claim-lock-<%= iaas %>
   max_in_flight: 1
   plan:
-  <% if iaas.include? "openstack" %>
-  - put: kubo-lock-<%= iaas %>-global
-    params: { acquire: true }
-  <% end %>
   - aggregate:
     - get: kubo-version
       passed: [ 'package-kubo-deployment-tarball' ]
@@ -264,10 +244,6 @@ jobs:
       passed: [ 'claim-lock-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'claim-lock-<%= iaas %>' ]
-    <% if iaas.include? "openstack" %>
-    - get: kubo-lock-<%= iaas %>-global
-      passed: [ 'claim-lock-<%= iaas %>' ]
-    <% end %>
   - task: install
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
@@ -302,10 +278,6 @@ jobs:
       passed: [ 'install-bosh-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-<%= iaas %>' ]
-    <% if iaas.include? "openstack" %>
-    - get: kubo-lock-<%= iaas %>-global
-      passed: [ 'install-bosh-<%= iaas %>' ]
-    <% end %>
   - task: deploy
     tags: [<%= iaas %>]
     input_mapping:
@@ -339,10 +311,6 @@ jobs:
       passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'deploy-k8s-<%= iaas %>' ]
-    <% if iaas.include? "openstack" %>
-    - get: kubo-lock-<%= iaas %>-global
-      passed: [ 'deploy-k8s-<%= iaas %>' ]
-    <% end %>
   - task: integration-tests
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
@@ -353,16 +321,6 @@ jobs:
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-  <% if iaas.include? "openstack" %>
-  on_success:
-    do:
-    - put: kubo-lock-<%= iaas %>-global
-      params: { release: kubo-lock-<%= iaas %>-global }
-  on_failure:
-    do:
-    - put: kubo-lock-<%= iaas %>-global
-      params: { release: kubo-lock-<%= iaas %>-global }
-  <% end %>
 
 - name: destroy-k8s-<%= iaas %>
   plan:
