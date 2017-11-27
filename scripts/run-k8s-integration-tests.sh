@@ -98,7 +98,6 @@ fi
 kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/pod_logs"
 kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/generic"
 kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/oss_only"
-kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/api_extensions"
 
 if [[ "${iaas}" != "openstack" ]]; then
     kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/persistent_volume"
