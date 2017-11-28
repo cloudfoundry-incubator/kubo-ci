@@ -12,9 +12,17 @@ export DEBUG=1
 metadata_path="${KUBO_ENVIRONMENT_DIR}/director.yml"
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
-  cp "git-kubo-ci/specs/guestbook.yml" "${KUBO_ENVIRONMENT_DIR}/addons.yml"
   cp "kubo-lock/metadata" "$metadata_path"
   tarball_name=$(ls $PWD/gcs-kubo-release-tarball/kubo-*.tgz | head -n1)
+
+  # Copy guestbook if WITHOUT_ADDONS isn't set to true
+  if [ -z ${WITHOUT_ADDONS+x} ] || [ "$WITHOUT_ADDONS" != "1" ]; then
+    cp "git-kubo-ci/specs/guestbook.yml" "${KUBO_ENVIRONMENT_DIR}/addons.yml"
+  else
+    # Delete the addons_spec_path from director.yml
+    sed -i.bak '/^addons_spec_path:/d' ${metadata_path}
+  fi
+
 else
   tarball_name="$KUBO_RELEASE_TARBALL"
 fi

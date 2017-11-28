@@ -140,6 +140,7 @@ jobs:
       gcs-kubo-release-tarball: gcs-kubo-release-pre
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
+      WITHOUT_ADDONS: 1
       CLOUD_CONFIG_OPS_FILE: <%= network %>-network-k8s-cloud-config.yml
 
 - name: run-conformance-tests-<%= iaas %>-<%= network %>
