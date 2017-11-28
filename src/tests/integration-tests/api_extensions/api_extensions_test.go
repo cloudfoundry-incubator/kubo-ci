@@ -10,6 +10,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -86,6 +87,7 @@ var _ = Describe("Api Extensions", func() {
 		}
 
 		session = kubectl.RunKubectlCommand("proxy", "--port=8000")
+		Eventually(session).Should(gbytes.Say("Starting to serve on"))
 		defer session.Kill()
 		resp, err := http.Get(fmt.Sprintf("http://localhost:8000/apis/apiregistration.k8s.io/v1beta1/apiservices/%s", sampleApiEndpoint))
 		Expect(err).NotTo(HaveOccurred())
