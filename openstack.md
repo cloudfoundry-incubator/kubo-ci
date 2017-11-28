@@ -77,7 +77,12 @@ You may also wish to read [Jaime's docs](https://docs.google.com/document/d/1PCn
 1. Create a subnet with the CIDR block `192.168.1.0/24` and name it `concourse-subnet`.
 1. Attach the network the router by clicking on the **Routers** page from the left navigation bar.
 1. Click **+ Add Interface** and select the newly created subnet to the router.
-1. Create a security group called `concourse` and allow TCP access from everywhere.
+1. Create a security group called `concourse` and allow: 
+    1. TCP access from everywhere.
+    1. UDP access from itself
+1. Edit `opsmanager` security group to allow:
+    1. All TCP access from `concourse` security group
+    1. All TCP access from Floating IP CIDR.
 1. `sshuttle` into the jumpbox created in the section above.
 1. Use scripts in `kubo-ci/concourse/scripts` to install the concourse worker (make sure the security group and network you created are being used).
 
