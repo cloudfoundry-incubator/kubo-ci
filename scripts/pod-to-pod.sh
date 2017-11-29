@@ -29,7 +29,7 @@ kubectl rollout status deployment/redis-slave -w
 nodeport=$(kubectl describe svc/frontend | grep 'NodePort:' | awk '{print $3}' | sed -e 's/\/TCP//g')
 
 
-worker_ip=$(BOSH_CLIENT=bosh_admin BOSH_CLIENT_SECRET=${client_secret} BOSH_CA_CERT="${bosh_ca_cert}" bosh-cli -e "${director_ip}" vms | grep worker | grep -v haproxy | head -n1 | awk '{print $4}')
+worker_ip=$(BOSH_CLIENT=bosh_admin BOSH_CLIENT_SECRET=${client_secret} BOSH_CA_CERT="${bosh_ca_cert}" bosh-cli -e "${director_ip}" vms | grep worker | head -n1 | awk '{print $4}')
 testvalue="$(date +%s)"
 
 if timeout 120 /bin/bash <<EOF

@@ -26,10 +26,6 @@ resources:
   source:
     branch: master
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
-- name: haproxy-boshrelease
-  type: bosh-io-release
-  source:
-    repository: cloudfoundry-community/haproxy-boshrelease
 resource_types:
 - name: gcs
   type: docker-image
@@ -51,25 +47,6 @@ jobs:
     file: kubo-ci/tasks/export-release.yml
     input_mapping:
       release: docker-boshrelease
-      stemcell: ubuntu-trusty
-  - put: compiled-releases
-    params:
-      file: compiled-release/*.tgz
-- name: compile-haproxy-release-ubuntu-trusty
-  plan:
-  - aggregate:
-    - get: kubo-ci
-    - get: haproxy-boshrelease
-      version:
-        version: 8.4.0
-    - get: ubuntu-trusty
-      version:
-        version: *stemcell_version
-  - task: export-release
-    privileged: true
-    file: kubo-ci/tasks/export-release.yml
-    input_mapping:
-      release: haproxy-boshrelease
       stemcell: ubuntu-trusty
   - put: compiled-releases
     params:

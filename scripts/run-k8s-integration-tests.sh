@@ -88,12 +88,6 @@ elif [[ ${routing_mode} == "iaas" ]]; then
   esac
 
   kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/workload/k8s_lbs"
-elif [[ ${routing_mode} == "proxy" ]]; then
-  WORKLOAD_ADDRESS=$(call_bosh -d "${DEPLOYMENT_NAME}" vms | grep 'worker-haproxy/' | head -1 | awk '{print $4}')
-  WORKLOAD_PORT=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/worker_haproxy_tcp_frontend_port")
-  export WORKLOAD_ADDRESS WORKLOAD_PORT
-
-  kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/workload/haproxy"
 fi
 kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/pod_logs"
 kubo::tests::run_test_suite "$GOPATH/src/tests/integration-tests/generic"

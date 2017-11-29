@@ -108,8 +108,6 @@ You may also wish to read [Jaime's docs](https://docs.google.com/document/d/1PCn
     * `internal_gw`: `192.168.145.1` Default is `1`, within your CIDR
     * `kubernetes_master_port`: [choose a unique port separate from the other locks] You will have to create a floating IP
     * `private_key`: The private rsa key for the bosh director
-    * For LB (`routing_mode: proxy`) environments:
-        * `worker_haproxy_ip_addresses` : [choose a unique IP address separate from other locks]. You will have to create a floating IP
     * For `routing_mode: cf` environments:
         * `kubernetes_master_host`: e.g. `tcp.openstack-pez-01.cf-app.com`. Use the FQDN you set up in Route53, described above.
         * `routing-cf-api-url`: e.g. `https://api.sys.openstack-pez-01.cf-app.com`. Prepend `https://api.` to the FQDN for sys you set up in Route53, described above.
