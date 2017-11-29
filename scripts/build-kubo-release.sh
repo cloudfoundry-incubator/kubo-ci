@@ -12,4 +12,4 @@ final_arg=""
 if [ $FINAL == 'true' ]; then
   final_arg="--final"
 fi
-bosh-cli create-release --name "kubo" --sha2 --tarball="../kubo-release/kubo-release-${version}.tgz" --version=${version} ${final_args}
+bosh-cli create-release --name "kubo" --sha2 --tarball="../kubo-release/kubo-release-${version}.tgz" --version=${version} ${final_arg}
