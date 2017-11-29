@@ -7,6 +7,9 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/build-kubo-release.sh
 
+params:
+  FINAL: ""
+
 inputs:
   - name: git-kubo-ci
   - name: git-kubo-deployment
