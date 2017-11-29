@@ -56,12 +56,6 @@ main() {
   local pipeline_filename="${ci_dir}/${pipeline_name}.yml"
   local branch_name="master"
 
-  if [ -z  "$(which lpass)" ]; then
-    echo "Unable to locate the LastPass CLI"
-    print_usage
-    exit 1
-  fi
-
   echo "${pipeline_name}"
   local current_branch_regex='-current-branch$'
   if [[ "${pipeline_name}" =~ $current_branch_regex ]]; then
