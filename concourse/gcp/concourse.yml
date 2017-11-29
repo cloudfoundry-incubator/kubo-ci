@@ -41,6 +41,7 @@ instance_groups:
           - user: mkjelland
           - user: evandbrown
           - user: erjohnso
+          - user: drnic
       external_url: https://ci.kubo.sh
       tls_cert: ((atc-certificate.certificate))((atc-certificate.ca))
       tls_key: ((atc-certificate.private_key))
