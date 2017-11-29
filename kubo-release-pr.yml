@@ -1,5 +1,5 @@
 <%
-  iaas_list = %w(gcp vsphere vsphere-lb gcp-lb aws-lb openstack-lb)
+  iaas_list = %w(gcp vsphere gcp-lb aws-lb)
 %>
 ---
 resource_types:
