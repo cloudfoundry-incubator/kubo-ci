@@ -6,7 +6,8 @@ delete_vms() {
   network_id=$(bosh-cli int "$ENV_FILE" --path='/net_id')
   network_name=$(openstack network list -f value | grep "$network_id" | awk '{print $2}')
   server_list_with_details=$(openstack server list -f value)
-  server_names=$(echo "$server_list_with_details" | grep "$network_name" | awk '{print $1}' || echo 'No servers in the env')
+  # Don't fail if no servers are found
+  server_names=$(echo "$server_list_with_details" | grep "$network_name" | awk '{print $1}')
 
   openstack volume list --status available -c ID -f value | awk '{print $1}' | xargs -I{} openstack volume delete {}
 
@@ -26,7 +27,7 @@ delete_vms() {
         done
 EOF
       then
-        openstack volume delete "${volume_name}" --force
+        openstack volume delete "${volume_name}"
         echo "The volume became available and was deleted"
       else
         echo "The volume never became available and wasn't deleted"
