@@ -9,6 +9,8 @@ run:
 
 params:
   FINAL: ""
+  ACCESS_KEY_ID: ""
+  SECRET_ACCESS_KEY: ""
 
 inputs:
   - name: git-kubo-ci
