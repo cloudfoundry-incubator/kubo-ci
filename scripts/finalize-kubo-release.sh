@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 set -exu -o pipefail
 
 export BOSH_LOG_LEVEL=debug
@@ -19,4 +17,4 @@ EOF
 
 bosh-cli finalize-release ../gcs-kubo-release-tarball/kubo-release-*.tgz --version=${version}
 
-git status
+cat gcs-kubo-release-git-ref/kubo-release-git-ref

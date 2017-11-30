@@ -18,5 +18,6 @@ inputs:
   - name: git-kubo-release
   - name: kubo-version
   - name: gcs-kubo-release-tarball
+  - name: gcs-kubo-release-git-ref
 outputs:
   - name: kubo-release
