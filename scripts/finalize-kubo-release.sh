@@ -17,4 +17,4 @@ EOF
 
 bosh-cli finalize-release ../gcs-kubo-release-tarball/kubo-release-*.tgz --version=${version}
 
-cat gcs-kubo-release-git-ref/kubo-release-git-ref
+cat ../gcs-kubo-release-git-ref/kubo-release-git-ref
