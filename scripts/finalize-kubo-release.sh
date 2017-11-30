@@ -18,3 +18,5 @@ blobstore:
 EOF
 
 bosh-cli finalize-release ../gcs-kubo-release-tarball/kubo-release-*.tgz --version=${version}
+
+git status
