@@ -17,4 +17,4 @@ blobstore:
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
 
-bosh finalize-release "../gcs-kubo-release-tarball/kubo-release-*.tgz" --version=${version}
+bosh finalize-release ../gcs-kubo-release-tarball/kubo-release-*.tgz --version=${version}
