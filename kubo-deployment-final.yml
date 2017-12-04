@@ -15,13 +15,13 @@ resources:
 - name: git-kubo-release
   type: git
   source:
-    uri: https://github.com/BenChapman/kubo-release #TODO: https://github.com/cloudfoundry-incubator/kubo-release
+    uri: git@github.com:BenChapman/kubo-release #TODO: https://github.com/cloudfoundry-incubator/kubo-release
     branch: master
     ignore_paths:
     - '*.md'
     - 'LICENSE'
     - 'NOTICE'
-    private_key: ((git-ssh-key)) #has both public & private keys in credhub, how do we get just the private key?
+    private_key: ((git-ssh-key))
 
 - name: gcs-kubo-release-tarball
   type: gcs
@@ -40,6 +40,14 @@ resources:
     region_name: europe-west1
     endpoint: storage.googleapis.com
 
+- name: gh-release-kubo-release
+  type: github-release
+  source:
+    owner: BenChapman
+    repository: kubo-release
+    access_token: ((github-token-key))
+    drafts: true
+
 jobs:
 - name: finalize-kubo-release
   plan:
@@ -55,10 +63,17 @@ jobs:
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
-  - put: git-kubo-release
-    params:
-      repository: git-kubo-release-output
-  - put: kubo-version
-    params:
-      bump: patch
+  - aggregate:
+    - put: git-kubo-release
+      params:
+        repository: git-kubo-release-output
+    - put: gh-release-kubo-release
+      params:
+        name: kubo-release/name
+        tag: kubo-release/tag
+        body: kubo-release/body
+        globs: kubo-release/*.tgz
+    - put: kubo-version
+      params:
+        bump: patch
 

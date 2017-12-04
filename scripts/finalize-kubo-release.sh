@@ -17,10 +17,14 @@ blobstore:
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
 
-bosh-cli finalize-release ../gcs-kubo-release-tarball/kubo-release-*.tgz --version=${version}
+bosh-cli create-release --final --version=${version} --sha2 --tarball ../kubo-release/kubo-release-${version}.tgz
+
+echo "kubo-release ${version}" ../kubo-release/name
+echo "v${version}" ../kubo-release/tag
+echo "See [CFCR Release notes](https://docs-kubo.cfapps.io/overview/release-notes/) page" ../kubo-release/body
 
 git add .
 git config --global user.name "cf-london"
 git config --global user.email "cf-london-eng@pivotal.io"
-git commit -m "Final release for ${version}"
-git tag -a ${version} -m "Tagging for version ${version}"
+git commit -m "Final release for v${version}"
+git tag -a "v${version}" -m "Tagging for version v${version}"
