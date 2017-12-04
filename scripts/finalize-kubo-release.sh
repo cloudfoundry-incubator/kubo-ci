@@ -23,7 +23,9 @@ echo "kubo-release ${version}" >../kubo-release/name
 echo "v${version}" > ../kubo-release/tag
 echo "See [CFCR Release notes](https://docs-kubo.cfapps.io/overview/release-notes/) page" > ../kubo-release/body
 
+git stash
 git checkout master
+git stash pop
 git add .
 git config --global user.name "cf-london"
 git config --global user.email "cf-london-eng@pivotal.io"
