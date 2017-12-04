@@ -25,6 +25,10 @@ echo "kubo-release ${version}" >../kubo-release/name
 echo "v${version}" > ../kubo-release/tag
 echo "See [CFCR Release notes](https://docs-kubo.cfapps.io/overview/release-notes/) page" > ../kubo-release/body
 
+echo "kubo-deployment ${version}" >../kubo-deployment/name
+echo "v${version}" > ../kubo-deployment/tag
+echo "See [CFCR Release notes](https://docs-kubo.cfapps.io/overview/release-notes/) page" > ../kubo-deployment/body
+
 git stash
 git checkout master
 git stash pop

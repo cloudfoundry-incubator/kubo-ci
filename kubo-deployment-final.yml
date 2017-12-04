@@ -23,6 +23,13 @@ resources:
     - 'NOTICE'
     private_key: ((git-ssh-key))
 
+- name: git-kubo-deployment
+  type: git
+  source:
+    uri: git@github.com:BenChapman/kubo-deployment #TODO: https://github.com/cloudfoundry-incubator/kubo-release
+    branch: master
+    private_key: ((git-ssh-key))
+
 - name: gcs-kubo-release-tarball
   type: gcs
   source:
@@ -33,10 +40,10 @@ resources:
 - name: kubo-version
   type: semver
   source:
-    key: kubo-version
+    key: kubo-version-test
     access_key_id: ((gcs-access-key-id))
     secret_access_key: ((gcs-secret-access-key))
-    bucket: kubo-release-blobs-test # TODO: kubo-pipeline-store
+    bucket: kubo-pipeline-store
     region_name: europe-west1
     endpoint: storage.googleapis.com
 
@@ -45,6 +52,14 @@ resources:
   source:
     owner: BenChapman
     repository: kubo-release
+    access_token: ((github-token-key))
+    drafts: true
+
+- name: gh-release-kubo-deployment
+  type: github-release
+  source:
+    owner: BenChapman
+    repository: kubo-deployment
     access_token: ((github-token-key))
     drafts: true
 
@@ -57,6 +72,7 @@ jobs:
       params:
         bump: final
     - get: git-kubo-release
+    - get: git-kubo-deployment
     - get: gcs-kubo-release-tarball
   - task: finalize-release
     file: git-kubo-ci/tasks/finalize-kubo-release.yml
@@ -67,13 +83,22 @@ jobs:
     - put: git-kubo-release
       params:
         repository: git-kubo-release-output
+    - put: git-kubo-deployment
+      params:
+        repository: git-kubo-deployment
+        tag: kubo-release/tag
     - put: gh-release-kubo-release
       params:
         name: kubo-release/name
         tag: kubo-release/tag
         body: kubo-release/body
         globs: ["kubo-release/*.tgz"]
-    - put: kubo-version
+    - put: gh-release-kubo-release
       params:
-        bump: patch
+        name: kubo-deployment/name
+        tag: kubo-deployment/tag
+        body: kubo-deployment/body
+  - put: kubo-version
+    params:
+      bump: patch
 
