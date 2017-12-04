@@ -17,3 +17,6 @@ EOF
 
 bosh-cli finalize-release ../gcs-kubo-release-tarball/kubo-release-*.tgz --version=${version}
 
+git add .
+git commit -m "Final release for ${version}"
+git tag -a ${version} -m "Tagging for version ${version}"
