@@ -20,7 +20,7 @@ EOF
 bosh-cli finalize-release ../gcs-kubo-release-tarball/kubo-release-*.tgz --version=${version}
 
 git add .
-git config --global user.name "Kubo CI"
+git config --global user.name "cf-london"
 git config --global user.email "cf-london-eng@pivotal.io"
 git commit -m "Final release for ${version}"
 git tag -a ${version} -m "Tagging for version ${version}"
