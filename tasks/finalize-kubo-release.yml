@@ -20,3 +20,5 @@ inputs:
   - name: gcs-kubo-release-tarball
 outputs:
   - name: kubo-release
+  - name: git-kubo-release-output
+    path: git-kubo-release
