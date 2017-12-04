@@ -5,6 +5,8 @@ set -exu -o pipefail
 export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 version=$(cat kubo-version/version)
+git config --global user.name "cf-london"
+git config --global user.email "cf-london-eng@pivotal.io"
 
 cp -r git-kubo-release/. git-kubo-release-output
 
@@ -27,7 +29,5 @@ git stash
 git checkout master
 git stash pop
 git add .
-git config --global user.name "cf-london"
-git config --global user.email "cf-london-eng@pivotal.io"
 git commit -m "Final release for v${version}"
 git tag -a "v${version}" -m "Tagging for version v${version}"
