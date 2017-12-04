@@ -6,7 +6,9 @@ export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 version=$(cat kubo-version/version)
 
-pushd git-kubo-release
+cp -r git-kubo-release git-kubo-release-output
+
+pushd git-kubo-release-output
 
 cat <<EOF > "config/private.yml"
 blobstore:
