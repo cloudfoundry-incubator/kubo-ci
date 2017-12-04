@@ -6,7 +6,7 @@ export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 version=$(cat kubo-version/version)
 
-cp -r git-kubo-release git-kubo-release-output
+cp -r git-kubo-release/* git-kubo-release-output
 
 pushd git-kubo-release-output
 
