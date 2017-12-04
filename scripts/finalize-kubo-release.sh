@@ -19,9 +19,9 @@ EOF
 
 bosh-cli create-release --final --version=${version} --sha2 --tarball ../kubo-release/kubo-release-${version}.tgz
 
-echo "kubo-release ${version}" ../kubo-release/name
-echo "v${version}" ../kubo-release/tag
-echo "See [CFCR Release notes](https://docs-kubo.cfapps.io/overview/release-notes/) page" ../kubo-release/body
+echo "kubo-release ${version}" >../kubo-release/name
+echo "v${version}" > ../kubo-release/tag
+echo "See [CFCR Release notes](https://docs-kubo.cfapps.io/overview/release-notes/) page" > ../kubo-release/body
 
 git add .
 git config --global user.name "cf-london"

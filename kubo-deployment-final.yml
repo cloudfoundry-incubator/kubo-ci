@@ -72,7 +72,7 @@ jobs:
         name: kubo-release/name
         tag: kubo-release/tag
         body: kubo-release/body
-        globs: kubo-release/*.tgz
+        globs: ["kubo-release/*.tgz"]
     - put: kubo-version
       params:
         bump: patch
