@@ -144,8 +144,8 @@ instance_groups:
 name: kubo-ci
 releases:
 - name: concourse
-  sha1: 1257bdcd3181ab0a669bc9e34cd87aff584f007b
-  url: https://bosh.io/d/github.com/concourse/concourse?v=3.6.0
+  sha1: 20e17e3ac079f1b1a5095329a4fb14de40317bb9
+  url: https://bosh.io/d/github.com/concourse/concourse?v=3.7.0
   version: 3.6.0
 - name: garden-runc
   sha1: d5ddb4eaf7c04705cd1c07445b1668556783774f
