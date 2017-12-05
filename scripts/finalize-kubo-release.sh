@@ -10,7 +10,7 @@ git config --global user.email "cf-london-eng@pivotal.io"
 
 cp -r git-kubo-release/. git-kubo-release-output
 
-pushd git-kubo-release-output
+cd git-kubo-release-output
 
 cat <<EOF > "config/private.yml"
 blobstore:
@@ -29,9 +29,10 @@ echo "kubo-deployment ${version}" >../kubo-deployment/name
 echo "v${version}" > ../kubo-deployment/tag
 echo "See [CFCR Release notes](https://docs-kubo.cfapps.io/overview/release-notes/) page" > ../kubo-deployment/body
 
-git stash
-git checkout master
-git stash pop
+git checkout -b tmp/release
 git add .
 git commit -m "Final release for v${version}"
 git tag -a "v${version}" -m "Tagging for version v${version}"
+git checkout master
+git merge tmp/release
+git branch -d tmp/release
