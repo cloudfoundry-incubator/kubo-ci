@@ -16,7 +16,6 @@ inputs:
   - name: git-kubo-ci
   - name: git-kubo-release
   - name: kubo-version
-  - name: gcs-kubo-release-tarball
 outputs:
   - name: kubo-release
   - name: kubo-deployment
