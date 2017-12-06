@@ -24,14 +24,7 @@ resources:
     branch: master
     private_key: ((git-ssh-key))
 
-- name: gcs-kubo-release-tarball
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-public
-    versioned_file: kubo-release-latest.tgz
-
-- name: kubo-version
+- name: kubo-version-test
   type: semver
   source:
     key: kubo-version-test
@@ -48,6 +41,7 @@ resources:
     repository: kubo-release
     access_token: ((github-token-key))
     drafts: true
+    pre_release: true
 
 - name: gh-release-kubo-deployment
   type: github-release
@@ -56,23 +50,27 @@ resources:
     repository: kubo-deployment
     access_token: ((github-token-key))
     drafts: true
+    pre_release: true
 
 jobs:
-- name: finalize-kubo-release
+- name: upload-github-releases
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-version
+    - get: kubo-version-test
       params:
         bump: final
     - get: git-kubo-release
     - get: git-kubo-deployment
-    - get: gcs-kubo-release-tarball
-  - task: finalize-release
-    file: git-kubo-ci/tasks/finalize-kubo-release.yml
+  - task: upload-releases
+    file: git-kubo-ci/tasks/upload-github-releases.yml
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+    input_mapping:
+      kubo-version: kubo-version-test
+    output_mapping:
+      kubo-version: kubo-version-test
   - aggregate:
     - put: git-kubo-release
       params:
@@ -81,18 +79,26 @@ jobs:
       params:
         repository: git-kubo-deployment
         tag: kubo-release/tag
+        only_tag: true
     - put: gh-release-kubo-release
       params:
         name: kubo-release/name
         tag: kubo-release/tag
         body: kubo-release/body
         globs: ["kubo-release/*.tgz"]
-    - put: gh-release-kubo-release
+    - put: gh-release-kubo-deployment
       params:
         name: kubo-deployment/name
         tag: kubo-deployment/tag
         body: kubo-deployment/body
-  - put: kubo-version
+        globs: ["kubo-deployment/kubo-deployment-*.tgz"]
+  - put: kubo-version-test
     params:
       bump: patch
+- name: bump-minor-version
+  plan:
+  - get: kubo-version-test
+  - put: kubo-version-test
+    params:
+      bump: minor
 
