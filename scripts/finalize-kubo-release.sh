@@ -29,8 +29,11 @@ echo "kubo-deployment ${version}" >../kubo-deployment/name
 echo "v${version}" > ../kubo-deployment/tag
 echo "See [CFCR Release notes](https://docs-cfcr.cfapps.io/overview/release-notes/) page" > ../kubo-deployment/body
 
-cp ../kubo-release/kubo-release-${version}.tgz ../git-kubo-deployment/kubo-release.tgz
-tar -czf ../kubo-deployment/kubo-deployment-${version}.tgz ../git-kubo-deployment
+mkdir "../kubo-deployment-${version}"
+cp ../kubo-release/kubo-release-${version}.tgz ../kubo-deployment-${version}/kubo-release.tgz
+cp ../git-kubo-deployment "../kubo-deployment-${version}/kubo-deployment"
+
+tar -czf ../kubo-deployment/kubo-deployment-${version}.tgz "../kubo-deployment-${version}"
 
 git checkout -b tmp/release
 git add .
