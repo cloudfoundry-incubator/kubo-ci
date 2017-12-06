@@ -31,7 +31,7 @@ echo "See [CFCR Release notes](https://docs-cfcr.cfapps.io/overview/release-note
 
 mkdir "../kubo-deployment-${version}"
 cp ../kubo-release/kubo-release-${version}.tgz ../kubo-deployment-${version}/kubo-release.tgz
-cp ../git-kubo-deployment "../kubo-deployment-${version}/kubo-deployment"
+cp -r ../git-kubo-deployment "../kubo-deployment-${version}/kubo-deployment"
 
 tar -czf ../kubo-deployment/kubo-deployment-${version}.tgz "../kubo-deployment-${version}"
 
