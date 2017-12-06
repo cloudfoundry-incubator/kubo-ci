@@ -19,6 +19,8 @@ groups:
   - upload-kubo-deployment
   - upload-kubo-release
   - success-notification
+  - upload-github-releases
+  - bump-minor-version
 <% iaas_list.each do |iaas| %>
 - name: <%= iaas %>
   jobs:
@@ -45,7 +47,7 @@ resources:
 - name: git-kubo-deployment
   type: git
   source:
-    uri: https://github.com/cloudfoundry-incubator/kubo-deployment
+    uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
     branch: master
     private_key: ((git-ssh-key))
     ignore_paths:
@@ -56,7 +58,7 @@ resources:
 - name: git-kubo-release
   type: git
   source:
-    uri: https://github.com/cloudfoundry-incubator/kubo-release
+    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
     branch: master
     private_key: ((git-ssh-key))
     ignore_paths:
@@ -140,16 +142,6 @@ resources:
     region_name: us-east1
     endpoint: storage.googleapis.com
 
-- name: kubo-version-test
-  type: semver
-  source:
-    key: kubo-version-test
-    access_key_id: ((gcs-access-key-id))
-    secret_access_key: ((gcs-secret-access-key))
-    bucket: kubo-pipeline-store
-    region_name: europe-west1
-    endpoint: storage.googleapis.com
-
 # stemcell
 - name: ubuntu-trusty-stemcell
   type: bosh-io-stemcell
@@ -159,7 +151,7 @@ resources:
 - name: gh-release-kubo-release
   type: github-release
   source:
-    owner: BenChapman
+    owner: cloudfoundry-incubator
     repository: kubo-release
     access_token: ((github-token-key))
     drafts: true
@@ -168,7 +160,7 @@ resources:
 - name: gh-release-kubo-deployment
   type: github-release
   source:
-    owner: BenChapman
+    owner: cloudfoundry-incubator
     repository: kubo-deployment
     access_token: ((github-token-key))
     drafts: true
@@ -457,3 +449,51 @@ jobs:
     - get: kubo-version
       passed: [ upload-kubo-release, upload-kubo-deployment ]
       trigger: true
+
+- name: upload-github-releases
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-version
+      passed: <%= destroy_bosh %>
+      params:
+        bump: final
+    - get: git-kubo-release
+      passed: <%= destroy_bosh %>
+    - get: git-kubo-deployment
+      passed: <%= destroy_bosh %>
+  - task: upload-releases
+    file: git-kubo-ci/tasks/upload-github-releases.yml
+    params:
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - aggregate:
+    - put: git-kubo-release
+      params:
+        repository: git-kubo-release-output
+    - put: git-kubo-deployment
+      params:
+        repository: git-kubo-deployment
+        tag: kubo-release/tag
+        only_tag: true
+    - put: gh-release-kubo-release
+      params:
+        name: kubo-release/name
+        tag: kubo-release/tag
+        body: kubo-release/body
+        globs: ["kubo-release/*.tgz"]
+    - put: gh-release-kubo-deployment
+      params:
+        name: kubo-deployment/name
+        tag: kubo-deployment/tag
+        body: kubo-deployment/body
+        globs: ["kubo-deployment/kubo-deployment-*.tgz"]
+  - put: kubo-version
+    params:
+      bump: patch
+- name: bump-minor-version
+  plan:
+  - get: kubo-version
+  - put: kubo-version
+    params:
+      bump: minor
