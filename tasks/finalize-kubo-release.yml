@@ -15,6 +15,7 @@ params:
 inputs:
   - name: git-kubo-ci
   - name: git-kubo-release
+  - name: git-kubo-deployment
   - name: kubo-version
 outputs:
   - name: kubo-release
