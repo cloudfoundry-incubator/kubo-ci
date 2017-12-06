@@ -1,5 +1,6 @@
 #!/bin/bash
 
+[ -z "$DEBUG" ] || set -x
 set -eu -o pipefail
 
 director_name="$(bosh-cli int "${ENV_FILE}" --path=/director_name)"
@@ -27,7 +28,7 @@ delete_volumes() {
   local volume_ids=$1
   for volume in $volume_ids; do
     aws ec2 delete-volume --volume-id "$volume"
-    aws ec2 wait volume-deleted --volume-id "$volume"
+    aws ec2 wait volume-deleted --volume-ids "$volume"
   done
 }
 
@@ -47,14 +48,15 @@ else
   aws ec2 wait instance-terminated --instance-ids ${instance_ids}
 fi
 
-director_name_tag_volume_ids=$(aws ec2 describe-volumes --output text --no-paginate --query 'Volumes[*].VolumeId' --filters "Name=tag:director,Values=${director_name}" "Name=status,Values=available")
-#director_volume_ids=$(aws ec2 describe-volumes --output text --no-paginate --query 'Volumes[*].VolumeId' --filters "Name=attachment.instance-id,Values=${director_instance_id}" "Name=status,Values=available")
+volume_ids=$(aws ec2 describe-volumes --output text --no-paginate --query 'Volumes[*].VolumeId' --filters "Name=tag:director,Values=${director_name}" "Name=status,Values=available")
+director_volume_ids=$(aws ec2 describe-volumes --output text --no-paginate --query 'Volumes[*].VolumeId' --filters "Name=tag:director_name,Values=${director_name}" "Name=status,Values=available")
 
-#if [ ! -z $director_volume_ids ]
-#  echo "Deleting volumes associated to director '${director_name}'"
-#  delete_volumes director_volume_ids
-#fi
-if [ ! -z "$director_name_tag_volume_ids" ]; then
+if [ ! -z "$director_volume_ids" ]; then
+  echo "Deleting volumes associated to director '${director_name}'"
+  delete_volumes "$director_volume_ids"
+fi
+
+if [ ! -z "$volume_ids" ]; then
   echo "Deleting volumes tagged with director name '${director_name}'"
-  delete_volumes "$director_name_tag_volume_ids"
+  delete_volumes "$volume_ids"
 fi
