@@ -23,11 +23,14 @@ bosh-cli create-release --final --version=${version} --sha2 --tarball ../kubo-re
 
 echo "kubo-release ${version}" >../kubo-release/name
 echo "v${version}" > ../kubo-release/tag
-echo "See [CFCR Release notes](https://docs-kubo.cfapps.io/overview/release-notes/) page" > ../kubo-release/body
+echo "See [CFCR Release notes](https://docs-cfcr.cfapps.io/overview/release-notes/) page" > ../kubo-release/body
 
 echo "kubo-deployment ${version}" >../kubo-deployment/name
 echo "v${version}" > ../kubo-deployment/tag
-echo "See [CFCR Release notes](https://docs-kubo.cfapps.io/overview/release-notes/) page" > ../kubo-deployment/body
+echo "See [CFCR Release notes](https://docs-cfcr.cfapps.io/overview/release-notes/) page" > ../kubo-deployment/body
+
+cp ../kubo-release/kubo-release-${version}.tgz ../git-kubo-deployment/kubo-release.tgz
+tar -czf ../kubo-deployment/kubo-deployment-${version}.tgz ../git-kubo-deployment
 
 git checkout -b tmp/release
 git add .
