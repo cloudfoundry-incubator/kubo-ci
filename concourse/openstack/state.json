@@ -1,14 +1,14 @@
 {
     "director_id": "f8d8348d-caa7-48b8-48b7-190b67fc6933",
     "installation_id": "1a6fb631-fc81-4114-7e63-079bc4a151ee",
-    "current_vm_cid": "8b838f59-2009-45f2-a65e-e451c765ff3b",
+    "current_vm_cid": "5b87617d-f9b5-4357-8fc1-2fd6c9799b60",
     "current_stemcell_id": "ca925eb6-3081-40a9-62c8-22647872bfae",
     "current_disk_id": "bf5d5b8d-514e-44e3-57cd-77f17cbb0af5",
     "current_release_ids": [
-        "c0e0bbe2-2008-4195-66a5-7b0f1b961e50",
-        "58b4a59a-3ec1-456a-7e3b-a77111025e60"
+        "8f9b64f1-fad4-44fa-7a91-415a49749aee",
+        "b9e14eab-83c2-49c7-4700-6206535f168d"
     ],
-    "current_manifest_sha": "c9319d99d85de23c6a9c41de202f3545fdc113b0c0bd00883b5fdf0643823cff83c360ad1a6025f514ad767c4f658c98977149073cb6a0d0e9d303ccc0215b61",
+    "current_manifest_sha": "f07cf3b71342b55ccdbe26a14c1d8c3058a5b61a6e08feab365dc6684b2f87907a0da94437a272b4c3c87836ee80a248dc4826c21840c32ab3a7d85bd071100b",
     "disks": [
         {
             "id": "bf5d5b8d-514e-44e3-57cd-77f17cbb0af5",
@@ -27,12 +27,12 @@
     ],
     "releases": [
         {
-            "id": "c0e0bbe2-2008-4195-66a5-7b0f1b961e50",
+            "id": "8f9b64f1-fad4-44fa-7a91-415a49749aee",
             "name": "bosh",
-            "version": "264.1"
+            "version": "264.4.0"
         },
         {
-            "id": "58b4a59a-3ec1-456a-7e3b-a77111025e60",
+            "id": "b9e14eab-83c2-49c7-4700-6206535f168d",
             "name": "bosh-openstack-cpi",
             "version": "35"
         }

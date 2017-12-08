@@ -32,12 +32,6 @@ manifest_file=$(mktemp)
 
 secret=$(lpass show --note "$secrets_lpass_note_id")
 
-if bosh-cli int "${director_yml}" --path='/secrets_lpass_note_path'; then
-  secrets_lpass_note_path=$(bosh-cli int "${director_yml}" --path='/secrets_lpass_note_path')
-  secret=$(echo -n "$secret" | bosh int - --path="/$secrets_lpass_note_path")
-fi
-echo "$secret"
-
 if [ "$IAAS" == "vsphere" ]; then
   bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
     --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
@@ -46,11 +40,16 @@ if [ "$IAAS" == "vsphere" ]; then
     --vars-file <(echo -n "$secret") \
     > "$manifest_file"
 elif [ "$IAAS" == "openstack" ]; then
+  openstack_credentials_note_id="$(bosh-cli int "${director_yml}" --path='/openstack_account_id')"
+  openstack_secrets_path="$(bosh-cli int "${director_yml}" --path='/secrets_lpass_note_path')"
+  openstack_credentials="$(bosh-cli int <(echo "$(lpass show --note ${openstack_credentials_note_id})") --path=/${openstack_secrets_path})"
+
   bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
     --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
     --ops-file "$CONCOURSE_DIR/$IAAS/nova.yml" \
     --vars-file "${director_yml}" \
     --vars-file <(echo -n "$secret") \
+    --vars-file <(echo -n "$openstack_credentials") \
     > "$manifest_file"
 elif [[ "${IAAS}" == "gcp" ]]; then
 
