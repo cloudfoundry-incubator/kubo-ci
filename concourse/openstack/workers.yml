@@ -32,7 +32,7 @@ instance_groups:
         - openstack-lb
         - openstack
       tsa:
-        private_key: ((worker-key.private_key))
+        worker_key: ((worker-key))
         host: ci.kubo.sh
         host_public_key: ((tsa-host-key.public_key))
       garden:

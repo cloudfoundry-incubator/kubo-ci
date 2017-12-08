@@ -26,6 +26,7 @@ instance_groups:
   jobs:
   - name: atc
     properties:
+      token_signing_key: ((token-signing-key))
       allow_self_signed_certificates: true
       github_auth:
         client_id: ((github-client-id))
@@ -62,7 +63,8 @@ instance_groups:
     release: concourse
   - name: tsa
     properties:
-      host_key: ((tsa-host-key.private_key))
+      token_signing_key: ((token-signing-key))
+      host_key: ((tsa-host-key))
       host_public_key: ((tsa-host-key.public_key))
       authorized_keys:
       - ((worker-key.public_key))
@@ -94,7 +96,7 @@ instance_groups:
         - gcp
         - gcp-lb
       tsa:
-        private_key: ((worker-key.private_key))
+        worker_key: ((worker-key))
   - name: baggageclaim
     release: concourse
     provides:
@@ -122,7 +124,7 @@ instance_groups:
       baggageclaim: {from: bc}
     properties:
       tsa:
-        private_key: ((worker-key.private_key))
+        worker_key: ((worker-key))
   - name: baggageclaim
     release: concourse
     provides:
@@ -170,3 +172,5 @@ update:
 variables:
 - name: postgresql-password
   type: password
+- name: token-signing-key
+  type: rsa
