@@ -11,5 +11,6 @@ inputs:
 
 params:
   ENV_FILE:
+  GCP_SERVICE_ACCOUNT:
 run:
   path: git-kubo-ci/scripts/cleanup-environment.sh
