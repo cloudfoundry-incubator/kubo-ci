@@ -2,6 +2,9 @@
   iaas_list = %w(gcp vsphere gcp-lb aws-lb aws openstack)
 %>
 ---
+pins:
+  stemcell_version: &stemcell_version "3468.13"
+
 groups:
 - name: all
   jobs:
@@ -194,7 +197,7 @@ jobs:
       trigger: true
     - get: ubuntu-trusty-stemcell
       version:
-        version: "3468.5"
+        version: *stemcell_version
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
   - task: export-release
