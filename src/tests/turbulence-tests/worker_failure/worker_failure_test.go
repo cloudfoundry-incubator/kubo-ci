@@ -4,6 +4,9 @@ import (
 	. "tests/test_helpers"
 
 	"github.com/cloudfoundry/bosh-cli/director"
+	"github.com/cppforlife/turbulence/incident"
+	"github.com/cppforlife/turbulence/incident/selector"
+	"github.com/cppforlife/turbulence/tasks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -37,8 +40,25 @@ var _ = Describe("Worker failure scenarios", func() {
 
 	Specify("K8s applications are scheduled on the resurrected node", func() {
 		By("Deleting the Worker VM")
-		vms := DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
-		KillVM(vms, iaas)
+		hellRaiser := TurbulenceClient()
+		killOneMaster := incident.Request{
+			Selector: selector.Request{
+				Deployment: &selector.NameRequest{
+					Name: DeploymentName,
+				},
+				Group: &selector.NameRequest{
+					Name: WorkerVmType,
+				},
+				ID: &selector.IDRequest{
+					Limit: selector.MustNewLimitFromString("1"),
+				},
+			},
+			Tasks: tasks.OptionsSlice{
+				tasks.KillOptions{},
+			},
+		}
+		incident := hellRaiser.CreateIncident(killOneMaster)
+		incident.Wait()
 		Eventually(countRunningWorkers, 600, 20).Should(Equal(2))
 
 		By("Verifying that the Worker VM has joined the K8s cluster")
@@ -50,6 +70,7 @@ var _ = Describe("Worker failure scenarios", func() {
 
 		By("Verifying nginx got deployed on new node")
 		nodeNames := GetNodeNamesForRunningPods(kubectl)
+		vms := DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 		_, err := NewVmId(vms, nodeNames)
 		Expect(err).ToNot(HaveOccurred())
 	})
