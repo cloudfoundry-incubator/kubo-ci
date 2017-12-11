@@ -147,7 +147,9 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: gcs-kubo-release-tarball-untested
+      passed: ['package-kubo-deployment-tarball']
     - get: gcs-kubo-deployment-tarball-untested
+      passed: ['package-kubo-deployment-tarball']
       trigger: true
   - put: kubo-lock-gcp
     params: { acquire: true }
