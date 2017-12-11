@@ -43,8 +43,8 @@ if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   echo "Storing state"
   set +x
   credhub login
-  credhub set -n "/concourse/main/${director_name}/creds" -v "$(echo "${KUBO_ENVIRONMENT_DIR}/creds.yml")" -t value
-  credhub set -n "/concourse/main/${director_name}/state" -v "$(echo "${KUBO_ENVIRONMENT_DIR}/state.json")" -t value
+  credhub set -n "/concourse/main/${director_name}/creds" -v "$(cat "${KUBO_ENVIRONMENT_DIR}/creds.yml")" -t value
+  credhub set -n "/concourse/main/${director_name}/state" -v "$(cat "${KUBO_ENVIRONMENT_DIR}/state.json")" -t value
   credhub logout
   set -x
 fi
