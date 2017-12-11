@@ -1,5 +1,5 @@
 pins:
-  stemcell_version: &stemcell_version "3468.5"
+  stemcell_version: &stemcell_version "3468.13"
 groups: []
 resources:
 - name: ubuntu-trusty
