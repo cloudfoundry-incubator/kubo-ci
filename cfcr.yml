@@ -1,0 +1,262 @@
+---
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+
+- name: git-kubo-deployment
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
+    branch: master
+    private_key: ((git-ssh-key))
+    ignore_paths:
+    - '*.md'
+    - 'LICENSE'
+    - 'NOTICE'
+
+- name: git-kubo-release
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
+    branch: master
+    private_key: ((git-ssh-key))
+    ignore_paths:
+    - '*.md'
+    - 'LICENSE'
+    - 'NOTICE'
+
+- name: kubo-version
+  type: semver
+  source:
+    key: kubo-version
+    access_key_id: ((gcs-access-key-id))
+    secret_access_key: ((gcs-secret-access-key))
+    bucket: kubo-pipeline-store
+    region_name: us-east1
+    endpoint: storage.googleapis.com
+
+- name: ubuntu-trusty-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
+
+- name: gcs-kubo-release-tarball-untested
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    regexp: kubo-release-(.*).tgz
+
+- name: gcs-kubo-deployment-tarball-untested
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    regexp: kubo-deployment-(.*).tgz
+
+- name: kubo-lock-gcp
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key))
+    pool: gcp-with-bosh
+
+- name: conformance-results
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: conformance-results
+    regexp: conformance-results-(.*).tar.gz
+
+jobs:
+- name: run-unit-tests
+  plan:
+  - get: git-kubo-ci
+  - get: git-kubo-deployment
+    trigger: true
+  - get: git-kubo-release
+    trigger: true
+  - task: run-release-unit-tests
+    file: git-kubo-ci/tasks/run-release-unit-tests.yml
+  - task: run-deployment-unit-tests
+    file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
+
+- name: build-kubo-release
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed: [ 'run-unit-tests' ]
+      trigger: true
+    - get: kubo-version
+      params:
+        pre: dev
+    - get: git-kubo-release
+      passed: [ 'run-unit-tests' ]
+      trigger: true
+    - get: ubuntu-trusty-stemcell
+      version:
+        version: "3468.5"
+  - task: build-kubo-release
+    file: git-kubo-ci/tasks/build-kubo-release.yml
+  - task: export-release
+    file: git-kubo-ci/tasks/export-release.yml
+    privileged: true
+    input_mapping:
+      kubo-ci: git-kubo-ci
+      stemcell: ubuntu-trusty-stemcell
+      release: kubo-release
+  - put: gcs-kubo-release-tarball-untested
+    params:
+      file: compiled-release/kubo-*.tgz
+  - put: kubo-version
+    params:
+      pre: dev
+
+- name: package-kubo-deployment-tarball
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed: [ 'build-kubo-release' ]
+    - get: kubo-version
+      passed: [ 'build-kubo-release' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'build-kubo-release' ]
+      trigger: true
+    - get: git-kubo-release
+      passed: [ 'build-kubo-release' ]
+  - task: build-kubo-deployment-tarball
+    file: git-kubo-ci/tasks/build-kubo-deployment-tarball.yml
+  - put: gcs-kubo-deployment-tarball-untested
+    params:
+      file: kubo-deployment-tarball/kubo-deployment*.tgz
+
+- name: claim-lock-gcp
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: gcs-kubo-release-tarball-untested
+    - get: gcs-kubo-deployment-tarball-untested
+      trigger: true
+  - put: kubo-lock-gcp
+    params: { acquire: true }
+
+- name: deploy-k8s-gcp
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-gcp
+      version: every
+      trigger: true
+      passed: [ 'claim-lock-gcp' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'claim-lock-gcp' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'claim-lock-gcp' ]
+  - task: get-bosh-secrets
+    file: git-kubo-ci/tasks/get-bosh-secrets.yml
+    params:
+      CREDHUB_CA_CERT: ((credhub-ca.certificate))
+      CREDHUB_CLIENT: director_to_credhub
+      CREDHUB_SECRET: ((credhub-password))
+      CREDHUB_SERVER: https://10.1.0.2:8844
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    tags: ['gcp']
+
+  - task: deploy
+    tags: ['gcp']
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
+      gcs-kubo-release-tarball: gcs-kubo-release-pre
+      gcs-bosh-creds: bosh-creds
+    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    params:
+      WITHOUT_ADDONS: 1
+      CLOUD_CONFIG_OPS_FILE: static-network-k8s-cloud-config.yml
+
+- name: run-conformance-tests-gcp
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-gcp
+      version: every
+      trigger: true
+      passed: [ 'deploy-k8s-gcp' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'deploy-k8s-gcp' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'deploy-k8s-gcp' ]
+  - task: get-bosh-secrets
+    file: git-kubo-ci/tasks/get-bosh-secrets.yml
+    params:
+      CREDHUB_CA_CERT: ((credhub-ca.certificate))
+      CREDHUB_CLIENT: director_to_credhub
+      CREDHUB_SECRET: ((credhub-password))
+      CREDHUB_SERVER: https://10.1.0.2:8844
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    tags: ['gcp']
+
+  - task: conformance-tests
+    file: git-kubo-ci/tasks/run-conformance-tests.yml
+    tags: ['gcp']
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
+      gcs-bosh-creds: bosh-creds
+    params:
+      CONFORMANCE_RESULTS_DIR: conformance-results
+    ensure:
+      put: conformance-results
+      params:
+        file: conformance-results/conformance-results-*.tar.gz
+
+- name: destroy-k8s-gcp
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-gcp
+      version: every
+      trigger: true
+      passed: [ 'run-conformance-tests-gcp' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'run-conformance-tests-gcp' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'run-conformance-tests-gcp' ]
+  - task: get-bosh-secrets
+    file: git-kubo-ci/tasks/get-bosh-secrets.yml
+    params:
+      CREDHUB_CA_CERT: ((credhub-ca.certificate))
+      CREDHUB_CLIENT: director_to_credhub
+      CREDHUB_SECRET: ((credhub-password))
+      CREDHUB_SERVER: https://10.1.0.2:8844
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    tags: ['gcp']
+  - task: destroy-k8s
+    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+    tags: ['gcp']
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
+      gcs-bosh-creds: bosh-creds
+
+- name: unclaim-lock-gcp
+  plan:
+  - aggregate:
+    - get: kubo-lock-gcp
+      version: every
+      trigger: true
+      passed: [ 'destroy-k8s-gcp' ]
+  - put: kubo-lock-gcp
+    params: { release: kubo-lock-gcp }

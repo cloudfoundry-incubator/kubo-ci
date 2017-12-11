@@ -1,0 +1,113 @@
+<%
+  bosh_pools = %w(gcp-with-bosh)
+  pools = %w(gcp)
+  all_pools = bosh_pools + pools
+%>
+
+resource_types:
+- name: pool-trigger
+  type: docker-image
+  source:
+    repository: cfmobile/pool-trigger
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+
+- name: git-kubo-deployment
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/kubo-deployment
+    branch: master
+
+<% all_pools.each do |pool| %>
+- name: kubo-lock-<%= pool %>-lifecycle-trigger
+  type: pool-trigger
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    pool: <%= pool %>-lifecycle
+    private_key: ((git-ssh-key))
+
+- name: kubo-lock-<%= pool %>-lifecycle
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key))
+    pool: <%= pool %>-lifecycle
+
+- name: kubo-lock-<%= pool %>
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key))
+    pool: <%= pool %>
+<% end %>
+
+jobs:
+<% all_pools.each do |pool| %>
+<% iaas = pool.gsub(/-.*/, '') %>
+- name: claim-lock-<%= pool %>
+  plan:
+  - get: kubo-lock-<%= pool %>-lifecycle-trigger
+    trigger: true
+    version: every
+  - put: kubo-lock-<%= pool %>-lifecycle
+    params: { acquire: true }
+
+- name: cleanup-<%= pool %>
+  plan:
+  - aggregate:
+    - get: kubo-lock-<%= pool %>-lifecycle
+      version: every
+      trigger: true
+      passed: [ 'claim-lock-<%= pool %>' ]
+    - get: git-kubo-ci
+  - task: cleanup-<%= pool %>
+    file: git-kubo-ci/tasks/cleanup-<%= iaas %>-environment.yml
+    params:
+      ENV_FILE: 'kubo-lock/metadata'
+      GCP_SERVICE_ACCOUNT: ((gcp-service-account))
+    tags:
+    - <%= iaas %>
+    input_mapping:
+      kubo-lock: kubo-lock-<%= pool %>-lifecycle
+<% if bosh_pools.include? pool %>
+- name: install_bosh
+  plan:
+  - aggregate:
+    - get: kubo-lock-<%= pool %>-lifecycle
+      version: every
+      trigger: true
+      passed: [ 'cleanup-<%= pool %>' ]
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+  - task: install-common-bosh
+    file: git-kubo-ci/tasks/install-common-bosh.yml
+    input_mapping:
+      kubo-lock: kubo-lock-<%= pool %>-lifecycle
+    tags:
+    - <%= iaas %>
+    params:
+      GCP_SERVICE_ACCOUNT: ((gcp-service-account))
+      CREDHUB_SECRET: ((credhub-password))
+      CREDHUB_SERVER: https://10.1.0.2:8844
+      CREDHUB_CLIENT: director_to_credhub
+      CREDHUB_CA_CERT: ((credhub-ca.certificate))
+<% end %>
+
+- name: release-<%= pool %>-environment
+  plan:
+  - get: kubo-lock-<%= pool %>-lifecycle
+    passed: [ '<%= bosh_pools.include?(pool) ? "install_bosh" : "cleanup-#{pool}" %>' ]
+    trigger: true
+  - put: kubo-lock-<%= pool %>
+    params: { add: kubo-lock-<%= pool %>-lifecycle }
+  - put: kubo-lock-<%= pool %>-lifecycle
+    params: { remove: kubo-lock-<%= pool %>-lifecycle }
+<% end %>
