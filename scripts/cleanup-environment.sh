@@ -3,7 +3,7 @@
 set -exu -o pipefail
 
 login_gcp() {
-  if bosh-cli int "${ENV_FILE}" --path='/gcp_service_account'; then
+  if bosh-cli int "${ENV_FILE}" --path='/gcp_service_account' &> /dev/null; then
     bosh-cli int "${ENV_FILE}" --path='/gcp_service_account' > gcp_service_account.json
   elif [[ -n "${GCP_SERVICE_ACCOUNT}" ]]; then
     set +x
