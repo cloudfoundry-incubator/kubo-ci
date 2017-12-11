@@ -145,7 +145,6 @@ resources:
     region_name: us-east1
     endpoint: storage.googleapis.com
 
-# stemcell
 - name: ubuntu-trusty-stemcell
   type: bosh-io-stemcell
   source:
