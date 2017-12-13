@@ -4,7 +4,7 @@ set -exu -o pipefail
 
 . "$(dirname "$0")/lib/environment.sh"
 
-metadata_path="${KUBO_ENVIRONMENT_DIR}/director.yml"
+metadata_path="kubo-lock/metadata"
 director_name=$(bosh-cli int ${metadata_path} --path=/director_name)
 
 echo "Getting creds"

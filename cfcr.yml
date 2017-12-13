@@ -168,6 +168,8 @@ jobs:
       passed: [ 'claim-lock-gcp' ]
   - task: get-bosh-secrets
     file: git-kubo-ci/tasks/get-bosh-secrets.yml
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
     params:
       CREDHUB_CA_CERT: ((credhub-ca.certificate))
       CREDHUB_CLIENT: director_to_credhub
@@ -176,7 +178,6 @@ jobs:
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     tags: ['gcp']
-
   - task: deploy
     tags: ['gcp']
     input_mapping:
