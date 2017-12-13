@@ -23,8 +23,26 @@ deploy() {
   BOSH_ENVIRONMENT=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path /internal_ip)
   export BOSH_CLIENT BOSH_CLIENT_SECRET BOSH_CA_CERT BOSH_ENVIRONMENT
 
+
   if [ -z "$(bosh-cli stemcells | grep trusty)" ]; then
-    bosh-cli upload-stemcell https://s3.amazonaws.com/bosh-core-stemcells/openstack/bosh-stemcell-3468.11-openstack-kvm-ubuntu-trusty-go_agent.tgz
+    local stemcell_version=3468.11
+    local iaas_extension=
+    case ${IAAS} in
+    vsphere)
+      iaas_extension=${IAAS}-esxi
+      ;;
+    aws)
+      iaas_extension=${IAAS}-xen-hvm
+      ;;
+    openstack)
+      iaas_extension=${IAAS}-kvm
+      ;;
+    gcp)
+      iaas_extension=${IAAS}-kvm
+      ;;
+    esac
+
+    bosh-cli upload-stemcell "https://bosh.io/d/stemcells/bosh-${iaas_extension}-ubuntu-trusty-go_agent?v=${stemcell_version}"
   fi
 
   bosh-cli interpolate "$manifest_template"  \
