@@ -31,9 +31,11 @@ var _ = Describe("Conformance Tests", func() {
 	})
 
 	AfterEach(func() {
-		session := kubectl.RunKubectlCommandInNamespace("sonobuoy", "delete", "-f", conformanceSpec)
-		Eventually(session, "30s").Should(gexec.Exit(0))
-		os.Remove(conformanceSpec)
+		if !CurrentGinkgoTestDescription().Failed {
+			session := kubectl.RunKubectlCommandInNamespace("sonobuoy", "delete", "-f", conformanceSpec)
+			Eventually(session, "30s").Should(gexec.Exit(0))
+			os.Remove(conformanceSpec)
+		}
 	})
 
 	Specify("Conformance tests succeeds", func() {
