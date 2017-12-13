@@ -105,6 +105,8 @@ var _ = Describe("Conformance Tests", func() {
 		re = regexp.MustCompile(`(FAIL|SUCCESS)! -- (\d+) Passed \| (\d+) Failed \| (\d+) Pending \| (\d+) Skipped`)
 		e2eLogContents, err := ioutil.ReadFile(e2eLogPath)
 		Expect(err).NotTo(HaveOccurred())
+		fmt.Println("E2E Test log:")
+		fmt.Println(string(e2eLogContents))
 
 		matches = re.FindStringSubmatch(string(e2eLogContents))
 		Expect(len(matches)).To(Equal(6))
