@@ -18,9 +18,9 @@ set +x
 credhub get -n "/concourse/main/${director_name}/creds" --output-json | jq -r .value > bosh-creds/creds.yml
 
 cp ${metadata_path} ${updated_metadata_path}
-credhub get -n "/concourse/main/cfcr-gcp-cf" --output-json | jq -r .value  >> ${updated_metadata_path}
+credhub get -n "/concourse/main/cfcr" --output-json | jq -r .value  >> ${updated_metadata_path}
 credhub get -n "/concourse/main/cfcr-gcp" --output-json | jq -r .value  >> ${updated_metadata_path}
-credhub get -n "/concourse/main/cfcr-cfcr" --output-json | jq -r .value  >> ${updated_metadata_path}
+credhub get -n "/concourse/main/cfcr-gcp-cf" --output-json | jq -r .value  >> ${updated_metadata_path}
 credhub get -n "/concourse/main/cfcr-gcp-cf-${director_name}-conformance" --output-json | jq -r .value >> ${updated_metadata_path}
 echo "routing_mode: cf" >> ${updated_metadata_path}
 
