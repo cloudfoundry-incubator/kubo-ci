@@ -12,7 +12,7 @@ echo "Getting creds"
 credhub login
 set +x
 
-credhub get -n "/concourse/main/${director_name}/creds" --output-json | jq .value > bosh-creds/creds.yml
+credhub get -n "/concourse/main/${director_name}/creds" --output-json | jq -r .value > bosh-creds/creds.yml
 
 set -x
 credhub logout
