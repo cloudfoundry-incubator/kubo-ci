@@ -18,7 +18,7 @@ director_name=$(bosh-cli int ${metadata_path} --path=/director_name)
 
 echo "Building envrionment"
 
-director_config="${environment_dir}/director.yml"
+director_config="${environment_dir}/metadata"
 
 cp "${metadata_path}" "${director_config}"
 echo "${CFCR_GENERAL}" >> "${director_config}"
