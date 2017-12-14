@@ -151,6 +151,8 @@ jobs:
     - get: gcs-kubo-deployment-tarball-untested
       passed: ['package-kubo-deployment-tarball']
       trigger: true
+    - get: git-kubo-deployment
+      passed: [ 'package-kubo-deployment-tarball' ]
   - put: kubo-lock-gcp
     params: { acquire: true }
 
@@ -166,23 +168,29 @@ jobs:
       passed: [ 'claim-lock-gcp' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'claim-lock-gcp' ]
-  - task: get-bosh-secrets
-    file: git-kubo-ci/tasks/get-bosh-secrets.yml
+  - task: build-environment-metadata
+    file: git-kubo-ci/tasks/build-environment-metadata.yml
     input_mapping:
       kubo-lock: kubo-lock-gcp
     params:
+      CFCR_GENERAL: ((cfcr))
+      CFCR_IAAS: ((cfcr-gcp))
+      CFCR_ROUTING: ((cfcr-gcp-routing-cf))
+      CFCR_ROUTING_PORT_RANGE_START: 6000
       CREDHUB_CA_CERT: ((credhub-ca.certificate))
       CREDHUB_CLIENT: director_to_credhub
       CREDHUB_SECRET: ((credhub-password))
       CREDHUB_SERVER: https://10.1.0.2:8844
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
     tags: ['gcp']
   - task: deploy
     tags: ['gcp']
     input_mapping:
-      kubo-lock: kubo-lock-gcp
-      gcs-kubo-release-tarball: gcs-kubo-release-pre
+      kubo-lock: environment
+      gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
       gcs-bosh-creds: bosh-creds
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
@@ -201,8 +209,12 @@ jobs:
       passed: [ 'deploy-k8s-gcp' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'deploy-k8s-gcp' ]
+    - get: git-kubo-deployment
+      passed: [ 'deploy-k8s-gcp' ]
   - task: get-bosh-secrets
     file: git-kubo-ci/tasks/get-bosh-secrets.yml
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
     params:
       CREDHUB_CA_CERT: ((credhub-ca.certificate))
       CREDHUB_CLIENT: director_to_credhub
@@ -210,13 +222,15 @@ jobs:
       CREDHUB_SERVER: https://10.1.0.2:8844
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
     tags: ['gcp']
-
   - task: conformance-tests
     file: git-kubo-ci/tasks/run-conformance-tests.yml
     tags: ['gcp']
     input_mapping:
-      kubo-lock: kubo-lock-gcp
+      kubo-lock: updated-kubo-lock
+      gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
       gcs-bosh-creds: bosh-creds
     params:
       CONFORMANCE_RESULTS_DIR: conformance-results
@@ -246,12 +260,14 @@ jobs:
       CREDHUB_SERVER: https://10.1.0.2:8844
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
     tags: ['gcp']
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     tags: ['gcp']
     input_mapping:
-      kubo-lock: kubo-lock-gcp
+      kubo-lock: updated-kubo-lock
       gcs-bosh-creds: bosh-creds
 
 - name: unclaim-lock-gcp
