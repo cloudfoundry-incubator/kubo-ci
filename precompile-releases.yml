@@ -37,8 +37,7 @@ jobs:
   - aggregate:
     - get: kubo-ci
     - get: docker-boshrelease
-      version:
-        version: 30.1.3
+      trigger: true
     - get: ubuntu-trusty
       version:
         version: *stemcell_version
@@ -56,6 +55,7 @@ jobs:
   - aggregate:
     - get: kubo-ci
     - get: kubo-etcd-release
+      trigger: true
     - get: ubuntu-trusty
       version:
         version: *stemcell_version
