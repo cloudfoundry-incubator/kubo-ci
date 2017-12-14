@@ -7,11 +7,12 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/run-cis-benchmarks.sh
 
+params:
+  VM_TYPE:
+  NODE_TYPE:
+
 inputs:
   - name: git-kubo-ci
   - name: gcs-bosh-creds
   - name: kubo-lock
   - name: git-kubo-deployment
-
-# outputs:
-#   - name: conformance-results

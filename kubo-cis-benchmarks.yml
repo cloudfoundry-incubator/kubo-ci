@@ -35,13 +35,6 @@ resources:
     bucket: kubo-pipeline-store
     versioned_file: bosh/state.json
 
-# - name: conformance-results
-#   type: gcs
-#   source:
-#     json_key: ((gcs-json-key))
-#     bucket: conformance-results
-#     regexp: conformance-results-(.*).tar.gz
-
 # Creds
 - name: gcs-bosh-creds
   type: gcs
@@ -162,16 +155,22 @@ jobs:
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     tags: ['<%= iaas %>']
 
-  - task: benchmarks
-    file: git-kubo-ci/tasks/run-cis-benchmarks.yml
-    tags: ['<%= iaas %>']
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
-    # params:
-    #   CONFORMANCE_RESULTS_DIR: conformance-results
-    # ensure:
-    #   put: conformance-results
-    #   params:
-    #     file: conformance-results/conformance-results-*.tar.gz
+  - aggregate:
+    - task: master-benchmarks
+      file: git-kubo-ci/tasks/run-cis-benchmarks.yml
+      tags: ['<%= iaas %>']
+      input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
+      params:
+        VM_TYPE: master
+        NODE_TYPE: master
+
+    - task: worker-benchmarks
+      file: git-kubo-ci/tasks/run-cis-benchmarks.yml
+      tags: ['<%= iaas %>']
+      input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
+      params:
+        VM_TYPE: worker
+        NODE_TYPE: node
 
 - name: destroy-k8s-<%= iaas %>-<%= network %>
   plan:
