@@ -5,11 +5,13 @@ image_resource:
   source:
     repository: pcfkubo/kubo-ci
     tag: stable
+
 run:
   path: git-kubo-ci/scripts/deploy-k8s-instance.sh
 
 params:
-  CLOUD_CONFIG_OPS_FILE:
+  CLOUD_CONFIG_OPS_FILE: ~
+  DEPLOYMENT_NAME: ~
 
 inputs:
   - name: git-kubo-ci

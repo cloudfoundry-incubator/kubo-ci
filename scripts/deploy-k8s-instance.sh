@@ -8,6 +8,7 @@ export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 export DEBUG=1
 
+export DEPLOYMENT_NAME="${DEPLOYMENT_NAME:-"ci-service"}"
 
 metadata_path="${KUBO_ENVIRONMENT_DIR}/director.yml"
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
@@ -44,4 +45,4 @@ export CLOUD_CONFIG_OPS_FILES
 
 release_source="local"
 
-"$KUBO_DEPLOYMENT_DIR/bin/deploy_k8s" "$KUBO_ENVIRONMENT_DIR" ci-service "$release_source"
+"$KUBO_DEPLOYMENT_DIR/bin/deploy_k8s" "$KUBO_ENVIRONMENT_DIR" "${DEPLOYMENT_NAME}" "$release_source"
