@@ -227,7 +227,7 @@ jobs:
     tags: ['gcp']
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
     input_mapping:
-      kubo-lock: kubo-lock-gcp
+      kubo-lock: environment
       gcs-bosh-creds: bosh-creds
     params:
       KUBERNETES_AUTHENTICATION_POLICY: RBAC
@@ -352,7 +352,7 @@ jobs:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
       gcs-bosh-creds: bosh-creds
     params:
-      CONFORMANCE_RESULTS_DIR: conformance-results
+      DEPLOYMENT_NAME: ci-service-conformance
     ensure:
       put: conformance-results
       params:

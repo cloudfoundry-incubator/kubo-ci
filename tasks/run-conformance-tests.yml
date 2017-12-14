@@ -7,6 +7,9 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/run-conformance-tests.sh
 
+params:
+  DEPLOYMENT_NAME: ci-service
+
 inputs:
   - name: git-kubo-ci
   - name: gcs-bosh-creds
