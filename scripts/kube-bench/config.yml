@@ -1,0 +1,135 @@
+---
+## Controls Files. 
+# These are YAML files that hold all the details for running checks.
+#
+## Uncomment to use different control file paths.
+# masterControls: ./cfg/master.yaml
+# nodeControls: ./cfg/node.yaml
+# federatedControls: ./cfg/federated.yaml
+
+master:
+  components:
+    - apiserver
+    - scheduler
+    - controllermanager
+    - etcd 
+    - flanneld
+    # kubernetes is a component to cover the config file /etc/kubernetes/config that is referred to in the benchmark
+    - kubernetes
+
+  kubernetes:
+    defaultconf: /etc/kubernetes/config
+
+  apiserver:
+    bins:
+      - "kube-apiserver"
+      #- "/var/vcap/packages/kubernetes/bin/kube-apiserver"
+      #- "hyperkube apiserver"
+      #- "apiserver"
+    confs:
+      #- /etc/kubernetes/apiserver.conf
+      #- /etc/kubernetes/apiserver
+    defaultconf: #/etc/kubernetes/apiserver
+
+    podspecs:
+      #- /etc/kubernetes/manifests/kube-apiserver.yaml
+    defaultpodspec: #/etc/kubernetes/manifests/kube-apiserver.yaml
+
+  scheduler:
+    bins:
+      - "kube-scheduler"
+      #- "hyperkube scheduler"
+      #- "scheduler"
+    confs: 
+      #- /etc/kubernetes/scheduler.conf
+      #- /etc/kubernetes/scheduler
+    defaultconf: #/etc/kubernetes/scheduler
+
+    podspecs:
+      #- /etc/kubernetes/manifests/kube-scheduler.yaml
+    defaultpodspec: # /etc/kubernetes/manifests/kube-scheduler.yaml
+
+  controllermanager:
+    bins:
+      - "kube-controller-manager"
+      #- "hyperkube controller-manager"
+      #- "controller-manager"
+    confs:
+      #- /etc/kubernetes/controller-manager.conf
+      #- /etc/kubernetes/controller-manager
+    defaultconf:  #/etc/kubernetes/controller-manager
+
+    podspecs:
+      #- /etc/kubernetes/manifests/kube-controller-manager.yaml
+    defaultpodspec: # /etc/kubernetes/manifests/kube-controller-manager.yaml
+
+  etcd:
+    optional: true
+    bins:
+      - "etcd"
+    confs:
+      - /var/vcap/jobs/etcd/config/etcd_link.json
+    defaultconf: # /etc/etcd/etcd.conf
+
+    podspecs:
+      #- /etc/kubernetes/manifests/etcd.yaml
+    defaultpodspec: # /etc/kubernetes/manifests/etcd.yaml
+
+  flanneld:
+    optional: true
+    bins:
+      - flanneld
+    defaultconf: # /etc/sysconfig/flanneld
+
+
+node:
+  components:
+    - kubelet
+    - proxy
+    # kubernetes is a component to cover the config file /etc/kubernetes/config that is referred to in the benchmark
+    - kubernetes
+
+  kubernetes:
+    defaultconf: /etc/kubernetes/config    
+
+  kubelet:
+    bins:
+      - "hyperkube kubelet"
+      - "kubelet"
+    confs:
+      #- /etc/kubernetes/kubelet.conf
+      #- /etc/kubernetes/kubelet 
+    defaultconf: #"/etc/kubernetes/kubelet.conf"
+
+    unitfiles:
+     #- /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    defaultunitfile: # /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  
+  proxy:
+    bins:
+      - "kube-proxy"
+      - "hyperkube proxy"
+      - "proxy"
+    confs:
+      #- /etc/kubernetes/proxy.conf
+      #- /etc/kubernetes/proxy
+      #- /etc/kubernetes/addons/kube-proxy-daemonset.yaml
+
+federated:
+  components:
+    - fedapiserver
+    - fedcontrollermanager
+
+  fedapiserver:
+    bins:
+      - "hyperkube federation-apiserver"
+      - "kube-federation-apiserver"
+      - "federation-apiserver"
+
+  fedcontrollermanager:
+    bins:
+      - "hyperkube federation-controller-manager"
+      - "kube-federation-controller-manager"
+      - "federation-controller-manager"
+
+
