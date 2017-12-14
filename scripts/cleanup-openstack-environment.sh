@@ -7,7 +7,9 @@ delete_vms() {
   network_name=$(openstack network list -f value | grep "$network_id" | awk '{print $2}')
   server_list_with_details=$(openstack server list -f value)
   # Don't fail if no servers are found
+  set +e
   server_names=$(echo "$server_list_with_details" | grep "$network_name" | awk '{print $1}')
+  set -e
 
   openstack volume list --status available -c ID -f value | awk '{print $1}' | xargs -I{} openstack volume delete {}
 
