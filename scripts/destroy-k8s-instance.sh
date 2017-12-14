@@ -4,8 +4,6 @@ set -exu -o pipefail
 
 creds_path="${PWD}/gcs-bosh-creds/creds.yml"
 
-export DEPLOYMENT_NAME="${DEPLOYMENT_NAME:-"ci-service"}"
-
 export BOSH_CLIENT="bosh_admin"
 export BOSH_CLIENT_SECRET="$(bosh-cli int "$creds_path" --path /bosh_admin_client_secret)"
 export BOSH_ENVIRONMENT="$(bosh-cli int "kubo-lock/metadata" --path /internal_ip)"

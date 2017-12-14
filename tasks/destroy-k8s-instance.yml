@@ -9,7 +9,7 @@ run:
   path: git-kubo-ci/scripts/destroy-k8s-instance.sh
 
 params:
-  DEPLOYMENT_NAME: ~
+  DEPLOYMENT_NAME: ci-service
 
 inputs:
   - name: git-kubo-ci

@@ -8,8 +8,6 @@ export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 export DEBUG=1
 
-export DEPLOYMENT_NAME="${DEPLOYMENT_NAME:-"ci-service"}"
-
 metadata_path="${KUBO_ENVIRONMENT_DIR}/director.yml"
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
