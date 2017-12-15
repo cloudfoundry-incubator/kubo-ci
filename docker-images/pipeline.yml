@@ -1,6 +1,6 @@
 <%
   tested_images=%w(test-runner vsphere-cleaner curl aws-maintenance kubo-ci)
-  untested_images=%w(ulimit kubectl cf-cleaner)
+  untested_images=%w(ulimit kubectl cf-cleaner tile-maintenance)
 %>
 ---
 resources:
@@ -137,6 +137,14 @@ jobs:
   - put: ulimit-stable
     params:
       build: git-kubo-ci-ulimit/docker-images/ulimit
+
+- name: build-tile-maintenance
+  plan:
+  - get: git-kubo-ci-tile-maintenance
+    trigger: true
+  - put: tile-maintenance-stable
+    params:
+      build: git-kubo-ci-tile-maintenance/docker-images/tile-maintenance
 
 - name: build-test-runner
   plan:
