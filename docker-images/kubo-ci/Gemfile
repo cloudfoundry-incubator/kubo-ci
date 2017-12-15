@@ -4,4 +4,5 @@ source 'https://rubygems.org' do
   gem 'vara'
   gem 'pry'
   gem 'pry-nav'
+  gem 'cf-uaac'
 end
