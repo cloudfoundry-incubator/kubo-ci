@@ -110,13 +110,13 @@ You may also wish to read [Jaime's docs](https://docs.google.com/document/d/1PCn
     * `private_key`: The private rsa key for the bosh director
     * For `routing_mode: cf` environments:
         * `kubernetes_master_host`: e.g. `tcp.openstack-pez-01.cf-app.com`. Use the FQDN you set up in Route53, described above.
-        * `routing-cf-api-url`: e.g. `https://api.sys.openstack-pez-01.cf-app.com`. Prepend `https://api.` to the FQDN for sys you set up in Route53, described above.
-        * `routing-cf-client-id`: `routing_api_client`
+        * `routing_cf_api_url`: e.g. `https://api.sys.openstack-pez-01.cf-app.com`. Prepend `https://api.` to the FQDN for sys you set up in Route53, described above.
+        * `routing_cf_client_id`: `routing_api_client`
         * `routing-cf-client-secret`: [The passphrase set up in the previous step for the UAA client]
-        * `routing-cf-uaa-url`: e.g. `https://uaa.sys.openstack-pez-01.cf-app.com`. Prepend `https://uaa.` to the FQDN for sys you set up in Route53, described above.
-        * `routing-cf-app-domain-name`: e.g. `app.openstack-pez-01.cf-app.com`. Use the FQDN for apps you set up in Route53, described above
+        * `routing_cf_uaa_url`: e.g. `https://uaa.sys.openstack-pez-01.cf-app.com`. Prepend `https://uaa.` to the FQDN for sys you set up in Route53, described above.
+        * `routing_cf_app_domain_name`: e.g. `app.openstack-pez-01.cf-app.com`. Use the FQDN for apps you set up in Route53, described above
         * `routing-cf-sys-domain-name`: e.g. `sys.openstack-pez-01.cf-app.com`. Use the FQDN for sys you set up in Route53, described above
-        * `routing-cf-nats-internal-ips`: This can be found in the Ops Manager Pivotal Elastic Runtime tile, in the Status tab. For a 'full' footprint deployment the IP is the IP for the NATS VM, for a small footprint deployment it is the [IP for the Database VM](https://docs.pivotal.io/pivotalcf/1-12/customizing/small-footprint.html).
+        * `routing_cf_nats_internal_ips`: This can be found in the Ops Manager Pivotal Elastic Runtime tile, in the Status tab. For a 'full' footprint deployment the IP is the IP for the NATS VM, for a small footprint deployment it is the [IP for the Database VM](https://docs.pivotal.io/pivotalcf/1-12/customizing/small-footprint.html).
         * `routing-cf-nats-password`: Can be found in Ops Manager tile for Pivotal Elastic Runtime, in the Credentials tab.  Go to Jobs>NATS>Credentials.
 1. Create an ops file for this environment in the [`kubo-odb-ci`](https://github.com/pivotal-cf-experimental/kubo-odb-ci) repository. Navigate to the directory `environments` and create a new directory and within that create a new ops file. In our case we would create a directory named `openstack-example`, and within we would create `openstack-example.yml`. Start by copy-and-pasting an ops file from another OpenStack environment. Here're the properties you'll need to update:
     * `.../service_catalog/id`: [generate a new GUID]

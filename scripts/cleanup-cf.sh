@@ -54,7 +54,7 @@ cleanup_cf() {
 }
 
 main() {
-    local cf_api_url=$(bosh-cli int "$ENV_FILE" --path=/routing-cf-api-url)
+    local cf_api_url=$(bosh-cli int "$ENV_FILE" --path=/routing_cf_api_url)
     cleanup_cf "$cf_api_url" "$CF_PASSWORD" "$ENV_NAME"
 }
 
