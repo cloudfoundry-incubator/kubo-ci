@@ -15,6 +15,10 @@ resources:
   type: bosh-io-release
   source:
     repository: cf-platform-eng/docker-boshrelease
+- name: cf-mysql-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry/cf-mysql-release
 - name: compiled-releases
   type: gcs
   source:
@@ -64,6 +68,24 @@ jobs:
     file: kubo-ci/tasks/export-release.yml
     input_mapping:
       release: kubo-etcd-release
+      stemcell: ubuntu-trusty
+  - put: compiled-releases
+    params:
+      file: compiled-release/*.tgz
+- name: compile-cf-mysql-release-ubuntu-trusty
+  plan:
+  - aggregate:
+    - get: kubo-ci
+    - get: cf-mysql-release
+      trigger: true
+    - get: ubuntu-trusty
+      version:
+        version: *stemcell_version
+  - task: export-release
+    privileged: true
+    file: kubo-ci/tasks/export-release.yml
+    input_mapping:
+      release: cf-mysql-release
       stemcell: ubuntu-trusty
   - put: compiled-releases
     params:
