@@ -63,7 +63,6 @@ func (runner KubectlRunner) RunKubectlCommandInNamespace(namespace string, args 
 	newArgs := append([]string{"--kubeconfig", runner.configPath, "--namespace", namespace}, args...)
 	command := exec.Command("kubectl", newArgs...)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-
 	Expect(err).NotTo(HaveOccurred())
 	return session
 }
