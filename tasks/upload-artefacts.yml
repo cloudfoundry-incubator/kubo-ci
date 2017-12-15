@@ -13,3 +13,4 @@ inputs:
   - name: git-kubo-ci
   - name: gcs-kubo-deployment-tarball-untested
   - name: kubo-lock
+  - name: bosh-creds
