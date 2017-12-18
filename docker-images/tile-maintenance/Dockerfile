@@ -8,8 +8,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   wget \
   jq \
   python-pip \
-  python-dev \
-&& rm -rf /var/lib/apt/lists/*
+  python-dev 
 
 WORKDIR /tmp/docker-build
 
