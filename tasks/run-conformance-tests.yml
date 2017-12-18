@@ -9,6 +9,7 @@ run:
 
 params:
   DEPLOYMENT_NAME: ci-service
+  CONFORMANCE_RESULTS_DIR: ~
 
 inputs:
   - name: git-kubo-ci
