@@ -5,6 +5,7 @@ MAINTAINER pcf-kubo@pivotal.io
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   curl \
   git-core \
+  wget \
   jq
 
 WORKDIR /tmp/docker-build
