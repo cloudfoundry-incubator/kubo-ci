@@ -156,18 +156,48 @@ jobs:
   - put: kubo-lock-gcp
     params: { acquire: true }
 
+- name: upload-artefacts-gcp
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: gcs-kubo-release-tarball-untested
+      passed: ['claim-lock-gcp']
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: ['claim-lock-gcp']
+    - get: kubo-lock-gcp
+      trigger: true
+      passed: [ 'claim-lock-gcp' ]
+    - get: git-kubo-deployment
+      passed: [ 'claim-lock-gcp' ]
+  - task: build-environment-metadata
+    file: git-kubo-ci/tasks/build-environment-metadata.yml
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
+    params:
+      CFCR_GENERAL: ((cfcr))
+      CFCR_IAAS: ((cfcr-gcp))
+      CFCR_ROUTING: ((cfcr-gcp-routing-cf))
+      CFCR_ROUTING_PORT_RANGE_START: 7000
+      CREDHUB_CA_CERT: ((credhub-ca.certificate))
+      CREDHUB_CLIENT: director_to_credhub
+      CREDHUB_SECRET: ((credhub-password))
+      CREDHUB_SERVER: https://10.1.0.2:8844
+  - task: upload-artefacts
+    file: git-kubo-ci/tasks/upload-artefacts.yml
+    input_mapping:
+      kubo-lock: environment
+
 - name: deploy-k8s-gcp-integration
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-lock-gcp
-      version: every
       trigger: true
-      passed: [ 'claim-lock-gcp' ]
+      passed: [ 'upload-artefacts-gcp' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'claim-lock-gcp' ]
+      passed: [ 'upload-artefacts-gcp' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'claim-lock-gcp' ]
+      passed: [ 'upload-artefacts-gcp' ]
   - task: build-environment-metadata
     file: git-kubo-ci/tasks/build-environment-metadata.yml
     input_mapping:
@@ -201,7 +231,6 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-lock-gcp
-      version: every
       trigger: true
       passed: [ 'deploy-k8s-gcp-integration' ]
     - get: gcs-kubo-deployment-tarball-untested
@@ -214,7 +243,7 @@ jobs:
       CFCR_GENERAL: ((cfcr))
       CFCR_IAAS: ((cfcr-gcp))
       CFCR_ROUTING: ((cfcr-gcp-routing-cf))
-      CFCR_ROUTING_PORT_RANGE_START: 6000
+      CFCR_ROUTING_PORT_RANGE_START: 7000
       CREDHUB_CA_CERT: ((credhub-ca.certificate))
       CREDHUB_CLIENT: director_to_credhub
       CREDHUB_SECRET: ((credhub-password))
@@ -236,15 +265,16 @@ jobs:
     tags: ['gcp']
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping:
-      kubo-lock: kubo-lock-gcp
+      kubo-lock: environment
       gcs-bosh-creds: bosh-creds
+    params:
+      DEPLOYMENT_NAME: ci-service-integration
 
 - name: destroy-k8s-gcp-integration
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-lock-gcp
-      version: every
       trigger: true
       passed: [ 'run-k8s-integration-tests-gcp' ]
     - get: gcs-kubo-deployment-tarball-untested
@@ -257,7 +287,7 @@ jobs:
       CFCR_GENERAL: ((cfcr))
       CFCR_IAAS: ((cfcr-gcp))
       CFCR_ROUTING: ((cfcr-gcp-routing-cf))
-      CFCR_ROUTING_PORT_RANGE_START: 6000
+      CFCR_ROUTING_PORT_RANGE_START: 7000
       CREDHUB_CA_CERT: ((credhub-ca.certificate))
       CREDHUB_CLIENT: director_to_credhub
       CREDHUB_SECRET: ((credhub-password))
@@ -280,13 +310,12 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-lock-gcp
-      version: every
       trigger: true
-      passed: [ 'claim-lock-gcp' ]
+      passed: [ 'upload-artefacts-gcp' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'claim-lock-gcp' ]
+      passed: [ 'upload-artefacts-gcp' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'claim-lock-gcp' ]
+      passed: [ 'upload-artefacts-gcp' ]
   - task: build-environment-metadata
     file: git-kubo-ci/tasks/build-environment-metadata.yml
     input_mapping:
@@ -320,7 +349,6 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-lock-gcp
-      version: every
       trigger: true
       passed: [ 'deploy-k8s-gcp-conformance' ]
     - get: gcs-kubo-release-tarball-untested
@@ -352,6 +380,7 @@ jobs:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
       gcs-bosh-creds: bosh-creds
     params:
+      CONFORMANCE_RESULTS_DIR: conformance-results
       DEPLOYMENT_NAME: ci-service-conformance
     ensure:
       put: conformance-results
@@ -363,7 +392,6 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-lock-gcp
-      version: every
       trigger: true
       passed: [ 'run-conformance-tests-gcp' ]
     - get: gcs-kubo-release-tarball-untested
@@ -400,8 +428,9 @@ jobs:
   plan:
   - aggregate:
     - get: kubo-lock-gcp
-      version: every
       trigger: true
-      passed: [ 'destroy-k8s-gcp-conformance' ]
+      passed:
+      - 'destroy-k8s-gcp-conformance'
+      - 'destroy-k8s-gcp-integration'
   - put: kubo-lock-gcp
     params: { release: kubo-lock-gcp }
