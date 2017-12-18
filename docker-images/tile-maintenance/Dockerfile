@@ -8,13 +8,19 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   wget \
   jq \
   python-pip \
-  python-dev 
+  python-dev \
+  sshuttle
 
 WORKDIR /tmp/docker-build
 
+# om
+RUN wget -q -O - https://raw.githubusercontent.com/starkandwayne/homebrew-cf/master/public.key | apt-key add - && \
+echo "deb http://apt.starkandwayne.com stable main" | tee /etc/apt/sources.list.d/starkandwayne.list &&\
+apt-get update && apt-get install om
+
 # Google SDK
-ENV GCLOUD_VERSION=144.0.0
-ENV GCLOUD_SHA1SUM=4ef237d6d2696b353a5a1ef927462ef3833d261f
+ENV GCLOUD_VERSION=183.0.0
+ENV GCLOUD_SHA1SUM=e0499a64545e7e38af19c45ac3ad712f6715dd82
 
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz \
     -O gcloud_${GCLOUD_VERSION}_linux_amd64.tar.gz && \
