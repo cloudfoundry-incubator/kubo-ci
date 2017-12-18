@@ -21,7 +21,7 @@ if [[ "$iaas" != "gcp" ]]; then
   exit 1
 fi
 
-BOSH_EXTRA_OPS="--ops-file \"$KUBO_CI_DIR/manifests/turbulence/turbulence.yml\""
+BOSH_EXTRA_OPS="--ops-file \"${KUBO_DEPLOYMENT_DIR}/bosh-deployment/turbulence.yml\""
 BOSH_EXTRA_OPS="${BOSH_EXTRA_OPS} --ops-file \"${KUBO_DEPLOYMENT_DIR}/bosh-deployment/jumpbox-user.yml\""
 
 if [[ -f "$KUBO_CI_DIR/manifests/ops-files/${iaas}-cpi.yml" ]]; then
