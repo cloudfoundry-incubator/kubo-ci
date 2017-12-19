@@ -73,6 +73,7 @@ else
 fi
 
 bosh-cli create-env "$manifest_file" \
+    --ops-file "$BOSH_DEPLOYMENT/jumpbox-user.yml" \
     --vars-store "$CONCOURSE_DIR/$IAAS/private.yml" \
     --state "$CONCOURSE_DIR/$IAAS/state.json"
 
