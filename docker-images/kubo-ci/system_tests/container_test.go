@@ -13,6 +13,8 @@ var _ = Describe("Docker Image", func() {
 
 	commands := map[string][]string{
 		"bosh-cli": []string{"-v"},
+		"bosh":     []string{"-v"},
+		"bosh2":    []string{"-v"},
 		"cf":       []string{"version"},
 		"credhub":  []string{"--version"},
 		"gcloud":   []string{"--version"},

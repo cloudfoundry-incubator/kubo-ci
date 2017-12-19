@@ -100,3 +100,5 @@ RUN git clone https://github.com/sstephenson/bats.git /tmp/bats
 RUN /tmp/bats/install.sh /usr/local
 RUN rm -rf /tmp/bats
 
+RUN ln -s /usr/local/bin/bosh-cli /usr/local/bin/bosh
+RUN ln -s /usr/local/bin/bosh-cli /usr/local/bin/bosh2
