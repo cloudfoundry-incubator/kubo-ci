@@ -9,6 +9,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$DIR/lib/run_test_suite.sh"
 
 iaas=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/iaas')
+export DEPLOYMENT_NAME=${DEPLOYMENT_NAME:="ci-service"}
 
 case "${iaas}" in
   gcp)
@@ -43,7 +44,7 @@ esac
 cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 
-"$PWD/git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "ci-service"
+"$PWD/git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
 export PATH_TO_KUBECONFIG="$HOME/.kube/config"
 
 BOSH_ENVIRONMENT=$(bosh-cli int "$PWD/kubo-lock/metadata" --path='/internal_ip')
