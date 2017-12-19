@@ -474,6 +474,12 @@ jobs:
     - put: git-kubo-release
       params:
         repository: git-kubo-release-output
+    - put: git-kubo-release
+      params:
+        repository: git-kubo-release-output
+        tag: kubo-version/version
+        tag_prefix: v
+        only_tag: true
     - put: git-kubo-deployment
       params:
         repository: git-kubo-deployment
