@@ -476,20 +476,29 @@ jobs:
     - put: git-kubo-deployment
       params:
         repository: git-kubo-deployment
-        tag: kubo-release/tag
+        tag: kubo-version/version
+        tag_prefix: v
         only_tag: true
     - put: gh-release-kubo-release
       params:
         name: kubo-release/name
-        tag: kubo-release/tag
+        tag: kubo-version/version
+        tag_prefix: v
         body: kubo-release/body
         globs: ["kubo-release/*.tgz"]
     - put: gh-release-kubo-deployment
       params:
         name: kubo-deployment/name
-        tag: kubo-deployment/tag
+        tag: kubo-version/version
+        tag_prefix: v
         body: kubo-deployment/body
         globs: ["kubo-deployment/kubo-deployment-*.tgz"]
+    - put: git-kubo-ci
+      params:
+        repository: git-kubo-ci
+        only_tag: true
+        tag: kubo-version/version
+        tag_prefix: v
   - put: kubo-version
     params:
       bump: patch
