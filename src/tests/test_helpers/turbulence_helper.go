@@ -32,6 +32,7 @@ func AllBoshWorkersHaveJoinedK8s(deployment director.Deployment, kubectl *Kubect
 		return DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 	}, "600s", "30s").Should(HaveLen(3))
 
+	Eventually(func() []Node { return GetNodes(kubectl) }, "240s", "5s").Should(HaveLen(3))
 	Eventually(func() []string { return GetReadyNodes(GetNodes(kubectl)) }, "240s", "5s").Should(HaveLen(3))
 	return true
 }
