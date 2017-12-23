@@ -9,7 +9,9 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"time"
 
+	"tests/config"
 	. "tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
@@ -42,6 +44,7 @@ var _ = Describe("Api Extensions", func() {
 		replicationControllerSpec string
 		serviceSpec               string
 		apiServiceSpec            string
+		testconfig                *config.Config
 	)
 
 	templateNamespaceIntoFile := func(tmpDir, path, namespace string) string {
@@ -58,9 +61,18 @@ var _ = Describe("Api Extensions", func() {
 		return f.Name()
 	}
 
+	BeforeSuite(func() {
+		var err error
+
+		SetDefaultEventuallyTimeout(60 * time.Second)
+
+		testconfig, err = config.InitConfig()
+		Expect(err).NotTo(HaveOccurred())
+	})
+
 	BeforeEach(func() {
 		var err error
-		kubectl = NewKubectlRunner()
+		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 		apiExtensionsNamespace = kubectl.Namespace()
 
 		tmpDir, err = ioutil.TempDir("", "api-extensions")

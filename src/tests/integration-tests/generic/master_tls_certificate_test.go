@@ -2,7 +2,7 @@ package generic_test
 
 import (
 	"fmt"
-	"tests/test_helpers"
+	. "tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -13,16 +13,16 @@ import (
 var _ = Describe("MasterTlsCertificate", func() {
 
 	var (
-		runner *test_helpers.KubectlRunner
+		kubectl *KubectlRunner
 	)
 
 	BeforeEach(func() {
-		runner = test_helpers.NewKubectlRunner()
+		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 	})
 
 	DescribeTable("hostnames", func(hostname string) {
 		url := fmt.Sprintf("https://%s", hostname)
-		session := runner.RunKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl", "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", url, "--cacert", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+		session := kubectl.RunKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl", "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", url, "--cacert", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
 		Eventually(session, "5m").Should(gexec.Exit(0))
 	},
 		Entry("kubernetes", "kubernetes"),

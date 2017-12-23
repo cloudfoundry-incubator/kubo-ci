@@ -1,6 +1,7 @@
 package persistence_failure_test
 
 import (
+	"tests/config"
 	. "tests/test_helpers"
 
 	"fmt"
@@ -10,6 +11,9 @@ import (
 	"strconv"
 
 	"github.com/cloudfoundry/bosh-cli/director"
+	"github.com/cppforlife/turbulence/incident"
+	"github.com/cppforlife/turbulence/incident/selector"
+	"github.com/cppforlife/turbulence/tasks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -17,25 +21,33 @@ import (
 
 var _ = Describe("Persistence failure scenarios", func() {
 
-	var deployment director.Deployment
-	var countRunningWorkers func() int
-	var kubectl *KubectlRunner
+	var (
+		deployment          director.Deployment
+		countRunningWorkers func() int
+		kubectl             *KubectlRunner
+		testconfig          *config.Config
+	)
+
+	BeforeSuite(func() {
+		var err error
+		testconfig, err = config.InitConfig()
+		Expect(err).NotTo(HaveOccurred())
+	})
 
 	BeforeEach(func() {
 		var err error
-
-		director := NewDirector()
-		deployment, err = director.FindDeployment("ci-service")
+		director := NewDirector(testconfig.Bosh)
+		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
 		Expect(err).NotTo(HaveOccurred())
 		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 
-		kubectl = NewKubectlRunner()
+		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 		kubectl.CreateNamespace()
 
 		Expect(countRunningWorkers()).To(Equal(3))
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 
-		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
+		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Bosh.Iaas))
 		Eventually(kubectl.RunKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
 		Eventually(kubectl.RunKubectlCommand("create", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
@@ -46,11 +58,10 @@ var _ = Describe("Persistence failure scenarios", func() {
 		UndeployGuestBook(kubectl)
 		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
 		Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
-		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
+		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Bosh.Iaas))
 		Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
-
 
 	Specify("K8s applications with persistence keeps their data when node is destroyed", func() {
 		testValue := strconv.Itoa(rand.Int())
@@ -76,11 +87,26 @@ var _ = Describe("Persistence failure scenarios", func() {
 			}, "120s", "2s").Should(ContainSubstring(testValue))
 		})
 
-
 		By("Deleting the node/worker with persistent volume", func() {
-			redisVMId := VMIdOfRedis(kubectl, iaas)
+			redisVMIp := VMIpOfRedis(kubectl)
 			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
-			KillVMById(redisVMId, iaas)
+			vmID, err := BoshIdByIp(deployment, redisVMIp)
+			Expect(err).NotTo(HaveOccurred())
+
+			hellRaiser := TurbulenceClient(testconfig.Turbulence)
+			killRedisVM := incident.Request{
+				Selector: selector.Request{
+					ID: &selector.IDRequest{
+						Values: []string{vmID},
+					},
+				},
+				Tasks: tasks.OptionsSlice{
+					tasks.KillOptions{},
+				},
+			}
+
+			incident := hellRaiser.CreateIncident(killRedisVM)
+			incident.Wait()
 
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
@@ -92,24 +118,7 @@ var _ = Describe("Persistence failure scenarios", func() {
 
 })
 
-func VMIdOfRedis(kubectl *KubectlRunner, iaas string) string {
-
-	var externalId string
-
+func VMIpOfRedis(kubectl *KubectlRunner) string {
 	nodeName := kubectl.GetOutput("get", "pods", "-l", "app=redis", "-o", "jsonpath={.items[0].spec.nodeName}")
-
-	switch iaas {
-	case "gcp":
-		externalId = nodeName[0]
-		break
-	case "aws":
-		externalId = kubectl.GetOutput("get", "nodes", nodeName[0], "-o", "jsonpath={.spec.externalID}")[0]
-		break
-	case "vsphere":
-		externalId = kubectl.GetOutput("get", "nodes", nodeName[0], "-o", "jsonpath={.status.addresses[?(@.type==\"InternalIP\")].address}")[0]
-	default:
-		Fail(fmt.Sprintf("Unsupported IaaS: %s", iaas))
-	}
-	return externalId
-
+	return kubectl.GetOutput("get", "nodes", nodeName[0], "-o", "jsonpath={.status.addresses[?(@.type==\"InternalIP\")].address}")[0]
 }

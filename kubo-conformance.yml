@@ -143,7 +143,7 @@ jobs:
       WITHOUT_ADDONS: 1
       CLOUD_CONFIG_OPS_FILE: <%= network %>-network-k8s-cloud-config.yml
 
-- name: run-conformance-tests-<%= iaas %>-<%= network %>
+- name: run-k8s-conformance-tests-<%= iaas %>-<%= network %>
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -164,7 +164,7 @@ jobs:
     tags: ['<%= iaas %>']
 
   - task: conformance-tests
-    file: git-kubo-ci/tasks/run-conformance-tests.yml
+    file: git-kubo-ci/tasks/run-k8s-conformance-tests.yml
     tags: ['<%= iaas %>']
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>-<%= network %>}
     params:
@@ -181,15 +181,15 @@ jobs:
     - get: kubo-lock-<%= iaas %>-<%= network %>
       version: every
       trigger: true
-      passed: [ 'run-conformance-tests-<%= iaas %>-<%= network %>' ]
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>-<%= network %>' ]
     - get: gcs-kubo-deployment-pre
-      passed: [ 'run-conformance-tests-<%= iaas %>-<%= network %>' ]
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>-<%= network %>' ]
     - get: gcs-kubo-release-pre
-      passed: [ 'run-conformance-tests-<%= iaas %>-<%= network %>' ]
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-state
-      passed: [ 'run-conformance-tests-<%= iaas %>-<%= network %>' ]
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>-<%= network %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'run-conformance-tests-<%= iaas %>-<%= network %>' ]
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>-<%= network %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml

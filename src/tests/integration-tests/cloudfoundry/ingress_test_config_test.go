@@ -1,12 +1,14 @@
 package cloudfoundry_test
 
 import (
-	"tests/test_helpers"
+	"strconv"
 	"strings"
-	"os"
-	"github.com/onsi/gomega/gexec"
+	"tests/config"
+	"tests/test_helpers"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 )
 
 type IngressTestConfig struct {
@@ -19,7 +21,7 @@ type IngressTestConfig struct {
 	ingressRoles            string
 	rbacIngressSpec         string
 	rbacServiceAccount      string
-	authenticationPolicy    string
+	authorizationMode       string
 	runner                  *test_helpers.KubectlRunner
 }
 
@@ -28,7 +30,7 @@ const (
 	rbac = "RBAC"
 )
 
-func InitializeTestConfig(runner *test_helpers.KubectlRunner) IngressTestConfig {
+func InitializeIngressTestConfig(runner *test_helpers.KubectlRunner, testconfig config.Kubernetes) IngressTestConfig {
 	tc := IngressTestConfig{}
 	tc.ingressSpec = test_helpers.PathFromRoot("specs/ingress.yml")
 	tc.ingressRoles = test_helpers.PathFromRoot("specs/ingress-rbac-roles.yml")
@@ -36,36 +38,33 @@ func InitializeTestConfig(runner *test_helpers.KubectlRunner) IngressTestConfig 
 	tc.rbacServiceAccount = "nginx-ingress-serviceaccount"
 	tc.runner = runner
 
-	tc.tcpPort = os.Getenv("INGRESS_CONTROLLER_TCP_PORT")
-	if tc.tcpPort == "" {
-		Fail("Correct INGRESS_CONTROLLER_TCP_PORT has to be set")
-	}
-	tc.kubernetesServiceHost = os.Getenv("KUBERNETES_SERVICE_HOST")
+	tc.tcpPort = strconv.Itoa(testconfig.MasterPort + 20)
+	tc.kubernetesServiceHost = testconfig.MasterHost
 	if tc.kubernetesServiceHost == "" {
-		Fail("Correct KUBERNETES_SERVICE_HOST has to be set")
+		Fail("Correct Kubernetes Master Host must be set in test config")
 	}
-	tc.kubernetesServicePort = os.Getenv("KUBERNETES_SERVICE_PORT")
+	tc.kubernetesServicePort = strconv.Itoa(testconfig.MasterPort)
 	if tc.kubernetesServicePort == "" {
-		Fail("Correct KUBERNETES_SERVICE_PORT has to be set")
+		Fail("Correct Kubernetes Master Port must be set in test config")
 	}
-	tc.tlsKubernetesCert = os.Getenv("TLS_KUBERNETES_CERT")
+	tc.tlsKubernetesCert = testconfig.TLSCert
 	if tc.tlsKubernetesCert == "" {
-		Fail("Correct TLS_KUBERNETES_CERT has to be set")
+		Fail("Correct Kubernetes TLS Certificate must be set in test config")
 	}
-	tc.tlsKubernetesPrivateKey = os.Getenv("TLS_KUBERNETES_PRIVATE_KEY")
+	tc.tlsKubernetesPrivateKey = testconfig.TLSPrivateKey
 	if tc.tlsKubernetesPrivateKey == "" {
-		Fail("Correct TLS_KUBERNETES_PRIVATE_KEY has to be set")
+		Fail("Correct Kubernetes TLS Private Key must be set in test config")
 	}
-	tc.authenticationPolicy = strings.ToUpper(os.Getenv("KUBERNETES_AUTHENTICATION_POLICY"))
-	if tc.authenticationPolicy != rbac && tc.authenticationPolicy != abac {
-		Fail("Correct KUBERNETES_AUTHENTICATION_POLICY has to be set")
+	tc.authorizationMode = strings.ToUpper(testconfig.AuthorizationMode)
+	if tc.authorizationMode != rbac && tc.authorizationMode != abac {
+		Fail("Correct Kubernetes authorization mode must be set in test config")
 	}
 
 	return tc
 }
 
 func (tc IngressTestConfig) createIngressController() {
-	if tc.authenticationPolicy == rbac {
+	if tc.authorizationMode == rbac {
 		tc.runner.RunKubectlCommandWithTimeout("create", "serviceaccount", tc.rbacServiceAccount)
 		tc.runner.RunKubectlCommandWithTimeout("apply", "-f", tc.ingressRoles)
 		tc.runner.RunKubectlCommandWithTimeout("create", "clusterrolebinding", "nginx-ingress-clusterrole-binding", "--clusterrole", "nginx-ingress-clusterrole", "--serviceaccount", tc.runner.Namespace()+":"+tc.rbacServiceAccount)
@@ -77,7 +76,7 @@ func (tc IngressTestConfig) createIngressController() {
 }
 
 func (tc IngressTestConfig) deleteIngressController() {
-	if tc.authenticationPolicy == rbac {
+	if tc.authorizationMode == rbac {
 		Eventually(tc.runner.RunKubectlCommand("delete", "-f", tc.ingressRoles), "10s").Should(gexec.Exit())
 		Eventually(tc.runner.RunKubectlCommand("delete", "clusterrolebinding", "nginx-ingress-clusterrole-binding"), "10s").Should(gexec.Exit())
 	}

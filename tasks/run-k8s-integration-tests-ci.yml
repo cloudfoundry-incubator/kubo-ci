@@ -5,7 +5,7 @@ image_resource:
     repository: pcfkubo/kubo-ci
     tag: stable
 run:
-  path: git-kubo-ci/scripts/run-k8s-integration-tests-ci.sh
+  path: git-kubo-ci/scripts/ci/run-k8s-integration-tests-ci.sh
 
 params:
   KUBERNETES_AUTHENTICATION_POLICY:

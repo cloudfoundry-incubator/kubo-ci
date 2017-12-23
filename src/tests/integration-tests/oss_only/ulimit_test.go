@@ -13,7 +13,7 @@ var _ = Describe("Kubectl", func() {
 	)
 
 	BeforeEach(func() {
-		runner = test_helpers.NewKubectlRunner()
+		runner = test_helpers.NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 		runner.RunKubectlCommand(
 			"create", "namespace", runner.Namespace()).Wait("60s")
 	})

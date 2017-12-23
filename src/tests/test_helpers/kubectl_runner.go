@@ -3,7 +3,6 @@ package test_helpers
 import (
 	"errors"
 	"math/rand"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -26,13 +25,13 @@ type KubectlRunner struct {
 	Timeout    string
 }
 
-func NewKubectlRunner() *KubectlRunner {
+func NewKubectlRunner(pathToKubeConfig string) *KubectlRunner {
 
 	runner := &KubectlRunner{}
 
-	runner.configPath = os.Getenv("PATH_TO_KUBECONFIG")
+	runner.configPath = pathToKubeConfig
 	if runner.configPath == "" {
-		Fail("PATH_TO_KUBECONFIG is not set")
+		Fail("path to kubeconfig must be specified")
 	}
 
 	runner.namespace = "test-" + GenerateRandomName()
@@ -63,6 +62,7 @@ func (runner KubectlRunner) RunKubectlCommandInNamespace(namespace string, args 
 	newArgs := append([]string{"--kubeconfig", runner.configPath, "--namespace", namespace}, args...)
 	command := exec.Command("kubectl", newArgs...)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
 	Expect(err).NotTo(HaveOccurred())
 	return session
 }

@@ -4,7 +4,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"tests/test_helpers"
+	"tests/config"
+	. "tests/test_helpers"
 
 	"github.com/cppforlife/turbulence/incident"
 	"github.com/cppforlife/turbulence/incident/selector"
@@ -12,23 +13,32 @@ import (
 )
 
 var _ = Describe("A single master and etcd failure", func() {
-	Specify("The cluster is healthy after master is resurrected", func() {
-		boshDirector := test_helpers.NewDirector()
-		deployment, err := boshDirector.FindDeployment(test_helpers.DeploymentName)
+
+	var testconfig *config.Config
+
+	BeforeSuite(func() {
+		var err error
+		testconfig, err = config.InitConfig()
 		Expect(err).NotTo(HaveOccurred())
-		countRunningApiServerOnMaster := test_helpers.CountProcessesOnVmsOfType(deployment, test_helpers.MasterVmType, "kube-apiserver", test_helpers.VmRunningState)
+	})
+
+	Specify("The cluster is healthy after master is resurrected", func() {
+		director := NewDirector(testconfig.Bosh)
+		deployment, err := director.FindDeployment(testconfig.Bosh.Deployment)
+		Expect(err).NotTo(HaveOccurred())
+		countRunningApiServerOnMaster := CountProcessesOnVmsOfType(deployment, MasterVmType, "kube-apiserver", VmRunningState)
 
 		Expect(countRunningApiServerOnMaster()).To(Equal(1))
 
 		By("Deleting the Master VM")
-		hellRaiser := test_helpers.TurbulenceClient()
+		hellRaiser := TurbulenceClient(testconfig.Turbulence)
 		killOneMaster := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: test_helpers.DeploymentName,
+					Name: testconfig.Bosh.Deployment,
 				},
 				Group: &selector.NameRequest{
-					Name: test_helpers.MasterVmType,
+					Name: MasterVmType,
 				},
 				ID: &selector.IDRequest{
 					Limit: selector.MustNewLimitFromString("1"),
@@ -41,13 +51,13 @@ var _ = Describe("A single master and etcd failure", func() {
 		incident := hellRaiser.CreateIncident(killOneMaster)
 		incident.Wait()
 		Expect(countRunningApiServerOnMaster()).Should(Equal(0))
-		kubectl := test_helpers.NewKubectlRunner()
+		kubectl := NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 
 		By("Waiting for resurrection")
 		Eventually(countRunningApiServerOnMaster, "10m", "20s").Should(Equal(1))
-		test_helpers.ExpectAllComponentsToBeHealthy(kubectl)
+		ExpectAllComponentsToBeHealthy(kubectl)
 
 		By("Checking that all nodes are available")
-		Expect(test_helpers.AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
+		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 })

@@ -1,7 +1,7 @@
 package generic_test
 
 import (
-	"tests/test_helpers"
+	. "tests/test_helpers"
 
 	"net/http"
 	"time"
@@ -14,34 +14,34 @@ import (
 
 var _ = Describe("Kubectl", func() {
 	var (
-		runner *test_helpers.KubectlRunner
+		kubectl *KubectlRunner
 	)
 
 	BeforeEach(func() {
-		runner = test_helpers.NewKubectlRunner()
-		runner.RunKubectlCommand(
-			"create", "namespace", runner.Namespace()).Wait("60s")
+		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		kubectl.RunKubectlCommand(
+			"create", "namespace", kubectl.Namespace()).Wait("60s")
 	})
 
 	AfterEach(func() {
-		runner.RunKubectlCommand(
-			"delete", "namespace", runner.Namespace()).Wait("60s")
+		kubectl.RunKubectlCommand(
+			"delete", "namespace", kubectl.Namespace()).Wait("60s")
 	})
 
 	It("Should be able to run kubectl commands within pod", func() {
 
-        roleBindingName := runner.Namespace()+"-admin"
-        s := runner.RunKubectlCommand("create", "rolebinding", roleBindingName, "--clusterrole=admin", "--user=system:serviceaccount:"+runner.Namespace()+":default")
-        Eventually(s, "15s").Should(gexec.Exit(0))
+		roleBindingName := kubectl.Namespace() + "-admin"
+		s := kubectl.RunKubectlCommand("create", "rolebinding", roleBindingName, "--clusterrole=admin", "--user=system:serviceaccount:"+kubectl.Namespace()+":default")
+		Eventually(s, "15s").Should(gexec.Exit(0))
 
-        podName := test_helpers.GenerateRandomName()
-		session := runner.RunKubectlCommand("run", podName, "--image", "pcfkubo/alpine:stable", "--restart=Never", "--image-pull-policy=Always", "-ti", "--rm", "--", "kubectl", "get", "services")
+		podName := GenerateRandomName()
+		session := kubectl.RunKubectlCommand("run", podName, "--image", "pcfkubo/alpine:stable", "--restart=Never", "--image-pull-policy=Always", "-ti", "--rm", "--", "kubectl", "get", "services")
 		session.Wait(120)
 		Expect(session).To(gexec.Exit(0))
 	})
 
 	It("Should provide access to the dashboard", func() {
-		session := runner.RunKubectlCommand("proxy")
+		session := kubectl.RunKubectlCommand("proxy")
 		Eventually(session).Should(gbytes.Say("Starting to serve on"))
 
 		timeout := time.Duration(5 * time.Second)

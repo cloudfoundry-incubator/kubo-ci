@@ -5,7 +5,7 @@ image_resource:
     repository: pcfkubo/kubo-ci
     tag: stable
 run:
-  path: git-kubo-ci/scripts/run-conformance-tests.sh
+  path: git-kubo-ci/scripts/ci/run-k8s-conformance-tests-ci.sh
 
 params:
   DEPLOYMENT_NAME: ci-service

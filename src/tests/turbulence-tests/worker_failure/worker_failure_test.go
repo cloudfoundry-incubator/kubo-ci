@@ -1,6 +1,7 @@
 package workload_test
 
 import (
+	"tests/config"
 	. "tests/test_helpers"
 
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -13,20 +14,29 @@ import (
 )
 
 var _ = Describe("Worker failure scenarios", func() {
-	var deployment director.Deployment
-	var countRunningWorkers func() int
-	var kubectl *KubectlRunner
-	var nginxSpec = PathFromRoot("specs/nginx.yml")
+
+	var (
+		deployment          director.Deployment
+		countRunningWorkers func() int
+		kubectl             *KubectlRunner
+		nginxSpec           = PathFromRoot("specs/nginx.yml")
+		testconfig          *config.Config
+	)
+
+	BeforeSuite(func() {
+		var err error
+		testconfig, err = config.InitConfig()
+		Expect(err).NotTo(HaveOccurred())
+	})
 
 	BeforeEach(func() {
 		var err error
-
-		director := NewDirector()
+		director := NewDirector(testconfig.Bosh)
 		deployment, err = director.FindDeployment("ci-service")
 		Expect(err).NotTo(HaveOccurred())
 		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 
-		kubectl = NewKubectlRunner()
+		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 		kubectl.CreateNamespace()
 
 		Expect(countRunningWorkers()).To(Equal(3))
@@ -40,11 +50,11 @@ var _ = Describe("Worker failure scenarios", func() {
 
 	Specify("K8s applications are scheduled on the resurrected node", func() {
 		By("Deleting the Worker VM")
-		hellRaiser := TurbulenceClient()
+		hellRaiser := TurbulenceClient(testconfig.Turbulence)
 		killOneMaster := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: DeploymentName,
+					Name: testconfig.Bosh.Deployment,
 				},
 				Group: &selector.NameRequest{
 					Name: WorkerVmType,

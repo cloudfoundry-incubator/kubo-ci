@@ -9,12 +9,12 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"tests/config"
 	. "tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	yaml "gopkg.in/yaml.v2"
 )
 
 type Manifest struct {
@@ -22,12 +22,21 @@ type Manifest struct {
 }
 
 var _ = Describe("Conformance Tests", func() {
-	var conformanceSpec string
-	var kubectl *KubectlRunner
+	var (
+		conformanceSpec string
+		kubectl         *KubectlRunner
+		testconfig      *config.Config
+	)
+
+	BeforeSuite(func() {
+		var err error
+		testconfig, err = config.InitConfig()
+		Expect(err).NotTo(HaveOccurred())
+	})
 
 	BeforeEach(func() {
 		conformanceSpec = GetLatestConformanceSpec()
-		kubectl = NewKubectlRunner()
+		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 	})
 
 	AfterEach(func() {
@@ -69,27 +78,12 @@ var _ = Describe("Conformance Tests", func() {
 		logPath := matches[0]
 
 		By("Get the release version")
-		releaseTarball := os.Getenv("RELEASE_TARBALL")
-		kuboReleaseTmpDir, err := ioutil.TempDir("", "kubo-release-")
-		Expect(err).NotTo(HaveOccurred())
-
-		fmt.Fprintf(GinkgoWriter, "releaseTarBall: %s, kuboReleaseTmpDir: %s\n", releaseTarball, kuboReleaseTmpDir)
-		versionCmd := exec.Command("tar", "zxf", releaseTarball, "-C", kuboReleaseTmpDir)
-		session, err = gexec.Start(versionCmd, GinkgoWriter, GinkgoWriter)
-		Eventually(session, "20s").Should(gexec.Exit(0))
-		Expect(err).NotTo(HaveOccurred())
-
-		var manifest Manifest
-		manifestPath := filepath.Join(kuboReleaseTmpDir, "release.MF")
-		manifestBytes, err := ioutil.ReadFile(manifestPath)
-		Expect(err).NotTo(HaveOccurred())
-		err = yaml.Unmarshal(manifestBytes, &manifest)
-		Expect(err).NotTo(HaveOccurred())
-		releaseVersion := manifest.Version
+		releaseVersion := os.Getenv("CONFORMANCE_RELEASE_VERSION")
 		fmt.Println(fmt.Sprintf("release version: %s", releaseVersion))
 
 		By("Move results to output dir")
 		conformanceResultsDir := os.Getenv("CONFORMANCE_RESULTS_DIR")
+		fmt.Println(fmt.Sprintf("conformance results dir: %s", conformanceResultsDir))
 		conformanceResultsPath := filepath.Join(conformanceResultsDir, fmt.Sprintf("conformance-results-%s.tar.gz", releaseVersion))
 		containerAddressedLogPath := fmt.Sprintf("sonobuoy:%s", logPath)
 		session = kubectl.RunKubectlCommandInNamespace("sonobuoy", "cp", containerAddressedLogPath, conformanceResultsPath)

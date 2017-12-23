@@ -2,9 +2,10 @@ package test_helpers
 
 import (
 	"fmt"
-	"os"
 
 	. "github.com/onsi/gomega"
+
+	testconfig "tests/config"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
@@ -15,7 +16,6 @@ const (
 	WorkerVmType   = "worker"
 	MasterVmType   = "master"
 	VmRunningState = "running"
-	DeploymentName = "ci-service"
 )
 
 func CountDeploymentVmsOfType(deployment boshdir.Deployment, jobName, processState string) func() int {
@@ -70,13 +70,13 @@ func GetMasterIP(deployment boshdir.Deployment) string {
 	return vms[0].IPs[0]
 }
 
-func NewDirector() boshdir.Director {
-	uaa, err := buildUAA()
+func NewDirector(testconfig testconfig.Bosh) boshdir.Director {
+	uaa, err := buildUAA(testconfig)
 	if err != nil {
 		panic(err)
 	}
 
-	director, err := buildDirector(uaa)
+	director, err := buildDirector(uaa, testconfig)
 	if err != nil {
 		panic(err)
 	}
@@ -84,41 +84,41 @@ func NewDirector() boshdir.Director {
 	return director
 }
 
-func buildUaaUrl() string {
-	return buildDirectorUrl() + ":8443"
+func buildUaaUrl(testconfig testconfig.Bosh) string {
+	return buildDirectorUrl(testconfig) + ":8443"
 }
 
-func buildDirectorUrl() string {
-	return fmt.Sprintf("https://%s", os.Getenv("BOSH_ENVIRONMENT"))
+func buildDirectorUrl(testconfig testconfig.Bosh) string {
+	return fmt.Sprintf("https://%s", testconfig.Environment)
 }
 
-func buildUAA() (boshuaa.UAA, error) {
+func buildUAA(testconfig testconfig.Bosh) (boshuaa.UAA, error) {
 	logger := boshlog.NewLogger(boshlog.LevelError)
 	factory := boshuaa.NewFactory(logger)
 
-	config, err := boshuaa.NewConfigFromURL(buildUaaUrl())
+	config, err := boshuaa.NewConfigFromURL(buildUaaUrl(testconfig))
 	if err != nil {
 		return nil, err
 	}
 
-	config.Client = "bosh_admin"
-	config.ClientSecret = os.Getenv("BOSH_CLIENT_SECRET")
+	config.Client = testconfig.Client
+	config.ClientSecret = testconfig.ClientSecret
 
-	config.CACert = os.Getenv("BOSH_CA_CERT")
+	config.CACert = testconfig.CaCert
 
 	return factory.New(config)
 }
 
-func buildDirector(uaa boshuaa.UAA) (boshdir.Director, error) {
+func buildDirector(uaa boshuaa.UAA, testconfig testconfig.Bosh) (boshdir.Director, error) {
 	logger := boshlog.NewLogger(boshlog.LevelError)
 	factory := boshdir.NewFactory(logger)
 
-	config, err := boshdir.NewConfigFromURL(buildDirectorUrl())
+	config, err := boshdir.NewConfigFromURL(buildDirectorUrl(testconfig))
 	if err != nil {
 		return nil, err
 	}
 
-	config.CACert = os.Getenv("BOSH_CA_CERT")
+	config.CACert = testconfig.CaCert
 
 	config.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
 

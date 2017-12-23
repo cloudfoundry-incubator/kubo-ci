@@ -26,7 +26,7 @@ var _ = Describe("Deploy workload", func() {
 		loadbalancerAddress = ""
 		Eventually(func() string {
 			output := []string{}
-			if iaas == "gcp" {
+			if testconfig.Bosh.Iaas == "gcp" {
 				output = runner.GetOutput("get", "service", "nginx", "-o", "jsonpath={.status.loadBalancer.ingress[0].ip}")
 			} else {
 				output = runner.GetOutput("get", "service", "nginx", "-o", "jsonpath={.status.loadBalancer.ingress[0].hostname}")
@@ -62,7 +62,7 @@ var _ = Describe("Deploy workload", func() {
 
 		lbSecurityGroup := ""
 
-		if iaas == "aws" {
+		if testconfig.Bosh.Iaas == "aws" {
 			// Get the LB
 			if loadbalancerAddress != "" {
 				// Get the security group
