@@ -36,6 +36,7 @@ tar -czf ../kubo-deployment/kubo-deployment-${version}.tgz "../kubo-deployment-$
 git checkout -b tmp/release
 git add .
 git commit -m "Final release for v${version}"
+git tag -a "v${version}" -m "Tag for version v${version}"
 git checkout master
 git merge tmp/release -m "Merge release branch for v${version}"
 git branch -d tmp/release
