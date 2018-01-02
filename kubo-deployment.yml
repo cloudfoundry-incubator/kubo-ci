@@ -471,35 +471,37 @@ jobs:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
   - aggregate:
-    - put: git-kubo-release
-      params:
-        repository: git-kubo-release-output
-    # We need to push the tags separately due to
-    # https://github.com/concourse/git-resource/issues/110
-    - put: git-kubo-release
-      params:
-        repository: git-kubo-release-output
-        only_tag: true
-    - put: git-kubo-deployment
-      params:
-        repository: git-kubo-deployment
-        tag: kubo-version/version
-        tag_prefix: v
-        only_tag: true
-    - put: gh-release-kubo-release
-      params:
-        name: kubo-release/name
-        tag: kubo-version/version
-        tag_prefix: v
-        body: kubo-release/body
-        globs: ["kubo-release/*.tgz"]
-    - put: gh-release-kubo-deployment
-      params:
-        name: kubo-deployment/name
-        tag: kubo-version/version
-        tag_prefix: v
-        body: kubo-deployment/body
-        globs: ["kubo-deployment/kubo-deployment-*.tgz"]
+    - do:
+      - put: git-kubo-release
+        params:
+          repository: git-kubo-release-output
+      # We need to push the tags separately due to
+      # https://github.com/concourse/git-resource/issues/110
+      - put: git-kubo-release
+        params:
+          repository: git-kubo-release-output
+          only_tag: true
+      - put: gh-release-kubo-release
+        params:
+          name: kubo-release/name
+          tag: kubo-version/version
+          tag_prefix: v
+          body: kubo-release/body
+          globs: ["kubo-release/*.tgz"]
+    - do:
+      - put: git-kubo-deployment
+        params:
+          repository: git-kubo-deployment
+          tag: kubo-version/version
+          tag_prefix: v
+          only_tag: true
+      - put: gh-release-kubo-deployment
+        params:
+          name: kubo-deployment/name
+          tag: kubo-version/version
+          tag_prefix: v
+          body: kubo-deployment/body
+          globs: ["kubo-deployment/kubo-deployment-*.tgz"]
     - put: git-kubo-ci
       params:
         repository: git-kubo-ci
@@ -509,6 +511,7 @@ jobs:
   - put: kubo-version
     params:
       bump: patch
+
 - name: bump-minor-version
   plan:
   - get: kubo-version
