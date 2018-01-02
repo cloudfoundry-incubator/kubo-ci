@@ -474,11 +474,11 @@ jobs:
     - put: git-kubo-release
       params:
         repository: git-kubo-release-output
+    # We need to push the tags separately due to
+    # https://github.com/concourse/git-resource/issues/110
     - put: git-kubo-release
       params:
         repository: git-kubo-release-output
-        tag: kubo-version/version
-        tag_prefix: v
         only_tag: true
     - put: git-kubo-deployment
       params:
