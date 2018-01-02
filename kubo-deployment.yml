@@ -55,7 +55,6 @@ resources:
     branch: master
     private_key: ((git-ssh-key))
     ignore_paths:
-    - '*.md'
     - 'LICENSE'
     - 'NOTICE'
 
