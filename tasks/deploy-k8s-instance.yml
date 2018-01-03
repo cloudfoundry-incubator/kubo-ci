@@ -12,6 +12,7 @@ run:
 params:
   CLOUD_CONFIG_OPS_FILE: ~
   DEPLOYMENT_NAME: ci-service
+  WITH_PRIVILEGED_CONTAINERS:
 
 inputs:
   - name: git-kubo-ci

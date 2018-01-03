@@ -142,6 +142,7 @@ jobs:
     params:
       WITHOUT_ADDONS: 1
       CLOUD_CONFIG_OPS_FILE: <%= network %>-network-k8s-cloud-config.yml
+      WITH_PRIVILEGED_CONTAINERS: 1
 
 - name: run-k8s-conformance-tests-<%= iaas %>-<%= network %>
   plan:
