@@ -1,0 +1,473 @@
+groups:
+- name: all
+  jobs:
+  - run-unit-tests
+  - build-kubo-release
+  - package-kubo-deployment-tarball
+  - claim-lock-gcp
+  - install-bosh-gcp
+  - deploy-k8s-gcp
+  - run-k8s-integration-tests-gcp
+  - run-turbulence-tests-gcp
+  - run-k8s-conformance-tests-gcp
+  - destroy-k8s-gcp
+  - destroy-bosh-gcp
+- name: gcp
+  jobs:
+  - claim-lock-gcp
+  - install-bosh-gcp
+  - deploy-k8s-gcp
+  - run-k8s-integration-tests-gcp
+  - destroy-k8s-gcp
+  - destroy-bosh-gcp
+resources:
+- name: conformance-results
+  type: gcs
+  source:
+    bucket: conformance-results
+    json_key: ((gcs-json-key))
+    regexp: conformance-results-(.*).tar.gz
+- name: ubuntu-trusty-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
+- name: gcs-bosh-state
+  type: gcs
+  source:
+    bucket: kubo-pipeline-store
+    json_key: ((gcs-json-key))
+    versioned_file: bosh/state.json
+- name: gcs-kubo-deployment-tarball-untested
+  type: gcs
+  source:
+    bucket: kubo-pipeline-store
+    json_key: ((gcs-json-key))
+    regexp: kubo-deployment-(.*).tgz
+- name: gcs-kubo-release-tarball-untested
+  type: gcs
+  source:
+    bucket: kubo-pipeline-store
+    json_key: ((gcs-json-key))
+    regexp: kubo-release-(.*).tgz
+- name: gcs-bosh-creds
+  type: gcs
+  source:
+    bucket: kubo-pipeline-store
+    json_key: ((gcs-json-key))
+    versioned_file: bosh/creds.yml
+- name: kubo-version
+  type: semver
+  source:
+    access_key_id: ((gcs-access-key-id))
+    bucket: kubo-pipeline-store
+    endpoint: storage.googleapis.com
+    key: kubo-version
+    region_name: us-east1
+    secret_access_key: ((gcs-secret-access-key))
+- name: git-kubo-ci
+  type: git
+  source:
+    branch: master
+    private_key: ((git-ssh-key))
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+- name: git-kubo-deployment
+  type: git
+  source:
+    branch: master
+    force: true
+    ignore_paths:
+    - LICENSE
+    - NOTICE
+    private_key: ((git-ssh-key))
+    uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
+- name: kubo-lock-gcp
+  type: pool
+  source:
+    branch: master
+    pool: kubo-gcp
+    private_key: ((git-ssh-key))
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+- name: git-kubo-release
+  type: git
+  source:
+    branch: master
+    ignore_paths:
+    - LICENSE
+    - NOTICE
+    private_key: ((git-ssh-key))
+    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+jobs:
+- name: run-unit-tests
+  plan:
+  - get: git-kubo-ci
+  - get: git-kubo-deployment
+    trigger: true
+  - get: git-kubo-release
+    trigger: true
+  - task: run-release-unit-tests
+    file: git-kubo-ci/tasks/run-release-unit-tests.yml
+  - task: run-deployment-unit-tests
+    file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
+- name: build-kubo-release
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed:
+      - run-unit-tests
+      trigger: true
+    - get: kubo-version
+      params:
+        pre: dev
+    - get: git-kubo-release
+      passed:
+      - run-unit-tests
+      trigger: true
+    - get: ubuntu-trusty-stemcell
+      version:
+        version: "3468.15"
+  - task: build-kubo-release
+    file: git-kubo-ci/tasks/build-kubo-release.yml
+  - task: export-release
+    privileged: true
+    file: git-kubo-ci/tasks/export-release.yml
+    input_mapping:
+      kubo-ci: git-kubo-ci
+      release: kubo-release
+      stemcell: ubuntu-trusty-stemcell
+  - put: gcs-kubo-release-tarball-untested
+    params:
+      file: compiled-release/kubo-*.tgz
+  - put: kubo-version
+    params:
+      pre: dev
+- name: package-kubo-deployment-tarball
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed:
+      - build-kubo-release
+    - get: kubo-version
+      passed:
+      - build-kubo-release
+    - get: gcs-kubo-release-tarball-untested
+      passed:
+      - build-kubo-release
+      trigger: true
+    - get: git-kubo-release
+      passed:
+      - build-kubo-release
+  - task: build-kubo-deployment-tarball
+    file: git-kubo-ci/tasks/build-kubo-deployment-tarball.yml
+  - put: gcs-kubo-deployment-tarball-untested
+    params:
+      file: kubo-deployment-tarball/kubo-deployment*.tgz
+- name: claim-lock-gcp
+  max_in_flight: 1
+  plan:
+  - aggregate:
+    - get: kubo-version
+      passed:
+      - package-kubo-deployment-tarball
+      trigger: true
+    - get: git-kubo-release
+      passed:
+      - package-kubo-deployment-tarball
+    - get: git-kubo-deployment
+      passed:
+      - package-kubo-deployment-tarball
+    - get: gcs-kubo-release-tarball-untested
+      passed:
+      - package-kubo-deployment-tarball
+    - get: gcs-kubo-deployment-tarball-untested
+      passed:
+      - package-kubo-deployment-tarball
+  - put: kubo-lock-gcp
+    params:
+      acquire: true
+- name: install-bosh-gcp
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed:
+      - claim-lock-gcp
+    - get: kubo-lock-gcp
+      passed:
+      - claim-lock-gcp
+      trigger: true
+      version: every
+    - get: gcs-kubo-release-tarball-untested
+      passed:
+      - claim-lock-gcp
+    - get: git-kubo-release
+      passed:
+      - claim-lock-gcp
+    - get: kubo-version
+      passed:
+      - claim-lock-gcp
+    - get: gcs-kubo-deployment-tarball-untested
+      passed:
+      - claim-lock-gcp
+  - task: install
+    file: git-kubo-ci/tasks/install-bosh.yml
+    params:
+      USE_TURBULENCE: 1
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
+    tags:
+    - gcp
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+- name: deploy-k8s-gcp
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-gcp
+      passed:
+      - install-bosh-gcp
+      trigger: true
+      version: every
+    - get: git-kubo-deployment
+      passed:
+      - install-bosh-gcp
+    - get: git-kubo-release
+      passed:
+      - install-bosh-gcp
+    - get: kubo-version
+      passed:
+      - install-bosh-gcp
+    - get: gcs-bosh-state
+      passed:
+      - install-bosh-gcp
+    - get: gcs-bosh-creds
+      passed:
+      - install-bosh-gcp
+    - get: gcs-kubo-release-tarball-untested
+      passed:
+      - install-bosh-gcp
+    - get: gcs-kubo-deployment-tarball-untested
+      passed:
+      - install-bosh-gcp
+  - task: deploy
+    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    input_mapping:
+      gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
+      kubo-lock: kubo-lock-gcp
+    tags:
+    - gcp
+  - task: configure-bosh-for-turbulence
+    file: git-kubo-ci/tasks/configure-bosh.yml
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
+    tags:
+    - gcp
+- name: run-k8s-integration-tests-gcp
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-gcp
+      passed:
+      - deploy-k8s-gcp
+      trigger: true
+      version: every
+    - get: git-kubo-deployment
+      passed:
+      - deploy-k8s-gcp
+    - get: gcs-bosh-state
+      passed:
+      - deploy-k8s-gcp
+    - get: gcs-bosh-creds
+      passed:
+      - deploy-k8s-gcp
+    - get: kubo-version
+      passed:
+      - deploy-k8s-gcp
+    - get: git-kubo-release
+      passed:
+      - deploy-k8s-gcp
+    - get: gcs-kubo-release-tarball-untested
+      passed:
+      - deploy-k8s-gcp
+    - get: gcs-kubo-deployment-tarball-untested
+      passed:
+      - deploy-k8s-gcp
+  - task: integration-tests
+    file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
+    params:
+      KUBERNETES_AUTHENTICATION_POLICY: RBAC
+      RUN_CLOUD_AGNOSTIC_TESTS: true
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
+    tags:
+    - gcp
+  - task: pod-to-pod
+    file: git-kubo-ci/tasks/pod-to-pod.yml
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
+    tags:
+    - gcp
+- name: run-turbulence-tests-gcp
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-gcp
+      passed:
+      - run-k8s-integration-tests-gcp
+      trigger: true
+      version: every
+    - get: gcs-bosh-state
+      passed:
+      - run-k8s-integration-tests-gcp
+    - get: gcs-bosh-creds
+      passed:
+      - run-k8s-integration-tests-gcp
+    - get: kubo-version
+      passed:
+      - run-k8s-integration-tests-gcp
+    - get: git-kubo-release
+      passed:
+      - run-k8s-integration-tests-gcp
+    - get: git-kubo-deployment
+      passed:
+      - run-k8s-integration-tests-gcp
+    - get: gcs-kubo-release-tarball-untested
+      passed:
+      - run-k8s-integration-tests-gcp
+    - get: gcs-kubo-deployment-tarball-untested
+      passed:
+      - run-k8s-integration-tests-gcp
+  - task: turbulence-tests
+    file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
+    tags:
+    - gcp
+- name: run-k8s-conformance-tests-gcp
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-gcp
+      passed:
+      - run-turbulence-tests-gcp
+      trigger: true
+      version: every
+    - get: gcs-bosh-state
+      passed:
+      - run-turbulence-tests-gcp
+    - get: gcs-bosh-creds
+      passed:
+      - run-turbulence-tests-gcp
+    - get: kubo-version
+      passed:
+      - run-turbulence-tests-gcp
+    - get: git-kubo-release
+      passed:
+      - run-turbulence-tests-gcp
+    - get: git-kubo-deployment
+      passed:
+      - run-turbulence-tests-gcp
+    - get: gcs-kubo-release-tarball-untested
+      passed:
+      - run-turbulence-tests-gcp
+    - get: gcs-kubo-deployment-tarball-untested
+      passed:
+      - run-turbulence-tests-gcp
+  - task: conformance-tests
+    file: git-kubo-ci/tasks/run-k8s-conformance-tests.yml
+    params:
+      CONFORMANCE_RESULTS_DIR: conformance-results
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
+    tags:
+    - gcp
+    ensure:
+      put: conformance-results
+      params:
+        file: conformance-results/conformance-results-*.tar.gz
+- name: destroy-k8s-gcp
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-gcp
+      passed:
+      - run-k8s-conformance-tests-gcp
+      trigger: true
+      version: every
+    - get: kubo-version
+      passed:
+      - run-k8s-conformance-tests-gcp
+    - get: git-kubo-deployment
+      passed:
+      - run-k8s-conformance-tests-gcp
+    - get: git-kubo-release
+      passed:
+      - run-k8s-conformance-tests-gcp
+    - get: gcs-bosh-state
+      passed:
+      - run-k8s-conformance-tests-gcp
+    - get: gcs-bosh-creds
+      passed:
+      - run-k8s-conformance-tests-gcp
+    - get: gcs-kubo-release-tarball-untested
+      passed:
+      - run-k8s-conformance-tests-gcp
+    - get: gcs-kubo-deployment-tarball-untested
+      passed:
+      - run-k8s-conformance-tests-gcp
+  - task: destroy-k8s
+    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
+    tags:
+    - gcp
+- name: destroy-bosh-gcp
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed:
+      - destroy-k8s-gcp
+    - get: git-kubo-release
+      passed:
+      - destroy-k8s-gcp
+    - get: kubo-lock-gcp
+      passed:
+      - destroy-k8s-gcp
+      trigger: true
+      version: every
+    - get: kubo-version
+      passed:
+      - destroy-k8s-gcp
+    - get: gcs-bosh-state
+      passed:
+      - destroy-k8s-gcp
+    - get: gcs-bosh-creds
+      passed:
+      - destroy-k8s-gcp
+    - get: gcs-kubo-release-tarball-untested
+      passed:
+      - destroy-k8s-gcp
+    - get: gcs-kubo-deployment-tarball-untested
+      passed:
+      - destroy-k8s-gcp
+  - task: destroy
+    file: git-kubo-ci/tasks/destroy-bosh.yml
+    input_mapping:
+      kubo-lock: kubo-lock-gcp
+    tags:
+    - gcp
+  - put: kubo-lock-gcp
+    params:
+      release: kubo-lock-gcp
