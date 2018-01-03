@@ -21,7 +21,7 @@ setup_env() {
 
 main() {
   setup_env
-  "$BASE_DIR/scripts/run-k8s-integration-tests.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
+  "$BASE_DIR/scripts/run-k8s-integration-tests.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" "${RUN_CLOUD_AGNOSTIC_TESTS}"
 }
 
 main "$@"

@@ -35,21 +35,26 @@ verify_args() {
   fi
 }
 
-run_tests() {
-  local environment="$1"
-  local deployment="$2"
-
-  local iaas=$(bosh-cli int "$environment/director.yml" --path='/iaas')
-  local routing_mode=$(bosh-cli int "$environment/director.yml" --path='/routing_mode')
-  local director_name=$(bosh-cli int "$environment/director.yml" --path='/director_name')
-
-  local tmpfile=$(mktemp)
-  $BASE_DIR/scripts/generate-test-config.sh $environment $deployment > $tmpfile
-  export CONFIG=$tmpfile
+execute_cloud_agnostic_tests() {
+  local routing_mode="$1"
+  local cloud_agnostic_tests=("pod_logs" "generic" "oss_only" "api_extensions")
 
   if [[ ${routing_mode} == "cf" ]]; then
     ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/cloudfoundry"
-  elif [[ ${routing_mode} == "iaas" ]]; then
+  fi
+
+  for test in "${cloud_agnostic_tests[@]}"
+  do
+    ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/${test}"
+  done
+
+}
+
+execute_cloud_specific_tests(){
+  local routing_mode="$1"
+  local iaas="$2"
+
+  if [[ ${routing_mode} == "iaas" ]]; then
     case "${iaas}" in
       aws)
         aws configure set aws_access_key_id "$(bosh-cli int "${environment}/director.yml" --path=/access_key_id)"
@@ -59,17 +64,32 @@ run_tests() {
         export AWS_INGRESS_GROUP_ID
         ;;
     esac
+
     ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/workload/k8s_lbs"
   fi
-
-  ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/pod_logs"
-  ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/generic"
-  ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/oss_only"
-  ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/api_extensions"
 
   if [[ "${iaas}" != "openstack" ]]; then
       ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/persistent_volume"
   fi
+}
+
+run_tests() {
+  local environment="$1"
+  local deployment="$2"
+  local run_cloud_agnostic_tests="$3"
+
+  local iaas=$(bosh-cli int "$environment/director.yml" --path='/iaas')
+  local routing_mode=$(bosh-cli int "$environment/director.yml" --path='/routing_mode')
+
+  local tmpfile=$(mktemp)
+  $BASE_DIR/scripts/generate-test-config.sh $environment $deployment > $tmpfile
+  export CONFIG=$tmpfile
+
+  if [[ ${run_cloud_agnostic_tests} ]]; then
+    execute_cloud_agnostic_tests "${routing_mode}"
+  fi
+
+  execute_cloud_specific_tests "${routing_mode}" "${iaas}"
 
   return 0
 }
