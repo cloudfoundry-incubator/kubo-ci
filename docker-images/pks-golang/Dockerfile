@@ -1,9 +1,12 @@
-FROM golang:latest as builder
+FROM golang:alpine as builder
 
-RUN apt-get update --yes && \
-  apt-get install --yes git && \
+RUN apk update && \
+  apk add git && \
   go get github.com/onsi/ginkgo/ginkgo
 
-FROM golang:latest
+FROM golang:alpine
+
+RUN apk update && \
+  apk add bash
 
 COPY --from=builder /go/bin/ginkgo /go/bin/ginkgo
