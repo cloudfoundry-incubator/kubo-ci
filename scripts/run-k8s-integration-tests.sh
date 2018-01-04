@@ -17,7 +17,7 @@ verify_args() {
 	EOF
   set -e
 
-  while getopts ':h:' option; do
+  while getopts ':h' option; do
     case "$option" in
       h) echo "$usage"
          exit 0
