@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: gaffer
+  name: gaffer
+spec:
+  ports:
+    - port: 443
+      name: https
+      targetPort: 8443
+  selector:
+    app: gaffer
+  type: LoadBalancer
+  loadBalancerIP: 35.195.95.16
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: gaffer
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gaffer
+    spec:
+      containers:
+      - name: gaffer
+        imagePullPolicy: Always
+        image: pcfkubo/services-gaffer:stable
+        ports:
+        - containerPort: 8443
+        workingDir: /services-gaffer-master
+        command: [ npm ]
+        args: [ start ]
+        env:
+        - name: VCAP_APPLICATION
+          value: '{"application_uris": [ "gaffer.kubo.sh" ]}'
+        - name: GITHUB_OAUTH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: github-oauth
+              key: client-id
+        - name: GITHUB_OAUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: github-oauth
+              key: client-secret
+        - name: LOCKS_REPO
+          value: pivotal-cf-experimental/kubo-locks
+        - name: GAFFER_LOCK_POOLS
+          value: '["kubo-gcp", "kubo-gcp-lb", "kubo-aws", "kubo-aws-lb", "kubo-vsphere", "kubo-vsphere-lb", "kubo-openstack", "kubo-openstack-lb" ]'
+        - name: GAFFER_GITHUB_TOKEN
+          value: 17dcb9abd96a020f733000b96fea2f14fea2431f
+        - name: ENABLE_LOCK_INFO_ON_HOME_PAGE
+          value: 'true'
+        - name: ENABLE_RECYCLE
+          value: 'true'
+        - name: PORT
+          value: '8443'
+        - name: GAFFER_SSL_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gaffer-tls
+              key: tls.key
+        - name: GAFFER_SSL_CERTIFICATE
+          valueFrom:
+            secretKeyRef:
+              name: gaffer-tls
+              key: tls.crt
