@@ -1,0 +1,31 @@
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+    paths: [ gaffer/gaffer.yml ]
+jobs:
+- name: deploy-gaffer
+  plan:
+  - get: git-kubo-ci
+    trigger: true
+  - task: set-kubeconfig
+    params:
+      kubeconfig: ((kubeconfig))
+    config:
+      platform: linux
+      inputs:
+      - name: git-kubo-ci
+      params:
+        kubeconfig:
+      run:
+        path: sh
+        args:
+          - -ec
+          - echo "$kubeconfig" > kubeconfig && kubectl apply --kubeconfig kubeconfig -f git-kubo-ci/gaffer/gaffer.yml
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubectl
+          tag: stable
