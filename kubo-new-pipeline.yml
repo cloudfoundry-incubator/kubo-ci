@@ -1,106 +1,182 @@
+<%
+  iaas_list = %w(gcp)
+%>
+---
+pins:
+  stemcell_version: &stemcell_version "3468.15"
+
 groups:
 - name: all
   jobs:
   - run-unit-tests
   - build-kubo-release
   - package-kubo-deployment-tarball
-  - claim-lock-gcp
-  - install-bosh-gcp
-  - deploy-k8s-gcp
-  - run-k8s-integration-tests-gcp
-  - run-turbulence-tests-gcp
-  - run-k8s-conformance-tests-gcp
-  - destroy-k8s-gcp
-  - destroy-bosh-gcp
-- name: gcp
+<% iaas_list.each do |iaas| %>
+  - claim-lock-<%= iaas %>
+  - install-bosh-<%= iaas %>
+  - deploy-k8s-<%= iaas %>
+  - run-k8s-integration-tests-<%= iaas %>
+  - run-turbulence-tests-<%= iaas %>
+  - run-k8s-conformance-tests-<%= iaas %>
+  - destroy-k8s-<%= iaas %>
+  - destroy-bosh-<%= iaas %>
+<% end %>
+  # - upload-kubo-deployment
+  # - upload-kubo-release
+  # - success-notification
+  # - upload-github-releases
+  # - bump-minor-version
+<% iaas_list.each do |iaas| %>
+- name: <%= iaas %>
   jobs:
-  - claim-lock-gcp
-  - install-bosh-gcp
-  - deploy-k8s-gcp
-  - run-k8s-integration-tests-gcp
-  - destroy-k8s-gcp
-  - destroy-bosh-gcp
-resources:
-- name: conformance-results
-  type: gcs
-  source:
-    bucket: conformance-results
-    json_key: ((gcs-json-key))
-    regexp: conformance-results-(.*).tar.gz
-- name: ubuntu-trusty-stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
-- name: gcs-bosh-state
-  type: gcs
-  source:
-    bucket: kubo-pipeline-store
-    json_key: ((gcs-json-key))
-    versioned_file: bosh/state.json
-- name: gcs-kubo-deployment-tarball-untested
-  type: gcs
-  source:
-    bucket: kubo-pipeline-store
-    json_key: ((gcs-json-key))
-    regexp: kubo-deployment-(.*).tgz
-- name: gcs-kubo-release-tarball-untested
-  type: gcs
-  source:
-    bucket: kubo-pipeline-store
-    json_key: ((gcs-json-key))
-    regexp: kubo-release-(.*).tgz
-- name: gcs-bosh-creds
-  type: gcs
-  source:
-    bucket: kubo-pipeline-store
-    json_key: ((gcs-json-key))
-    versioned_file: bosh/creds.yml
-- name: kubo-version
-  type: semver
-  source:
-    access_key_id: ((gcs-access-key-id))
-    bucket: kubo-pipeline-store
-    endpoint: storage.googleapis.com
-    key: kubo-version
-    region_name: us-east1
-    secret_access_key: ((gcs-secret-access-key))
-- name: git-kubo-ci
-  type: git
-  source:
-    branch: master
-    private_key: ((git-ssh-key))
-    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
-- name: git-kubo-deployment
-  type: git
-  source:
-    branch: master
-    force: true
-    ignore_paths:
-    - LICENSE
-    - NOTICE
-    private_key: ((git-ssh-key))
-    uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
-- name: kubo-lock-gcp
-  type: pool
-  source:
-    branch: master
-    pool: kubo-gcp
-    private_key: ((git-ssh-key))
-    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-- name: git-kubo-release
-  type: git
-  source:
-    branch: master
-    ignore_paths:
-    - LICENSE
-    - NOTICE
-    private_key: ((git-ssh-key))
-    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
+  - claim-lock-<%= iaas %>
+  - install-bosh-<%= iaas %>
+  - deploy-k8s-<%= iaas %>
+  - run-k8s-integration-tests-<%= iaas %>
+  - destroy-k8s-<%= iaas %>
+  - destroy-bosh-<%= iaas %>
+<% end %>
 resource_types:
 - name: gcs
   type: docker-image
   source:
     repository: frodenas/gcs-resource
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    branch: master
+    private_key: ((git-ssh-key))
+
+- name: git-kubo-deployment
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
+    branch: master
+    private_key: ((git-ssh-key))
+    force: true
+    ignore_paths:
+    - 'LICENSE'
+    - 'NOTICE'
+
+- name: git-kubo-release
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
+    branch: master
+    private_key: ((git-ssh-key))
+    ignore_paths:
+    - 'LICENSE'
+    - 'NOTICE'
+
+<% iaas_list.each do |iaas| %>
+- name: kubo-lock-<%= iaas %>
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key))
+    pool: kubo-<%= iaas %>
+<% end %>
+
+- name: gcs-bosh-state
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/state.json
+
+- name: gcs-bosh-creds
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/creds.yml
+
+- name: gcs-kubo-release-tarball-untested
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    regexp: kubo-release-(.*).tgz
+
+- name: gcs-kubo-deployment-tarball-untested
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    regexp: kubo-deployment-(.*).tgz
+
+# - name: gcs-kubo-releases
+#   type: gcs
+#   source:
+#     json_key: ((gcs-json-key))
+#     bucket: kubo-releases
+#     regexp: kubo-release-(.*).tgz
+
+# - name: gcs-kubo-deployments
+#   type: gcs
+#   source:
+#     json_key: ((gcs-json-key))
+#     bucket: kubo-releases
+#     regexp: kubo-deployment-(.*).tgz
+
+# - name: gcs-kubo-release-tarball
+#   type: gcs
+#   source:
+#     json_key: ((gcs-json-key))
+#     bucket: kubo-public
+#     versioned_file: kubo-release-latest.tgz
+
+# - name: gcs-kubo-deployment-tarball
+#   type: gcs
+#   source:
+#     json_key: ((gcs-json-key))
+#     bucket: kubo-public
+#     versioned_file: kubo-deployment-latest.tgz
+
+- name: conformance-results
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: conformance-results
+    regexp: conformance-results-(.*).tar.gz
+
+- name: kubo-version
+  type: semver
+  source:
+    key: kubo-version
+    access_key_id: ((gcs-access-key-id))
+    secret_access_key: ((gcs-secret-access-key))
+    bucket: kubo-pipeline-store
+    region_name: us-east1
+    endpoint: storage.googleapis.com
+
+- name: ubuntu-trusty-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
+
+# - name: gh-release-kubo-release
+#   type: github-release
+#   source:
+#     owner: cloudfoundry-incubator
+#     repository: kubo-release
+#     access_token: ((github-token-key))
+#     drafts: true
+#     pre_release: true
+
+# - name: gh-release-kubo-deployment
+#   type: github-release
+#   source:
+#     owner: cloudfoundry-incubator
+#     repository: kubo-deployment
+#     access_token: ((github-token-key))
+#     drafts: true
+#     pre_release: true
+
 jobs:
 - name: run-unit-tests
   plan:
@@ -113,116 +189,101 @@ jobs:
     file: git-kubo-ci/tasks/run-release-unit-tests.yml
   - task: run-deployment-unit-tests
     file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
+
 - name: build-kubo-release
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-deployment
-      passed:
-      - run-unit-tests
+      passed: [ 'run-unit-tests' ]
       trigger: true
     - get: kubo-version
       params:
         pre: dev
     - get: git-kubo-release
-      passed:
-      - run-unit-tests
+      passed: [ 'run-unit-tests' ]
       trigger: true
     - get: ubuntu-trusty-stemcell
       version:
-        version: "3468.15"
+        version: *stemcell_version
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
   - task: export-release
-    privileged: true
     file: git-kubo-ci/tasks/export-release.yml
+    privileged: true
     input_mapping:
       kubo-ci: git-kubo-ci
-      release: kubo-release
       stemcell: ubuntu-trusty-stemcell
+      release: kubo-release
   - put: gcs-kubo-release-tarball-untested
     params:
       file: compiled-release/kubo-*.tgz
   - put: kubo-version
     params:
       pre: dev
+
 - name: package-kubo-deployment-tarball
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-deployment
-      passed:
-      - build-kubo-release
+      passed: [ 'build-kubo-release' ]
     - get: kubo-version
-      passed:
-      - build-kubo-release
+      passed: [ 'build-kubo-release' ]
     - get: gcs-kubo-release-tarball-untested
-      passed:
-      - build-kubo-release
+      passed: [ 'build-kubo-release' ]
       trigger: true
     - get: git-kubo-release
-      passed:
-      - build-kubo-release
+      passed: [ 'build-kubo-release' ]
   - task: build-kubo-deployment-tarball
     file: git-kubo-ci/tasks/build-kubo-deployment-tarball.yml
   - put: gcs-kubo-deployment-tarball-untested
     params:
       file: kubo-deployment-tarball/kubo-deployment*.tgz
-- name: claim-lock-gcp
+
+<% iaas_list.each do |iaas| %>
+- name: claim-lock-<%= iaas %>
   max_in_flight: 1
   plan:
   - aggregate:
     - get: kubo-version
-      passed:
-      - package-kubo-deployment-tarball
+      passed: [ 'package-kubo-deployment-tarball' ]
       trigger: true
     - get: git-kubo-release
-      passed:
-      - package-kubo-deployment-tarball
+      passed: [ 'package-kubo-deployment-tarball' ]
     - get: git-kubo-deployment
-      passed:
-      - package-kubo-deployment-tarball
+      passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-release-tarball-untested
-      passed:
-      - package-kubo-deployment-tarball
+      passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed:
-      - package-kubo-deployment-tarball
-  - put: kubo-lock-gcp
-    params:
-      acquire: true
-- name: install-bosh-gcp
+      passed: [ 'package-kubo-deployment-tarball' ]
+  - put: kubo-lock-<%= iaas %>
+    params: { acquire: true }
+
+- name: install-bosh-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-deployment
-      passed:
-      - claim-lock-gcp
-    - get: kubo-lock-gcp
-      passed:
-      - claim-lock-gcp
-      trigger: true
+      passed: [ 'claim-lock-<%= iaas %>' ]
+    - get: kubo-lock-<%= iaas %>
       version: every
+      trigger: true
+      passed: [ 'claim-lock-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed:
-      - claim-lock-gcp
+      passed: [ 'claim-lock-<%= iaas %>' ]
     - get: git-kubo-release
-      passed:
-      - claim-lock-gcp
+      passed: [ 'claim-lock-<%= iaas %>' ]
     - get: kubo-version
-      passed:
-      - claim-lock-gcp
+      passed: [ 'claim-lock-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed:
-      - claim-lock-gcp
+      passed: [ 'claim-lock-<%= iaas %>' ]
   - task: install
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     params:
       USE_TURBULENCE: 1
-    input_mapping:
-      kubo-lock: kubo-lock-gcp
-    tags:
-    - gcp
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -230,244 +291,308 @@ jobs:
     - put: gcs-bosh-state
       params:
         file: bosh-state/state.json
-- name: deploy-k8s-gcp
+
+- name: deploy-k8s-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-gcp
-      passed:
-      - install-bosh-gcp
-      trigger: true
+    - get: kubo-lock-<%= iaas %>
       version: every
+      trigger: true
+      passed: [ 'install-bosh-<%= iaas %>' ]
     - get: git-kubo-deployment
-      passed:
-      - install-bosh-gcp
+      passed: [ 'install-bosh-<%= iaas %>' ]
     - get: git-kubo-release
-      passed:
-      - install-bosh-gcp
+      passed: [ 'install-bosh-<%= iaas %>' ]
     - get: kubo-version
-      passed:
-      - install-bosh-gcp
+      passed: [ 'install-bosh-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed:
-      - install-bosh-gcp
+      passed: [ 'install-bosh-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed:
-      - install-bosh-gcp
+      passed: [ 'install-bosh-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed:
-      - install-bosh-gcp
+      passed: [ 'install-bosh-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed:
-      - install-bosh-gcp
+      passed: [ 'install-bosh-<%= iaas %>' ]
   - task: deploy
-    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    tags: [<%= iaas %>]
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
-      kubo-lock: kubo-lock-gcp
-    tags:
-    - gcp
+      kubo-lock: kubo-lock-<%= iaas %>
+    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    params:
+      WITH_PRIVILEGED_CONTAINERS: 1
+    <% if iaas.include? 'openstack' %>
+      CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
+    <% end %>
+
   - task: configure-bosh-for-turbulence
-    file: git-kubo-ci/tasks/configure-bosh.yml
+    tags: ['<%= iaas %>']
     input_mapping:
-      kubo-lock: kubo-lock-gcp
-    tags:
-    - gcp
-- name: run-k8s-integration-tests-gcp
+      kubo-lock: kubo-lock-<%= iaas %>
+    file: git-kubo-ci/tasks/configure-bosh.yml
+    tags: ['<%= iaas %>']
+
+- name: run-k8s-integration-tests-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-gcp
-      passed:
-      - deploy-k8s-gcp
-      trigger: true
+    - get: kubo-lock-<%= iaas %>
       version: every
+      trigger: true
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: git-kubo-deployment
-      passed:
-      - deploy-k8s-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed:
-      - deploy-k8s-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed:
-      - deploy-k8s-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: kubo-version
-      passed:
-      - deploy-k8s-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: git-kubo-release
-      passed:
-      - deploy-k8s-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed:
-      - deploy-k8s-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed:
-      - deploy-k8s-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
   - task: integration-tests
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     params:
       KUBERNETES_AUTHENTICATION_POLICY: RBAC
-      RUN_CLOUD_AGNOSTIC_TESTS: true
-    input_mapping:
-      kubo-lock: kubo-lock-gcp
-    tags:
-    - gcp
   - task: pod-to-pod
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
-    input_mapping:
-      kubo-lock: kubo-lock-gcp
-    tags:
-    - gcp
-- name: run-turbulence-tests-gcp
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+
+- name: run-k8s-conformance-tests-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-gcp
-      passed:
-      - run-k8s-integration-tests-gcp
-      trigger: true
+    - get: kubo-lock-<%= iaas %>
       version: every
-    - get: gcs-bosh-state
-      passed:
-      - run-k8s-integration-tests-gcp
-    - get: gcs-bosh-creds
-      passed:
-      - run-k8s-integration-tests-gcp
-    - get: kubo-version
-      passed:
-      - run-k8s-integration-tests-gcp
-    - get: git-kubo-release
-      passed:
-      - run-k8s-integration-tests-gcp
-    - get: git-kubo-deployment
-      passed:
-      - run-k8s-integration-tests-gcp
-    - get: gcs-kubo-release-tarball-untested
-      passed:
-      - run-k8s-integration-tests-gcp
-    - get: gcs-kubo-deployment-tarball-untested
-      passed:
-      - run-k8s-integration-tests-gcp
-  - task: turbulence-tests
-    file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
-    input_mapping:
-      kubo-lock: kubo-lock-gcp
-    tags:
-    - gcp
-- name: run-k8s-conformance-tests-gcp
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: kubo-lock-gcp
-      passed:
-      - run-turbulence-tests-gcp
       trigger: true
-      version: every
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed:
-      - run-turbulence-tests-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed:
-      - run-turbulence-tests-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: kubo-version
-      passed:
-      - run-turbulence-tests-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: git-kubo-release
-      passed:
-      - run-turbulence-tests-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: git-kubo-deployment
-      passed:
-      - run-turbulence-tests-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed:
-      - run-turbulence-tests-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed:
-      - run-turbulence-tests-gcp
+      passed: [ 'deploy-k8s-<%= iaas %>' ]
   - task: conformance-tests
     file: git-kubo-ci/tasks/run-k8s-conformance-tests.yml
+    tags: ['<%= iaas %>']
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     params:
       CONFORMANCE_RESULTS_DIR: conformance-results
-    input_mapping:
-      kubo-lock: kubo-lock-gcp
-    tags:
-    - gcp
     ensure:
       put: conformance-results
       params:
         file: conformance-results/conformance-results-*.tar.gz
-- name: destroy-k8s-gcp
+
+- name: run-turbulence-tests-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-gcp
-      passed:
-      - run-k8s-conformance-tests-gcp
-      trigger: true
+    - get: kubo-lock-<%= iaas %>
       version: every
-    - get: kubo-version
-      passed:
-      - run-k8s-conformance-tests-gcp
-    - get: git-kubo-deployment
-      passed:
-      - run-k8s-conformance-tests-gcp
-    - get: git-kubo-release
-      passed:
-      - run-k8s-conformance-tests-gcp
+      trigger: true
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>', 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed:
-      - run-k8s-conformance-tests-gcp
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>', 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed:
-      - run-k8s-conformance-tests-gcp
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>', 'run-k8s-integration-tests-<%= iaas %>' ]
+    - get: kubo-version
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>', 'run-k8s-integration-tests-<%= iaas %>' ]
+    - get: git-kubo-release
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>', 'run-k8s-integration-tests-<%= iaas %>' ]
+    - get: git-kubo-deployment
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>', 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed:
-      - run-k8s-conformance-tests-gcp
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>', 'run-k8s-integration-tests-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed:
-      - run-k8s-conformance-tests-gcp
+      passed: [ 'run-k8s-conformance-tests-<%= iaas %>', 'run-k8s-integration-tests-<%= iaas %>' ]
+  - task: turbulence-tests
+    file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
+    tags: ['<%= iaas %>']
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+
+- name: destroy-k8s-<%= iaas %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= iaas %>
+      version: every
+      trigger: true
+      passed: [ 'run-turbulence-tests-<%= iaas %>' ]
+    - get: kubo-version
+      passed: [ 'run-turbulence-tests-<%= iaas %>' ]
+    - get: git-kubo-deployment
+      passed: [ 'run-turbulence-tests-<%= iaas %>'  ]
+    - get: git-kubo-release
+      passed: [ 'run-turbulence-tests-<%= iaas %>'  ]
+    - get: gcs-bosh-state
+      passed: [ 'run-turbulence-tests-<%= iaas %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'run-turbulence-tests-<%= iaas %>' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'run-turbulence-tests-<%= iaas %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'run-turbulence-tests-<%= iaas %>' ]
   - task: destroy-k8s
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-    input_mapping:
-      kubo-lock: kubo-lock-gcp
-    tags:
-    - gcp
-- name: destroy-bosh-gcp
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+
+
+- name: destroy-bosh-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-deployment
-      passed:
-      - destroy-k8s-gcp
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
     - get: git-kubo-release
-      passed:
-      - destroy-k8s-gcp
-    - get: kubo-lock-gcp
-      passed:
-      - destroy-k8s-gcp
-      trigger: true
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
+    - get: kubo-lock-<%= iaas %>
       version: every
+      trigger: true
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
     - get: kubo-version
-      passed:
-      - destroy-k8s-gcp
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed:
-      - destroy-k8s-gcp
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed:
-      - destroy-k8s-gcp
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed:
-      - destroy-k8s-gcp
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed:
-      - destroy-k8s-gcp
+      passed: [ 'destroy-k8s-<%= iaas %>' ]
   - task: destroy
+    tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    input_mapping:
-      kubo-lock: kubo-lock-gcp
-    tags:
-    - gcp
-  - put: kubo-lock-gcp
-    params:
-      release: kubo-lock-gcp
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+  - put: kubo-lock-<%= iaas %>
+    params: { release: kubo-lock-<%= iaas %> }
+<% end %>
+
+<%
+ destroy_bosh = iaas_list.map {|iaas| "destroy-bosh-#{iaas}"}
+%>
+
+# - name: upload-kubo-deployment
+#   plan:
+#   - aggregate:
+#     - get: git-kubo-ci
+#     - get: git-kubo-deployment
+#       passed: <%= destroy_bosh %>
+#     - get: kubo-version
+#       passed: <%= destroy_bosh %>
+#       trigger: true
+#     - get: gcs-kubo-deployment-tarball-untested
+#       passed: <%= destroy_bosh %>
+#   - aggregate:
+#     - put: gcs-kubo-deployment-tarball
+#       params:
+#         file: gcs-kubo-deployment-tarball-untested/kubo-deployment-*.tgz
+#     - put: gcs-kubo-deployments
+#       params:
+#         file: gcs-kubo-deployment-tarball-untested/kubo-deployment-*.tgz
+
+
+# - name: upload-kubo-release
+#   plan:
+#   - aggregate:
+#     - get: gcs-kubo-release-tarball-untested
+#       passed: <%= destroy_bosh %>
+#     - get: kubo-version
+#       passed: <%= destroy_bosh %>
+#       trigger: true
+#   - aggregate:
+#     - put: gcs-kubo-release-tarball
+#       params:
+#         file: gcs-kubo-release-tarball-untested/kubo-*.tgz
+#     - put: gcs-kubo-releases
+#       params:
+#         file: gcs-kubo-release-tarball-untested/kubo-*.tgz
+
+# - name: success-notification
+#   plan:
+#   - aggregate:
+#     - get: kubo-version
+#       passed: [ upload-kubo-release, upload-kubo-deployment ]
+#       trigger: true
+
+# - name: upload-github-releases
+#   plan:
+#   - aggregate:
+#     - get: git-kubo-ci
+#     - get: kubo-version
+#       passed: <%= destroy_bosh %>
+#       params:
+#         bump: final
+#     - get: git-kubo-release
+#       passed: <%= destroy_bosh %>
+#     - get: git-kubo-deployment
+#       passed: <%= destroy_bosh %>
+#   - task: upload-releases
+#     file: git-kubo-ci/tasks/upload-github-releases.yml
+#     params:
+#       ACCESS_KEY_ID: ((gcs-access-key-id))
+#       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+#   - aggregate:
+#     - do:
+#       - put: git-kubo-release
+#         params:
+#           repository: git-kubo-release-output
+#       # We need to push the tags separately due to
+#       # https://github.com/concourse/git-resource/issues/110
+#       - put: git-kubo-release
+#         params:
+#           repository: git-kubo-release-output
+#           only_tag: true
+#       - put: gh-release-kubo-release
+#         params:
+#           name: kubo-release/name
+#           tag: kubo-version/version
+#           tag_prefix: v
+#           body: kubo-release/body
+#           globs: ["kubo-release/*.tgz"]
+#     - do:
+#       - put: git-kubo-deployment
+#         params:
+#           repository: git-kubo-deployment
+#           tag: kubo-version/version
+#           tag_prefix: v
+#           only_tag: true
+#       - put: gh-release-kubo-deployment
+#         params:
+#           name: kubo-deployment/name
+#           tag: kubo-version/version
+#           tag_prefix: v
+#           body: kubo-deployment/body
+#           globs: ["kubo-deployment/kubo-deployment-*.tgz"]
+#     - put: git-kubo-ci
+#       params:
+#         repository: git-kubo-ci
+#         only_tag: true
+#         tag: kubo-version/version
+#         tag_prefix: v
+#   - put: kubo-version
+#     params:
+#       bump: patch
+
+# - name: bump-minor-version
+#   plan:
+#   - get: kubo-version
+#   - put: kubo-version
+#     params:
+#       bump: minor
