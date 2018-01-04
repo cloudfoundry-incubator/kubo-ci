@@ -403,21 +403,21 @@ jobs:
     - get: git-kubo-ci
     - get: kubo-lock-<%= env %>
       trigger: true
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-bosh-state
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: git-kubo-deployment
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: git-kubo-release
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: kubo-version
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
+      passed: [ 'deploy-k8s-<%= env %>' ]
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
@@ -434,7 +434,7 @@ jobs:
         file: conformance-results/conformance-results-*.tar.gz
     <% end %>
 
-<% destroy_k8s_passed = env == 'gcp-lb' ? ["run-k8s-conformance-tests-#{env}"] : ["run-k8s-integration-tests-#{env}"] %>
+<% destroy_k8s_passed = env == 'gcp-lb' ? ["run-k8s-integration-tests-#{env}", "run-k8s-conformance-tests-#{env}"] : ["run-k8s-integration-tests-#{env}"] %>
 
 - name: destroy-k8s-<%= env %>
   plan:
