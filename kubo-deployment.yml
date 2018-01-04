@@ -21,9 +21,7 @@ groups:
   - install-bosh-<%= env %>
   - deploy-k8s-<%= env %>
   - run-k8s-integration-tests-<%= env %>
-<% if env == 'gcp-lb' %>
   - run-k8s-conformance-tests-<%= env %>
-<% end %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
 <% end %>
@@ -40,11 +38,9 @@ groups:
   - install-bosh-<%= env %>
   - deploy-k8s-<%= env %>
   - run-k8s-integration-tests-<%= env %>
+  - run-k8s-conformance-tests-<%= env %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
-<% if env == 'gcp-lb' %>
-  - run-k8s-conformance-tests-<%= env %>
-<% end %>
 <% end %>
 resource_types:
 - name: gcs
@@ -147,12 +143,14 @@ resources:
     bucket: kubo-public
     versioned_file: kubo-deployment-latest.tgz
 
-- name: conformance-results
+<% env_list.each do |env| %>
+- name: conformance-results-<%= env %>
   type: gcs
   source:
     json_key: ((gcs-json-key))
-    bucket: conformance-results
+    bucket: conformance-results-<%= env %>
     regexp: conformance-results-(.*).tar.gz
+<% end %>
 
 - name: kubo-version
   type: semver
@@ -354,13 +352,10 @@ jobs:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
       kubo-lock: kubo-lock-<%= env %>
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-    <% if env.include? 'openstack' %>
-    params:
-      CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
-    <% end %>
-    <% if env.include? 'gcp-lb' %>
     params:
       WITH_PRIVILEGED_CONTAINERS: 1
+    <% if env.include? 'openstack' %>
+      CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
     <% end %>
 
 - name: run-k8s-integration-tests-<%= env %>
@@ -396,7 +391,6 @@ jobs:
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
 
-    <% if env == 'gcp-lb' %>
 - name: run-k8s-conformance-tests-<%= env %>
   plan:
   - aggregate:
@@ -429,12 +423,9 @@ jobs:
     params:
       CONFORMANCE_RESULTS_DIR: conformance-results
     ensure:
-      put: conformance-results
+      put: conformance-results-<%= env %>
       params:
         file: conformance-results/conformance-results-*.tar.gz
-    <% end %>
-
-<% destroy_k8s_passed = env == 'gcp-lb' ? ["run-k8s-integration-tests-#{env}", "run-k8s-conformance-tests-#{env}"] : ["run-k8s-integration-tests-#{env}"] %>
 
 - name: destroy-k8s-<%= env %>
   plan:
@@ -443,26 +434,25 @@ jobs:
     - get: kubo-lock-<%= env %>
       version: every
       trigger: true
-      passed: <%= destroy_k8s_passed %>
+      passed: ["run-k8s-integration-tests-<%= env %>", "run-k8s-conformance-tests-<%= env %>"]
     - get: kubo-version
-      passed: <%= destroy_k8s_passed %>
+      passed: ["run-k8s-integration-tests-<%= env %>", "run-k8s-conformance-tests-<%= env %>"]
     - get: git-kubo-deployment
-      passed: <%= destroy_k8s_passed %>
+      passed: ["run-k8s-integration-tests-<%= env %>", "run-k8s-conformance-tests-<%= env %>"]
     - get: git-kubo-release
-      passed: <%= destroy_k8s_passed %>
+      passed: ["run-k8s-integration-tests-<%= env %>", "run-k8s-conformance-tests-<%= env %>"]
     - get: gcs-bosh-state
-      passed: <%= destroy_k8s_passed %>
+      passed: ["run-k8s-integration-tests-<%= env %>", "run-k8s-conformance-tests-<%= env %>"]
     - get: gcs-bosh-creds
-      passed: <%= destroy_k8s_passed %>
+      passed: ["run-k8s-integration-tests-<%= env %>", "run-k8s-conformance-tests-<%= env %>"]
     - get: gcs-kubo-release-tarball-untested
-      passed: <%= destroy_k8s_passed %>
+      passed: ["run-k8s-integration-tests-<%= env %>", "run-k8s-conformance-tests-<%= env %>"]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: <%= destroy_k8s_passed %>
+      passed: ["run-k8s-integration-tests-<%= env %>", "run-k8s-conformance-tests-<%= env %>"]
   - task: destroy-k8s
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
-
 
 - name: destroy-bosh-<%= env %>
   plan:
