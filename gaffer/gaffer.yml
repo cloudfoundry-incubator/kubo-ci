@@ -53,7 +53,10 @@ spec:
         - name: GAFFER_LOCK_POOLS
           value: '["kubo-gcp", "kubo-gcp-lb", "kubo-aws", "kubo-aws-lb", "kubo-vsphere", "kubo-vsphere-lb", "kubo-openstack", "kubo-openstack-lb"]'
         - name: GAFFER_GITHUB_TOKEN
-          value: 17dcb9abd96a020f733000b96fea2f14fea2431f
+          valueFrom:
+            secretKeyRef:
+              name: github-oauth
+              key: token
         - name: ENABLE_LOCK_INFO_ON_HOME_PAGE
           value: 'true'
         - name: ENABLE_RECYCLE
