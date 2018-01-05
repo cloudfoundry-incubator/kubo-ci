@@ -15,13 +15,13 @@ groups:
   - package-kubo-deployment-tarball
 <% iaases.each do |iaas| %>
   - deploy-bosh-test-<%= iaas %>
+  - run-k8s-conformance-tests-<%= iaas %>
 <% end %>
 <% env_list.each do |env| %>
   - claim-lock-<%= env %>
   - install-bosh-<%= env %>
   - deploy-k8s-<%= env %>
   - run-k8s-integration-tests-<%= env %>
-  - run-k8s-conformance-tests-<%= env %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
 <% end %>
@@ -38,7 +38,7 @@ groups:
   - install-bosh-<%= env %>
   - deploy-k8s-<%= env %>
   - run-k8s-integration-tests-<%= env %>
-  - run-k8s-conformance-tests-<%= env %>
+  - run-k8s-conformance-tests-<%= env.split('-').first %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
 <% end %>
