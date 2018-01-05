@@ -48,7 +48,6 @@ var _ = Describe("Conformance Tests", func() {
 	})
 
 	Specify("Conformance tests succeeds", func() {
-
 		By("Applying the conformance spec")
 		session := kubectl.RunKubectlCommandInNamespace("sonobuoy", "apply", "-f", conformanceSpec)
 		Eventually(session, "30s").Should(gexec.Exit(0))
@@ -77,14 +76,14 @@ var _ = Describe("Conformance Tests", func() {
 		Expect(len(matches)).To(Equal(1))
 		logPath := matches[0]
 
-		By("Get the release version")
+		By("Get the release version and iaas")
 		releaseVersion := os.Getenv("CONFORMANCE_RELEASE_VERSION")
-		fmt.Println(fmt.Sprintf("release version: %s", releaseVersion))
+		iaas := os.Getenv("CONFORMANCE_IAAS")
 
 		By("Move results to output dir")
 		conformanceResultsDir := os.Getenv("CONFORMANCE_RESULTS_DIR")
 		fmt.Println(fmt.Sprintf("conformance results dir: %s", conformanceResultsDir))
-		conformanceResultsPath := filepath.Join(conformanceResultsDir, fmt.Sprintf("conformance-results-%s.tar.gz", releaseVersion))
+		conformanceResultsPath := filepath.Join(conformanceResultsDir, fmt.Sprintf("conformance-results-%s-%s.tar.gz", iaas, releaseVersion))
 		containerAddressedLogPath := fmt.Sprintf("sonobuoy:%s", logPath)
 		session = kubectl.RunKubectlCommandInNamespace("sonobuoy", "cp", containerAddressedLogPath, conformanceResultsPath)
 		Eventually(session, "60s").Should(gexec.Exit(0))

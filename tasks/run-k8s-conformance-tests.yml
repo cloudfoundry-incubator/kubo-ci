@@ -16,6 +16,7 @@ inputs:
   - name: gcs-bosh-creds
   - name: kubo-lock
   - name: git-kubo-deployment
+  - name: kubo-version
 
 outputs:
   - name: conformance-results
