@@ -89,8 +89,20 @@ func (runner *KubectlRunner) GetOutput(kubectlArgs ...string) []string {
 	return strings.Fields(string(output))
 }
 
+func (runner *KubectlRunner) GetOutputInNamespace(namespace string, kubectlArgs ...string) []string {
+	output := runner.GetOutputBytesInNamespace(namespace, kubectlArgs...)
+	return strings.Fields(string(output))
+}
+
 func (runner *KubectlRunner) GetOutputBytes(kubectlArgs ...string) []byte {
 	session := runner.RunKubectlCommand(kubectlArgs...)
+	Eventually(session, "20s").Should(gexec.Exit(0))
+	output := session.Out.Contents()
+	return output
+}
+
+func (runner *KubectlRunner) GetOutputBytesInNamespace(namespace string, kubectlArgs ...string) []byte {
+	session := runner.RunKubectlCommandInNamespace(namespace, kubectlArgs...)
 	Eventually(session, "20s").Should(gexec.Exit(0))
 	output := session.Out.Contents()
 	return output
@@ -113,9 +125,30 @@ func (runner *KubectlRunner) GetNodePort(service string) (string, error) {
 	return "", errors.New("No nodePort found!")
 }
 
+func (runner *KubectlRunner) GetNodePortInNamespace(service string, namespace string) (string, error) {
+	output := runner.GetOutputInNamespace(namespace, "describe", service)
+
+	for i := 0; i < len(output); i++ {
+		if output[i] == "NodePort:" {
+			nodePort := output[i+2]
+			return nodePort[:strings.Index(nodePort, "/")], nil
+		}
+	}
+
+	return "", errors.New("No nodePort found!")
+}
+
 func (runner *KubectlRunner) GetAppAddress(deployment director.Deployment, service string) string {
 	workerIP := GetWorkerIP(deployment)
 	nodePort, err := runner.GetNodePort(service)
+	Expect(err).ToNot(HaveOccurred())
+
+	return fmt.Sprintf("%s:%s", workerIP, nodePort)
+}
+
+func (runner *KubectlRunner) GetAppAddressInNamespace(deployment director.Deployment, service string, namespace string) string {
+	workerIP := GetWorkerIP(deployment)
+	nodePort, err := runner.GetNodePortInNamespace(service, namespace)
 	Expect(err).ToNot(HaveOccurred())
 
 	return fmt.Sprintf("%s:%s", workerIP, nodePort)

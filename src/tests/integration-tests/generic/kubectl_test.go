@@ -1,11 +1,14 @@
 package generic_test
 
 import (
+	"crypto/tls"
+	"fmt"
 	. "tests/test_helpers"
 
 	"net/http"
 	"time"
 
+	"github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -14,10 +17,16 @@ import (
 
 var _ = Describe("Kubectl", func() {
 	var (
-		kubectl *KubectlRunner
+		deployment director.Deployment
+		kubectl    *KubectlRunner
 	)
 
 	BeforeEach(func() {
+		var err error
+		director := NewDirector(testconfig.Bosh)
+		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
+		Expect(err).NotTo(HaveOccurred())
+
 		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 		kubectl.RunKubectlCommand(
 			"create", "namespace", kubectl.Namespace()).Wait("60s")
@@ -40,26 +49,55 @@ var _ = Describe("Kubectl", func() {
 		Expect(session).To(gexec.Exit(0))
 	})
 
-	It("Should provide access to the dashboard", func() {
-		session := kubectl.RunKubectlCommand("proxy")
-		Eventually(session).Should(gbytes.Say("Starting to serve on"))
+	Context("Dashboard", func() {
+		It("Should provide access to the dashboard via kubectl proxy", func() {
+			session := kubectl.RunKubectlCommand("proxy")
+			Eventually(session).Should(gbytes.Say("Starting to serve on"))
 
-		timeout := time.Duration(5 * time.Second)
-		httpClient := http.Client{
-			Timeout: timeout,
-		}
-
-		appUrl := "http://127.0.0.1:8001/ui/"
-
-		Eventually(func() int {
-			result, err := httpClient.Get(appUrl)
-			if err != nil {
-				return -1
+			timeout := time.Duration(5 * time.Second)
+			httpClient := http.Client{
+				Timeout: timeout,
 			}
-			return result.StatusCode
-		}, "120s", "5s").Should(Equal(200))
 
-		session.Terminate()
+			// For more details, see: https://github.com/kubernetes/dashboard/wiki/Accessing-Dashboard---1.7.X-and-above#kubectl-proxy
+			appUrl := "http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/"
+
+			Eventually(func() int {
+				result, err := httpClient.Get(appUrl)
+				if err != nil {
+					return -1
+				}
+				return result.StatusCode
+			}, "120s", "5s").Should(Equal(200))
+
+			session.Terminate()
+		})
+
+		It("Should provide access to the dashboard via a node port", func() {
+
+			timeout := time.Duration(5 * time.Second)
+			transport := &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true,
+				},
+			}
+			httpClient := http.Client{
+				Timeout:   timeout,
+				Transport: transport,
+			}
+
+			kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+			appAddress := kubectl.GetAppAddressInNamespace(deployment, "svc/kubernetes-dashboard", "kube-system")
+			appUrl := fmt.Sprintf("https://%s", appAddress)
+
+			Eventually(func() int {
+				result, err := httpClient.Get(appUrl)
+				if err != nil {
+					return -1
+				}
+				return result.StatusCode
+			}, "120s", "5s").Should(Equal(200))
+		})
 	})
 
 })
