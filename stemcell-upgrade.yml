@@ -22,6 +22,7 @@ jobs:
 - name: update-stemcell
   plan:
   - get: git-kubo-deployment
+  - get: git-kubo-ci
   - get: gcp-stemcell
     trigger: true
   - task: update-manifest
@@ -29,15 +30,16 @@ jobs:
       platform: linux
       inputs:
       - name: git-kubo-deployment
+      - name: git-kubo-ci
       - name: gcp-stemcell
       outputs:
       - name: git-kubo-deployment-with-updated-stemcell
       run:
-        path: ./git-kubo-ci/scripts/update-stemcell
+        path: ./git-kubo-ci/scripts/update-stemcell.sh
       image_resource:
         type: docker-image
         source:
-          repository: alpine
-          tag: 3.7
+          repository: pcfkubo/kubo-ci
+          tag: stable
   - put: git-kubo-deployment
     params: { repository: git-kubo-deployment-with-updated-stemcell }
