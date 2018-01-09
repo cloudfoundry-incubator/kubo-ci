@@ -42,4 +42,6 @@ jobs:
           repository: pcfkubo/kubo-ci
           tag: stable
   - put: git-kubo-deployment
-    params: { repository: git-kubo-deployment-with-updated-stemcell }
+    params:
+      repository: git-kubo-deployment-with-updated-stemcell
+      rebase: true
