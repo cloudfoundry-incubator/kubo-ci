@@ -29,6 +29,8 @@ jobs:
       inputs:
       - name: git-kubo-deployment
       - name: gcp-stemcell
+      outputs:
+      - name: git-kubo-deployment-with-updated-stemcell
       run:
         path: ./git-kubo-ci/scripts/update-stemcell
       image_resource:
@@ -37,4 +39,4 @@ jobs:
           repository: alpine
           tag: 3.7
   - put: git-kubo-deployment
-    params: { repository: git-kubo-deployment }
+    params: { repository: git-kubo-deployment-with-updated-stemcell }
