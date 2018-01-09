@@ -1,4 +1,4 @@
-FROM golang:1.9-alpine3.6
+FROM golang:1.9-alpine3.7
 MAINTAINER pcf-kubo@pivotal.io
 
 RUN apk --update  add git openssh bash && \

@@ -1,4 +1,4 @@
-FROM alpine:3.6
+FROM alpine:latest
 MAINTAINER pcf-kubo@pivotal.io
 
 RUN apk update && apk add \ 
