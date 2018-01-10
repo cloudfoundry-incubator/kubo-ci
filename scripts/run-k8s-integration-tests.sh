@@ -48,11 +48,11 @@ execute_cloud_agnostic_tests() {
   fi
 
   if [[ ${routing_mode} == "cf" ]]; then
-    ginkgo -dryRun -progress -v "$BASE_DIR/src/tests/integration-tests/cloudfoundry"
+    ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/cloudfoundry"
   fi
 
   for test in "${cloud_agnostic_tests[@]}"; do
-    ginkgo -dryRun -progress -v "$ginkgo_flags" "$BASE_DIR/src/tests/integration-tests/${test}"
+    ginkgo -progress -v "$ginkgo_flags" "$BASE_DIR/src/tests/integration-tests/${test}"
   done
 
 }
@@ -72,11 +72,11 @@ execute_cloud_specific_tests(){
         ;;
     esac
 
-    ginkgo -dryRun -progress -v "$BASE_DIR/src/tests/integration-tests/workload/k8s_lbs"
+    ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/workload/k8s_lbs"
   fi
 
   if [[ "${iaas}" != "openstack" ]]; then
-      ginkgo -dryRun -progress -v "$BASE_DIR/src/tests/integration-tests/persistent_volume"
+      ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/persistent_volume"
   fi
 }
 
