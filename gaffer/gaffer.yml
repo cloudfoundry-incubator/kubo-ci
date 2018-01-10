@@ -51,7 +51,7 @@ spec:
         - name: LOCKS_REPO
           value: pivotal-cf-experimental/kubo-locks
         - name: GAFFER_LOCK_POOLS
-          value: '["kubo-gcp", "kubo-gcp-lb", "kubo-aws", "kubo-aws-lb", "kubo-vsphere", "kubo-vsphere-lb", "kubo-openstack", "kubo-openstack-lb"]'
+          value: '["kubo-gcp", "kubo-gcp-lb", "kubo-aws", "kubo-aws-lb", "kubo-vsphere", "kubo-vsphere-lb", "kubo-openstack", "kubo-openstack-lb", "gcp", "gcp-with-bosh"]'
         - name: GAFFER_GITHUB_TOKEN
           valueFrom:
             secretKeyRef:
