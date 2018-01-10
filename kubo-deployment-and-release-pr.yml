@@ -1,5 +1,5 @@
 <%
-  iaas_list = %w(gcp)
+  iaas_list = %w(gcp gcp-lb vsphere aws aws-lb openstack)
 %>
 ---
 resource_types:
@@ -345,6 +345,9 @@ jobs:
   plan:
   - get: git-kubo-ci
   - get: git-kubo-release
+    passed: <%= iaas_list.collect { |iaas| "destroy-bosh-#{iaas}" } %>
+    trigger: true
+  - get: git-kubo-deployment
     passed: <%= iaas_list.collect { |iaas| "destroy-bosh-#{iaas}" } %>
     trigger: true
   - put: git-kubo-release
