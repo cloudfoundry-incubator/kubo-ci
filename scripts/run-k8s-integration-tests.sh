@@ -75,9 +75,7 @@ execute_cloud_specific_tests(){
     ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/workload/k8s_lbs"
   fi
 
-  if [[ "${iaas}" != "openstack" ]]; then
-      ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/persistent_volume"
-  fi
+  ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/persistent_volume"
 }
 
 run_tests() {
