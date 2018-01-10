@@ -4,7 +4,8 @@ set -exu -o pipefail
 
 export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
-version=$(cat kubo-version/version)
+#version=$(cat kubo-version/version)
+version=0.12.0
 git config --global user.name "cf-london"
 git config --global user.email "cf-london-eng@pivotal.io"
 
