@@ -41,7 +41,7 @@ execute_cloud_agnostic_tests() {
   local routing_mode="$1"
   local skip_addons_tests="$2"
   local cloud_agnostic_tests=("pod_logs" "generic" "oss_only" "api_extensions")
-  local ginkgo_flags
+  local ginkgo_flags=""
 
   if ! [[ -z "$skip_addons_tests" ]]; then
     ginkgo_flags="--skip=check\ apply-specs"
