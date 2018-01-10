@@ -3,7 +3,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
-    branch: test-update-stemcell
+    branch: master
     private_key: ((git-ssh-key))
 
 - name: git-kubo-ci
