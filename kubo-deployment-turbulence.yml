@@ -190,9 +190,7 @@ jobs:
   plan:
   - get: git-kubo-ci
   - get: git-kubo-deployment
-    trigger: true
   - get: git-kubo-release
-    trigger: true
   - task: run-release-unit-tests
     file: git-kubo-ci/tasks/run-release-unit-tests.yml
   - task: run-deployment-unit-tests
