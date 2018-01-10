@@ -13,8 +13,6 @@ pushd git-kubo-deployment-with-updated-stemcell
   git config user.name "CI Bot"
 
   git checkout test-update-stemcell
-  git pull
-
   git commit -am "Update stemcell version to $stemcell_version"
 
 popd
