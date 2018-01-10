@@ -83,7 +83,8 @@ execute_cloud_specific_tests(){
 run_tests() {
   local environment="$1"
   local deployment="$2"
-  local skip_addons_tests skip_cloud_agnostic_tests
+  local skip_addons_tests=""
+  local skip_cloud_agnostic_tests=""
 
   shift 2
   for flag in "$@"; do
