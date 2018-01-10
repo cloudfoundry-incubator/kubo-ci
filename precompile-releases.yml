@@ -19,6 +19,10 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry/cf-mysql-release
+- name: uaa-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry/uaa-release
 - name: compiled-releases
   type: gcs
   source:
@@ -86,6 +90,24 @@ jobs:
     file: kubo-ci/tasks/export-release.yml
     input_mapping:
       release: cf-mysql-release
+      stemcell: ubuntu-trusty
+  - put: compiled-releases
+    params:
+      file: compiled-release/*.tgz
+- name: compile-uaa-release-ubuntu-trusty
+  plan:
+  - aggregate:
+    - get: kubo-ci
+    - get: uaa-release
+      trigger: true
+    - get: ubuntu-trusty
+      version:
+        version: *stemcell_version
+  - task: export-release
+    privileged: true
+    file: kubo-ci/tasks/export-release.yml
+    input_mapping:
+      release: uaa-release
       stemcell: ubuntu-trusty
   - put: compiled-releases
     params:
