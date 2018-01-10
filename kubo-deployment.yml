@@ -28,6 +28,7 @@ groups:
   - upload-kubo-deployment
   - upload-kubo-release
   - success-notification
+  - release-version
   - upload-github-releases
   - bump-minor-version
 <% env_list.each do |env| %>
@@ -556,18 +557,31 @@ jobs:
         - git-kubo-release
         - git-kubo-deployment
 
-- name: upload-github-releases
+
+- name: release-version
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-version
       passed: <%= passed_requirements %>
-      params:
-        bump: final
+      trigger: true
     - get: git-kubo-release
       passed: <%= passed_requirements %>
     - get: git-kubo-deployment
       passed: <%= passed_requirements + passed_deploy_bosh %>
+
+- name: upload-github-releases
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-version
+      passed: [ 'release-version' ]
+      params:
+        bump: final
+    - get: git-kubo-release
+      passed: [ 'release-version' ]
+    - get: git-kubo-deployment
+      passed: [ 'release-version' ]
   - task: upload-releases
     file: git-kubo-ci/tasks/upload-github-releases.yml
     params:
