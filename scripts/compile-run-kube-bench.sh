@@ -31,8 +31,19 @@ cp -R "$HOME/go/src/github.com/aquasecurity/kube-bench/cfg" .
 
 config_path="$PWD/kube-bench-config.yml"
 
-PATH="$PATH:/var/vcap/packages/kubernetes/bin" \
-  ~/go/bin/kube-bench \
+# kubectl needs to be in the PATH
+PATH="$PATH:/var/vcap/packages/kubernetes/bin"
+export PATH
+
+# kubectl version (used by kube-bench) needs a kubeconfig
+if [ "$node_type" == "master" ]; then
+  KUBECONFIG="/var/vcap/jobs/kube-controller-manager/config/kubeconfig"
+else
+  KUBECONFIG="/var/vcap/jobs/kubelet/config/kubeconfig"
+fi
+export KUBECONFIG
+
+~/go/bin/kube-bench \
   --config="$config_path" \
   "$node_type"
 
