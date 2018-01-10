@@ -183,6 +183,13 @@ resources:
     drafts: true
     pre_release: true
 
+- name: tracker-finisher
+  type: tracker
+  source:
+    token: 2d5398e1b0f91366b59496d3eb1951b0
+    project_id: "2093412"
+    tracker_url: https://www.pivotaltracker.com
+
 jobs:
 - name: run-unit-tests
   plan:
@@ -538,6 +545,16 @@ jobs:
     - get: kubo-version
       passed: [ upload-kubo-release, upload-kubo-deployment ]
       trigger: true
+    - get: git-kubo-release
+      passed: <%= passed_requirements %>
+    - get: git-kubo-deployment
+      passed: [ upload-kubo-deployment ]
+      trigger: true
+  - put: tracker-finisher
+    params:
+      repos:
+        - git-kubo-release
+        - git-kubo-deployment
 
 - name: upload-github-releases
   plan:
