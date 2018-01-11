@@ -38,20 +38,21 @@ fi
 
 export BOSH_EXTRA_OPS
 
+set +x
+echo "Deploying BOSH"
+
 if [ "$iaas" = "gcp" ]; then
-  set +x
-  bosh-cli int $metadata_path --path=/gcp_service_account > "$PWD/key.json"
-  set -x
+  if [[ ! -z "${GCP_SERVICE_ACCOUNT+x}" ]] && [[ "$GCP_SERVICE_ACCOUNT" != "" ]]; then
+    echo "$GCP_SERVICE_ACCOUNT" >> "$PWD/key.json"
+  else
+    bosh-cli int $metadata_path --path=/gcp_service_account > "$PWD/key.json"
+  fi
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key.json"
 elif [ "$iaas" = "aws" ]; then
-  set +x
   bosh-cli int $metadata_path --path=/private_key > "$PWD/key"
-  set -x
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key"
 elif [ "$iaas" = "openstack" ]; then
-  set +x
   bosh-cli int $metadata_path --path=/private_key > "$PWD/key"
-  set -x
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key"
 else
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}"

@@ -7,7 +7,7 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/install-bosh.sh
 params:
-  USE_TURBULENCE:
+  GCP_SERVICE_ACCOUNT:
 
 inputs:
 - name: git-kubo-ci
