@@ -15,7 +15,7 @@ instance_groups:
 - name: tinyproxy
   instances: 1
   networks:
-  - name: kubo-network
+  - name: main-pcf-network
   azs: [z1]
   jobs:
   - name: tinyproxy
@@ -24,7 +24,6 @@ instance_groups:
 
   stemcell: trusty
   vm_type: minimal
-
 
 update:
   canaries: 1
