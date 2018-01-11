@@ -314,6 +314,8 @@ jobs:
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    params:
+      USE_TURBULENCE: 1
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -355,6 +357,13 @@ jobs:
     <% if env.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
     <% end %>
+
+  - task: configure-bosh-for-turbulence
+    tags: ['<%= env %>']
+    input_mapping:
+      kubo-lock: kubo-lock-<%= env %>
+    file: git-kubo-ci/tasks/configure-bosh.yml
+    tags: ['<%= env %>']
 
 - name: run-k8s-integration-tests-<%= env %>
   plan:
