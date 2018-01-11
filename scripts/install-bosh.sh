@@ -16,7 +16,7 @@ if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
     cp gcs-bosh-creds/creds.yml "${KUBO_ENVIRONMENT_DIR}/creds.yml"
   fi
   if [ -f "gcs-bosh-state/state.json" ]; then
-    cp gcs-bosh-creds/state.json "${KUBO_ENVIRONMENT_DIR}/state.json"
+    cp gcs-bosh-state/state.json "${KUBO_ENVIRONMENT_DIR}/state.json"
   fi
 
   touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
