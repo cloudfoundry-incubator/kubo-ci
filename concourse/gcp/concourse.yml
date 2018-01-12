@@ -35,7 +35,7 @@ instance_groups:
           - organization: pivotal-cf-experimental
             teams: [ pcf-kubo ]
           - organization: cloudfoundry-incubator
-            teams: [ cf-kubo ]
+            teams: [ cfcr ]
           - organization: pivotal-cf
             teams: [ vmware-kubo, pks-releng  ]
           - user: johnsonj
