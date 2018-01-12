@@ -575,7 +575,6 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-version
-      passed: [ 'release-version' ]
       params:
         bump: final
     - get: git-kubo-release
