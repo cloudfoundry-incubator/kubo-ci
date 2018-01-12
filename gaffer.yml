@@ -60,6 +60,7 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: gcs-kubo-deployment-tarball
+      trigger: true
     - get: gcs-bosh-creds
     - get: gcs-director.yml
     - get: gcs-bosh-state
@@ -87,7 +88,9 @@ jobs:
     - get: git-kubo-ci
     - get: gcs-kubo-deployment-tarball
       passed: [ deploy-bosh ]
+      trigger: true
     - get: gcs-kubo-release-tarball
+      trigger: true
     - get: gcs-bosh-creds
       passed: [ deploy-bosh ]
     - get: gcs-director.yml
