@@ -14,6 +14,6 @@ RUN apk update && apk add \
       mkdir /root/.aws
 
 # BOSH CLI
-RUN curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.44-linux-amd64 -O bosh && \
+RUN curl https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.44-linux-amd64 -o bosh && \
   install bosh /usr/local/bin && \
   ln -s /usr/local/bin/bosh /usr/local/bin/bosh-cli
