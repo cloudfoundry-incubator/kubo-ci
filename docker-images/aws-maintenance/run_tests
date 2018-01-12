@@ -7,10 +7,10 @@ else
   exit 1
 fi
 
-if which bosh-cli > /dev/null; then
-  echo "Found bosh-cli"
+if which bosh > /dev/null; then
+  echo "Found bosh"
 else
-  echo "Command 'bosh-cli' not found" >&2
+  echo "Command 'bosh' not found" >&2
   exit 1
 fi
 
