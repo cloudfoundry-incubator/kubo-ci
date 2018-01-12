@@ -1,14 +1,112 @@
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
 resources:
+- name: gaffer-spec
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+    paths: [ gaffer/gaffer.yml ]
+
 - name: git-kubo-ci
   type: git
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
     branch: master
     paths: [ gaffer/gaffer.yml ]
+
+- name: gcs-bosh-state
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: gaffer-env/state.json
+
+- name: gcs-bosh-creds
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: gaffer-env/creds.yml
+
+- name: gcs-director.yml
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: gaffer-env/metadata # Named so because locks are called metadata
+
+- name: gcs-kubo-release-tarball
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-public
+    versioned_file: kubo-release-latest.tgz
+
+- name: gcs-kubo-deployment-tarball
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-public
+    versioned_file: kubo-deployment-latest.tgz
+
 jobs:
+- name: deploy-bosh
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: gcs-kubo-deployment-tarball
+    - get: gcs-bosh-creds
+    - get: gcs-director.yml
+    - get: gcs-bosh-state
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball
+  - task: update-bosh
+    tags: [ gaffer ]
+    file: git-kubo-ci/tasks/update-bosh.yml
+    input_mapping: {kubo-lock: gcs-director.yml}
+    params:
+      GCP_SERVICE_ACCOUNT: ((gaffer-bosh-service-account))
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+
+- name: deploy-k8s
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: gcs-kubo-deployment-tarball
+      passed: [ deploy-bosh ]
+    - get: gcs-kubo-release-tarball
+    - get: gcs-bosh-creds
+      passed: [ deploy-bosh ]
+    - get: gcs-director.yml
+      passed: [ deploy-bosh ]
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball
+  - task: deploy
+    tags: [ gaffer ]
+    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    input_mapping: {kubo-lock: gcs-director.yml}
+    params:
+      DEPLOYMENT_NAME: gaffer
+
 - name: deploy-gaffer
   plan:
   - get: git-kubo-ci
+    resource: gaffer-spec
     trigger: true
   - task: set-kubeconfig
     params:
