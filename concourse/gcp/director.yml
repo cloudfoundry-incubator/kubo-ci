@@ -13,5 +13,6 @@ zone: us-east4-a
 iaas: gcp
 
 concourse_secrets_lpass_note_id: 1124880505947455779 # common concourse secrets
-private_note_id: 1801783889520479013 # deploy bosh output (creds.yml)
 service_account_lpass_note_id: 7288798803231487450 # deploy bosh input (iaas credentials)
+private_note_id: 1801783889520479013 # Note which has creds.yml as attachment
+private_attachment_id: att-1801783889520479013-9175 # Attachment ID of creds.yml
