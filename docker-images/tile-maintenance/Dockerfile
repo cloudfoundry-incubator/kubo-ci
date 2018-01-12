@@ -37,9 +37,9 @@ ENV PATH /usr/local/ruby-install/bin:/usr/local/bin:$PATH
 RUN ruby-install --system ruby 2.4.1
 
 # BOSH CLI
-RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.44-linux-amd64 && \
-  chmod +x bosh-cli-2.0.44-linux-amd64 && \
-  mv bosh-cli-2.0.44-linux-amd64 /usr/local/bin/bosh-cli
+RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.44-linux-amd64 -O bosh && \
+  install bosh /usr/local/bin && \
+  ln -s /usr/local/bin/bosh /usr/local/bin/bosh-cli
 
 COPY Gemfile .
 COPY Gemfile.lock .
