@@ -23,7 +23,7 @@ setup_env() {
 bosh_login() {
 
   export BOSH_CLIENT=admin
-  export BOSH_CLIENT_SECRET=$(bosh-cli int $PWD/gcs-bosh-creds/creds.yml --path='/admin_password')
+  export BOSH_CLIENT_SECRET=$(bosh int $PWD/gcs-bosh-creds/creds.yml --path='/admin_password')
 }
 
 main() {

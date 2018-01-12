@@ -4,7 +4,7 @@ lb_address_blocking() {
   kubo_environment_dir="$2"
   kubo_deployment_dir="$3"
 
-  iaas=$(bosh-cli int "${kubo_environment_dir}/director.yml" --path="/iaas")
+  iaas=$(bosh int "${kubo_environment_dir}/director.yml" --path="/iaas")
 
   lb_address=""
   current_attempt=0

@@ -12,10 +12,10 @@ if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 fi
 
-bosh_ca_cert=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/default_ca/ca)
-client_secret=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/bosh_admin_client_secret)
+bosh_ca_cert=$(bosh int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/default_ca/ca)
+client_secret=$(bosh int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/bosh_admin_client_secret)
 
-director_ip=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_ip")
+director_ip=$(bosh int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_ip")
 
 "$KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
 
@@ -25,7 +25,7 @@ randomString() {
 }
 
 # get the load balancer's address
-routing_mode=$(bosh-cli int environment/director.yml --path=/routing_mode)
+routing_mode=$(bosh int environment/director.yml --path=/routing_mode)
 if  [[ "$routing_mode" == "iaas" ]]; then
   kubectl apply -f "$KUBO_CI_DIR/specs/nginx-lb.yml"
   kubectl rollout status -w deployment/nginx
@@ -36,7 +36,7 @@ elif [[ "$routing_mode" == "cf" ]]; then
   kubectl rollout status -w deployment/nginx
   service_name=$(randomString)
   kubectl label services nginx "http-route-sync=$service_name" --overwrite
-  cf_apps_domain=$(bosh-cli int environment/director.yml --path=/routing_cf_app_domain_name)
+  cf_apps_domain=$(bosh int environment/director.yml --path=/routing_cf_app_domain_name)
   lb_address="$service_name"."$cf_apps_domain"
 else
   echo "Routing mode '$routing_mode' is not supported in this test"

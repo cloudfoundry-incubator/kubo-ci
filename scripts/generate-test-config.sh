@@ -8,7 +8,7 @@ verify_args() {
   set +e # Cant be set since read returns a non-zero when it reaches EOF
   read -r -d '' usage <<-EOF
 	Usage: $(basename "$0") [-h] environment deployment-name
-	
+
 	Help Options:
 		-h  show this help text
 	EOF
@@ -35,13 +35,13 @@ verify_args() {
 credhub_login() {
   local environment="$1"
 
-  local credhub_user_password=$(bosh-cli int "${environment}/creds.yml" --path="/credhub_cli_password")
-  local credhub_api_url="https://$(bosh-cli int "${environment}/director.yml" --path="/internal_ip"):8844"
+  local credhub_user_password=$(bosh int "${environment}/creds.yml" --path="/credhub_cli_password")
+  local credhub_api_url="https://$(bosh int "${environment}/director.yml" --path="/internal_ip"):8844"
 
   credhub login -u credhub-cli -p "${credhub_user_password}" \
     -s "${credhub_api_url}" \
-    --ca-cert <(bosh-cli int "${environment}/creds.yml" --path="/credhub_tls/ca") \
-    --ca-cert <(bosh-cli int "${environment}/creds.yml" --path="/uaa_ssl/ca") 1>/dev/null
+    --ca-cert <(bosh int "${environment}/creds.yml" --path="/credhub_tls/ca") \
+    --ca-cert <(bosh int "${environment}/creds.yml" --path="/uaa_ssl/ca") 1>/dev/null
 }
 
 generate_test_config() {
@@ -53,7 +53,7 @@ generate_test_config() {
 
   credhub_login $environment
 
-  local director_name=$(bosh-cli int "${environment}/director.yml" --path="/director_name")
+  local director_name=$(bosh int "${environment}/director.yml" --path="/director_name")
 
   set +e # Cant be set since read returns a non-zero when it reaches EOF
   read -r -d '' config <<-EOF
@@ -77,12 +77,12 @@ generate_test_config() {
 	    "apps_domain": "$(bosh int $director_yml --path=/routing_cf_app_domain_name 2>/dev/null)"
 	  },
 	  "kubernetes": {
-	    "authorization_mode": "$(bosh-cli int $director_yml --path=/authorization_mode)",
+	    "authorization_mode": "$(bosh int $director_yml --path=/authorization_mode)",
 	    "master_host": "$(bosh int $director_yml --path=/kubernetes_master_host)",
 	    "master_port": $(bosh int $director_yml --path=/kubernetes_master_port),
 	    "path_to_kube_config": "$HOME/.kube/config",
-	    "tls_cert": $(bosh-cli int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/certificate' --json | jq .Blocks[0]),
-	    "tls_private_key": $(bosh-cli int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/private_key' --json | jq .Blocks[0])
+	    "tls_cert": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/certificate' --json | jq .Blocks[0]),
+	    "tls_private_key": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/private_key' --json | jq .Blocks[0])
 	  }
 	}
 	EOF

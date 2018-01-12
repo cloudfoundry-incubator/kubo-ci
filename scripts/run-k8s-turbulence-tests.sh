@@ -39,7 +39,7 @@ run_tests() {
   local environment="$1"
   local deployment="$2"
 
-  local iaas=$(bosh-cli int "$environment/director.yml" --path='/iaas')
+  local iaas=$(bosh int "$environment/director.yml" --path='/iaas')
 
   local tmpfile=$(mktemp)
   $BASE_DIR/scripts/generate-test-config.sh $environment $deployment > $tmpfile

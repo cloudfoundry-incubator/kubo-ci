@@ -28,14 +28,14 @@ usage() {
 }
 
 target_bosh_director() {
-  export BOSH_ENVIRONMENT=$(bosh-cli int $LOCK_FILE_PATH --path '/internal_ip')
+  export BOSH_ENVIRONMENT=$(bosh int $LOCK_FILE_PATH --path '/internal_ip')
   export BOSH_CLIENT=admin
-  export BOSH_CLIENT_SECRET=$(bosh-cli int $CREDS_FILE_PATH --path '/admin_password')
-  export BOSH_CA_CERT=$(bosh-cli int $CREDS_FILE_PATH --path '/default_ca/ca')
+  export BOSH_CLIENT_SECRET=$(bosh int $CREDS_FILE_PATH --path '/admin_password')
+  export BOSH_CA_CERT=$(bosh int $CREDS_FILE_PATH --path '/default_ca/ca')
 }
 
 update_runtime_config() {
-  bosh-cli -n update-runtime-config --name=tinyproxy <(echo "$RUNTIME_CONFIG_YML")
+  bosh -n update-runtime-config --name=tinyproxy <(echo "$RUNTIME_CONFIG_YML")
 }
 
 LOCK_FILE_PATH="$1"

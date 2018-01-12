@@ -19,7 +19,7 @@ blobstore:
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
 
-bosh-cli create-release --final --version=${version} --sha2 --tarball ../kubo-release/kubo-release-${version}.tgz
+bosh create-release --final --version=${version} --sha2 --tarball ../kubo-release/kubo-release-${version}.tgz
 
 echo "kubo-release ${version}" >../kubo-release/name
 echo "See [CFCR Release notes](https://docs-cfcr.cfapps.io/overview/release-notes/) page" > ../kubo-release/body

@@ -17,7 +17,7 @@ update_stemcell() {
   local manifest_path="${KUBO_DEPLOYMENT_DIR}/manifests/kubo.yml"
   local existing_version
 
-  existing_version="$(bosh-cli int "$manifest_path" --path=/stemcells/0/version)"
+  existing_version="$(bosh int "$manifest_path" --path=/stemcells/0/version)"
 
   echo "Updating $manifest_path's stemcell version from '$existing_version' to '$BOSH_STEMCELL_VERSION'"
   ruby -e "require 'yaml'; data = YAML.load_file(\"${manifest_path}\"); data[\"stemcells\"][0][\"version\"] = \"${BOSH_STEMCELL_VERSION}\"; File.open(\"${manifest_path}\", 'w') { |f| f.write(data.to_yaml.gsub(\"---\n\", \"\")) }"

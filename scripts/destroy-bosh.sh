@@ -12,15 +12,15 @@ cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}"
 cp  "$PWD/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}"
 
-iaas=$(bosh-cli int kubo-lock/metadata --path=/iaas)
+iaas=$(bosh int kubo-lock/metadata --path=/iaas)
 if [ "$iaas" = "gcp" ]; then
   set +x
-  bosh-cli int kubo-lock/metadata --path=/gcp_service_account > "$PWD/key.json"
+  bosh int kubo-lock/metadata --path=/gcp_service_account > "$PWD/key.json"
   set -x
   "${KUBO_DEPLOYMENT_DIR}/bin/destroy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key.json"
 elif [ "$iaas" = "aws" ] || [ "$iaas" = "openstack" ]; then
   set +x
-  bosh-cli int kubo-lock/metadata --path=/private_key > "$PWD/key"
+  bosh int kubo-lock/metadata --path=/private_key > "$PWD/key"
   set -x
   "${KUBO_DEPLOYMENT_DIR}/bin/destroy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key"
 else

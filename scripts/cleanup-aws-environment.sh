@@ -3,12 +3,12 @@
 [ -z "$DEBUG" ] || set -x
 set -eu -o pipefail
 
-director_name="$(bosh-cli int "${ENV_FILE}" --path=/director_name)"
-director_ip="$(bosh-cli int "${ENV_FILE}" --path=/internal_ip)"
-subnet_id="$(bosh-cli int "${ENV_FILE}" --path=/subnet_id)"
-access_key_id="$(bosh-cli int "${ENV_FILE}" --path=/access_key_id)"
-secret_access_key="$(bosh-cli int "${ENV_FILE}" --path=/secret_access_key)"
-region="$(bosh-cli int "${ENV_FILE}" --path=/region)"
+director_name="$(bosh int "${ENV_FILE}" --path=/director_name)"
+director_ip="$(bosh int "${ENV_FILE}" --path=/internal_ip)"
+subnet_id="$(bosh int "${ENV_FILE}" --path=/subnet_id)"
+access_key_id="$(bosh int "${ENV_FILE}" --path=/access_key_id)"
+secret_access_key="$(bosh int "${ENV_FILE}" --path=/secret_access_key)"
+region="$(bosh int "${ENV_FILE}" --path=/region)"
 
 mkdir -p ~/.aws
 

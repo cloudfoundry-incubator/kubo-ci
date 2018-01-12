@@ -22,7 +22,7 @@ if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
 fi
 
-iaas=$(bosh-cli int $metadata_path --path=/iaas)
+iaas=$(bosh int $metadata_path --path=/iaas)
 
 BOSH_EXTRA_OPS=""
 # This means USE_TURBULENCE is set and not blank #Bashisms
@@ -45,14 +45,14 @@ if [ "$iaas" = "gcp" ]; then
   if [[ ! -z "${GCP_SERVICE_ACCOUNT+x}" ]] && [[ "$GCP_SERVICE_ACCOUNT" != "" ]]; then
     echo "$GCP_SERVICE_ACCOUNT" >> "$PWD/key.json"
   else
-    bosh-cli int $metadata_path --path=/gcp_service_account > "$PWD/key.json"
+    bosh int $metadata_path --path=/gcp_service_account > "$PWD/key.json"
   fi
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key.json"
 elif [ "$iaas" = "aws" ]; then
-  bosh-cli int $metadata_path --path=/private_key > "$PWD/key"
+  bosh int $metadata_path --path=/private_key > "$PWD/key"
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key"
 elif [ "$iaas" = "openstack" ]; then
-  bosh-cli int $metadata_path --path=/private_key > "$PWD/key"
+  bosh int $metadata_path --path=/private_key > "$PWD/key"
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key"
 else
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}"

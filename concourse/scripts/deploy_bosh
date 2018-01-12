@@ -26,26 +26,26 @@ set -u
 BOSH_DEPLOYMENT=$(cd "$BOSH_DEPLOYMENT"; pwd)
 director_yml="$CONCOURSE_DIR/$IAAS/director.yml"
 
-secrets_lpass_note_id=$(bosh-cli int "${director_yml}" --path=/private_note_id)
-secrets_lpass_attachment_id=$(bosh-cli int "${director_yml}" --path=/private_attachment_id)
+secrets_lpass_note_id=$(bosh int "${director_yml}" --path=/private_note_id)
+secrets_lpass_attachment_id=$(bosh int "${director_yml}" --path=/private_attachment_id)
 
 manifest_file=$(mktemp)
 
 secret=$(echo y | lpass show --note "$secrets_lpass_note_id" --attach="$secrets_lpass_attachment_id")
 
 if [ "$IAAS" == "vsphere" ]; then
-  bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
+  bosh interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
     --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
     --ops-file "$BOSH_DEPLOYMENT/vsphere/resource-pool.yml" \
     --vars-file "${director_yml}" \
     --vars-file <(echo -n "$secret") \
     > "$manifest_file"
 elif [ "$IAAS" == "openstack" ]; then
-  openstack_credentials_note_id="$(bosh-cli int "${director_yml}" --path='/openstack_account_id')"
-  openstack_secrets_path="$(bosh-cli int "${director_yml}" --path='/secrets_lpass_note_path')"
-  openstack_credentials="$(bosh-cli int <(echo "$(lpass show --note ${openstack_credentials_note_id})") --path=/${openstack_secrets_path})"
+  openstack_credentials_note_id="$(bosh int "${director_yml}" --path='/openstack_account_id')"
+  openstack_secrets_path="$(bosh int "${director_yml}" --path='/secrets_lpass_note_path')"
+  openstack_credentials="$(bosh int <(echo "$(lpass show --note ${openstack_credentials_note_id})") --path=/${openstack_secrets_path})"
 
-  bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
+  bosh interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
     --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
     --ops-file "$CONCOURSE_DIR/$IAAS/nova.yml" \
     --vars-file "${director_yml}" \
@@ -54,10 +54,10 @@ elif [ "$IAAS" == "openstack" ]; then
     > "$manifest_file"
 elif [[ "${IAAS}" == "gcp" ]]; then
 
-  gcp_credentials_note_id="$(bosh-cli int "${director_yml}" --path='/service_account_lpass_note_id')"
+  gcp_credentials_note_id="$(bosh int "${director_yml}" --path='/service_account_lpass_note_id')"
   gcp_credentials="$(lpass show --note ${gcp_credentials_note_id})"
 
-  bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
+  bosh interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
     --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
     --ops-file "$BOSH_DEPLOYMENT/uaa.yml" \
     --ops-file "$BOSH_DEPLOYMENT/credhub.yml" \
@@ -66,14 +66,14 @@ elif [[ "${IAAS}" == "gcp" ]]; then
     --vars-file <(echo -n "$secret") \
     > "$manifest_file"
 else
-  bosh-cli interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
+  bosh interpolate "$BOSH_DEPLOYMENT/bosh.yml"  \
     --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
     --vars-file "${director_yml}" \
     --vars-file <(echo -n "$secret") \
     > "$manifest_file"
 fi
 
-bosh-cli create-env "$manifest_file" \
+bosh create-env "$manifest_file" \
     --ops-file "$BOSH_DEPLOYMENT/jumpbox-user.yml" \
     --vars-store "$CONCOURSE_DIR/$IAAS/private.yml" \
     --state "$CONCOURSE_DIR/$IAAS/state.json"

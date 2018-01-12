@@ -8,4 +8,4 @@ version=$(cat kubo-version/version)
 
 cd git-kubo-release
 
-bosh-cli create-release --name "kubo" --sha2 --tarball="../kubo-release/kubo-release-${version}.tgz" --version=${version}
+bosh create-release --name "kubo" --sha2 --tarball="../kubo-release/kubo-release-${version}.tgz" --version=${version}

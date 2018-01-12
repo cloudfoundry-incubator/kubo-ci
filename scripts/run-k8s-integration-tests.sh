@@ -64,10 +64,10 @@ execute_cloud_specific_tests(){
   if [[ ${routing_mode} == "iaas" ]]; then
     case "${iaas}" in
       aws)
-        aws configure set aws_access_key_id "$(bosh-cli int "${environment}/director.yml" --path=/access_key_id)"
-        aws configure set aws_secret_access_key  "$(bosh-cli int "${environment}/director.yml" --path=/secret_access_key)"
-        aws configure set default.region "$(bosh-cli int "${environment}/director.yml" --path=/region)"
-        AWS_INGRESS_GROUP_ID=$(bosh-cli int "${environment}/director.yml" --path=/default_security_groups/0)
+        aws configure set aws_access_key_id "$(bosh int "${environment}/director.yml" --path=/access_key_id)"
+        aws configure set aws_secret_access_key  "$(bosh int "${environment}/director.yml" --path=/secret_access_key)"
+        aws configure set default.region "$(bosh int "${environment}/director.yml" --path=/region)"
+        AWS_INGRESS_GROUP_ID=$(bosh int "${environment}/director.yml" --path=/default_security_groups/0)
         export AWS_INGRESS_GROUP_ID
         ;;
     esac
@@ -100,8 +100,8 @@ run_tests() {
     esac
   done
 
-  local iaas=$(bosh-cli int "$environment/director.yml" --path='/iaas')
-  local routing_mode=$(bosh-cli int "$environment/director.yml" --path='/routing_mode')
+  local iaas=$(bosh int "$environment/director.yml" --path='/iaas')
+  local routing_mode=$(bosh int "$environment/director.yml" --path='/routing_mode')
 
   local tmpfile=$(mktemp)
   $BASE_DIR/scripts/generate-test-config.sh $environment $deployment > $tmpfile

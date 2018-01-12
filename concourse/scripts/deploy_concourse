@@ -14,19 +14,19 @@ deploy() {
 
   manifest_file=$(mktemp)
 
-  concourse_secrets_lpass_note_id=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/concourse_secrets_lpass_note_id')
-  creds_note_id=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/private_note_id')
-  creds_attachment_id=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/private_attachment_id')
+  concourse_secrets_lpass_note_id=$(bosh int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/concourse_secrets_lpass_note_id')
+  creds_note_id=$(bosh int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/private_note_id')
+  creds_attachment_id=$(bosh int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/private_attachment_id')
   private_yml=$(echo y | lpass show "$creds_note_id" --attach="$creds_attachment_id")
 
   BOSH_CLIENT=admin
-  BOSH_CLIENT_SECRET=$(bosh-cli int <(echo "$private_yml") --path /admin_password)
-  BOSH_CA_CERT=$(bosh-cli int <(echo "$private_yml") --path /default_ca/ca)
-  BOSH_ENVIRONMENT=$(bosh-cli int "$CONCOURSE_DIR/$IAAS/director.yml" --path /internal_ip)
+  BOSH_CLIENT_SECRET=$(bosh int <(echo "$private_yml") --path /admin_password)
+  BOSH_CA_CERT=$(bosh int <(echo "$private_yml") --path /default_ca/ca)
+  BOSH_ENVIRONMENT=$(bosh int "$CONCOURSE_DIR/$IAAS/director.yml" --path /internal_ip)
   export BOSH_CLIENT BOSH_CLIENT_SECRET BOSH_CA_CERT BOSH_ENVIRONMENT
 
 
-  if [ -z "$(bosh-cli stemcells | grep trusty)" ]; then
+  if [ -z "$(bosh stemcells | grep trusty)" ]; then
     local stemcell_version=3468.11
     local iaas_extension=
     case ${IAAS} in
@@ -44,10 +44,10 @@ deploy() {
       ;;
     esac
 
-    bosh-cli upload-stemcell "https://bosh.io/d/stemcells/bosh-${iaas_extension}-ubuntu-trusty-go_agent?v=${stemcell_version}"
+    bosh upload-stemcell "https://bosh.io/d/stemcells/bosh-${iaas_extension}-ubuntu-trusty-go_agent?v=${stemcell_version}"
   fi
 
-  bosh-cli interpolate "$manifest_template"  \
+  bosh interpolate "$manifest_template"  \
       --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \
       --vars-file <(echo "$private_yml") \
       --vars-file <(bosh int <(lpass show --note "$concourse_secrets_lpass_note_id")) \
@@ -55,16 +55,16 @@ deploy() {
 
   echo "Updating cloud config..."
 
-  bosh-cli -n update-cloud-config "$CONCOURSE_DIR/$IAAS/cloud-config.yml"  \
+  bosh -n update-cloud-config "$CONCOURSE_DIR/$IAAS/cloud-config.yml"  \
       --vars-file "$CONCOURSE_DIR/$IAAS/director.yml"
 
   echo "Deploying concourse..."
 
-  deployment_name="$(bosh-cli int "$manifest_file" --path /name)"
+  deployment_name="$(bosh int "$manifest_file" --path /name)"
 
   echo ${deployment_name}
 
-  bosh-cli -n deploy "$manifest_file" \
+  bosh -n deploy "$manifest_file" \
       -d "$deployment_name" \
       --vars-file <(echo "$private_yml")
 

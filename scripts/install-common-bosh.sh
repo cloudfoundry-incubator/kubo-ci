@@ -14,7 +14,7 @@ if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
 fi
 
-iaas=$(bosh-cli int ${metadata_path} --path=/iaas)
+iaas=$(bosh int ${metadata_path} --path=/iaas)
 
 if [[ "$iaas" != "gcp" ]]; then
   echo "Unsupported iaas: ${iaas}"
@@ -38,7 +38,7 @@ set -x
 
 # for Concourse outputs
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
-  director_name=$(bosh-cli int ${metadata_path} --path=/director_name)
+  director_name=$(bosh int ${metadata_path} --path=/director_name)
 
   echo "Storing state"
   set +x

@@ -14,7 +14,7 @@ environment_dir="environment"
 mkdir -p ${environment_dir}
 
 metadata_path="kubo-lock/metadata"
-director_name=$(bosh-cli int ${metadata_path} --path=/director_name)
+director_name=$(bosh int ${metadata_path} --path=/director_name)
 
 echo "Building envrionment"
 

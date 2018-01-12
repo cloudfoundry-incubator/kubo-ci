@@ -13,10 +13,10 @@ export DEPLOYMENT_NAME=${DEPLOYMENT_NAME:="ci-service"}
 cp "gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 
-bosh_ca_cert=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/default_ca/ca)
-client_secret=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/bosh_admin_client_secret)
+bosh_ca_cert=$(bosh int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/default_ca/ca)
+client_secret=$(bosh int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/bosh_admin_client_secret)
 
-director_ip=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_ip")
+director_ip=$(bosh int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_ip")
 
 "git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
 
@@ -30,7 +30,7 @@ kubectl rollout status deployment/redis-slave -w
 nodeport=$(kubectl describe svc/frontend | grep 'NodePort:' | awk '{print $3}' | sed -e 's/\/TCP//g')
 
 
-worker_ip=$(BOSH_CLIENT=bosh_admin BOSH_CLIENT_SECRET=${client_secret} BOSH_CA_CERT="${bosh_ca_cert}" bosh-cli -e "${director_ip}" vms -d "${DEPLOYMENT_NAME}"  | grep worker | head -n1 | awk '{print $4}')
+worker_ip=$(BOSH_CLIENT=bosh_admin BOSH_CLIENT_SECRET=${client_secret} BOSH_CA_CERT="${bosh_ca_cert}" bosh -e "${director_ip}" vms -d "${DEPLOYMENT_NAME}"  | grep worker | head -n1 | awk '{print $4}')
 testvalue="$(date +%s)"
 
 if timeout 120 /bin/bash <<EOF

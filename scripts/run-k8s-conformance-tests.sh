@@ -40,7 +40,7 @@ run_tests() {
   local deployment="$2"
   local results_dir="$3"
 
-  local iaas=$(bosh-cli int "$environment/director.yml" --path='/iaas')
+  local iaas=$(bosh int "$environment/director.yml" --path='/iaas')
 
   if [ ! -d "$results_dir" ]; then
     echo "Error: $results_dir does not exist" >&2

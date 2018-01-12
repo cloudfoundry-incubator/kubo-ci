@@ -72,7 +72,7 @@ run_upgrade_test() {
   local min_success_rate="${2:-1}"
   local component_name="${3:-"not provided"}"
 
-  routing_mode="$(bosh-cli int environment/director.yml --path=/routing_mode)"
+  routing_mode="$(bosh int environment/director.yml --path=/routing_mode)"
 
   if [[ "$routing_mode" == "iaas" ]]; then
     lb_address_blocking "$service_name" "$KUBO_ENVIRONMENT_DIR" "$KUBO_DEPLOYMENT_DIR"
@@ -81,7 +81,7 @@ run_upgrade_test() {
     cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
     "$KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
     generated_service_name="$(kubectl describe service "$service_name" | grep http-route-sync | cut -d= -f2)"
-    cf_apps_domain="$(bosh-cli int environment/director.yml --path=/routing_cf_app_domain_name)"
+    cf_apps_domain="$(bosh int environment/director.yml --path=/routing_cf_app_domain_name)"
     lb_address="$generated_service_name"."$cf_apps_domain"
   else
     echo "Routing mode '$routing_mode' is not supported in this test"
@@ -112,7 +112,7 @@ upload_new_releases() {
   fi
   BOSH_ENV="$KUBO_ENVIRONMENT_DIR" source "$KUBO_DEPLOYMENT_DIR/bin/set_bosh_environment"
 
-  bosh-cli upload-release https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=28.0.1 --sha1 448eaa2f478dc8794933781b478fae02aa44ed6b
-  bosh-cli upload-release https://github.com/pivotal-cf-experimental/kubo-etcd/releases/download/v2/kubo-etcd.2.tgz --sha1 ae95e661cd9df3bdc59ee38bf94dd98e2f280d4f
+  bosh upload-release https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=28.0.1 --sha1 448eaa2f478dc8794933781b478fae02aa44ed6b
+  bosh upload-release https://github.com/pivotal-cf-experimental/kubo-etcd/releases/download/v2/kubo-etcd.2.tgz --sha1 ae95e661cd9df3bdc59ee38bf94dd98e2f280d4f
 }
 
