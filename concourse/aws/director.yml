@@ -18,4 +18,5 @@ secrets_lpass_note_id: 5500749124404455704
 secrets_lpass_note_path: aws_ci
 
 concourse_secrets_lpass_note_id: 1124880505947455779
-private_note_id: 3697755137991753138
+private_note_id: 3697755137991753138 # Note which has creds.yml as attachment
+private_attachment_id: att-3697755137991753138-1 # Attachment ID of creds.yml
