@@ -51,7 +51,7 @@ var _ = Describe("Worker failure scenarios", func() {
 	Specify("K8s applications are scheduled on the resurrected node", func() {
 		By("Deleting the Worker VM")
 		hellRaiser := TurbulenceClient(testconfig.Turbulence)
-		killOneMaster := incident.Request{
+		killOneWorker := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
 					Name: testconfig.Bosh.Deployment,
@@ -67,7 +67,7 @@ var _ = Describe("Worker failure scenarios", func() {
 				tasks.KillOptions{},
 			},
 		}
-		incident := hellRaiser.CreateIncident(killOneMaster)
+		incident := hellRaiser.CreateIncident(killOneWorker)
 		incident.Wait()
 		Eventually(countRunningWorkers, 600, 20).Should(Equal(2))
 
