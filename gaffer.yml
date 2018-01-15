@@ -17,7 +17,6 @@ resources:
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
     branch: master
-    paths: [ gaffer/gaffer.yml ]
 
 - name: gcs-bosh-state
   type: gcs
@@ -61,6 +60,7 @@ jobs:
     - get: git-kubo-ci
     - get: gcs-kubo-deployment-tarball
       trigger: true
+    - get: gcs-kubo-release-tarball
     - get: gcs-bosh-creds
     - get: gcs-director.yml
     - get: gcs-bosh-state
@@ -90,7 +90,7 @@ jobs:
       passed: [ deploy-bosh ]
       trigger: true
     - get: gcs-kubo-release-tarball
-      trigger: true
+      passed: [ deploy-bosh ]
     - get: gcs-bosh-creds
       passed: [ deploy-bosh ]
     - get: gcs-director.yml
