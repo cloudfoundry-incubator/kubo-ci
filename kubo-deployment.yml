@@ -22,6 +22,7 @@ groups:
   - install-bosh-<%= env %>
   - deploy-k8s-<%= env %>
   - run-k8s-integration-tests-<%= env %>
+  - run-k8s-turbulence-tests-<%= env %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
 <% end %>
@@ -40,6 +41,7 @@ groups:
   - deploy-k8s-<%= env %>
   - run-k8s-integration-tests-<%= env %>
   - run-k8s-conformance-tests-<%= env.split('-').first %>
+  - run-k8s-turbulence-tests-<%= env %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
 <% end %>
@@ -322,6 +324,8 @@ jobs:
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    params:
+      USE_TURBULENCE: 1
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -363,6 +367,13 @@ jobs:
     <% if env.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
     <% end %>
+
+  - task: configure-bosh-for-turbulence
+    tags: ['<%= env %>']
+    input_mapping:
+      kubo-lock: kubo-lock-<%= env %>
+    file: git-kubo-ci/tasks/configure-bosh.yml
+    tags: ['<%= env %>']
 
 - name: run-k8s-integration-tests-<%= env %>
   plan:
@@ -436,10 +447,47 @@ jobs:
 <% end %>
 
 <%
-  destroy_k8s_passed_reqs = ["run-k8s-integration-tests-#{env}"]
+  turbulence_passed_reqs = ["run-k8s-integration-tests-#{env}"]
   if iaases.include? env
-    destroy_k8s_passed_reqs << "run-k8s-conformance-tests-#{env}"
+    turbulence_passed_reqs << "run-k8s-conformance-tests-#{env}"
   end
+%>
+
+- name: run-k8s-turbulence-tests-<%= env %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: <%= turbulence_passed_reqs %>
+    - get: gcs-bosh-state
+      passed: <%= turbulence_passed_reqs %>
+    - get: gcs-bosh-creds
+      passed: <%= turbulence_passed_reqs %>
+    - get: gcs-kubo-release-tarball-untested
+      passed: <%= turbulence_passed_reqs %>
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: <%= turbulence_passed_reqs %>
+    - get: git-kubo-deployment
+      passed: <%= turbulence_passed_reqs %>
+    - get: git-kubo-release
+      passed: <%= turbulence_passed_reqs %>
+    - get: kubo-version
+      passed: <%= turbulence_passed_reqs %>
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
+    tags: ['<%= env %>']
+
+  - task: turbulence-tests
+    file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
+    tags: ['<%= env %>']
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+
+<%
+  destroy_k8s_passed_reqs = ["run-k8s-turbulence-tests-#{env}"]
 %>
 
 - name: destroy-k8s-<%= env %>
