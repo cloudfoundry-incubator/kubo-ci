@@ -119,6 +119,7 @@ func GetNodeNamesForRunningPods(kubectl *KubectlRunner) []string {
 }
 
 func NewVmId(oldVms []director.VMInfo, newVmIds []string) (string, error) {
+	Expect(len(oldVms)).NotTo(BeNumerically("<", 3))
 	oldVmIds := []string{oldVms[1].VMID, oldVms[2].VMID}
 	for _, vmId := range newVmIds {
 		if !contains(oldVmIds, vmId) {
