@@ -262,6 +262,7 @@ jobs:
   - put: kubo-lock-<%= iaas %>
     params: { acquire: true }
   - task: install
+    attempts: 2
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
@@ -314,6 +315,7 @@ jobs:
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'claim-lock-<%= env %>' ]
   - task: install
+    attempts: 2
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
