@@ -3,7 +3,7 @@
 set -exu -o pipefail
 
 
-COMMITTER=$(cat git-kubo-ci/.git/commiter)
+COMMITTER=$(cat git-kubo-ci/.git/committer)
 export COMMITTER
 
 REF=$(cat git-kubo-ci/.git/ref)
