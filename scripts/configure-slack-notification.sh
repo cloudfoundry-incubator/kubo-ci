@@ -6,9 +6,8 @@ COMMITTER=$(cat $REPO/.git/committer)
 
 SLACK_NAME=$(echo $COMMITTER | cut -d@ -f1)
 
-REF=$(cat git-kubo-ci/.git/ref)
+REF=$(cat $REPO/.git/ref)
 
-echo "$MESSAGE\nCommitter: $COMMITTER\nRef: $REF\nSlack Username (Guess): @$SLACK_NAME" > slack-notification/text
+echo "$MESSAGE\nCommitter: $COMMITTER\nRepo: $REPO\nRef: $REF\nSlack Username (guess): <@$SLACK_NAME>" > slack-notification/text
 
-SLACK_NAME=tony
-echo "@$SLACK_NAME @muchhals" > slack-notification/channel
+echo "@$SLACK_NAME" > slack-notification/channel
