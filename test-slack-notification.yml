@@ -1,0 +1,79 @@
+resource_types:
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    branch: story-153294254
+    private_key: ((git-ssh-key))
+
+- name: git-kubo-deployment
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
+    branch: master
+    private_key: ((git-ssh-key))
+    ignore_paths:
+    - 'LICENSE'
+    - 'NOTICE'
+
+- name: git-kubo-home
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-home.git
+    private_key: ((git-ssh-key))
+
+- name: git-kubo-release
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
+    branch: master
+    private_key: ((git-ssh-key))
+    ignore_paths:
+    - '*.md'
+    - 'LICENSE'
+    - 'NOTICE'
+
+- name: slack-failure
+  type: slack-notification
+  source:
+    url: https://hooks.slack.com/services/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
+
+jobs:
+- name: run-unit-tests
+  plan:
+  - get: git-kubo-ci
+  - get: git-kubo-deployment
+    trigger: true
+  - get: git-kubo-home
+  - get: git-kubo-release
+    trigger: true
+  - task: run-release-unit-tests
+    file: git-kubo-ci/tasks/run-release-unit-tests.yml
+    on_success:
+      do:
+      - task: configure-slack-notification
+        file: git-kubo-ci/tasks/configure-slack-notification.yml
+        params:
+          REPO: git-kubo-ci
+          MESSAGE: Unit tests for kubo-release succeeded
+      - put: slack-failure
+        params:
+          text_file: slack-notification/text
+          channel_file: slack-notification/channel
+          text: |
+            $TEXT_FILE_CONTENT
+
+            https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
+
+
+
+
+
