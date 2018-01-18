@@ -1,5 +1,5 @@
 pins:
-  stemcell_version: &stemcell_version "3468.17"
+  stemcell_version: &stemcell_version "3468.13"
 groups: []
 resources:
 - name: ubuntu-trusty
@@ -123,8 +123,6 @@ jobs:
   - aggregate:
     - get: kubo-ci
     - get: syslog-migration-release
-      version:
-        version: v10
       trigger: true
     - get: ubuntu-trusty
       version:
