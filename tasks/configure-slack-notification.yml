@@ -12,7 +12,8 @@ params:
   LOCK_NAME:
 
 inputs:
-  - name: git-kubo-ci
-  - name: git-kubo-home
+- name: git-kubo-ci
+- name: git-kubo-home
+- name: target-repo
 outputs:
   - name: slack-notification
