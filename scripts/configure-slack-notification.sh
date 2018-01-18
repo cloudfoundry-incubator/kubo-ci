@@ -13,10 +13,10 @@ for REPO in $REPOS/*; do
     REF=$(cat "$REPO/.git/ref")
 
     COMMITTER=$(git -C "$REPO" show -s --format="%ce" "$REF")
-    COMMITTER_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$COMMITTER")
+    COMMITTER_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$COMMITTER" || echo "$COMMITTER")
 
     AUTHOR=$(git -C "$REPO" show -s --format="%ae" "$REF")
-    AUTHOR_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$AUTHOR")
+    AUTHOR_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$AUTHOR" || echo "$AUTHOR")
 
     echo "<@$COMMITTER_SLACK_NAME> and <@$AUTHOR_SLACK_NAME> committed in $REPO (commit $REF)" >> $FILE
 done
