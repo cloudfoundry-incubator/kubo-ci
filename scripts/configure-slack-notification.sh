@@ -8,6 +8,13 @@ SLACK_NAME=$(echo $COMMITTER | cut -d@ -f1)
 
 REF=$(cat $REPO/.git/ref)
 
-echo "$MESSAGE\nCommitter: $COMMITTER\nRepo: $REPO\nRef: $REF\nSlack Username (guess): <@$SLACK_NAME>" > slack-notification/text
+message="$MESSAGE\nCommitter: $COMMITTER\nRepo: $REPO\nRef: $REF\nSlack Username (guess): <@$SLACK_NAME>"
+
+if [ -d "kubo-lock" ]; then
+    kubo_lock_name=$(cat kubo-lock/name)
+    message+="\nLock: $kubo_lock_name"
+fi
+
+echo $message > slack-notification/text
 
 echo "@$SLACK_NAME" > slack-notification/channel
