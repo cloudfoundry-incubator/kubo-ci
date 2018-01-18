@@ -11,8 +11,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"github.com/onsi/gomega/format"
-	"fmt"
 )
 
 var _ = Describe("Worker failure scenarios", func() {
@@ -83,12 +81,16 @@ var _ = Describe("Worker failure scenarios", func() {
 		By("Verifying nginx got deployed on new node")
 		nodeNames := GetNodeNamesForRunningPods(kubectl)
 		Expect(nodeNames).To(HaveLen(3))
-		vms := DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
-		vmInfo, _ := deployment.VMInfos()
-		errorString := "Expected\n%s\n to have three running workers\n\nDeployment VMs are\n%s"
-		Expect(vms).To(HaveLen(3),
-			fmt.Sprintf(errorString, format.Object(vms, 1), format.Object(vmInfo, 1)))
-		_, err := GetNewVmId(vms, nodeNames)
+
+		By("Ensuring a new worker VM has joined the bosh deployment")
+		var runningWorkerVms []director.VMInfo
+		getRunningWorkerVms := func() []director.VMInfo {
+			runningWorkerVms = DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
+			return runningWorkerVms
+		}
+		Eventually(getRunningWorkerVms).Should(HaveLen(3))
+
+		_, err := GetNewVmId(runningWorkerVms, nodeNames)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
