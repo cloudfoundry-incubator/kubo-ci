@@ -68,6 +68,7 @@ jobs:
           text_file: slack-notification/text
           channel_file: slack-notification/channel
           text: |
+            Pipeline: https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME
             $TEXT_FILE_CONTENT
 
             https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME

@@ -10,9 +10,8 @@ REF=$(cat $REPO/.git/ref)
 
 message="$MESSAGE\nCommitter: $COMMITTER\nRepo: $REPO\nRef: $REF\nSlack Username (guess): <@$SLACK_NAME>"
 
-if [ -d "kubo-lock" ]; then
-    kubo_lock_name=$(cat kubo-lock/name)
-    message+="\nLock: $kubo_lock_name"
+if [ ! -z "${LOCK_NAME}" ]; then
+    message+="\nLock: $LOCK_NAME"
 fi
 
 echo $message > slack-notification/text
