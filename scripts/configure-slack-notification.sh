@@ -19,5 +19,3 @@ if [ ! -z "${LOCK_NAME}" ]; then
 fi
 
 echo "$message" > slack-notification/text
-
-echo "#cfcr-ci" > slack-notification/channel
