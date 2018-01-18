@@ -23,6 +23,10 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry/uaa-release
+- name: syslog-migration-release
+  type: bosh-io-release
+  source:
+    repository: pivotal-cf/syslog-migration-release
 - name: compiled-releases
   type: gcs
   source:
@@ -108,6 +112,27 @@ jobs:
     file: kubo-ci/tasks/export-release.yml
     input_mapping:
       release: uaa-release
+      stemcell: ubuntu-trusty
+  - put: compiled-releases
+    params:
+      file: compiled-release/*.tgz
+
+- name: compile-syslog-migration-release-ubuntu-trusty
+  plan:
+  - aggregate:
+    - get: kubo-ci
+    - get: syslog-migration-release
+      version:
+        version: v10
+      trigger: true
+    - get: ubuntu-trusty
+      version:
+        version: *stemcell_version
+  - task: export-release
+    privileged: true
+    file: kubo-ci/tasks/export-release.yml
+    input_mapping:
+      release: syslog-migration-release
       stemcell: ubuntu-trusty
   - put: compiled-releases
     params:
