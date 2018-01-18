@@ -2,13 +2,17 @@
 
 set -exu -o pipefail
 
-COMMITTER=$(cat "$REPO/.git/committer")
-
-SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$COMMITTER")
-
+# .git/ref is provided by concourse resource
 REF=$(cat "$REPO/.git/ref")
 
-message="$MESSAGE\nCommitter: $COMMITTER\nRepo: $REPO\nRef: $REF\nSlack Username: <@$SLACK_NAME>"
+COMMITTER=$(git -C "$REPO" show -s --format="%ce" "$REF")
+AUTHOR=$(git -C "$REPO" show -s --format="%ae" "$REF")
+
+
+COMMITTER_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$COMMITTER")
+AUTHOR_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$AUTHOR")
+
+message="$MESSAGE\nCommitter: $COMMITTER\nAuthor: $AUTHOR\nRepo: $REPO\nRef: $REF\nSlack Usernames: <@$COMMITTER_SLACK_NAME> <@$AUTHOR_SLACK_NAME>"
 
 if [ ! -z "${LOCK_NAME}" ]; then
     message+="\nLock: $LOCK_NAME"
@@ -16,4 +20,4 @@ fi
 
 echo "$message" > slack-notification/text
 
-echo "@$SLACK_NAME" > slack-notification/channel
+echo "#cfcr-ci" > slack-notification/channel
