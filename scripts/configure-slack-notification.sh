@@ -2,27 +2,25 @@
 
 set -exu -o pipefail
 
-REPO=${REPO:-target-repo}
+REPOS=${REPO:-target-repos}
 
-# .git/ref is provided by concourse resource
-REF=$(cat "$REPO/.git/ref")
+FILE=slack-notification/text
 
-COMMITTER=$(git -C "$REPO" show -s --format="%ce" "$REF")
-COMMITTER_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$COMMITTER")
+echo "$MESSAGE" > $FILE
 
-AUTHOR=$(git -C "$REPO" show -s --format="%ae" "$REF")
-AUTHOR_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$AUTHOR")
+for REPO in $REPOS/*; do
+    # .git/ref is provided by concourse resource
+    REF=$(cat "$REPO/.git/ref")
 
-message="$MESSAGE
-Committer: $COMMITTER
-Author: $AUTHOR
-Repo: $REPO
-Ref: https://github.com/$REPO/commit/$REF
-Slack Usernames: <@$COMMITTER_SLACK_NAME> <@$AUTHOR_SLACK_NAME>"
+    COMMITTER=$(git -C "$REPO" show -s --format="%ce" "$REF")
+    COMMITTER_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$COMMITTER")
+
+    AUTHOR=$(git -C "$REPO" show -s --format="%ae" "$REF")
+    AUTHOR_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$AUTHOR")
+
+    echo "<@$COMMITTER_SLACK_NAME> and <@$AUTHOR_SLACK_NAME> committed in $REPO (commit $REF)" >> $FILE
+done
 
 if [ ! -z "${LOCK_NAME}" ]; then
-    message+="
-Lock: $LOCK_NAME"
+    echo "Lock: $LOCK_NAME" >> $FILE
 fi
-
-echo "$message" > slack-notification/text
