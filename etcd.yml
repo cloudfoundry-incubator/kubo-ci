@@ -1,11 +1,34 @@
 resource_types:
-
 - name: gcs
   type: docker-image
   source:
     repository: frodenas/gcs-resource
 
+- name: bosh-deployment
+  type: docker-image
+  source:
+    repository: cloudfoundry/bosh-deployment-resource
+
 resources:
+- name: long-running-etcd-deployment
+  type: bosh-deployment
+  source:
+    deployment: etcd
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert))
+
+- name: gcp-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-google-kvm-ubuntu-trusty-go_agent
+
+- name: bosh-dns-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry/bosh-dns-release
+
 - name: git-kubo-ci
   type: git
   source:
@@ -17,6 +40,12 @@ resources:
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-etcd
     branch: master
+
+- name: git-kubo-etcd-clustered
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-etcd
+    branch: wip-154321671-etcd-experiment
 
 - name: kubo-lock
   type: pool
@@ -105,7 +134,6 @@ jobs:
         ci: git-kubo-ci
         etcd-release: git-kubo-etcd
 
-
 - name: setup-eats-infrastructure
   public: true
   plan:
@@ -117,13 +145,10 @@ jobs:
     - get: gcs-kubo-deployment-pre
   - put: kubo-lock
     params: { acquire: true }
-
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-
   - task: install
     file: git-kubo-ci/tasks/etcd/setup-eats-infrastructure.yml
-
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -211,9 +236,28 @@ jobs:
       passed: [ 'eats-turbulence' ]
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml
-
   - put: kubo-lock
     params: { release: kubo-lock }
+
+- name: deploy-long-running-etcd
+  plan:
+    - aggregate:
+      - get: git-kubo-etcd-experimental
+        trigger: true
+      - get: git-kubo-ci
+      - get: gcp-stemcell
+        trigger: true
+      - get: bosh-dns-release
+        trigger: true
+    - task: create-etcd-release
+      file: git-kubo-ci/tasks/etcd/create-etcd-release.yml
+    - put: long-running-etcd-deployment
+      params:
+        manifest: git-kubo-etcd-experimental/manifest/3-node-with-ssl-bosh-dns.yml
+        stemcells: "gcp-stemcell/*.tgz"
+        releases:
+        - "etcd-release/*.tgz"
+        - "bosh-dns-release/*.tgz"
+        cleanup: true
