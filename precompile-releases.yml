@@ -1,5 +1,5 @@
 pins:
-  stemcell_version: &stemcell_version "3468.13"
+  stemcell_version: &stemcell_version "3468.17"
 groups: []
 resources:
 - name: ubuntu-trusty
@@ -24,9 +24,10 @@ resources:
   source:
     repository: cloudfoundry/uaa-release
 - name: syslog-migration-release
-  type: bosh-io-release
+  type: github-release
   source:
-    repository: pivotal-cf/syslog-migration-release
+    owner: pivotal-cf
+    repository: syslog-migration-release
 - name: compiled-releases
   type: gcs
   source:
