@@ -1,5 +1,5 @@
 <%
-  iaases = %w(gcp vsphere aws)
+  iaases = %w(gcp vsphere aws openstack)
   additional_envs = %w(gcp-lb aws-lb)
   env_list = iaases + additional_envs
 %>
