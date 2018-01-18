@@ -14,9 +14,11 @@ for REPO in $REPOS/*; do
 
     COMMITTER=$(git -C "$REPO" show -s --format="%ce" "$REF")
     COMMITTER_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$COMMITTER" || echo "$COMMITTER")
+    COMMITTER_SLACK_NAME=$(echo "$COMMITTER_SLACK_NAME" | sed '/^$/d')
 
     AUTHOR=$(git -C "$REPO" show -s --format="%ae" "$REF")
     AUTHOR_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$AUTHOR" || echo "$AUTHOR")
+    AUTHOR_SLACK_NAME=$(echo "$AUTHOR_SLACK_NAME" | sed '/^$/d')
 
     echo "<@$COMMITTER_SLACK_NAME> and <@$AUTHOR_SLACK_NAME> committed in $REPO (commit $REF)" >> $FILE
 done
