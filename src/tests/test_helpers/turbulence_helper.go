@@ -118,7 +118,7 @@ func GetNodeNamesForRunningPods(kubectl *KubectlRunner) []string {
 	return kubectl.GetOutput("get", "pods", "-o", "jsonpath='{.items[*].spec.nodeName}'")
 }
 
-func NewVmId(oldVms []director.VMInfo, newVmIds []string) (string, error) {
+func GetNewVmId(oldVms []director.VMInfo, newVmIds []string) (string, error) {
 	Expect(len(oldVms)).NotTo(BeNumerically("<", 3))
 	oldVmIds := []string{oldVms[1].VMID, oldVms[2].VMID}
 	for _, vmId := range newVmIds {
