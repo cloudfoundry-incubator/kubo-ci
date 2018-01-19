@@ -21,6 +21,9 @@ for REPO in $REPOS/*; do
     AUTHOR_SLACK_NAME=$(echo "$AUTHOR_SLACK_NAME" | sed '/^$/d')
 
     echo "<@$COMMITTER_SLACK_NAME> and <@$AUTHOR_SLACK_NAME> committed in $REPO (commit $REF)" >> $FILE
+    if [[ "$COMMITTER_SLACK_NAME" == "$COMMITTER" ]] || [[ "$AUTHOR_SLACK_NAME" == "$AUTHOR" ]]; then
+        echo "<@cfcr-team> There is an unknown email id in this commit!"
+    fi
 done
 
 if [ ! -z "${LOCK_NAME}" ]; then
