@@ -23,6 +23,10 @@ resource_types:
     repository: cloudfoundry/bosh-deployment-resource
 
 resources:
+- name: 30m
+  type: time
+  source: {interval: 30m}
+
 - name: long-running-etcd-deployment
   type: bosh-deployment
   source:
@@ -268,74 +272,76 @@ jobs:
   serial: true
   serial_groups: ["etcd-acceptance"]
   plan:
-    - aggregate:
-      - get: git-kubo-etcd-clustered
-        trigger: true
-      - get: git-kubo-ci
-      - get: gcp-stemcell
-        trigger: true
-      - get: bosh-dns-release
-        trigger: true
-    - task: create-etcd-release
-      file: git-kubo-ci/tasks/etcd/create-release.yml
-      input_mapping:
-        release-dir: git-kubo-etcd-clustered
-      output_mapping:
-        release: etcd-release
-    - put: long-running-etcd-deployment
-      params:
-        manifest: git-kubo-etcd-clustered/manifests/3-node-with-ssl-bosh-dns.yml
-        stemcells:
-        - "gcp-stemcell/*.tgz"
-        releases:
-        - "etcd-release/*.tgz"
-        - "bosh-dns-release/*.tgz"
-        cleanup: true
+  - aggregate:
+    - get: git-kubo-etcd-clustered
+      trigger: true
+    - get: git-kubo-ci
+    - get: gcp-stemcell
+      trigger: true
+    - get: bosh-dns-release
+      trigger: true
+  - task: create-etcd-release
+    file: git-kubo-ci/tasks/etcd/create-release.yml
+    input_mapping:
+      release-dir: git-kubo-etcd-clustered
+    output_mapping:
+      release: etcd-release
+  - put: long-running-etcd-deployment
+    params:
+      manifest: git-kubo-etcd-clustered/manifests/3-node-with-ssl-bosh-dns.yml
+      stemcells:
+      - "gcp-stemcell/*.tgz"
+      releases:
+      - "etcd-release/*.tgz"
+      - "bosh-dns-release/*.tgz"
+      cleanup: true
 
 - name: deploy-and-run-etcd-acceptance
   serial: true
   serial_groups: ["etcd-acceptance"]
   plan:
-    - aggregate:
-      - get: git-kubo-etcd-clustered
-        trigger: true
-        passed: [deploy-long-running-etcd]
-      - get: git-etcd-acceptance
-        trigger: true
-      - get: git-kubo-ci
-      - get: gcp-stemcell
-        trigger: true
-        passed: [deploy-long-running-etcd]
-      - get: bosh-dns-release
-        trigger: true
-        passed: [deploy-long-running-etcd]
-    - task: create-etcd-acceptance-release
-      file: git-kubo-ci/tasks/etcd/create-release.yml
-      input_mapping:
-        release-dir: git-etcd-acceptance
-      output_mapping:
-        release: etcd-acceptance-release
-    - put: long-running-etcd-acceptance-deployment
-      params:
-        manifest: git-etcd-acceptance/deployment/etcd-acceptance.yml
-        stemcells:
-        - "gcp-stemcell/*.tgz"
-        releases:
-        - "etcd-acceptance-release/*.tgz"
-        - "bosh-dns-release/*.tgz"
-        cleanup: true
-        vars:
-          director-url: https://10.100.0.6:25555
-          uaa-url: https://10.100.0.6:8443
-          director-ca: ((long-running-etcd-bosh-ca-cert.certificate))
-          director-client-secret: ((long-running-etcd-bosh-client-secret))
-          tls-etcd-client: ((/long-running-etcd-director/etcd/tls-etcd-client)) # cert generated in separate deployment
-    - task: run-read-availability-during-recreate-errand
-      file: git-kubo-ci/tasks/etcd/run-errand.yml
-      params:
-        BOSH_CA_CERT: ((long-running-etcd-bosh-ca-cert.certificate))
-        BOSH_CLIENT: admin
-        BOSH_CLIENT_SECRET: ((long-running-etcd-bosh-client-secret))
-        BOSH_DEPLOYMENT: etcd-acceptance
-        BOSH_ENVIRONMENT: https://10.100.0.6:25555
-        ERRAND_NAME: read-availability-during-recreate
+  - aggregate:
+    - get: 30m
+      trigger: true
+    - get: git-kubo-etcd-clustered
+      trigger: true
+      passed: [deploy-long-running-etcd]
+    - get: git-etcd-acceptance
+      trigger: true
+    - get: git-kubo-ci
+    - get: gcp-stemcell
+      trigger: true
+      passed: [deploy-long-running-etcd]
+    - get: bosh-dns-release
+      trigger: true
+      passed: [deploy-long-running-etcd]
+  - task: create-etcd-acceptance-release
+    file: git-kubo-ci/tasks/etcd/create-release.yml
+    input_mapping:
+      release-dir: git-etcd-acceptance
+    output_mapping:
+      release: etcd-acceptance-release
+  - put: long-running-etcd-acceptance-deployment
+    params:
+      manifest: git-etcd-acceptance/deployment/etcd-acceptance.yml
+      stemcells:
+      - "gcp-stemcell/*.tgz"
+      releases:
+      - "etcd-acceptance-release/*.tgz"
+      - "bosh-dns-release/*.tgz"
+      cleanup: true
+      vars:
+        director-url: https://10.100.0.6:25555
+        uaa-url: https://10.100.0.6:8443
+        director-ca: ((long-running-etcd-bosh-ca-cert.certificate))
+        director-client-secret: ((long-running-etcd-bosh-client-secret))
+        tls-etcd-client: ((/long-running-etcd-director/etcd/tls-etcd-client)) # cert generated in separate deployment
+  - task: run-read-availability-during-recreate-errand
+    file: git-kubo-ci/tasks/etcd/run-errand.yml
+    params:
+      BOSH_CA_CERT: ((long-running-etcd-bosh-ca-cert.certificate))
+      BOSH_CLIENT: admin
+      BOSH_CLIENT_SECRET: ((long-running-etcd-bosh-client-secret))
+      BOSH_DEPLOYMENT: etcd-acceptance
+      BOSH_ENVIRONMENT: https://10.100.0.6:25555
+      ERRAND_NAME: read-availability-during-recreate
