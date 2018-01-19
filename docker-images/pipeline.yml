@@ -1,6 +1,6 @@
 <%
   tested_images=%w(test-runner vsphere-cleaner curl aws-maintenance kubo-ci)
-  untested_images=%w(ulimit kubectl cf-cleaner tile-maintenance pks-golang)
+  untested_images=%w(ulimit kubectl cf-cleaner tile-maintenance pks-golang git-bosh)
 %>
 ---
 resources:
@@ -200,6 +200,13 @@ jobs:
     params:
       build: git-kubo-ci-cf-cleaner/docker-images/cf-cleaner
 
+- name: build-git-bosh
+  plan:
+  - get: git-kubo-ci-git-bosh
+    trigger: true
+  - put: git-bosh-stable
+    params:
+      build: git-kubo-ci-git-bosh/docker-images/git-bosh
 
 - name: build-aws-maintenance
   plan:
