@@ -68,12 +68,6 @@ resources:
     uri: https://github.com/jfmyers9/etcd-acceptance-release
     branch: master
 
-- name: git-kubo-etcd-clustered
-  type: git
-  source:
-    uri: https://github.com/pivotal-cf-experimental/kubo-etcd
-    branch: wip-154321671-etcd-experiment
-
 - name: kubo-lock
   type: pool
   source:
@@ -273,7 +267,7 @@ jobs:
   serial_groups: ["etcd-acceptance"]
   plan:
   - aggregate:
-    - get: git-kubo-etcd-clustered
+    - get: git-kubo-etcd
       trigger: true
     - get: git-kubo-ci
     - get: gcp-stemcell
@@ -283,12 +277,12 @@ jobs:
   - task: create-etcd-release
     file: git-kubo-ci/tasks/etcd/create-release.yml
     input_mapping:
-      release-dir: git-kubo-etcd-clustered
+      release-dir: git-kubo-etcd
     output_mapping:
       release: etcd-release
   - put: long-running-etcd-deployment
     params:
-      manifest: git-kubo-etcd-clustered/manifests/3-node-with-ssl-bosh-dns.yml
+      manifest: git-kubo-etcd/manifests/3-node-with-ssl-bosh-dns.yml
       stemcells:
       - "gcp-stemcell/*.tgz"
       releases:
@@ -303,7 +297,7 @@ jobs:
   - aggregate:
     - get: 30m
       trigger: true
-    - get: git-kubo-etcd-clustered
+    - get: git-kubo-etcd
       trigger: true
       passed: [deploy-long-running-etcd]
     - get: git-etcd-acceptance
