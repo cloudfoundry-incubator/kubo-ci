@@ -16,6 +16,7 @@ const (
 	WorkerVmType   = "worker"
 	MasterVmType   = "master"
 	VmRunningState = "running"
+	VmStartingState = "starting"
 )
 
 func CountDeploymentVmsOfType(deployment boshdir.Deployment, jobName, processState string) func() int {
