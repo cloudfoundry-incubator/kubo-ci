@@ -17,7 +17,7 @@ resources:
     target: https://10.100.0.6:25555
     client: admin
     client_secret: ((long-running-etcd-bosh-client-secret))
-    ca_cert: ((long-running-etcd-bosh-ca-cert))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
 
 - name: bosh-dns-release
   type: bosh-io-release
@@ -252,8 +252,9 @@ jobs:
         git-kubo-etcd: git-kubo-etcd-clustered
     - put: long-running-etcd-deployment
       params:
-        manifest: git-kubo-etcd-experimental/manifest/3-node-with-ssl-bosh-dns.yml
-        stemcells: "gcp-stemcell/*.tgz"
+        manifest: git-kubo-etcd-clustered/manifests/3-node-with-ssl-bosh-dns.yml
+        stemcells:
+        - "gcp-stemcell/*.tgz"
         releases:
         - "etcd-release/*.tgz"
         - "bosh-dns-release/*.tgz"
