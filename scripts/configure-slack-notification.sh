@@ -6,7 +6,7 @@ REPOS=${REPO:-target-repos}
 
 FILE=slack-notification/text
 
-echo "$MESSAGE" > $FILE
+echo "$MESSAGE" > "$FILE"
 
 for REPO in $REPOS/*; do
     # .git/ref is provided by concourse resource
@@ -22,10 +22,10 @@ for REPO in $REPOS/*; do
 
     echo "<@$COMMITTER_SLACK_NAME> and <@$AUTHOR_SLACK_NAME> committed in $REPO (commit $REF)" >> $FILE
     if [[ "$COMMITTER_SLACK_NAME" == "$COMMITTER" ]] || [[ "$AUTHOR_SLACK_NAME" == "$AUTHOR" ]]; then
-        echo "<@cfcr-team> There is an unknown email id in this commit!"
+        echo "<@cfcr-team> There is an unknown email id in this commit!" >> "$FILE"
     fi
 done
 
 if [ ! -z "${LOCK_NAME}" ]; then
-    echo "Lock: $LOCK_NAME" >> $FILE
+    echo "Lock: $LOCK_NAME" >> "$FILE"
 fi
