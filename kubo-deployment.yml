@@ -238,14 +238,14 @@ jobs:
             path: bash
             args:
             - -c
-            - 'cp -r git-kubo-release consolidated_inputs'
+            - 'mkdir -p consolidated_inputs && cp -r git-kubo-release consolidated_inputs'
           outputs:
           - name: consolidated_inputs
           inputs:
           - name: git-kubo-release
       - task: configure-slack-notification
         file: git-kubo-ci/tasks/configure-slack-notification.yml
-        input_mapping: {target-repos: git-kubo-release}
+        input_mapping: {target-repos: consolidated_inputs}
       - put: slack-failure
         params:
           text_file: slack-notification/text
@@ -269,14 +269,14 @@ jobs:
             path: bash
             args:
             - -c
-            - 'cp -r git-kubo-deployment consolidated_inputs'
+            - 'mkdir -p consolidated_inputs &&  cp -r git-kubo-deployment consolidated_inputs'
           outputs:
           - name: consolidated_inputs
           inputs:
           - name: git-kubo-deployment
       - task: configure-slack-notification
         file: git-kubo-ci/tasks/configure-slack-notification.yml
-        input_mapping: {target-repos: git-kubo-release}
+        input_mapping: {target-repos: consolidated_inputs}
       - put: slack-failure
         params:
           text_file: slack-notification/text
@@ -494,7 +494,7 @@ jobs:
             path: bash
             args:
             - -c
-            - 'cp -r git-kubo-release git-kubo-deployment consolidated_inputs'
+            - 'mkdir -p consolidated_inputs &&  cp -r git-kubo-release git-kubo-deployment consolidated_inputs'
           outputs:
           - name: consolidated_inputs
           inputs:
@@ -502,7 +502,7 @@ jobs:
           - name: git-kubo-deployment
       - task: configure-slack-notification
         file: git-kubo-ci/tasks/configure-slack-notification.yml
-        input_mapping: {target-repos: git-kubo-release}
+        input_mapping: {target-repos: consolidated_inputs}
       - put: slack-failure
         params:
           text_file: slack-notification/text
