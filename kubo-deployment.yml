@@ -61,12 +61,24 @@ resource_types:
   source:
     repository: frodenas/gcs-resource
 
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
 resources:
 - name: git-kubo-ci
   type: git
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
     branch: master
+    private_key: ((git-ssh-key))
+
+- name: git-kubo-home
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-home.git
     private_key: ((git-ssh-key))
 
 - name: git-kubo-deployment
@@ -89,6 +101,11 @@ resources:
     - '*.md'
     - 'LICENSE'
     - 'NOTICE'
+
+- name: slack-failure
+  type: slack-notification
+  source:
+    url: https://hooks.slack.com/services/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
 
 <% env_list.each do |env| %>
 - name: kubo-lock-<%= env %>
@@ -200,14 +217,70 @@ jobs:
 - name: run-unit-tests
   plan:
   - get: git-kubo-ci
+  - get: git-kubo-home
   - get: git-kubo-deployment
     trigger: true
   - get: git-kubo-release
     trigger: true
   - task: run-release-unit-tests
     file: git-kubo-ci/tasks/run-release-unit-tests.yml
+    on_failure: &on_failure_release
+      do:
+      - task: consolidate-inputs
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: pcfkubo/kubo-ci
+              tag: stable
+          run:
+            path: bash
+            args:
+            - -c
+            - 'cp -r git-kubo-release consolidated_inputs'
+          outputs:
+          - name: consolidated_inputs
+          inputs:
+          - name: git-kubo-release
+      - task: configure-slack-notification
+        file: git-kubo-ci/tasks/configure-slack-notification.yml
+        input_mapping: {target-repos: git-kubo-release}
+      - put: slack-failure
+        params:
+          text_file: slack-notification/text
+          text: &slack_message |
+            Pipeline: https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME
+            $TEXT_FILE_CONTENT
+            Build URL: <https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|Job $BUILD_JOB_NAME>
   - task: run-deployment-unit-tests
     file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
+    on_failure: &on_failure_deployment
+      do:
+      - task: consolidate-inputs
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: pcfkubo/kubo-ci
+              tag: stable
+          run:
+            path: bash
+            args:
+            - -c
+            - 'cp -r git-kubo-deployment consolidated_inputs'
+          outputs:
+          - name: consolidated_inputs
+          inputs:
+          - name: git-kubo-deployment
+      - task: configure-slack-notification
+        file: git-kubo-ci/tasks/configure-slack-notification.yml
+        input_mapping: {target-repos: git-kubo-release}
+      - put: slack-failure
+        params:
+          text_file: slack-notification/text
+          text: *slack_message
 
 - name: build-kubo-release
   plan:
@@ -222,11 +295,13 @@ jobs:
     - get: git-kubo-release
       passed: [ 'run-unit-tests' ]
       trigger: true
+    - get: git-kubo-home
     - get: ubuntu-trusty-stemcell
       version:
         version: *stemcell_version
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
+    on_failure: *on_failure_release
   - task: export-release
     file: git-kubo-ci/tasks/export-release.yml
     privileged: true
@@ -254,8 +329,10 @@ jobs:
       trigger: true
     - get: git-kubo-release
       passed: [ 'build-kubo-release' ]
+    - get: git-kubo-home
   - task: build-kubo-deployment-tarball
     file: git-kubo-ci/tasks/build-kubo-deployment-tarball.yml
+    on_failure: *on_failure_deployment
   - put: gcs-kubo-deployment-tarball-untested
     params:
       file: kubo-deployment-tarball/kubo-deployment*.tgz
@@ -269,6 +346,7 @@ jobs:
       passed: [ 'package-kubo-deployment-tarball' ]
       trigger: true
     - get: git-kubo-ci
+    - get: git-kubo-home
   - put: kubo-lock-<%= iaas %>
     params: { acquire: true }
   - task: install
@@ -276,6 +354,7 @@ jobs:
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+    on_failure: *on_failure_deployment
   - task: destroy
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-bosh.yml
@@ -283,6 +362,7 @@ jobs:
       kubo-lock: kubo-lock-<%= iaas %>
       gcs-bosh-state: bosh-state
       gcs-bosh-creds: bosh-creds
+    on_failure: *on_failure_deployment
   - put: kubo-lock-<%= iaas %>
     params: { release: kubo-lock-<%= iaas %> }
 <% end %>
@@ -324,6 +404,7 @@ jobs:
       passed: [ 'claim-lock-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'claim-lock-<%= env %>' ]
+    - get: git-kubo-home
   - task: install
     attempts: 2
     tags: [<%= env %>]
@@ -331,6 +412,7 @@ jobs:
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     params:
       USE_TURBULENCE: 1
+    on_failure: *on_failure_deployment
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -344,6 +426,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-kubo-home
     - get: kubo-lock-<%= env %>
       version: every
       trigger: true
@@ -397,11 +480,39 @@ jobs:
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    on_failure: &on_failure
+      do:
+      - task: consolidate-inputs
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: pcfkubo/kubo-ci
+              tag: stable
+          run:
+            path: bash
+            args:
+            - -c
+            - 'cp -r git-kubo-release git-kubo-deployment consolidated_inputs'
+          outputs:
+          - name: consolidated_inputs
+          inputs:
+          - name: git-kubo-release
+          - name: git-kubo-deployment
+      - task: configure-slack-notification
+        file: git-kubo-ci/tasks/configure-slack-notification.yml
+        input_mapping: {target-repos: git-kubo-release}
+      - put: slack-failure
+        params:
+          text_file: slack-notification/text
+          text: *slack_message
 
 - name: run-k8s-integration-tests-on-proxy-<%= env %>
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-kubo-home
     - get: kubo-lock-<%= env %>
       version: every
       trigger: true
@@ -434,16 +545,19 @@ jobs:
     params:
       KUBERNETES_AUTHENTICATION_POLICY: RBAC
       DEPLOYMENT_NAME: ci-service-k8s-with-proxy
+    on_failure: *on_failure
   - task: pod-to-pod
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
     params:
       DEPLOYMENT_NAME: ci-service-k8s-with-proxy
+    on_failure: *on_failure
 
 - name: destroy-k8s-with-proxy-<%= env %>
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-kubo-home
     - get: kubo-lock-<%= env %>
       version: every
       trigger: true
@@ -468,6 +582,7 @@ jobs:
       DEPLOYMENT_NAME: ci-service-k8s-with-proxy
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure_deployment
 
 <% end %>
 
@@ -475,6 +590,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-kubo-home
     - get: kubo-lock-<%= env %>
       version: every
       trigger: true
@@ -504,6 +620,7 @@ jobs:
     <% if env.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
     <% end %>
+    on_failure: *on_failure
 
   - task: configure-bosh-for-turbulence
     tags: ['<%= env %>']
@@ -516,6 +633,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-kubo-home
     - get: kubo-lock-<%= env %>
       version: every
       trigger: true
@@ -540,16 +658,19 @@ jobs:
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     params:
       KUBERNETES_AUTHENTICATION_POLICY: RBAC
+    on_failure: *on_failure
   - task: pod-to-pod
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure
 
 <% if iaases.include?(env) %>
 - name: run-k8s-conformance-tests-<%= env %>
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-kubo-home
     - get: kubo-lock-<%= env %>
       trigger: true
       passed: [ 'deploy-k8s-<%= env %>' ]
@@ -581,6 +702,7 @@ jobs:
       put: conformance-results
       params:
         file: conformance-results/conformance-results-*.tar.gz
+    on_failure: *on_failure
 <% end %>
 
 <%
@@ -594,6 +716,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-kubo-home
     - get: kubo-lock-<%= env %>
       version: every
       trigger: true
@@ -622,6 +745,7 @@ jobs:
     file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
     tags: ['<%= env %>']
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure
 
 <%
   destroy_k8s_passed_reqs = ["run-k8s-turbulence-tests-#{env}"]
@@ -631,6 +755,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-kubo-home
     - get: kubo-lock-<%= env %>
       version: every
       trigger: true
@@ -653,6 +778,7 @@ jobs:
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure_deployment
 
 <%
 destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
@@ -663,6 +789,7 @@ destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}" if env == 'gcp'
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-kubo-home
     - get: git-kubo-deployment
       passed: <%= destroy_bosh_passed_reqs %>
     - get: git-kubo-release
@@ -685,6 +812,7 @@ destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}" if env == 'gcp'
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure_deployment
   - put: kubo-lock-<%= env %>
     params: { release: kubo-lock-<%= env %> }
 <% end %>
