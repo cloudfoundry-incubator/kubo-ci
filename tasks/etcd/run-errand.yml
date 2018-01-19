@@ -1,0 +1,25 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+    tag: stable
+
+inputs:
+  - name: git-kubo-ci
+
+params:
+  BOSH_CA_CERT: ~
+  BOSH_CLIENT: ~
+  BOSH_CLIENT_SECRET: ~
+  BOSH_DEPLOYMENT: ~
+  BOSH_ENVIRONMENT: ~
+  ERRAND_NAME: ~
+
+run:
+  path: git-kubo-ci/scripts/etcd/run-errand.sh
+
+outputs:
+  - name: release

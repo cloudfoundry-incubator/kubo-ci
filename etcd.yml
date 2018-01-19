@@ -1,3 +1,9 @@
+groups:
+- name: etcd-acceptance
+  jobs:
+  - deploy-long-running-etcd
+  - deploy-and-run-etcd-acceptance
+
 resource_types:
 - name: gcs
   type: docker-image
@@ -252,6 +258,8 @@ jobs:
     params: { release: kubo-lock }
 
 - name: deploy-long-running-etcd
+  serial: true
+  serial_groups: ["etcd-acceptance"]
   plan:
     - aggregate:
       - get: git-kubo-etcd-clustered
@@ -278,6 +286,8 @@ jobs:
         cleanup: true
 
 - name: deploy-and-run-etcd-acceptance
+  serial: true
+  serial_groups: ["etcd-acceptance"]
   plan:
     - aggregate:
       - get: git-kubo-etcd-clustered
@@ -312,3 +322,13 @@ jobs:
           uaa-url: https://10.100.0.6:8443
           director-ca: ((long-running-etcd-bosh-ca-cert.certificate))
           director-client-secret: ((long-running-etcd-bosh-client-secret))
+          tls-etcd-client: ((/long-running-etcd-director/etcd/tls-etcd-client)) # cert generated in separate deployment
+    - task: run-read-availability-during-recreate-errand
+      file: git-kubo-ci/tasks/etcd/run-errand.yml
+      params:
+        BOSH_CA_CERT: ((long-running-etcd-bosh-ca-cert.certificate))
+        BOSH_CLIENT: admin
+        BOSH_CLIENT_SECRET: ((long-running-etcd-bosh-client-secret))
+        BOSH_DEPLOYMENT: etcd-acceptance
+        BOSH_ENVIRONMENT: https://10.100.0.6:25555
+        ERRAND_NAME: read-availability-during-recreate
