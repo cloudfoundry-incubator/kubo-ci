@@ -22,7 +22,7 @@ for REPO in $REPOS/*; do
 
     echo "<@$COMMITTER_SLACK_NAME> and <@$AUTHOR_SLACK_NAME> committed in $REPO (commit $REF)" >> $FILE
     if [[ "$COMMITTER_SLACK_NAME" == "$COMMITTER" ]] || [[ "$AUTHOR_SLACK_NAME" == "$AUTHOR" ]]; then
-        echo "<@cfcr-team> There is an unknown email id in this commit!" >> "$FILE"
+        echo "<!subteam^S7V8MPT6U> There is an unknown email id in this commit!" >> "$FILE"
     fi
 done
 
