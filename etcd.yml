@@ -1,4 +1,11 @@
 groups:
+- name: kubo-etcd
+  jobs:
+  - run-unit-tests
+  - setup-eats-infrastructure
+  - eats
+  - eats-turbulence
+  - teardown-eats-infrastructure
 - name: etcd-acceptance
   jobs:
   - deploy-long-running-etcd
