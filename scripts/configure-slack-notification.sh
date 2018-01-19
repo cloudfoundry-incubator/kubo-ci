@@ -10,7 +10,7 @@ echo "$MESSAGE" > $FILE
 
 for REPO in $REPOS/*; do
     # .git/ref is provided by concourse resource
-    REF=$(git -C "$REPO" show -s --format=%t $(cat "$REPO/.git/ref"))
+    REF=$(git -C "$REPO" show -s --format=%h $(cat "$REPO/.git/ref"))
 
     COMMITTER=$(git -C "$REPO" show -s --format="%ce" "$REF")
     COMMITTER_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$COMMITTER" || echo "$COMMITTER")
