@@ -19,6 +19,15 @@ resources:
     client_secret: ((long-running-etcd-bosh-client-secret))
     ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
 
+- name: long-running-etcd-acceptance-deployment
+  type: bosh-deployment
+  source:
+    deployment: etcd-acceptance
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
+
 - name: bosh-dns-release
   type: bosh-io-release
   source:
@@ -34,6 +43,12 @@ resources:
   type: git
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-etcd
+    branch: master
+
+- name: git-etcd-acceptance
+  type: git
+  source:
+    uri: https://github.com/jfmyers9/etcd-acceptance-release
     branch: master
 
 - name: git-kubo-etcd-clustered
@@ -249,7 +264,9 @@ jobs:
     - task: create-etcd-release
       file: git-kubo-ci/tasks/etcd/create-etcd-release.yml
       input_mapping:
-        git-kubo-etcd: git-kubo-etcd-clustered
+        release-dir: git-kubo-etcd-clustered
+      output_mapping:
+        release: etcd-release
     - put: long-running-etcd-deployment
       params:
         manifest: git-kubo-etcd-clustered/manifests/3-node-with-ssl-bosh-dns.yml
@@ -259,3 +276,36 @@ jobs:
         - "etcd-release/*.tgz"
         - "bosh-dns-release/*.tgz"
         cleanup: true
+
+- name: deploy-and-run-etcd-acceptance
+  plan:
+    - aggregate:
+      - get: git-kubo-etcd-clustered
+        trigger: true
+      - get: git-etcd-acceptance
+        trigger: true
+      - get: git-kubo-ci
+      - get: gcp-stemcell
+        trigger: true
+      - get: bosh-dns-release
+        trigger: true
+    - task: create-etcd-acceptance-release
+      file: git-kubo-ci/tasks/etcd/create-etcd-release.yml
+      input_mapping:
+        release-dir: git-etcd-acceptance
+      output_mapping:
+        release: etcd-acceptance-release
+    - put: long-running-etcd-acceptance-deployment
+      params:
+        manifest: git-etcd-acceptance/deployment/etcd-acceptance.yml
+        stemcells:
+        - "gcp-stemcell/*.tgz"
+        releases:
+        - "etcd-acceptance-release/*.tgz"
+        - "bosh-dns-release/*.tgz"
+        cleanup: true
+        vars:
+          director-url: https://10.100.0.6:25555
+          uaa-url: https://10.100.0.6:8443
+          director-ca: ((long-running-etcd-bosh-ca-cert.certificate))
+          director-client-secret: ((long-running-etcd-bosh-client-secret))
