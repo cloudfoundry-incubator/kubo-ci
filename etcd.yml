@@ -262,7 +262,7 @@ jobs:
       - get: bosh-dns-release
         trigger: true
     - task: create-etcd-release
-      file: git-kubo-ci/tasks/etcd/create-etcd-release.yml
+      file: git-kubo-ci/tasks/etcd/create-release.yml
       input_mapping:
         release-dir: git-kubo-etcd-clustered
       output_mapping:
@@ -282,15 +282,18 @@ jobs:
     - aggregate:
       - get: git-kubo-etcd-clustered
         trigger: true
+        passed: [deploy-long-running-etcd]
       - get: git-etcd-acceptance
         trigger: true
       - get: git-kubo-ci
       - get: gcp-stemcell
         trigger: true
+        passed: [deploy-long-running-etcd]
       - get: bosh-dns-release
         trigger: true
+        passed: [deploy-long-running-etcd]
     - task: create-etcd-acceptance-release
-      file: git-kubo-ci/tasks/etcd/create-etcd-release.yml
+      file: git-kubo-ci/tasks/etcd/create-release.yml
       input_mapping:
         release-dir: git-etcd-acceptance
       output_mapping:
