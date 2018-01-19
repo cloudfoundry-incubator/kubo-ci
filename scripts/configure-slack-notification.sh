@@ -20,7 +20,8 @@ for REPO in $REPOS/*; do
     AUTHOR_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$AUTHOR" || echo "$AUTHOR")
     AUTHOR_SLACK_NAME=$(echo "$AUTHOR_SLACK_NAME" | sed '/^$/d')
 
-    echo "<@$COMMITTER_SLACK_NAME> and <@$AUTHOR_SLACK_NAME> committed in $REPO (commit $REF)" >> $FILE
+    COMMIT_LINK=$(echo "<https://$(git -C "$REPO" remote get-url origin | cut -d@ -f2 | sed -e 's|:|/|' -e 's|.git$||')/commit/$REF|$REF>")
+    echo "<@$COMMITTER_SLACK_NAME> and <@$AUTHOR_SLACK_NAME> committed in $REPO (commit $COMMIT_LINK)" >> $FILE
     if [[ "$COMMITTER_SLACK_NAME" == "$COMMITTER" ]] || [[ "$AUTHOR_SLACK_NAME" == "$AUTHOR" ]]; then
         echo "<!subteam^S7V8MPT6U> There is an unknown email id in this commit!" >> "$FILE"
     fi
