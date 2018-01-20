@@ -32,7 +32,7 @@ var _ = Describe("Worker failure scenarios", func() {
 	BeforeEach(func() {
 		var err error
 		director := NewDirector(testconfig.Bosh)
-		deployment, err = director.FindDeployment("ci-service")
+		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
 		Expect(err).NotTo(HaveOccurred())
 		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 
