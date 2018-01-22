@@ -30,8 +30,9 @@ var _ = Describe("A single master and etcd failure", func() {
 	})
 
 	BeforeEach(func() {
+		var err error
 		director := NewDirector(testconfig.Bosh)
-		deployment, err := director.FindDeployment(testconfig.Bosh.Deployment)
+		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
 		Expect(err).NotTo(HaveOccurred())
 		countRunningApiServerOnMaster = CountProcessesOnVmsOfType(deployment, MasterVmType, "kube-apiserver", VmRunningState)
 
@@ -76,7 +77,7 @@ var _ = Describe("A single master and etcd failure", func() {
 		By("Verifying the master VM has restarted")
 		var startingMasterVm []director.VMInfo
 		getStartingMasterVm := func() []director.VMInfo {
-			startingMasterVm = DeploymentVmsOfType(deployment, WorkerVmType, VmStartingState)
+			startingMasterVm = DeploymentVmsOfType(deployment, MasterVmType, VmStartingState)
 			return startingMasterVm
 		}
 		Eventually(getStartingMasterVm, 600, 20).Should(HaveLen(1))
