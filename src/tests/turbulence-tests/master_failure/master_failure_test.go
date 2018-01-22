@@ -4,20 +4,23 @@ import (
 	"tests/config"
 	. "tests/test_helpers"
 
+	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cppforlife/turbulence/incident"
 	"github.com/cppforlife/turbulence/incident/selector"
 	"github.com/cppforlife/turbulence/tasks"
-	"github.com/onsi/gomega/gexec"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("A single master and etcd failure", func() {
 
 	var (
-		testconfig 	*config.Config
-		kubectl 	*KubectlRunner
-		nginxSpec 	= PathFromRoot("specs/nginx.yml")
+		deployment                    director.Deployment
+		testconfig                    *config.Config
+		kubectl                       *KubectlRunner
+		nginxSpec                     = PathFromRoot("specs/nginx.yml")
+		countRunningApiServerOnMaster func() int
 	)
 
 	BeforeSuite(func() {
@@ -27,6 +30,13 @@ var _ = Describe("A single master and etcd failure", func() {
 	})
 
 	BeforeEach(func() {
+		director := NewDirector(testconfig.Bosh)
+		deployment, err := director.FindDeployment(testconfig.Bosh.Deployment)
+		Expect(err).NotTo(HaveOccurred())
+		countRunningApiServerOnMaster = CountProcessesOnVmsOfType(deployment, MasterVmType, "kube-apiserver", VmRunningState)
+
+		Expect(countRunningApiServerOnMaster()).To(Equal(1))
+
 		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 		kubectl.CreateNamespace()
 	})
@@ -37,13 +47,6 @@ var _ = Describe("A single master and etcd failure", func() {
 	})
 
 	Specify("The cluster is healthy after master is resurrected", func() {
-		director := NewDirector(testconfig.Bosh)
-		deployment, err := director.FindDeployment(testconfig.Bosh.Deployment)
-		Expect(err).NotTo(HaveOccurred())
-		countRunningApiServerOnMaster := CountProcessesOnVmsOfType(deployment, MasterVmType, "kube-apiserver", VmRunningState)
-
-		Expect(countRunningApiServerOnMaster()).To(Equal(1))
-
 		By("Deploying a workload on the k8s cluster")
 		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxSpec), "30s", "5s").Should(gexec.Exit(0))
 		Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), "120s").Should(gexec.Exit(0))
@@ -69,6 +72,14 @@ var _ = Describe("A single master and etcd failure", func() {
 		incident := hellRaiser.CreateIncident(killOneMaster)
 		incident.Wait()
 		Expect(countRunningApiServerOnMaster()).Should(Equal(0))
+
+		By("Verifying the master VM has restarted")
+		var startingMasterVm []director.VMInfo
+		getStartingMasterVm := func() []director.VMInfo {
+			startingMasterVm = DeploymentVmsOfType(deployment, WorkerVmType, VmStartingState)
+			return startingMasterVm
+		}
+		Eventually(getStartingMasterVm, 600, 20).Should(HaveLen(1))
 
 		By("Waiting for resurrection")
 		Eventually(countRunningApiServerOnMaster, "10m", "20s").Should(Equal(1))
