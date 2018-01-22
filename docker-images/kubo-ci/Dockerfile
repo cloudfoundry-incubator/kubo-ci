@@ -15,7 +15,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   ipcalc \
   zip \
   jq \
-  sshuttle
+  sshuttle \
+  haproxy
 
 WORKDIR /tmp/docker-build
 
@@ -26,7 +27,8 @@ ENV GOPATH /root/go
 RUN mkdir -p /root/go/bin
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 RUN go get github.com/onsi/gomega && \
-   go get github.com/onsi/ginkgo/ginkgo
+   go get github.com/onsi/ginkgo/ginkgo && \
+   go get github.com/tsenart/vegeta
 
 # CF
 RUN wget -O /cf-cli_amd64.deb https://cli.run.pivotal.io/stable?release=debian64 && \
