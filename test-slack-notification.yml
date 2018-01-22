@@ -10,7 +10,7 @@ resources:
   type: git
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
-    branch: story-153294254
+    branch: master
     private_key: ((git-ssh-key))
 
 - name: git-kubo-deployment
@@ -55,26 +55,58 @@ jobs:
   - get: git-kubo-release
     trigger: true
   - task: run-release-unit-tests
-    file: git-kubo-ci/tasks/run-release-unit-tests.yml
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      run:
+        path: 'true'
     on_success:
       do:
+      - task: consolidate-inputs
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: pcfkubo/kubo-ci
+              tag: stable
+          run:
+            path: bash
+            args:
+            - -c
+            - 'mkdir consolidated_inputs; cp -r git-kubo-release git-kubo-deployment git-kubo-ci consolidated_inputs'
+          outputs:
+          - name: consolidated_inputs
+          inputs:
+          - name: git-kubo-deployment
+          - name: git-kubo-release
+          - name: git-kubo-ci
       - task: configure-slack-notification
         file: git-kubo-ci/tasks/configure-slack-notification.yml
+        input_mapping: {target-repos: consolidated_inputs}
         params:
-          REPO: git-kubo-ci
           MESSAGE: Unit tests for kubo-release succeeded
       - put: slack-failure
         params:
           text_file: slack-notification/text
-          channel_file: slack-notification/channel
           text: |
             Pipeline: https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME
             $TEXT_FILE_CONTENT
-
-            https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-
-
-
-
-
-
+            Build URL: <https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|Job $BUILD_JOB_NAME>
+      - task: infinite-loop
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: pcfkubo/kubo-ci
+              tag: stable
+          run:
+            path: bash
+            args:
+            - -c
+            - while true; do echo foo > /dev/null; done

@@ -6,9 +6,13 @@ REPOS=${REPO:-target-repos}
 
 FILE=slack-notification/text
 
-echo "$MESSAGE" > "$FILE"
+echo "{" > "$FILE"
+printf '"text": "%s"' "Pipeline: https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME" >> "$FILE"
+
+echo '"attachments": [' >> "$FILE"
 
 for REPO in $REPOS/*; do
+
     # .git/ref is provided by concourse resource
     REF=$(git -C "$REPO" show -s --format=%h $(cat "$REPO/.git/ref"))
 
@@ -25,8 +29,30 @@ for REPO in $REPOS/*; do
     if [[ "$COMMITTER_SLACK_NAME" == "$COMMITTER" ]] || [[ "$AUTHOR_SLACK_NAME" == "$AUTHOR" ]]; then
         echo "<!subteam^S7V8MPT6U> There is an unknown email id in this commit!" >> "$FILE"
     fi
+
+
+    echo '{ "color": "#ff0000",' >> "$FILE"
+    printf '"title": "%s",' "$REPO (commit $REF)" >> "$FILE"
+    printf '"title_link": "%s"' "$COMMIT_LINK" >> "$FILE"
+    printf '"fields": [' >> "$FILE"
+    printf '{"title": "Author", "short": true, "value": "%s"}' "$AUTHOR_SLACK_NAME" >> "$FILE"
+    printf '{"title": "Committer", "short": true, "value": "%s"}' "$COMMITTER_SLACK_NAME" >> "$FILE"
+
+    echo '}' >> "$FILE"
 done
 
-if [ ! -z "${LOCK_NAME}" ]; then
-    echo "Lock: $LOCK_NAME" >> "$FILE"
-fi
+echo ']' >> "$FILE"
+echo "}" >> $FILE
+
+#
+#{
+#	"text": "Build Failed. <https://ci.kubo.sh|Pipeline Job>",
+#	"attachments": [
+#        { "color": "#ff0000",
+#           "title": "Kubo-CI (commit foo)", "title_link": "http://github.com",
+#            "fields": [
+#			{ "title": "Author","value": "<@akshay>","short": true},
+#			{ "title": "Committer", "value": "<@akshay>", "short": true }]
+#        }
+#    ]
+#}
