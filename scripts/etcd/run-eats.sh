@@ -28,6 +28,7 @@ function main() {
     --var="bosh_client=${BOSH_CLIENT}" \
     --var="bosh_client_secret=${BOSH_CLIENT_SECRET}" \
     --var-file="bosh_director_ca_cert=${crt}" \
+    --var-file="stemcell_version=${root}/stemcell/version" \
     --var="bosh_environment=https://${BOSH_ENVIRONMENT}:25555"
 
   bosh -d eats run-errand acceptance-tests
