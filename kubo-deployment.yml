@@ -183,12 +183,10 @@ resources:
 - name: kubo-version
   type: semver
   source:
+    driver: gcs
     key: kubo-version
-    access_key_id: ((gcs-access-key-id))
-    secret_access_key: ((gcs-secret-access-key))
+    json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    region_name: us-east1
-    endpoint: storage.googleapis.com
 
 - name: ubuntu-trusty-stemcell
   type: bosh-io-stemcell
