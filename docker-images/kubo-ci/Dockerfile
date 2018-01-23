@@ -78,7 +78,7 @@ RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.44-linux-amd64
 RUN pip install cryptography==2.0.3
 RUN pip install pyOpenSSL==17.3.0
 RUN pip install python-glanceclient==2.8.0
-RUN pip install python-openstackclient==3.12.0
+RUN pip install python-openstackclient==3.13.0
 
 # AWS CLI
 RUN pip install awscli
