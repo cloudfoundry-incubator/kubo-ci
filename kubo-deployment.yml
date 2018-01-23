@@ -1,5 +1,5 @@
 <%
-  iaases = %w(gcp vsphere aws)
+  iaases = %w(gcp vsphere aws openstack)
   additional_envs = %w(gcp-lb aws-lb)
   env_list = iaases + additional_envs
 %>
@@ -816,8 +816,8 @@ destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}" if env == 'gcp'
 <% end %>
 
 <%
-  passed_requirements = env_list.map {|env| "destroy-bosh-#{env}"}
-  passed_deploy_bosh = iaases.map {|iaas| "deploy-bosh-test-#{iaas}"}
+  passed_requirements = env_list.map {|env| "destroy-bosh-#{env}" unless env == 'openstack'}.compact
+  passed_deploy_bosh = iaases.map {|iaas| "deploy-bosh-test-#{iaas}" unless iaas =='openstack' }.compact
 %>
 
 - name: upload-kubo-deployment
