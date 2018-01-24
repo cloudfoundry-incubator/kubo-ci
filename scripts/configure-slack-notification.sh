@@ -7,7 +7,7 @@ REPOS=${REPO:-target-repos}
 FILE=slack-notification/text
 
 echo "{" > "$FILE"
-printf '"text": "%s"' "Pipeline: https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME" >> "$FILE"
+printf '"text": "%s"' "Pipeline: https://ci.kubo.sh/teams/\$BUILD_TEAM_NAME/pipelines/\$BUILD_PIPELINE_NAME" >> "$FILE"
 
 echo '"attachments": [' >> "$FILE"
 
@@ -35,7 +35,7 @@ for REPO in $REPOS/*; do
     printf '"title": "%s",' "$REPO (commit $REF)" >> "$FILE"
     printf '"title_link": "%s"' "$COMMIT_LINK" >> "$FILE"
     printf '"fields": [' >> "$FILE"
-    printf '{"title": "Author", "short": true, "value": "%s"}' "$AUTHOR_SLACK_NAME" >> "$FILE"
+    printf '{"title": "Author", "short": true, "value": "%s"},' "$AUTHOR_SLACK_NAME" >> "$FILE"
     printf '{"title": "Committer", "short": true, "value": "%s"}' "$COMMITTER_SLACK_NAME" >> "$FILE"
 
     echo '}' >> "$FILE"
