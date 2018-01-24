@@ -93,10 +93,6 @@ jobs:
       - put: slack-failure
         params:
           text_file: slack-notification/text
-          text: |
-            Pipeline: https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME
-            $TEXT_FILE_CONTENT
-            Build URL: <https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|Job $BUILD_JOB_NAME>
       - task: infinite-loop
         config:
           platform: linux

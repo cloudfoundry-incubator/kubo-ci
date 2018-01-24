@@ -2,57 +2,72 @@
 
 set -exu -o pipefail
 
+ROOT="$(pwd)"
 REPOS=${REPO:-target-repos}
+SLACK_TEXT_TEMPLATE='{
+    "text": $pipeline,
+    "attachments": $attachments
+}'
 
-FILE=slack-notification/text
+SLACK_ATTACHMENT_TEMPLATE='{
+    "color": "#ff0000",
+    "title": $title,
+    "fields": [
+        {"title": "Author", "short": true, "value": $author},
+        {"title": "Committer", "short": true, "value": $committer}
+    ]
+}'
 
-echo "{" > "$FILE"
-printf '"text": "%s"' "Pipeline: https://ci.kubo.sh/teams/\$BUILD_TEAM_NAME/pipelines/\$BUILD_PIPELINE_NAME" >> "$FILE"
+function main() {
+  local attachments="[]"
+  for repo in ${REPOS}/*; do
+    local attachment="$(jq -n \
+      --arg title "$(basename "${repo}") (commit $(get_commit_link "${repo}"))" \
+      --arg author "$(get_author_name "${repo}")" \
+      --arg committer "$(get_committer_name "${repo}")" \
+      "${SLACK_ATTACHMENT_TEMPLATE}")"
 
-echo '"attachments": [' >> "$FILE"
+    attachments="$(echo "${attachments}" | jq \
+        --argjson attachment "${attachment}" \
+        '. += [$attachment]')"
+  done
 
-for REPO in $REPOS/*; do
+  jq -n \
+    --arg pipeline "Build Failed. <https://ci.kubo.sh/teams/\$BUILD_TEAM_NAME/pipelines/\$BUILD_PIPELINE_NAME|Pipeline Job>" \
+    --argjson attachments "$attachments" \
+    "${SLACK_TEXT_TEMPLATE}" > "${ROOT}/slack-notification/text"
+}
 
-    # .git/ref is provided by concourse resource
-    REF=$(git -C "$REPO" show -s --format=%h $(cat "$REPO/.git/ref"))
+function get_repo_ref() {
+  local repo="${1}"
+  git -C "${repo}" show -s --format=%h $(cat "${repo}/.git/ref")
+}
 
-    COMMITTER=$(git -C "$REPO" show -s --format="%ce" "$REF")
-    COMMITTER_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$COMMITTER" || echo "$COMMITTER")
-    COMMITTER_SLACK_NAME=$(echo "$COMMITTER_SLACK_NAME" | sed '/^$/d')
+function get_commit_link() {
+  local repo="${1}"
+  local ref="$(get_repo_ref ${repo})"
+  echo "<https://$(git -C "${repo}" remote get-url origin | cut -d@ -f2 | sed -e 's|:|/|' -e 's|.git$||')/commit/${ref}|${ref}>"
+}
 
-    AUTHOR=$(git -C "$REPO" show -s --format="%ae" "$REF")
-    AUTHOR_SLACK_NAME=$(bosh int git-kubo-home/slackers "--path=/$AUTHOR" || echo "$AUTHOR")
-    AUTHOR_SLACK_NAME=$(echo "$AUTHOR_SLACK_NAME" | sed '/^$/d')
+function get_author_name() {
+  local repo="${1}"
+  local author=$(git -C "${repo}" show -s --format="%ae" "$(get_repo_ref "${repo}")")
 
-    COMMIT_LINK=$(echo "<https://$(git -C "$REPO" remote get-url origin | cut -d@ -f2 | sed -e 's|:|/|' -e 's|.git$||')/commit/$REF|$REF>")
-    echo "<@$COMMITTER_SLACK_NAME> and <@$AUTHOR_SLACK_NAME> committed in $REPO (commit $COMMIT_LINK)" >> $FILE
-    if [[ "$COMMITTER_SLACK_NAME" == "$COMMITTER" ]] || [[ "$AUTHOR_SLACK_NAME" == "$AUTHOR" ]]; then
-        echo "<!subteam^S7V8MPT6U> There is an unknown email id in this commit!" >> "$FILE"
-    fi
+  get_slacker_name "${author}"
+}
 
+function get_committer_name() {
+  local repo="${1}"
+  local committer=$(git -C "${repo}" show -s --format="%ce" "$(get_repo_ref "${repo}")")
 
-    echo '{ "color": "#ff0000",' >> "$FILE"
-    printf '"title": "%s",' "$REPO (commit $REF)" >> "$FILE"
-    printf '"title_link": "%s"' "$COMMIT_LINK" >> "$FILE"
-    printf '"fields": [' >> "$FILE"
-    printf '{"title": "Author", "short": true, "value": "%s"},' "$AUTHOR_SLACK_NAME" >> "$FILE"
-    printf '{"title": "Committer", "short": true, "value": "%s"}' "$COMMITTER_SLACK_NAME" >> "$FILE"
+  get_slacker_name "${committer}"
+}
 
-    echo '}' >> "$FILE"
-done
+function get_slacker_name() {
+  local lookup_name="${1}"
+  local slack_name="$(bosh int git-kubo-home/slackers "--path=/${lookup_name}" || echo "${lookup_name}")"
 
-echo ']' >> "$FILE"
-echo "}" >> $FILE
+  echo "${slack_name}" | sed '/^$/d'
+}
 
-#
-#{
-#	"text": "Build Failed. <https://ci.kubo.sh|Pipeline Job>",
-#	"attachments": [
-#        { "color": "#ff0000",
-#           "title": "Kubo-CI (commit foo)", "title_link": "http://github.com",
-#            "fields": [
-#			{ "title": "Author","value": "<@akshay>","short": true},
-#			{ "title": "Committer", "value": "<@akshay>", "short": true }]
-#        }
-#    ]
-#}
+main
