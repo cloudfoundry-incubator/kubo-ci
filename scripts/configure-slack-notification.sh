@@ -8,6 +8,7 @@ REPOS=${REPO:-target-repos}
 SLACK_ATTACHMENT_TEMPLATE='{
     "color": "#ff0000",
     "title": $title,
+    "mrkdwn_in": ["fields"],
     "fields": [
         {"title": "Author", "short": true, "value": $author},
         {"title": "Committer", "short": true, "value": $committer}
@@ -62,9 +63,13 @@ function get_committer_name() {
 
 function get_slacker_name() {
   local lookup_name="${1}"
-  local slack_name="$(echo "@$(bosh int git-kubo-home/slackers "--path=/${lookup_name}")" || echo "${lookup_name}")"
+  local slacker_name="$(bosh int git-kubo-home/slackers "--path=/${lookup_name}")" | sed '/^$/d'
+  if [[ -z "${slacker_name}" ]]; then
+    echo "${lookup_name}"
+    return
+  fi
 
-  echo "${slack_name}" | sed '/^$/d'
+  echo "<@U${slacker_name}>"
 }
 
 main
