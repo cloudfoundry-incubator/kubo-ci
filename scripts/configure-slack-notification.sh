@@ -31,7 +31,7 @@ function main() {
   echo "${attachments}" \
     > "${ROOT}/slack-notification/attachments"
 
-  echo "Build Failed. <https://ci.kubo.sh/teams/\$BUILD_TEAM_NAME/pipelines/\$BUILD_PIPELINE_NAME|Pipeline Job>" \
+  echo "Build Failed. <https://ci.kubo.sh/teams/\$BUILD_TEAM_NAME/pipelines/\$BUILD_PIPELINE_NAME/jobs/\$BUILD_JOB_NAME/builds/\$BUILD_NAME|\$BUILD_PIPELINE_NAME/\$BUILD_JOB_NAME#\$BUILD_NAME>" \
     > "${ROOT}/slack-notification/text"
 }
 
@@ -62,7 +62,7 @@ function get_committer_name() {
 
 function get_slacker_name() {
   local lookup_name="${1}"
-  local slack_name="$(bosh int git-kubo-home/slackers "--path=/${lookup_name}" || echo "${lookup_name}")"
+  local slack_name="$(echo "@$(bosh int git-kubo-home/slackers "--path=/${lookup_name}")" || echo "${lookup_name}")"
 
   echo "${slack_name}" | sed '/^$/d'
 }
