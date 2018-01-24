@@ -93,3 +93,4 @@ jobs:
       - put: slack-failure
         params:
           text_file: slack-notification/text
+          attachments_file: slack-notification/attachments

@@ -4,10 +4,6 @@ set -exu -o pipefail
 
 ROOT="$(pwd)"
 REPOS=${REPO:-target-repos}
-SLACK_TEXT_TEMPLATE='{
-    "text": $pipeline,
-    "attachments": $attachments
-}'
 
 SLACK_ATTACHMENT_TEMPLATE='{
     "color": "#ff0000",
@@ -32,10 +28,11 @@ function main() {
         '. += [$attachment]')"
   done
 
-  jq -n \
-    --arg pipeline "Build Failed. <https://ci.kubo.sh/teams/\$BUILD_TEAM_NAME/pipelines/\$BUILD_PIPELINE_NAME|Pipeline Job>" \
-    --argjson attachments "$attachments" \
-    "${SLACK_TEXT_TEMPLATE}" > "${ROOT}/slack-notification/text"
+  echo "${attachments}" \
+    > "${ROOT}/slack-notification/attachments"
+
+  echo "Build Failed. <https://ci.kubo.sh/teams/\$BUILD_TEAM_NAME/pipelines/\$BUILD_PIPELINE_NAME|Pipeline Job>" \
+    > "${ROOT}/slack-notification/text"
 }
 
 function get_repo_ref() {
