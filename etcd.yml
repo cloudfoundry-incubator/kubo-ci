@@ -8,8 +8,11 @@ groups:
   - teardown-eats-infrastructure
 - name: etcd-acceptance
   jobs:
+  - deploy-turbulence-api-server
   - deploy-long-running-etcd
-  - deploy-and-run-etcd-acceptance
+  - deploy-long-running-etcd-network-partition
+  - deploy-and-run-etcd-acceptance-long-running
+  - deploy-and-run-etcd-acceptance-network-partition
 
 resource_types:
 - name: gcs
@@ -45,10 +48,28 @@ resources:
     client_secret: ((long-running-etcd-bosh-client-secret))
     ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
 
+- name: network-partition-etcd-acceptance-deployment
+  type: bosh-deployment
+  source:
+    deployment: etcd-acceptance-network-partition
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
+
 - name: long-running-etcd-acceptance-deployment
   type: bosh-deployment
   source:
     deployment: etcd-acceptance
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
+
+- name: turbulence-deployment
+  type: bosh-deployment
+  source:
+    deployment: turbulence
     target: https://10.100.0.6:25555
     client: admin
     client_secret: ((long-running-etcd-bosh-client-secret))
@@ -75,6 +96,12 @@ resources:
   type: git
   source:
     uri: https://github.com/jfmyers9/etcd-acceptance-release
+    branch: master
+
+- name: git-turbulence-release
+  type: git
+  source:
+    uri: https://github.com/cppforlife/turbulence-release
     branch: master
 
 - name: kubo-lock
@@ -271,6 +298,31 @@ jobs:
   - put: kubo-lock
     params: { release: kubo-lock }
 
+- name: deploy-turbulence-api-server
+  serial: true
+  plan:
+  - aggregate:
+    - get: turbulence-release
+      trigger: true
+    - get: gcp-stemcell
+      trigger: true
+    - get: git-turbulence-release
+      trigger: true
+  - put: turbulence-deployment
+    params:
+      manifest: git-turbulence-release/manifests/example.yml
+      vars:
+        turbulence_api_ip: 10.100.0.10
+        director_ip: 10.100.0.6
+        director_client: admin
+        director_client_secret: ((long-running-etcd-bosh-client-secret))
+        director_ssl.ca: ((long-running-etcd-bosh-ca-cert.certificate))
+      stemcells:
+      - "gcp-stemcell/*.tgz"
+      releases:
+      - "turbulence-release/*.tgz"
+      cleanup: true
+
 - name: deploy-long-running-etcd
   serial: true
   serial_groups: ["etcd-acceptance"]
@@ -283,6 +335,9 @@ jobs:
       trigger: true
     - get: bosh-dns-release
       trigger: true
+    - get: turbulence-release
+      trigger: true
+      passed: ["deploy-turbulence-api-server"]
   - task: create-etcd-release
     file: git-kubo-ci/tasks/etcd/create-release.yml
     input_mapping:
@@ -292,17 +347,43 @@ jobs:
   - put: long-running-etcd-deployment
     params:
       manifest: git-kubo-etcd/manifests/3-node-with-ssl-bosh-dns.yml
+      ops_files:
+      - "git-kubo-etcd/manifests/operations/turbulence-agent.yml"
       stemcells:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-release/*.tgz"
       - "bosh-dns-release/*.tgz"
+      - "turbulence-release/*.tgz"
       cleanup: true
+
+- name: deploy-long-running-etcd-network-partition
+  serial: true
+  serial_groups: ["etcd-acceptance-network-partition"]
+  plan:
+  - aggregate:
+    - get: git-kubo-etcd
+      trigger: true
+    - get: git-kubo-ci
+    - get: gcp-stemcell
+      trigger: true
+    - get: bosh-dns-release
+      trigger: true
+    - get: turbulence-release
+      trigger: true
+      passed: ["deploy-turbulence-api-server"]
+  - task: create-etcd-release
+    file: git-kubo-ci/tasks/etcd/create-release.yml
+    input_mapping:
+      release-dir: git-kubo-etcd
+    output_mapping:
+      release: etcd-release
   - put: long-running-etcd-deployment-network-partition
     params:
       manifest: git-kubo-etcd/manifests/3-node-with-ssl-bosh-dns.yml
       ops_files:
       - "git-kubo-ci/etcd/deployment-name.yml"
+      - "git-kubo-etcd/manifests/operations/turbulence-agent.yml"
       vars:
         deployment-name: etcd-network-partition
       stemcells:
@@ -310,9 +391,10 @@ jobs:
       releases:
       - "etcd-release/*.tgz"
       - "bosh-dns-release/*.tgz"
+      - "turbulence-release/*.tgz"
       cleanup: true
 
-- name: deploy-and-run-etcd-acceptance
+- name: deploy-and-run-etcd-acceptance-long-running
   serial: true
   serial_groups: ["etcd-acceptance"]
   plan:
@@ -351,7 +433,7 @@ jobs:
         uaa-url: https://10.100.0.6:8443
         director-ca: ((long-running-etcd-bosh-ca-cert.certificate))
         director-client-secret: ((long-running-etcd-bosh-client-secret))
-        tls-etcd-client: ((/long-running-etcd-director/etcd/tls-etcd-client)) # cert generated in separate deployment
+        etcd-deployment-name: etcd
   - task: run-read-availability-during-recreate-errand
     file: git-kubo-ci/tasks/etcd/run-errand.yml
     params:
@@ -361,3 +443,56 @@ jobs:
       BOSH_DEPLOYMENT: etcd-acceptance
       BOSH_ENVIRONMENT: https://10.100.0.6:25555
       ERRAND_NAME: read-availability-during-recreate
+
+- name: deploy-and-run-etcd-acceptance-network-partition
+  serial: true
+  serial_groups: ["etcd-acceptance-network-partition"]
+  plan:
+  - aggregate:
+    - get: 30m
+      trigger: true
+    - get: git-kubo-etcd
+      trigger: true
+      passed: [deploy-long-running-etcd]
+    - get: git-etcd-acceptance
+      trigger: true
+    - get: git-kubo-ci
+    - get: gcp-stemcell
+      trigger: true
+      passed: [deploy-long-running-etcd]
+    - get: bosh-dns-release
+      trigger: true
+      passed: [deploy-long-running-etcd]
+  - task: create-etcd-acceptance-release
+    file: git-kubo-ci/tasks/etcd/create-release.yml
+    input_mapping:
+      release-dir: git-etcd-acceptance
+    output_mapping:
+      release: etcd-acceptance-release
+  - put: network-partition-etcd-acceptance-deployment
+    params:
+      manifest: git-etcd-acceptance/deployment/etcd-acceptance.yml
+      ops_files:
+      - "git-kubo-ci/etcd/deployment-name.yml"
+      stemcells:
+      - "gcp-stemcell/*.tgz"
+      releases:
+      - "etcd-acceptance-release/*.tgz"
+      - "bosh-dns-release/*.tgz"
+      cleanup: true
+      vars:
+        director-url: https://10.100.0.6:25555
+        uaa-url: https://10.100.0.6:8443
+        director-ca: ((long-running-etcd-bosh-ca-cert.certificate))
+        director-client-secret: ((long-running-etcd-bosh-client-secret))
+        etcd-deployment-name: etcd-network-partition
+        deployment-name: etcd-acceptance-network-partition
+  - task: run-read-availability-during-recreate-errand
+    file: git-kubo-ci/tasks/etcd/run-errand.yml
+    params:
+      BOSH_CA_CERT: ((long-running-etcd-bosh-ca-cert.certificate))
+      BOSH_CLIENT: admin
+      BOSH_CLIENT_SECRET: ((long-running-etcd-bosh-client-secret))
+      BOSH_DEPLOYMENT: etcd-acceptance-network-partition
+      BOSH_ENVIRONMENT: https://10.100.0.6:25555
+      ERRAND_NAME: read-availability-during-network-partition
