@@ -29,49 +29,106 @@ var _ = Describe("Guestbook storage", func() {
 
 		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 		kubectl.CreateNamespace()
-
-		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Bosh.Iaas))
-		Eventually(kubectl.RunKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
-		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
-		Eventually(kubectl.RunKubectlCommand("create", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
-
 	})
 
 	AfterEach(func() {
 		UndeployGuestBook(kubectl)
-		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
-		Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
-		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Bosh.Iaas))
-		Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
 
-	It("should persist when application was undeployed", func() {
+	Context("when the storage class for the pvc is provided", func() {
+		var (
+			storageClassSpec string
+			pvcSpec          string
+		)
 
-		By("Deploying the persistent application the value is persisted")
+		BeforeEach(func() {
+			storageClassSpec = PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Bosh.Iaas))
+			Eventually(kubectl.RunKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
+			pvcSpec = PathFromRoot("specs/persistent-volume-claim.yml")
+			Eventually(kubectl.RunKubectlCommand("create", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
+		})
 
-		DeployGuestBook(kubectl)
+		AfterEach(func() {
+			Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
+		})
 
-		appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
+		It("should persist when application was undeployed", func() {
 
-		testValue := strconv.Itoa(rand.Int())
-		println(testValue)
+			By("Deploying the persistent application the value is persisted")
 
-		PostToGuestBook(appAddress, testValue)
+			DeployGuestBook(kubectl)
 
-		Eventually(func() string {
-			return GetValueFromGuestBook(appAddress)
-		}, "120s", "2s").Should(ContainSubstring(testValue))
+			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
 
-		By("Un-deploying the application and re-deploying the data is still available from the persisted source")
+			testValue := strconv.Itoa(rand.Int())
+			println(testValue)
 
-		UndeployGuestBook(kubectl)
-		DeployGuestBook(kubectl)
+			PostToGuestBook(appAddress, testValue)
 
-		appAddress = kubectl.GetAppAddress(deployment, "svc/frontend")
-		Eventually(func() string {
-			return GetValueFromGuestBook(appAddress)
-		}, "120s", "2s").Should(ContainSubstring(testValue))
+			Eventually(func() string {
+				return GetValueFromGuestBook(appAddress)
+			}, "120s", "2s").Should(ContainSubstring(testValue))
 
+			By("Un-deploying the application and re-deploying the data is still available from the persisted source")
+
+			UndeployGuestBook(kubectl)
+			DeployGuestBook(kubectl)
+
+			appAddress = kubectl.GetAppAddress(deployment, "svc/frontend")
+			Eventually(func() string {
+				return GetValueFromGuestBook(appAddress)
+			}, "120s", "2s").Should(ContainSubstring(testValue))
+
+		})
+	})
+
+	Context("when the storage class for the pvc is not provided", func() {
+		var (
+			pvcSpec string
+		)
+
+		BeforeEach(func() {
+			if testconfig.Bosh.Iaas != "gcp" {
+				Skip("Default Storage Class is only supported by gcp.")
+			}
+
+			pvcSpec = PathFromRoot("specs/default-persistent-volume-claim.yml")
+			Eventually(kubectl.RunKubectlCommand("create", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
+		})
+
+		AfterEach(func() {
+			Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
+		})
+
+		It("should persist with the default storage class", func() {
+
+			By("Deploying the persistent application the value is persisted")
+
+			DeployGuestBook(kubectl)
+
+			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
+
+			testValue := strconv.Itoa(rand.Int())
+			println(testValue)
+
+			PostToGuestBook(appAddress, testValue)
+
+			Eventually(func() string {
+				return GetValueFromGuestBook(appAddress)
+			}, "120s", "2s").Should(ContainSubstring(testValue))
+
+			By("Un-deploying the application and re-deploying the data is still available from the persisted source")
+
+			UndeployGuestBook(kubectl)
+			DeployGuestBook(kubectl)
+
+			appAddress = kubectl.GetAppAddress(deployment, "svc/frontend")
+			Eventually(func() string {
+				return GetValueFromGuestBook(appAddress)
+			}, "120s", "2s").Should(ContainSubstring(testValue))
+
+		})
 	})
 })
