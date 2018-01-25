@@ -11,7 +11,6 @@ extract_golang_release() {
 }
 
 vendor_golang() {
-  go_version="$(bosh blobs --dir=)"
   pushd "$HOME_DIR"/golang/bosh-packages-golang-release-*
     blob_name="$(bosh blobs | grep linux | grep 1.9 | awk '{print $1}')"
     go_version="${blob_name%.tar.gz}"
