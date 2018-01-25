@@ -23,14 +23,6 @@ resources:
     - 'LICENSE'
     - 'NOTICE'
 
-- name: slackers
-  type: git
-  source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-home.git
-    private_key: ((git-ssh-key))
-    paths:
-    - 'slackers'
-
 - name: git-kubo-release
   type: git
   source:
@@ -42,10 +34,18 @@ resources:
     - 'LICENSE'
     - 'NOTICE'
 
-- name: slack-failure
+- name: slackers
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-home.git
+    private_key: ((git-ssh-key))
+    paths:
+    - 'slackers'
+
+- name: slack-alert
   type: slack-notification
   source:
-    url: https://hooks.slack.com/services/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
+    url: ((build-alert-slack-url))
 
 jobs:
 - name: run-unit-tests
@@ -70,7 +70,7 @@ jobs:
       - get: slackers
       - task: configure-slack-notification
         file: git-kubo-ci/tasks/configure-slack-notification.yml
-      - put: slack-failure
+      - put: slack-alert
         params:
           attachments_file: slack-notification/attachments
           text: |
