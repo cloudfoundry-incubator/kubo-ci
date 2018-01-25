@@ -3,7 +3,6 @@
 set -exu -o pipefail
 
 ROOT="$(pwd)"
-REPOS=${REPO:-target-repos}
 
 SLACK_ATTACHMENT_TEMPLATE='{
     "color": "#ff0000",
@@ -17,7 +16,7 @@ SLACK_ATTACHMENT_TEMPLATE='{
 
 function main() {
   local attachments="[]"
-  for repo in ${REPOS}/*; do
+  for repo in ${ROOT}/git-*; do
     local attachment="$(jq -n \
       --arg title "$(basename "${repo}") (commit $(get_commit_link "${repo}"))" \
       --arg author "$(get_author_name "${repo}")" \
@@ -31,9 +30,6 @@ function main() {
 
   echo "${attachments}" \
     > "${ROOT}/slack-notification/attachments"
-
-  echo "Build Failed. <https://ci.kubo.sh/teams/\$BUILD_TEAM_NAME/pipelines/\$BUILD_PIPELINE_NAME/jobs/\$BUILD_JOB_NAME/builds/\$BUILD_NAME|\$BUILD_PIPELINE_NAME/\$BUILD_JOB_NAME#\$BUILD_NAME>" \
-    > "${ROOT}/slack-notification/text"
 }
 
 function get_repo_ref() {
@@ -63,7 +59,7 @@ function get_committer_name() {
 
 function get_slacker_name() {
   local lookup_name="${1}"
-  local slacker_name="$(bosh int git-kubo-home/slackers "--path=/${lookup_name}" | sed '/^$/d')"
+  local slacker_name="$(bosh int slackers/slackers "--path=/${lookup_name}" | sed '/^$/d')"
   if [ -z "${slacker_name}" ]; then
     echo "${lookup_name}"
     return

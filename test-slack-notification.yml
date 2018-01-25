@@ -23,11 +23,13 @@ resources:
     - 'LICENSE'
     - 'NOTICE'
 
-- name: git-kubo-home
+- name: slackers
   type: git
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-home.git
     private_key: ((git-ssh-key))
+    paths:
+    - 'slackers'
 
 - name: git-kubo-release
   type: git
@@ -51,7 +53,6 @@ jobs:
   - get: git-kubo-ci
   - get: git-kubo-deployment
     trigger: true
-  - get: git-kubo-home
   - get: git-kubo-release
     trigger: true
   - task: run-release-unit-tests
@@ -66,31 +67,11 @@ jobs:
         path: 'true'
     on_success:
       do:
-      - task: consolidate-inputs
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source:
-              repository: pcfkubo/kubo-ci
-              tag: stable
-          run:
-            path: bash
-            args:
-            - -c
-            - 'mkdir consolidated_inputs; cp -r git-kubo-release git-kubo-deployment git-kubo-ci consolidated_inputs'
-          outputs:
-          - name: consolidated_inputs
-          inputs:
-          - name: git-kubo-deployment
-          - name: git-kubo-release
-          - name: git-kubo-ci
+      - get: slackers
       - task: configure-slack-notification
         file: git-kubo-ci/tasks/configure-slack-notification.yml
-        input_mapping: {target-repos: consolidated_inputs}
-        params:
-          MESSAGE: Unit tests for kubo-release succeeded
       - put: slack-failure
         params:
-          text_file: slack-notification/text
           attachments_file: slack-notification/attachments
+          text: |
+            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME

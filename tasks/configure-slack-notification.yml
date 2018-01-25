@@ -6,14 +6,12 @@ image_resource:
     tag: stable
 run:
   path: git-kubo-ci/scripts/configure-slack-notification.sh
-params:
-  REPO:
-  MESSAGE:
-  LOCK_NAME:
 
 inputs:
+- name: slackers
 - name: git-kubo-ci
-- name: git-kubo-home
-- name: target-repos
+- name: git-kubo-deployment
+- name: git-kubo-release
+
 outputs:
-  - name: slack-notification
+- name: slack-notification
