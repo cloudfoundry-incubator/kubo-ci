@@ -18,7 +18,7 @@ function main() {
   local attachments="[]"
   for repo in ${ROOT}/git-*; do
     local attachment="$(jq -n \
-      --arg title "$(basename "${repo}") (commit $(get_commit_link "${repo}") $(get_commit_date "${repo}"))\n$(get_commit_message "${repo}")" \
+      --arg title "$(basename "${repo}") $(get_commit_link "${repo}") - $(get_commit_message "${repo}") ($(get_commit_date "${repo}"))" \
       --arg author "$(get_author_name "${repo}")" \
       --arg committer "$(get_committer_name "${repo}")" \
       "${SLACK_ATTACHMENT_TEMPLATE}")"
@@ -45,7 +45,7 @@ function get_commit_link() {
 
 function get_commit_date() {
   local repo="${1}"
-  git -C "${repo}" show -s --format="%ci" "$(get_repo_ref "${repo}")"
+  git -C "${repo}" show -s --format="%cr" "$(get_repo_ref "${repo}")"
 }
 
 function get_commit_message() {
