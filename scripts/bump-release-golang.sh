@@ -17,12 +17,14 @@ vendor_golang() {
   popd
 
   pushd modified-release
+    set +x
     cat <<EOF > "config/private.yml"
 blobstore:
   options:
     access_key_id: ${ACCESS_KEY_ID}
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
+    set -x
     bosh vendor-package golang-"$MINOR_GO_VERSION"-linux "$HOME_DIR"/golang/bosh-packages-golang-release-*
 
     git config --global user.email "cfcr+cibot@pivotal.io"
