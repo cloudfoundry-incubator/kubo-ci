@@ -13,3 +13,6 @@ inputs:
   - name: git-kubo-ci
   - name: release
   - name: golang-release
+
+outputs:
+  - name: modified-release
