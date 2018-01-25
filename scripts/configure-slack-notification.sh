@@ -69,7 +69,7 @@ function get_slacker_name() {
     return
   fi
 
-  echo "<@U${slacker_name}>"
+  echo "<@${slacker_name}>"
 }
 
 main
