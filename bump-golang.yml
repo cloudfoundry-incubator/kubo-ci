@@ -1,0 +1,53 @@
+---
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    branch: master
+
+- name: git-kubo-release
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
+    branch: feature/vendor-golang
+    private_key: ((git-ssh-key))
+    ignore_paths:
+    - '*.md'
+    - 'LICENSE'
+    - 'NOTICE'
+
+- name: golang-release
+  type: github-release
+  source:
+    owner: bosh-packages
+    repository: golang-release
+
+
+############################################
+# Jobs
+############################################
+jobs:
+
+- name: bump-kubo-release-golang
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-release
+    - get: golang-release
+      trigger: true
+      params:
+        include_source_tarball: true
+  - task: bump-release-golang
+    file: git-kubo-ci/tasks/bump-release-golang.yml
+    input_mapping: { release: git-kubo-release }
+  - put: git-kubo-release
+    params:
+      repository: modified-release
+      rebase: true
