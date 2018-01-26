@@ -836,6 +836,12 @@ destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}" if env == 'gcp'
       passed: [ 'claim-lock-upgrade-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'claim-lock-upgrade-<%= iaas %>' ]
+    - get: kubo-version
+      passed: [ 'claim-lock-upgrade-<%= iaas %>' ]
+    - get: git-kubo-release
+      passed: [ 'claim-lock-upgrade-<%= iaas %>' ]
+    - get: git-kubo-deployment
+      passed: [ 'claim-lock-upgrade-<%= iaas %>' ]
 
   - task: unpack-tgz
     file: git-kubo-ci/tasks/unpack-tgz.yml
@@ -880,6 +886,12 @@ destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}" if env == 'gcp'
       passed: [ 'install-old-bosh-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-old-bosh-<%= iaas %>' ]
+    - get: kubo-version
+      passed: [ 'install-old-bosh-<%= iaas %>' ]
+    - get: git-kubo-release
+      passed: [ 'install-old-bosh-<%= iaas %>' ]
+    - get: git-kubo-deployment
+      passed: [ 'install-old-bosh-<%= iaas %>' ]
 
   - task: unpack-tgz
     file: git-kubo-ci/tasks/unpack-tgz.yml
@@ -918,6 +930,12 @@ destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}" if env == 'gcp'
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     - get: old-kubo-release-tarball
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+    - get: kubo-version
+      passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+    - get: git-kubo-release
+      passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+    - get: git-kubo-deployment
+      passed: [ 'deploy-old-k8s-<%= iaas %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -954,6 +972,12 @@ destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}" if env == 'gcp'
     - get: ubuntu-trusty-stemcell-<%= iaas %>
       params:
         tarball: false
+    - get: kubo-version
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
+    - get: git-kubo-release
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
+    - get: git-kubo-deployment
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
 
   - task: unpack-tgz
     file: git-kubo-ci/tasks/unpack-tgz.yml
@@ -990,6 +1014,12 @@ destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}" if env == 'gcp'
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'upgrade-stemcell-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+    - get: kubo-version
+      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+    - get: git-kubo-release
+      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+    - get: git-kubo-deployment
       passed: [ 'upgrade-stemcell-<%= iaas %>' ]
 
   - task: unpack-kubo-deployment
@@ -1031,6 +1061,12 @@ destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}" if env == 'gcp'
       passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
     - get: gcs-bosh-creds
       passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
+    - get: kubo-version
+      passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
+    - get: git-kubo-release
+      passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
+    - get: git-kubo-deployment
+      passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -1060,6 +1096,12 @@ destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}" if env == 'gcp'
       passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
     - get: gcs-bosh-creds
       passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
+    - get: kubo-version
+      passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
+    - get: git-kubo-release
+      passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
+    - get: git-kubo-deployment
+      passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -1080,6 +1122,7 @@ destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}" if env == 'gcp'
 
 <%
   passed_requirements = env_list.map {|env| "destroy-bosh-#{env}" unless env == 'openstack'}.compact
+  passed_requirements += iaases.map {|iaas| "destroy-bosh-upgrade-#{iaas}" unless iaas == 'openstack'}.compact
   passed_deploy_bosh = iaases.map {|iaas| "deploy-bosh-test-#{iaas}" unless iaas =='openstack' }.compact
 %>
 
