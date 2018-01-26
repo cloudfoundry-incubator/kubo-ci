@@ -543,7 +543,6 @@ jobs:
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/deploy-k8s-workload.yml
     input_mapping:
-      git-kubo-deployment: unpacked_dir
       kubo-lock: kubo-lock-upgrade-<%= env %>
 
 - name: upgrade-stemcell-<%= env %>
@@ -618,6 +617,7 @@ jobs:
     file: git-kubo-ci/tasks/upgrade-bosh-and-kubo.yml
     input_mapping:
       kubo-lock: kubo-lock-upgrade-<%= env %>
+      gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
       HA_MIN_SERVICE_AVAILABILITY: "0.99"
 
