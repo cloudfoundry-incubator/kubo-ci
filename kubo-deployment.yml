@@ -1,5 +1,6 @@
 <%
   iaases = %w(gcp vsphere aws openstack)
+  stemcell_types = {'gcp' => 'google-kvm', 'vsphere' => 'vsphere-esxi'}
   additional_envs = %w(gcp-lb aws-lb)
   env_list = iaases + additional_envs
 %>
@@ -25,6 +26,16 @@ groups:
   - run-k8s-turbulence-tests-<%= env %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
+  <% if env == 'gcp' %>
+  - claim-lock-upgrade-<%= env %>
+  - install-old-bosh-<%= env %>
+  - deploy-old-k8s-<%= env %>
+  - deploy-workload-upgrade-<%= env %>
+  - upgrade-stemcell-<%= env %>
+  - upgrade-bosh-and-kubo-<%= env %>
+  - destroy-k8s-upgrade-<%= env %>
+  - destroy-bosh-upgrade-<%= env %>
+  <% end %>
   <% if env == 'gcp' %>
   - deploy-k8s-with-proxy-<%= env %>
   - run-k8s-integration-tests-on-proxy-<%= env %>
@@ -117,6 +128,21 @@ resources:
     branch: master
     private_key: ((git-ssh-key))
     pool: kubo-<%= env %>
+
+<% if env == "gcp" %>
+- name: kubo-lock-upgrade-<%= env %>
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key))
+    pool: kubo-<%= env %>
+
+- name: ubuntu-trusty-stemcell-<%= env %>
+  type: bosh-io-stemcell
+  source:
+    name: bosh-<%= stemcell_types[env] %>-ubuntu-trusty-go_agent
+<% end %>
 <% end %>
 
 - name: gcs-bosh-state
@@ -175,6 +201,22 @@ resources:
     bucket: kubo-public
     versioned_file: kubo-deployment-latest.tgz
 
+- name: old-kubo-release-tarball
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: kubo-release
+    pre_release: true
+    access_token: ((github-kubo-gitbot-access-token))
+
+- name: old-kubo-deployment-tarball
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: kubo-deployment
+    pre_release: true
+    access_token: ((github-kubo-gitbot-access-token))
+
 - name: conformance-results
   type: gcs
   source:
@@ -190,7 +232,7 @@ resources:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
 
-- name: ubuntu-trusty-stemcell
+- name: ubuntu-trusty-stemcell-boshlite
   type: bosh-io-stemcell
   source:
     name: bosh-warden-boshlite-ubuntu-trusty-go_agent
@@ -251,7 +293,7 @@ jobs:
     - get: git-kubo-release
       passed: [ 'run-unit-tests' ]
       trigger: true
-    - get: ubuntu-trusty-stemcell
+    - get: ubuntu-trusty-stemcell-boshlite
       version:
         version: *stemcell_version
   - task: build-kubo-release
@@ -262,7 +304,7 @@ jobs:
     privileged: true
     input_mapping:
       kubo-ci: git-kubo-ci
-      stemcell: ubuntu-trusty-stemcell
+      stemcell: ubuntu-trusty-stemcell-boshlite
       release: kubo-release
   - put: gcs-kubo-release-tarball-untested
     params:
@@ -375,6 +417,280 @@ jobs:
     - put: gcs-bosh-state
       params:
         file: bosh-state/state.json
+
+<% if env == 'gcp' %>
+- name: claim-lock-upgrade-<%= env %>
+  max_in_flight: 1
+  plan:
+  - aggregate:
+    - get: kubo-version
+      passed: [ 'package-kubo-deployment-tarball' ]
+      trigger: true
+    - get: git-kubo-release
+      passed: [ 'package-kubo-deployment-tarball' ]
+    - get: git-kubo-deployment
+      passed: [ 'package-kubo-deployment-tarball' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'package-kubo-deployment-tarball' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'package-kubo-deployment-tarball' ]
+  - put: kubo-lock-upgrade-<%= env %>
+    params: { acquire: true }
+
+- name: install-old-bosh-<%= env %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: old-kubo-deployment-tarball
+    - get: kubo-lock-upgrade-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'claim-lock-upgrade-<%= env %>' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'claim-lock-upgrade-<%= env %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'claim-lock-upgrade-<%= env %>' ]
+
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= env %>']
+    input_mapping:
+      source_tarball: old-kubo-deployment-tarball
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
+
+  - task: install
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/install-bosh.yml
+    input_mapping:
+      kubo-lock: kubo-lock-upgrade-<%= env %>
+      git-kubo-deployment: unpacked_dir
+
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+
+- name: deploy-old-k8s-<%= env %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-upgrade-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'install-old-bosh-<%= env %>' ]
+    - get: old-kubo-deployment-tarball
+      passed: [ 'install-old-bosh-<%= env %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'install-old-bosh-<%= env %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'install-old-bosh-<%= env %>' ]
+    - get: old-kubo-release-tarball
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'install-old-bosh-<%= env %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'install-old-bosh-<%= env %>' ]
+
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= env %>']
+    input_mapping:
+      source_tarball: old-kubo-deployment-tarball
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
+
+  - task: deploy
+    tags: [<%= env %>]
+    input_mapping:
+      gcs-kubo-release-tarball: old-kubo-release-tarball
+      kubo-lock: kubo-lock-upgrade-<%= env %>
+      git-kubo-deployment: unpacked_dir
+    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+
+- name: deploy-workload-upgrade-<%= env %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-upgrade-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'deploy-old-k8s-<%= env %>' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'deploy-old-k8s-<%= env %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'deploy-old-k8s-<%= env %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'deploy-old-k8s-<%= env %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'deploy-old-k8s-<%= env %>' ]
+    - get: old-kubo-deployment-tarball
+      passed: [ 'deploy-old-k8s-<%= env %>' ]
+    - get: old-kubo-release-tarball
+      passed: [ 'deploy-old-k8s-<%= env %>' ]
+
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
+    tags: ['<%= env %>']
+
+  - task: deploy
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/deploy-k8s-workload.yml
+    input_mapping:
+      git-kubo-deployment: unpacked_dir
+      kubo-lock: kubo-lock-upgrade-<%= env %>
+
+- name: upgrade-stemcell-<%= env %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-upgrade-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'deploy-workload-upgrade-<%= env %>' ]
+    - get: old-kubo-deployment-tarball
+      passed: [ 'deploy-workload-upgrade-<%= env %>' ]
+    - get: old-kubo-release-tarball
+      passed: [ 'deploy-workload-upgrade-<%= env %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'deploy-workload-upgrade-<%= env %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'deploy-workload-upgrade-<%= env %>' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'deploy-workload-upgrade-<%= env %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'deploy-workload-upgrade-<%= env %>' ]
+    - get: ubuntu-trusty-stemcell-<%= env %>
+      params:
+        tarball: false
+
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= env %>']
+    input_mapping:
+      source_tarball: old-kubo-deployment-tarball
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
+
+  - task: upgrade
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/upgrade-stemcell.yml
+    input_mapping:
+      kubo-lock: kubo-lock-upgrade-<%= env %>
+      git-kubo-deployment: unpacked_dir
+      gcs-kubo-release-tarball: old-kubo-release-tarball
+      new-bosh-stemcell: ubuntu-trusty-stemcell-<%= env %>
+    params:
+      HA_MIN_SERVICE_AVAILABILITY: "0.99"
+
+- name: upgrade-bosh-and-kubo-<%= env %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-upgrade-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'upgrade-stemcell-<%= env %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'upgrade-stemcell-<%= env %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'upgrade-stemcell-<%= env %>' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'upgrade-stemcell-<%= env %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'upgrade-stemcell-<%= env %>' ]
+
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
+    tags: ['<%= env %>']
+
+  - task: upgrade
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/upgrade-bosh-and-kubo.yml
+    input_mapping:
+      kubo-lock: kubo-lock-upgrade-<%= env %>
+    params:
+      HA_MIN_SERVICE_AVAILABILITY: "0.99"
+
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+
+- name: destroy-k8s-upgrade-<%= env %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-upgrade-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'upgrade-bosh-and-kubo-<%= env %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'upgrade-bosh-and-kubo-<%= env %>' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'upgrade-bosh-and-kubo-<%= env %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'upgrade-bosh-and-kubo-<%= env %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'upgrade-bosh-and-kubo-<%= env %>' ]
+
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
+    tags: ['<%= env %>']
+
+  - task: destroy-k8s
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+    input_mapping:
+      kubo-lock: kubo-lock-upgrade-<%= env %>
+
+- name: destroy-bosh-upgrade-<%= env %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'destroy-k8s-upgrade-<%= env %>' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'destroy-k8s-upgrade-<%= env %>' ]
+    - get: kubo-lock-upgrade-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'destroy-k8s-upgrade-<%= env %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'destroy-k8s-upgrade-<%= env %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'destroy-k8s-upgrade-<%= env %>' ]
+
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
+    tags: ['<%= env %>']
+
+  - task: destroy
+    tags: [ '<%= env %>' ]
+    file: git-kubo-ci/tasks/destroy-bosh.yml
+    input_mapping:
+      kubo-lock: kubo-lock-upgrade-<%= env %>
+
+  - put: kubo-lock-upgrade-<%= env %>
+    params:
+      release: kubo-lock-upgrade-<%= env %>
+<% end %>
 
 <% if env == 'gcp' %>
 - name: deploy-k8s-with-proxy-<%= env %>
