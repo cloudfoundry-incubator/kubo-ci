@@ -20,6 +20,3 @@ params:
 
 run:
   path: git-kubo-ci/scripts/etcd/run-errand.sh
-
-outputs:
-  - name: release
