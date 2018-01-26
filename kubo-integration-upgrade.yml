@@ -1,5 +1,4 @@
 <%
-  k8s_version = 'v0.8.0'
   stemcell_types = {'gcp-lb' => 'google-kvm', 'vsphere' => 'vsphere-esxi'}
   iaas_list = %w(gcp-lb vsphere)
 %>
@@ -133,7 +132,6 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: old-kubo-deployment-tarball
-      version: { tag: '<%= k8s_version %>' }
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
@@ -146,7 +144,7 @@ jobs:
       source_tarball: old-kubo-deployment-tarball
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      COLLAPSE_DIR: kubo-deployment-0.8.0
+      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
 
   - task: install
     tags: [<%= iaas %>]
@@ -178,7 +176,6 @@ jobs:
     - get: gcs-bosh-creds
       passed: [ 'install-old-bosh-<%= iaas %>' ]
     - get: old-kubo-release-tarball
-      version: { tag: '<%= k8s_version %>' }
 
   - task: unpack-tgz
     file: git-kubo-ci/tasks/unpack-tgz.yml
@@ -187,7 +184,7 @@ jobs:
       source_tarball: old-kubo-deployment-tarball
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      COLLAPSE_DIR: kubo-deployment-0.8.0
+      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
 
   - task: deploy
     tags: [<%= iaas %>]
@@ -254,7 +251,7 @@ jobs:
       source_tarball: old-kubo-deployment-tarball
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      COLLAPSE_DIR: kubo-deployment-0.8.0
+      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
 
   - task: upgrade
     tags: ['<%= iaas %>']
