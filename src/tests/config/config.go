@@ -8,10 +8,11 @@ import (
 )
 
 type Config struct {
-	Bosh       Bosh       `json:"bosh"`
-	Turbulence Turbulence `json:"turbulence"`
-	Cf         Cf         `json:"cf"`
-	Kubernetes Kubernetes `json:"kubernetes"`
+	Bosh         Bosh       `json:"bosh"`
+	Turbulence   Turbulence `json:"turbulence"`
+	Cf           Cf         `json:"cf"`
+	Kubernetes   Kubernetes `json:"kubernetes"`
+	TimeoutScale float64    `json:"timeout_scale"`
 }
 
 type Bosh struct {
@@ -60,6 +61,11 @@ func InitConfig() (*Config, error) {
 	err = json.Unmarshal(configJSON, &config)
 	if err != nil {
 		return nil, err
+	}
+
+	// Do not allow zero for timeout scale as it would fail all the time.
+	if config.TimeoutScale == 0 {
+		config.TimeoutScale = 1
 	}
 
 	return &config, nil
