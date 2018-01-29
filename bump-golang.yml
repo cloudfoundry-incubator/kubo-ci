@@ -88,7 +88,7 @@ jobs:
         include_source_tarball: true
   - task: bump-release-golang
     file: git-kubo-ci/tasks/bump-release-golang.yml
-    input_mapping: { reeease: git-kubo-etcd }
+    input_mapping: { release: git-kubo-etcd }
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
