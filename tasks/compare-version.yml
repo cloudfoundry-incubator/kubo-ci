@@ -1,0 +1,17 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+    tag: stable
+run:
+  path: git-kubo-ci/scripts/compare-flannel-version.sh
+
+params:
+  CFCR_USER_TOKEN: ""
+
+inputs:
+  - name: git-kubo-ci
+  - name: flannel-release
+  - name: git-kubo-release
+
