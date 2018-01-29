@@ -83,7 +83,6 @@ jobs:
   - get: git-kubo-deployment
   - get: git-kubo-release
     version: every
-    trigger: true
   - put: git-kubo-release
     params:
       path: git-kubo-release
