@@ -87,6 +87,22 @@ groups:
   - destroy-bosh-upgrade-<%= env %>
   <% end %>
 <% end %>
+- name: integration-tests
+  jobs:
+  <% env_list.each do |env| %>
+  - run-k8s-integration-tests-<%= env %>
+  <% end %>
+- name: conformance-tests
+  jobs:
+  <% env_list.each do |env| %>
+  - run-k8s-conformance-tests-<%= env.split('-').first %>
+  <% end %>
+- name: turbulence-tests
+  jobs:
+  <% env_list.each do |env| %>
+  - run-k8s-turbulence-tests-<%= env %>
+  <% end %>
+
 resource_types:
 - name: gcs
   type: docker-image
