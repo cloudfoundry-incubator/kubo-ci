@@ -26,7 +26,7 @@ resources:
 - name: git-kubo-etcd
   type: git
   source:
-    uri: git@github.com:cloudfoundry-incubator/kubo-etcd.git
+    uri: git@github.com:pivotal-cf-experimental/kubo-etcd.git
     branch: master
     private_key: ((git-ssh-key))
     ignore_paths:
