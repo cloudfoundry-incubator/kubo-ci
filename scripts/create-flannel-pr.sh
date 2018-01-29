@@ -40,9 +40,9 @@ EOF
   # create a PR here
   token=${CFCR_USER_TOKEN}
   payload=$(create_pr_payload $tag $branch_name)
-  curl -u cfcr:${CFCR_USER_TOKEN} -H "Content-Type: application/json" -X POST -d "$payload" https://api.github.com/repos/cloudfoundry-incubator/kubo-release/pulls 
+  curl -u cfcr:${CFCR_USER_TOKEN} -H "Content-Type: application/json" -X POST -d "$payload" https://api.github.com/repos/cloudfoundry-incubator/kubo-release/pulls
 
-  popd
+popd
 }
 
 main
