@@ -70,16 +70,16 @@ groups:
   - run-k8s-integration-tests-on-proxy-<%= env %>
   - destroy-k8s-with-proxy-<%= env %>
   <% end %>
-<% end %>
-<% iaases.each do |iaas| %>
-  - claim-lock-upgrade-<%= iaas %>
-  - install-old-bosh-<%= iaas %>
-  - deploy-old-k8s-<%= iaas %>
-  - deploy-workload-upgrade-<%= iaas %>
-  - upgrade-stemcell-<%= iaas %>
-  - upgrade-bosh-and-kubo-<%= iaas %>
-  - destroy-k8s-upgrade-<%= iaas %>
-  - destroy-bosh-upgrade-<%= iaas %>
+  <% if iaases.include? env %>
+  - claim-lock-upgrade-<%= env %>
+  - install-old-bosh-<%= env %>
+  - deploy-old-k8s-<%= env %>
+  - deploy-workload-upgrade-<%= env %>
+  - upgrade-stemcell-<%= env %>
+  - upgrade-bosh-and-kubo-<%= env %>
+  - destroy-k8s-upgrade-<%= env %>
+  - destroy-bosh-upgrade-<%= env %>
+  <% end %>
 <% end %>
 resource_types:
 - name: gcs
