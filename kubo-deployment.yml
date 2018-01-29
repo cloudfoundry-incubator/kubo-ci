@@ -909,7 +909,10 @@ jobs:
 
 <%
 destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
-destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}" if env == 'gcp'
+if env == 'gcp'
+  destroy_bosh_passed_reqs << "destroy-k8s-with-proxy-#{env}"
+  destroy_bosh_passed_reqs << "destroy-k8s-with-abac-#{env}"
+end
 %>
 
 - name: destroy-bosh-<%= env %>
