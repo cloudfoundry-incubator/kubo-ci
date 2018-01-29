@@ -9,6 +9,9 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/update-kubernetes-port.sh
 
+params:
+  PORT_NUMBER: ""
+
 inputs:
 - name: git-kubo-ci
 - name: kubo-lock-pre
