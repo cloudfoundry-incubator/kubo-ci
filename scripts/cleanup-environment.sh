@@ -20,7 +20,7 @@ delete_gcloud_vms() {
   subnetLink=$(gcloud compute networks subnets list "$subnetwork" --format=json | bosh int - --path=/0/selfLink)
   vms=$(gcloud  compute instances list --filter="networkInterfaces.subnetwork=$subnetLink" --format="table(name,zone)" | tail -n +2 )
 
-  IFS=\n
+  IFS=$'\n'
 
   for vm in $vms; do
     vm_name="$(echo $vm | awk '{print $1}')"
