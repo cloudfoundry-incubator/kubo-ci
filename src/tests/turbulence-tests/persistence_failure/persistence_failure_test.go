@@ -55,7 +55,7 @@ var _ = Describe("Persistence failure scenarios", func() {
 	})
 
 	AfterEach(func() {
-		UndeployGuestBook(kubectl)
+		UndeployGuestBook(kubectl, testconfig.TimeoutScale)
 		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
 		Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
 		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Bosh.Iaas))
@@ -67,7 +67,7 @@ var _ = Describe("Persistence failure scenarios", func() {
 		testValue := strconv.Itoa(rand.Int())
 
 		By("Deploying the persistent application", func() {
-			DeployGuestBook(kubectl)
+			DeployGuestBook(kubectl, testconfig.TimeoutScale)
 			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
 
 			PostToGuestBook(appAddress, testValue)
@@ -78,8 +78,8 @@ var _ = Describe("Persistence failure scenarios", func() {
 		})
 
 		By("Un-deploying and re-deploying the app", func() {
-			UndeployGuestBook(kubectl)
-			DeployGuestBook(kubectl)
+			UndeployGuestBook(kubectl, testconfig.TimeoutScale)
+			DeployGuestBook(kubectl, testconfig.TimeoutScale)
 			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
 
 			Eventually(func() string {

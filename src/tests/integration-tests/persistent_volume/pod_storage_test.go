@@ -32,7 +32,7 @@ var _ = Describe("Guestbook storage", func() {
 	})
 
 	AfterEach(func() {
-		UndeployGuestBook(kubectl)
+		UndeployGuestBook(kubectl, testconfig.TimeoutScale)
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
 
@@ -58,7 +58,7 @@ var _ = Describe("Guestbook storage", func() {
 
 			By("Deploying the persistent application the value is persisted")
 
-			DeployGuestBook(kubectl)
+			DeployGuestBook(kubectl, testconfig.TimeoutScale)
 
 			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
 
@@ -73,8 +73,8 @@ var _ = Describe("Guestbook storage", func() {
 
 			By("Un-deploying the application and re-deploying the data is still available from the persisted source")
 
-			UndeployGuestBook(kubectl)
-			DeployGuestBook(kubectl)
+			UndeployGuestBook(kubectl, testconfig.TimeoutScale)
+			DeployGuestBook(kubectl, testconfig.TimeoutScale)
 
 			appAddress = kubectl.GetAppAddress(deployment, "svc/frontend")
 			Eventually(func() string {
@@ -106,7 +106,7 @@ var _ = Describe("Guestbook storage", func() {
 
 			By("Deploying the persistent application the value is persisted")
 
-			DeployGuestBook(kubectl)
+			DeployGuestBook(kubectl, testconfig.TimeoutScale)
 
 			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
 
@@ -121,8 +121,8 @@ var _ = Describe("Guestbook storage", func() {
 
 			By("Un-deploying the application and re-deploying the data is still available from the persisted source")
 
-			UndeployGuestBook(kubectl)
-			DeployGuestBook(kubectl)
+			UndeployGuestBook(kubectl, testconfig.TimeoutScale)
+			DeployGuestBook(kubectl, testconfig.TimeoutScale)
 
 			appAddress = kubectl.GetAppAddress(deployment, "svc/frontend")
 			Eventually(func() string {

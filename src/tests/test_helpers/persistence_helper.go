@@ -10,18 +10,18 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-func UndeployGuestBook(kubectl *KubectlRunner) {
+func UndeployGuestBook(kubectl *KubectlRunner, timeoutScale float64) {
 	guestBookSpec := PathFromRoot("specs/pv-guestbook.yml")
-	Eventually(kubectl.RunKubectlCommand("delete", "-f", guestBookSpec), "120s").Should(gexec.Exit(0))
+	timeout := time.Duration(float64(2*time.Minute) * timeoutScale)
+	Eventually(kubectl.RunKubectlCommand("delete", "-f", guestBookSpec), timeout).Should(gexec.Exit(0))
 }
 
-func DeployGuestBook(kubectl *KubectlRunner) {
-
+func DeployGuestBook(kubectl *KubectlRunner, timeoutScale float64) {
 	guestBookSpec := PathFromRoot("specs/pv-guestbook.yml")
-	Eventually(kubectl.RunKubectlCommand("apply", "-f", guestBookSpec), "120s").Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/frontend", "-w"), "120s").Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/redis-master", "-w"), "120s").Should(gexec.Exit(0))
-
+	timeout := time.Duration(float64(2*time.Minute) * timeoutScale)
+	Eventually(kubectl.RunKubectlCommand("apply", "-f", guestBookSpec), timeout).Should(gexec.Exit(0))
+	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/frontend", "-w"), timeout).Should(gexec.Exit(0))
+	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/redis-master", "-w"), timeout).Should(gexec.Exit(0))
 }
 
 func PostToGuestBook(address string, testValue string) {

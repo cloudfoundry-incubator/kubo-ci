@@ -83,7 +83,8 @@ generate_test_config() {
 	    "path_to_kube_config": "$HOME/.kube/config",
 	    "tls_cert": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/certificate' --json | jq .Blocks[0]),
 	    "tls_private_key": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/private_key' --json | jq .Blocks[0])
-	  }
+	  },
+	  "timeout_scale": $(bosh int $director_yml --path=/timeout_scale 2>/dev/null || echo 1)
 	}
 	EOF
   set -e
