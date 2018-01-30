@@ -6,7 +6,7 @@ groups:
   - eats
   - eats-turbulence
   - teardown-eats-infrastructure
-- name: etcd-acceptance
+- name: kubo-etcd-acceptance
   jobs:
   - deploy-turbulence-api-server
   - deploy-long-running-etcd-cluster
@@ -15,6 +15,15 @@ groups:
   - deploy-and-run-etcd-acceptance-long-running
   - deploy-and-run-etcd-acceptance-network-partition
   - deploy-and-run-etcd-acceptance-total-network-partition
+- name: jfmyers9-etcd-acceptance
+  jobs:
+  - deploy-turbulence-api-server
+  - deploy-jfmyers9-long-running-etcd-cluster
+  - deploy-jfmyers9-network-partition-etcd-cluster
+  - deploy-jfmyers9-total-network-partition-etcd-cluster
+  - deploy-and-run-jfmyers9-etcd-acceptance-long-running
+  - deploy-and-run-jfmyers9-etcd-acceptance-network-partition
+  - deploy-and-run-jfmyers9-etcd-acceptance-total-network-partition
 
 resource_types:
 - name: gcs
@@ -100,6 +109,11 @@ resources:
   source:
     repository: cloudfoundry/bosh-dns-release
 
+- name: bpm-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/bpm-release
+
 - name: git-kubo-ci
   type: git
   source:
@@ -110,6 +124,12 @@ resources:
   type: git
   source:
     uri: https://github.com/pivotal-cf-experimental/kubo-etcd
+    branch: master
+
+- name: git-jfmyers9-etcd
+  type: git
+  source:
+    uri: https://github.com/jfmyers9/etcd-release
     branch: master
 
 - name: git-etcd-acceptance
@@ -174,6 +194,60 @@ resources:
     json_key: ((gcs-json-key))
     bucket: kubo-public
     versioned_file: latest-kubo-etcd.tgz
+
+- name: jfmyers9-long-running-etcd-deployment
+  type: bosh-deployment
+  source:
+    deployment: jfmyers9-etcd
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
+
+- name: jfmyers9-network-partition-etcd-deployment
+  type: bosh-deployment
+  source:
+    deployment: jfmyers9-etcd-network-partition
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
+
+- name: jfmyers9-total-network-partition-etcd-deployment
+  type: bosh-deployment
+  source:
+    deployment: jfmyers9-etcd-total-network-partition
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
+
+- name: jfmyers9-long-running-etcd-acceptance-deployment
+  type: bosh-deployment
+  source:
+    deployment: jfmyers9-etcd-acceptance
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
+
+- name: jfmyers9-network-partition-etcd-acceptance-deployment
+  type: bosh-deployment
+  source:
+    deployment: jfmyers9-etcd-acceptance-network-partition
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
+
+- name: jfmyers9-total-network-partition-etcd-acceptance-deployment
+  type: bosh-deployment
+  source:
+    deployment: jfmyers9-etcd-acceptance-total-network-partition
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
 
 jobs:
 - name: run-unit-tests
@@ -613,5 +687,296 @@ jobs:
       BOSH_CLIENT: admin
       BOSH_CLIENT_SECRET: ((long-running-etcd-bosh-client-secret))
       BOSH_DEPLOYMENT: etcd-acceptance-total-network-partition
+      BOSH_ENVIRONMENT: https://10.100.0.6:25555
+      ERRAND_NAME: read-availability-during-total-network-partition
+
+- name: deploy-jfmyers9-long-running-etcd-cluster
+  serial: true
+  serial_groups: ["jfmyers9-etcd-acceptance"]
+  plan:
+  - aggregate:
+    - get: git-jfmyers9-etcd
+      trigger: true
+    - get: git-kubo-ci
+    - get: gcp-stemcell
+      trigger: true
+    - get: bosh-dns-release
+      trigger: true
+    - get: bpm-release
+      trigger: true
+    - get: turbulence-release
+      trigger: true
+      passed: ["deploy-turbulence-api-server"]
+  - task: create-etcd-release
+    file: git-kubo-ci/tasks/etcd/create-release.yml
+    input_mapping:
+      release-dir: git-jfmyers9-etcd
+    output_mapping:
+      release: etcd-release
+  - put: jfmyers9-long-running-etcd-deployment
+    params:
+      manifest: git-jfmyers9-etcd/deployment/etcd.yml
+      ops_files:
+      - "git-jfmyers9-etcd/deployment/operations/turbulence-agent.yml"
+      - "git-jfmyers9-etcd/deployment/operations/bootstrap.yml"
+      - "git-jfmyers9-etcd/deployment/operations/deployment-name.yml"
+      stemcells:
+      - "gcp-stemcell/*.tgz"
+      releases:
+      - "etcd-release/*.tgz"
+      - "bosh-dns-release/*.tgz"
+      - "turbulence-release/*.tgz"
+      - "bpm-release/*.tgz"
+      vars:
+        deployment-name: jfmyers9-etcd
+        common-name: "etcd.default.jfmyers9-etcd.bosh"
+        wildcard-alternative-name: "*.etcd.default.jfmyers9-etcd.bosh"
+      cleanup: true
+
+- name: deploy-jfmyers9-network-partition-etcd-cluster
+  serial: true
+  serial_groups: ["jfmyers9-etcd-acceptance-network-partition"]
+  plan:
+  - aggregate:
+    - get: git-jfmyers9-etcd
+      trigger: true
+    - get: git-kubo-ci
+    - get: gcp-stemcell
+      trigger: true
+    - get: bosh-dns-release
+      trigger: true
+    - get: bpm-release
+      trigger: true
+    - get: turbulence-release
+      trigger: true
+      passed: ["deploy-turbulence-api-server"]
+  - task: create-etcd-release
+    file: git-kubo-ci/tasks/etcd/create-release.yml
+    input_mapping:
+      release-dir: git-jfmyers9-etcd
+    output_mapping:
+      release: etcd-release
+  - put: jfmyers9-network-partition-etcd-deployment
+    params:
+      manifest: git-jfmyers9-etcd/deployment/etcd.yml
+      ops_files:
+      - "git-jfmyers9-etcd/deployment/operations/turbulence-agent.yml"
+      - "git-jfmyers9-etcd/deployment/operations/bootstrap.yml"
+      - "git-jfmyers9-etcd/deployment/operations/deployment-name.yml"
+      vars:
+        deployment-name: jfmyers9-etcd-network-partition
+        common-name: "etcd.default.jfmyers9-etcd-network-partition.bosh"
+        wildcard-alternative-name: "*.etcd.default.jfmyers9-etcd-network-partition.bosh"
+      stemcells:
+      - "gcp-stemcell/*.tgz"
+      releases:
+      - "etcd-release/*.tgz"
+      - "bosh-dns-release/*.tgz"
+      - "turbulence-release/*.tgz"
+      - "bpm-release/*.tgz"
+      cleanup: true
+
+- name: deploy-jfmyers9-total-network-partition-etcd-cluster
+  serial: true
+  serial_groups: ["jfmyers-etcd-acceptance-total-network-partition"]
+  plan:
+  - aggregate:
+    - get: git-jfmyers9-etcd
+      trigger: true
+    - get: git-kubo-ci
+    - get: gcp-stemcell
+      trigger: true
+    - get: bosh-dns-release
+      trigger: true
+    - get: bpm-release
+      trigger: true
+    - get: turbulence-release
+      trigger: true
+      passed: ["deploy-turbulence-api-server"]
+  - task: create-etcd-release
+    file: git-kubo-ci/tasks/etcd/create-release.yml
+    input_mapping:
+      release-dir: git-jfmyers9-etcd
+    output_mapping:
+      release: etcd-release
+  - put: jfmyers9-total-network-partition-etcd-deployment
+    params:
+      manifest: git-jfmyers9-etcd/deployment/etcd.yml
+      ops_files:
+      - "git-jfmyers9-etcd/deployment/operations/turbulence-agent.yml"
+      - "git-jfmyers9-etcd/deployment/operations/bootstrap.yml"
+      - "git-jfmyers9-etcd/deployment/operations/deployment-name.yml"
+      vars:
+        deployment-name: jfmyers9-etcd-total-network-partition
+        common-name: "etcd.default.jfmyers9-etcd-total-network-partition.bosh"
+        wildcard-alternative-name: "*.etcd.default.jfmyers9-etcd-total-network-partition.bosh"
+      stemcells:
+      - "gcp-stemcell/*.tgz"
+      releases:
+      - "etcd-release/*.tgz"
+      - "bosh-dns-release/*.tgz"
+      - "turbulence-release/*.tgz"
+      - "bpm-release/*.tgz"
+      cleanup: true
+
+- name: deploy-and-run-jfmyers9-etcd-acceptance-long-running
+  serial: true
+  serial_groups: ["jfmyers9-etcd-acceptance"]
+  plan:
+  - aggregate:
+    - get: 30m
+      trigger: true
+    - get: git-jfmyers9-etcd
+      trigger: true
+      passed: [deploy-jfmyers9-long-running-etcd-cluster]
+    - get: git-etcd-acceptance
+      trigger: true
+    - get: git-kubo-ci
+    - get: gcp-stemcell
+      trigger: true
+      passed: [deploy-jfmyers9-long-running-etcd-cluster]
+    - get: bosh-dns-release
+      trigger: true
+      passed: [deploy-jfmyers9-long-running-etcd-cluster]
+  - task: create-etcd-acceptance-release
+    file: git-kubo-ci/tasks/etcd/create-release.yml
+    input_mapping:
+      release-dir: git-etcd-acceptance
+    output_mapping:
+      release: etcd-acceptance-release
+  - put: jfmyers9-long-running-etcd-acceptance-deployment
+    params:
+      manifest: git-etcd-acceptance/deployment/etcd-acceptance.yml
+      ops_files:
+      - "git-etcd-acceptance/deployment/operations/jfmyers9.yml"
+      - "git-kubo-ci/etcd/deployment-name.yml"
+      stemcells:
+      - "gcp-stemcell/*.tgz"
+      releases:
+      - "etcd-acceptance-release/*.tgz"
+      - "bosh-dns-release/*.tgz"
+      cleanup: true
+      vars:
+        director-url: https://10.100.0.6:25555
+        uaa-url: https://10.100.0.6:8443
+        director-ca: ((long-running-etcd-bosh-ca-cert.certificate))
+        director-client-secret: ((long-running-etcd-bosh-client-secret))
+        etcd-deployment-name: jfmyers9-etcd
+        deployment-name: jfmyers9-etcd-acceptance
+  - task: run-read-availability-during-recreate-errand
+    file: git-kubo-ci/tasks/etcd/run-errand.yml
+    params:
+      BOSH_CA_CERT: ((long-running-etcd-bosh-ca-cert.certificate))
+      BOSH_CLIENT: admin
+      BOSH_CLIENT_SECRET: ((long-running-etcd-bosh-client-secret))
+      BOSH_DEPLOYMENT: jfmyers9-etcd-acceptance
+      BOSH_ENVIRONMENT: https://10.100.0.6:25555
+      ERRAND_NAME: read-availability-during-recreate
+
+- name: deploy-and-run-jfmyers9-etcd-acceptance-network-partition
+  serial: true
+  serial_groups: ["jfmyers9-etcd-acceptance-network-partition"]
+  plan:
+  - aggregate:
+    - get: 30m
+      trigger: true
+    - get: git-jfmyers9-etcd
+      trigger: true
+      passed: [deploy-jfmyers9-network-partition-etcd-cluster]
+    - get: git-etcd-acceptance
+      trigger: true
+    - get: git-kubo-ci
+    - get: gcp-stemcell
+      trigger: true
+      passed: [deploy-jfmyers9-network-partition-etcd-cluster]
+    - get: bosh-dns-release
+      trigger: true
+      passed: [deploy-jfmyers9-network-partition-etcd-cluster]
+  - task: create-etcd-acceptance-release
+    file: git-kubo-ci/tasks/etcd/create-release.yml
+    input_mapping:
+      release-dir: git-etcd-acceptance
+    output_mapping:
+      release: etcd-acceptance-release
+  - put: jfmyers9-network-partition-etcd-acceptance-deployment
+    params:
+      manifest: git-etcd-acceptance/deployment/etcd-acceptance.yml
+      ops_files:
+      - "git-kubo-ci/etcd/deployment-name.yml"
+      - "git-etcd-acceptance/deployment/operations/jfmyers9.yml"
+      stemcells:
+      - "gcp-stemcell/*.tgz"
+      releases:
+      - "etcd-acceptance-release/*.tgz"
+      - "bosh-dns-release/*.tgz"
+      cleanup: true
+      vars:
+        director-url: https://10.100.0.6:25555
+        uaa-url: https://10.100.0.6:8443
+        director-ca: ((long-running-etcd-bosh-ca-cert.certificate))
+        director-client-secret: ((long-running-etcd-bosh-client-secret))
+        etcd-deployment-name: jfmyers9-etcd-network-partition
+        deployment-name: jfmyers9-etcd-acceptance-network-partition
+  - task: run-read-availability-during-network-partition-errand
+    file: git-kubo-ci/tasks/etcd/run-errand.yml
+    params:
+      BOSH_CA_CERT: ((long-running-etcd-bosh-ca-cert.certificate))
+      BOSH_CLIENT: admin
+      BOSH_CLIENT_SECRET: ((long-running-etcd-bosh-client-secret))
+      BOSH_DEPLOYMENT: jfmyers9-etcd-acceptance-network-partition
+      BOSH_ENVIRONMENT: https://10.100.0.6:25555
+      ERRAND_NAME: read-availability-during-network-partition
+
+- name: deploy-and-run-jfmyers9-etcd-acceptance-total-network-partition
+  serial: true
+  serial_groups: ["jfmyers9-etcd-acceptance-total-network-partition"]
+  plan:
+  - aggregate:
+    - get: 30m
+      trigger: true
+    - get: git-jfmyers9-etcd
+      trigger: true
+      passed: [deploy-jfmyers9-total-network-partition-etcd-cluster]
+    - get: git-etcd-acceptance
+      trigger: true
+    - get: git-kubo-ci
+    - get: gcp-stemcell
+      trigger: true
+      passed: [deploy-jfmyers9-total-network-partition-etcd-cluster]
+    - get: bosh-dns-release
+      trigger: true
+      passed: [deploy-jfmyers9-total-network-partition-etcd-cluster]
+  - task: create-etcd-acceptance-release
+    file: git-kubo-ci/tasks/etcd/create-release.yml
+    input_mapping:
+      release-dir: git-etcd-acceptance
+    output_mapping:
+      release: etcd-acceptance-release
+  - put: jfmyers9-total-network-partition-etcd-acceptance-deployment
+    params:
+      manifest: git-etcd-acceptance/deployment/etcd-acceptance.yml
+      ops_files:
+      - "git-kubo-ci/etcd/deployment-name.yml"
+      - "git-etcd-acceptance/deployment/operations/jfmyers9.yml"
+      stemcells:
+      - "gcp-stemcell/*.tgz"
+      releases:
+      - "etcd-acceptance-release/*.tgz"
+      - "bosh-dns-release/*.tgz"
+      cleanup: true
+      vars:
+        director-url: https://10.100.0.6:25555
+        uaa-url: https://10.100.0.6:8443
+        director-ca: ((long-running-etcd-bosh-ca-cert.certificate))
+        director-client-secret: ((long-running-etcd-bosh-client-secret))
+        etcd-deployment-name: jfmyers9-etcd-total-network-partition
+        deployment-name: jfmyers9-etcd-acceptance-total-network-partition
+  - task: run-read-availability-during-total-network-partition-errand
+    file: git-kubo-ci/tasks/etcd/run-errand.yml
+    params:
+      BOSH_CA_CERT: ((long-running-etcd-bosh-ca-cert.certificate))
+      BOSH_CLIENT: admin
+      BOSH_CLIENT_SECRET: ((long-running-etcd-bosh-client-secret))
+      BOSH_DEPLOYMENT: jfmyers9-etcd-acceptance-total-network-partition
       BOSH_ENVIRONMENT: https://10.100.0.6:25555
       ERRAND_NAME: read-availability-during-total-network-partition
