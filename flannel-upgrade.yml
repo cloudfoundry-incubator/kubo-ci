@@ -1,0 +1,54 @@
+---
+resources:
+- name: after-midnight
+  type: time
+  source:
+    start: 12:00 AM
+    stop: 1:00 AM
+    days: [Monday, Tuesday, Wednesday, Thursday, Friday]
+
+- name: flannel-release
+  type: github-release
+  source:
+    owner: coreos 
+    repository: flannel
+
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    branch: flannel
+    private_key: ((git-ssh-key))
+
+- name: git-kubo-release
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
+    branch: master
+    private_key: ((git-ssh-key))
+
+jobs:
+- name: check-and-upgrade-flannel
+  plan:
+  - aggregate:
+    - get: after-midnight
+      trigger: true
+    - get: git-kubo-ci
+    - get: git-kubo-release
+    - get: flannel-release
+  - task: compare-version
+    file: git-kubo-ci/tasks/compare-version.yml
+    params:
+      CFCR_USER_TOKEN: ((cfcr-git-user-token))
+  - task: update-flannel-blob
+    file: git-kubo-ci/tasks/update-flannel-blob.yml
+    params:
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - task: generate-flannel-pr
+    file: git-kubo-ci/tasks/create-flannel-pr.yml
+    params:
+      CFCR_USER_TOKEN: ((cfcr-git-user-token))
+      GIT_SSH_KEY: |
+        ((git-ssh-key))
+
