@@ -37,9 +37,9 @@ resource_types:
     repository: cloudfoundry/bosh-deployment-resource
 
 resources:
-- name: 30m
+- name: 60m
   type: time
-  source: {interval: 30m}
+  source: {interval: 60m}
 
 - name: long-running-etcd-deployment
   type: bosh-deployment
@@ -530,7 +530,7 @@ jobs:
   serial_groups: ["etcd-acceptance"]
   plan:
   - aggregate:
-    - get: 30m
+    - get: 60m
       trigger: true
     - get: git-kubo-etcd
       trigger: true
@@ -580,7 +580,7 @@ jobs:
   serial_groups: ["etcd-acceptance-network-partition"]
   plan:
   - aggregate:
-    - get: 30m
+    - get: 60m
       trigger: true
     - get: git-kubo-etcd
       trigger: true
@@ -642,7 +642,7 @@ jobs:
   serial_groups: ["etcd-acceptance-total-network-partition"]
   plan:
   - aggregate:
-    - get: 30m
+    - get: 60m
       trigger: true
     - get: git-kubo-etcd
       trigger: true
@@ -824,7 +824,7 @@ jobs:
   serial_groups: ["jfmyers9-etcd-acceptance"]
   plan:
   - aggregate:
-    - get: 30m
+    - get: 60m
       trigger: true
     - get: git-jfmyers9-etcd
       trigger: true
@@ -878,7 +878,7 @@ jobs:
   serial_groups: ["jfmyers9-etcd-acceptance-network-partition"]
   plan:
   - aggregate:
-    - get: 30m
+    - get: 60m
       trigger: true
     - get: git-jfmyers9-etcd
       trigger: true
@@ -932,7 +932,7 @@ jobs:
   serial_groups: ["jfmyers9-etcd-acceptance-total-network-partition"]
   plan:
   - aggregate:
-    - get: 30m
+    - get: 60m
       trigger: true
     - get: git-jfmyers9-etcd
       trigger: true
