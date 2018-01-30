@@ -1,4 +1,4 @@
-package generic_test
+package rbac_test
 
 import (
 	. "tests/test_helpers"
