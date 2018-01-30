@@ -8,14 +8,14 @@ resources:
 - name: gaffer-spec
   type: git
   source:
-    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    uri: https://github.com/cloudfoundry-incubator/kubo-ci
     branch: master
     paths: [ gaffer/gaffer.yml ]
 
 - name: git-kubo-ci
   type: git
   source:
-    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    uri: https://github.com/cloudfoundry-incubator/kubo-ci
     branch: master
 
 - name: gcs-bosh-state
@@ -61,6 +61,7 @@ jobs:
     - get: gcs-kubo-deployment-tarball
       trigger: true
     - get: gcs-kubo-release-tarball
+      trigger: true
     - get: gcs-bosh-creds
     - get: gcs-director.yml
     - get: gcs-bosh-state
