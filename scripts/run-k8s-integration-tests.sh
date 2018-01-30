@@ -39,12 +39,17 @@ verify_args() {
 
 execute_cloud_agnostic_tests() {
   local routing_mode="$1"
-  local skip_addons_tests="$2"
+  local authorization_mode="$2"
+  local skip_addons_tests="$3"
   local cloud_agnostic_tests=("pod_logs" "generic" "oss_only" "api_extensions")
   local ginkgo_flags=""
 
   if ! [[ -z "$skip_addons_tests" ]]; then
     ginkgo_flags="--skip=check\ apply-specs"
+  fi
+
+  if [[ ${authorization_mode} == "rbac" ]]; then
+    cloud_agnostic_tests+=("rbac")
   fi
 
   if [[ ${routing_mode} == "cf" ]]; then
@@ -102,13 +107,14 @@ run_tests() {
 
   local iaas=$(bosh int "$environment/director.yml" --path='/iaas')
   local routing_mode=$(bosh int "$environment/director.yml" --path='/routing_mode')
+  local authorization_mode=$(bosh int "${environment}/director.yml" --path='/authorization_mode')
 
   local tmpfile=$(mktemp)
   $BASE_DIR/scripts/generate-test-config.sh $environment $deployment > $tmpfile
   export CONFIG=$tmpfile
 
   if [[ -z "$skip_cloud_agnostic_tests" ]]; then
-    execute_cloud_agnostic_tests "${routing_mode}" "${skip_addons_tests}"
+    execute_cloud_agnostic_tests "${routing_mode}" "${authorization_mode}" "${skip_addons_tests}"
   fi
 
   execute_cloud_specific_tests "${routing_mode}" "${iaas}"
