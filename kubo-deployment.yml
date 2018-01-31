@@ -1348,6 +1348,10 @@ end
       repos:
         - git-kubo-release
         - git-kubo-deployment
+  - put: slack-alert
+    params:
+      text: |
+        Published new artifacts for kubo-release and kubo-deployment. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: release-version
   plan:
