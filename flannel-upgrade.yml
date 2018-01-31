@@ -1,12 +1,5 @@
 ---
 resources:
-- name: after-midnight
-  type: time
-  source:
-    start: 12:00 AM
-    stop: 1:00 AM
-    days: [Monday, Tuesday, Wednesday, Thursday, Friday]
-
 - name: flannel-release
   type: github-release
   source:
@@ -31,15 +24,11 @@ jobs:
 - name: check-and-upgrade-flannel
   plan:
   - aggregate:
-    - get: after-midnight
-      trigger: true
     - get: git-kubo-ci
     - get: git-kubo-release
     - get: flannel-release
-  - task: compare-version
-    file: git-kubo-ci/tasks/compare-version.yml
-    params:
-      CFCR_USER_TOKEN: ((cfcr-git-user-token))
+      trigger: true
+      params: { globs: ["flannel-v*-linux-amd64.tar.gz"] }
   - task: update-flannel-blob
     file: git-kubo-ci/tasks/update-flannel-blob.yml
     params:
