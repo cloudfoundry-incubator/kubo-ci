@@ -21,6 +21,11 @@ EOF
 
 existing_flannel_spec=$(bosh blobs | grep flannel | awk '{print $1}')
 
+if [ $name == $existing_flannel_spec ]; then
+  echo "Flannel blob already up-to-date."
+  exit 0
+fi
+
 bosh remove-blob $(bosh blobs | grep flannel | awk '{print $1}')
 bosh add-blob ${flannel_blob_path} ${name}
 bosh upload-blobs
