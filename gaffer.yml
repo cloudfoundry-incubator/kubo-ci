@@ -4,6 +4,12 @@ resource_types:
   source:
     repository: frodenas/gcs-resource
 
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
 resources:
 - name: gaffer-spec
   type: git
@@ -53,6 +59,11 @@ resources:
     bucket: kubo-public
     versioned_file: kubo-deployment-latest.tgz
 
+- name: slack-alert
+  type: slack-notification
+  source:
+    url: ((build-alert-slack-url))
+
 jobs:
 - name: deploy-bosh
   plan:
@@ -69,12 +80,19 @@ jobs:
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
       gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball
+    on_failure: &on_failure_alert
+      do:
+      - put: slack-alert
+        params:
+          text: |
+            Updating gaffer failed <@cfcrteam>. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: update-bosh
     tags: [ gaffer ]
     file: git-kubo-ci/tasks/update-bosh.yml
     input_mapping: {kubo-lock: gcs-director.yml}
     params:
       GCP_SERVICE_ACCOUNT: ((gaffer-bosh-service-account))
+    on_failure: *on_failure_alert
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -100,12 +118,20 @@ jobs:
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
       gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball
+    on_failure: *on_failure_alert
   - task: deploy
     tags: [ gaffer ]
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     input_mapping: {kubo-lock: gcs-director.yml}
     params:
       DEPLOYMENT_NAME: gaffer
+    on_failure: *on_failure_alert
+    on_success:
+      do:
+      - put: slack-alert
+        params:
+          text: |
+            Updating gaffer succeeded. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: deploy-gaffer
   plan:
@@ -131,3 +157,4 @@ jobs:
         source:
           repository: pcfkubo/kubectl
           tag: stable
+    on_failure: *on_failure_alert
