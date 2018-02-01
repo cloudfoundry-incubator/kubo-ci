@@ -488,7 +488,7 @@ jobs:
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-<%= env %>' ]
 
-  - task: delay-execution
+  - task: delay-execution # To avoid the stemcell upload conflicts
     file: git-kubo-ci/tasks/delay-execution.yml
     params:
       DELAY_TIME_SECS: 600
@@ -504,12 +504,12 @@ jobs:
     tags: [<%= env %>]
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
 
-  - task: update_kubernetes_port
-    file: git-kubo-ci/tasks/update-kubernetes-port.yml
+  - task: bump_kubernetes_port
+    file: git-kubo-ci/tasks/bump-kubernetes-port.yml
     input_mapping: {kubo-lock-pre: kubo-lock-with-abac}
     tags: [<%= env %>]
     params:
-      PORT_NUMBER: 6449
+      BUMP_AMOUNT: 200
 
   - task: deploy
     tags: [<%= env %>]
@@ -548,12 +548,12 @@ jobs:
     file: git-kubo-ci/tasks/apply-abac-to-env.yml
     tags: [<%= env %>]
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
-  - task: update_kubernetes_port
-    file: git-kubo-ci/tasks/update-kubernetes-port.yml
+  - task: bump_kubernetes_port
+    file: git-kubo-ci/tasks/bump-kubernetes-port.yml
     input_mapping: {kubo-lock-pre: kubo-lock-with-abac}
     tags: [<%= env %>]
     params:
-      PORT_NUMBER: 6449
+      BUMP_AMOUNT: 200
   - task: integration-tests
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
@@ -627,7 +627,7 @@ jobs:
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-<%= env %>' ]
 
-  - task: delay-execution
+  - task: delay-execution # To avoid the stemcell upload conflicts
     file: git-kubo-ci/tasks/delay-execution.yml
     params:
       DELAY_TIME_SECS: 1200
@@ -655,12 +655,12 @@ jobs:
     tags: [<%= env %>]
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
 
-  - task: update_kubernetes_port
-    file: git-kubo-ci/tasks/update-kubernetes-port.yml
+  - task: bump_kubernetes_port
+    file: git-kubo-ci/tasks/bump-kubernetes-port.yml
     input_mapping: {kubo-lock-pre: kubo-lock-with-proxy}
     tags: [<%= env %>]
     params:
-      PORT_NUMBER: 6349
+      BUMP_AMOUNT: 100
 
   - task: deploy
     tags: [<%= env %>]
@@ -698,12 +698,12 @@ jobs:
     file: git-kubo-ci/tasks/apply-proxy-to-env.yml
     tags: [<%= env %>]
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
-  - task: update_kubernetes_port
-    file: git-kubo-ci/tasks/update-kubernetes-port.yml
+  - task: bump_kubernetes_port
+    file: git-kubo-ci/tasks/bump-kubernetes-port.yml
     input_mapping: {kubo-lock-pre: kubo-lock-with-proxy}
     tags: [<%= env %>]
     params:
-      PORT_NUMBER: 6349
+      BUMP_AMOUNT: 100
   - task: integration-tests
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
