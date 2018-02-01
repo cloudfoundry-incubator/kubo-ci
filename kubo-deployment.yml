@@ -487,6 +487,12 @@ jobs:
       passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-<%= env %>' ]
+
+  - task: delay-execution
+    file: git-kubo-ci/tasks/delay-execution.yml
+    params:
+      DELAY_TIME_SECS: 600
+
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
@@ -620,6 +626,12 @@ jobs:
       passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-<%= env %>' ]
+
+  - task: delay-execution
+    file: git-kubo-ci/tasks/delay-execution.yml
+    params:
+      DELAY_TIME_SECS: 1200
+
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
