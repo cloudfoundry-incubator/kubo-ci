@@ -7,5 +7,8 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/delay-execution.sh
 
+inputs:
+  - git-kubo-ci
+
 params:
   DELAY_TIME_SECS:
