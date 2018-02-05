@@ -7,7 +7,6 @@ version=$(cat "$PWD/govc-release/version")
 name="govc_${tag}_linux_amd64.gz"
 govc_blob_path="$PWD/govc-release/govc_linux_amd64.gz"
 
-cp -r flannel-release/tag flannel-tag
 cp -r git-kubo-release/. git-kubo-release-output
 
 cd git-kubo-release-output
@@ -32,7 +31,7 @@ bosh upload-blobs
 
 pushd packages/govc
 sed -E -i -e "s/([0-9]+\.)+[0-9]+/${version}/" packaging
-sed -E -i -e "s/${existing_flannel_spec}/${name}/" spec
+sed -E -i -e "s/${existing_govc_spec}/${name}/" spec
 popd
 
 git config --global user.email "cfcr+cibot@pivotal.io"
