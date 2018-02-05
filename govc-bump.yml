@@ -1,0 +1,52 @@
+---
+resources:
+- name: govc-release
+  type: github-release
+  source:
+    owner: vmware
+    repository: govmomi
+
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    branch: master
+    private_key: ((git-ssh-key))
+
+- name: git-kubo-release
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
+    branch: master
+    private_key: ((git-ssh-key))
+
+jobs:
+- name: bump-govc
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-release
+    - get: govc-release
+      trigger: true
+      params: { globs: ["govc_linux_amd64.gz"] }
+  - task: bump-govc
+    platform: linux
+    image_resource:
+      type: docker-image
+      source:
+        repository: pcfkubo/kubo-ci
+        tag: stable
+    run:
+      path: git-kubo-ci/scripts/update-govc.sh
+    inputs:
+      - name: git-kubo-ci
+      - name: git-kubo-release
+      - name: govc-release
+    outputs:
+      - name: git-kubo-release-output
+    params:
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - put: git-kubo-release
+    params:
+      repository: git-kubo-release-output
