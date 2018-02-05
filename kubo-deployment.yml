@@ -9,6 +9,15 @@
   additional_envs = %w(gcp-lb aws-lb)
   env_list = iaases + additional_envs
   enable_failure_alert = true
+  k8s_api_port_bumps = {
+    proxy: 100,
+    abac: 200
+  }
+
+  execution_delays = {
+    abac: 600,
+    proxy: 1200
+  }
 %>
 ---
 pins:
@@ -496,7 +505,7 @@ jobs:
   - task: delay-execution # To avoid the stemcell upload conflicts
     file: git-kubo-ci/tasks/delay-execution.yml
     params:
-      DELAY_TIME_SECS: 600
+      DELAY_TIME_SECS: <%= execution_delays[:abac] %>
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -514,7 +523,7 @@ jobs:
     input_mapping: {kubo-lock-pre: kubo-lock-with-abac}
     tags: [<%= env %>]
     params:
-      BUMP_AMOUNT: 200
+      BUMP_AMOUNT: <%= k8s_api_port_bumps[:abac] %>
 
   - task: deploy
     tags: [<%= env %>]
@@ -558,7 +567,7 @@ jobs:
     input_mapping: {kubo-lock-pre: kubo-lock-with-abac}
     tags: [<%= env %>]
     params:
-      BUMP_AMOUNT: 200
+      BUMP_AMOUNT: <%= k8s_api_port_bumps[:abac] %>
   - task: integration-tests
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
@@ -635,7 +644,7 @@ jobs:
   - task: delay-execution # To avoid the stemcell upload conflicts
     file: git-kubo-ci/tasks/delay-execution.yml
     params:
-      DELAY_TIME_SECS: 1200
+      DELAY_TIME_SECS: <%= execution_delays[:proxy] %>
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -665,7 +674,7 @@ jobs:
     input_mapping: {kubo-lock-pre: kubo-lock-with-proxy}
     tags: [<%= env %>]
     params:
-      BUMP_AMOUNT: 100
+      BUMP_AMOUNT: <%= k8s_api_port_bumps[:proxy] %>
 
   - task: deploy
     tags: [<%= env %>]
@@ -708,7 +717,7 @@ jobs:
     input_mapping: {kubo-lock-pre: kubo-lock-with-proxy}
     tags: [<%= env %>]
     params:
-      BUMP_AMOUNT: 100
+      BUMP_AMOUNT: <%= k8s_api_port_bumps[:proxy] %>
   - task: integration-tests
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
