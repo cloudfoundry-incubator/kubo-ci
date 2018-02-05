@@ -8,7 +8,7 @@
   }
   additional_envs = %w(gcp-lb aws-lb)
   env_list = iaases + additional_envs
-  enable_failure_alert = false
+  enable_failure_alert = true
 %>
 ---
 pins:
