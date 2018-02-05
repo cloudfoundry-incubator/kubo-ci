@@ -8,6 +8,7 @@
   }
   additional_envs = %w(gcp-lb aws-lb)
   env_list = iaases + additional_envs
+  enable_failure_alert = false
 %>
 ---
 pins:
@@ -311,6 +312,7 @@ jobs:
     trigger: true
   - task: run-release-unit-tests
     file: git-kubo-ci/tasks/run-release-unit-tests.yml
+    <% if enable_failure_alert %>
     on_failure: &on_failure_alert
       do:
       - task: configure-slack-notification
@@ -320,6 +322,9 @@ jobs:
           attachments_file: slack-notification/attachments
           text: |
             Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+    <% else %>
+    on_failure: &on_failure_alert
+    <% end %>
   - task: run-deployment-unit-tests
     file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
     on_failure: *on_failure_alert
