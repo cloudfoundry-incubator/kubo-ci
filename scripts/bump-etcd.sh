@@ -26,7 +26,7 @@ if [ $name == $existing_etcd_spec ]; then
 fi
 
 bosh remove-blob ${existing_etcd_spec}
-bosh add-blob ${etcd_blob_path} ${name}
+bosh add-blob ${etcd_blob_path} "etcd/${name}"
 bosh upload-blobs
 
 git config --global user.email "cfcr+cibot@pivotal.io"
