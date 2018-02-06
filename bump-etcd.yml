@@ -28,7 +28,7 @@ jobs:
     - get: git-kubo-etcd
     - get: etcd-release
       trigger: true
-      params: { globs: [" etcd-*-linux-amd64.tar.gz"] }
+      params: { globs: ["etcd-*-linux-amd64.tar.gz"] }
   - task: bump-etcd-release
     config:
       platform: linux
