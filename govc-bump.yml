@@ -30,7 +30,7 @@ resources:
     tag: stable
 
 jobs:
-- name: bump-govc-kubo-release
+- name: bump-govc
   plan:
   - aggregate:
     - get: git-kubo-ci
