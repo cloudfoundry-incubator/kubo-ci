@@ -1,0 +1,53 @@
+---
+resources:
+- name: etcd-release
+  type: github-release
+  source:
+    owner: coreos
+    repository: etcd
+
+- name: git-kubo-etcd
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-etcd.git
+    branch: master
+    private_key: ((git-ssh-key))
+
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-ci.git
+    branch: master
+    private_key: ((git-ssh-key))
+
+jobs:
+- name: bump-etcd
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-etcd
+    - get: etcd-release
+      trigger: true
+      params: { globs: [" etcd-*-linux-amd64.tar.gz"] }
+  - task: bump-etcd-release
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      run:
+        path: git-kubo-ci/scripts/bump-etcd.sh
+      inputs:
+        - name: git-kubo-ci
+        - name: git-kubo-etcd
+        - name: etcd-release
+      outputs:
+        - name: git-kubo-etcd-output
+      params:
+        ACCESS_KEY_ID: ((gcs-access-key-id))
+        SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - put: git-kubo-etcd
+    params:
+      repository: git-kubo-etcd-output
