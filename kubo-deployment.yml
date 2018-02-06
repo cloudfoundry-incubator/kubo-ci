@@ -14,10 +14,6 @@
     abac: 200
   }
 
-  execution_delays = {
-    abac: 600,
-    proxy: 1200
-  }
 %>
 ---
 pins:
@@ -505,7 +501,7 @@ jobs:
   - task: delay-execution # To avoid the stemcell upload conflicts
     file: git-kubo-ci/tasks/delay-execution.yml
     params:
-      DELAY_TIME_SECS: <%= execution_delays[:abac] %>
+      DELAY_TIME_SECS: 60
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -644,7 +640,7 @@ jobs:
   - task: delay-execution # To avoid the stemcell upload conflicts
     file: git-kubo-ci/tasks/delay-execution.yml
     params:
-      DELAY_TIME_SECS: <%= execution_delays[:proxy] %>
+      DELAY_TIME_SECS: 60
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
