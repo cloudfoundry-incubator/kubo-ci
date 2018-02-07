@@ -22,3 +22,7 @@ cp -r kubo-lock/* kubo-lock-with-proxy/
 echo >> kubo-lock-with-proxy/metadata
 echo "http_proxy: $proxy_setting" >> kubo-lock-with-proxy/metadata
 echo "https_proxy: $proxy_setting" >> kubo-lock-with-proxy/metadata
+echo "no_proxy: .internal,10.200.0.0/16,10.100.0.0/16" >> kubo-lock-with-proxy/metadata
+
+# Remove "no-ip" network tag so that the instance is not NATed
+sed -i -E '/no-ip/d' kubo-lock-with-proxy/metadata
