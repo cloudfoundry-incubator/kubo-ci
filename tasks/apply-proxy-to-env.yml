@@ -8,7 +8,6 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/apply-proxy-to-env.sh
 inputs:
-
 - name: kubo-lock
 - name: git-kubo-deployment
 - name: gcs-bosh-creds
