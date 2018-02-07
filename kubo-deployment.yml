@@ -794,6 +794,9 @@ jobs:
       WITH_PRIVILEGED_CONTAINERS: 1
     <% if env.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
+    <% elsif env.include? 'gcp' %>
+      CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
+      DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
     <% end %>
     on_failure: *on_failure_alert
 
