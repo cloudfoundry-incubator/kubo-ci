@@ -18,10 +18,10 @@ update_kubo() {
   # Workaround due to https://www.pivotaltracker.com/story/show/152155545
   echo "Deleting tls-kubernetes from credhub..."
   local credhub_api="https://$(bosh int environment/director.yml --path=/internal_ip):8844"
-  local credhub_password="$(bosh int environment/creds.yml --path=/credhub_cli_password)"
+  local credhub_admin_secret="$(bosh int environment/creds.yml --path=/credhub_admin_client_secret)"
   credhub login \
-    -u credhub-cli \
-    -p "$credhub_password" \
+    --client-name credhub-admin \
+    --client-secret "$credhub_admin_secret" \
     -s "$credhub_api" \
     --ca-cert=<(bosh int environment/creds.yml --path=/credhub_tls/ca) \
     --ca-cert=<(bosh int environment/creds.yml --path=/default_ca/ca)

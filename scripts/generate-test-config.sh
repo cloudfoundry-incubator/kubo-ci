@@ -35,10 +35,10 @@ verify_args() {
 credhub_login() {
   local environment="$1"
 
-  local credhub_user_password=$(bosh int "${environment}/creds.yml" --path="/credhub_cli_password")
+  local credhub_admin_secret=$(bosh int "${environment}/creds.yml" --path="/credhub_admin_client_secret")
   local credhub_api_url="https://$(bosh int "${environment}/director.yml" --path="/internal_ip"):8844"
 
-  credhub login -u credhub-cli -p "${credhub_user_password}" \
+  credhub login --client-name credhub-admin --client-secret "${credhub_admin_secret}" \
     -s "${credhub_api_url}" \
     --ca-cert <(bosh int "${environment}/creds.yml" --path="/credhub_tls/ca") \
     --ca-cert <(bosh int "${environment}/creds.yml" --path="/uaa_ssl/ca") 1>/dev/null
