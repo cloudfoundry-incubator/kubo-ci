@@ -1,0 +1,53 @@
+---
+resources:
+- name: k8s-release
+  type: github-release-with-version-filtering
+  source:
+    owner: kubernetes
+    repository: kubernetes
+    # only patches get updated
+    version_filter: "< 1.10.0"
+
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    branch: master
+    private_key: ((git-ssh-key))
+
+- name: git-kubo-release
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
+    branch: master
+    private_key: ((git-ssh-key))
+
+jobs:
+- name: bump-k8s
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-release
+    - get: k8s-release
+      trigger: true
+      #params: { globs: ["govc_linux_amd64.gz"] }
+  - task: bump-k8s
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      run:
+        path: git-kubo-ci/scripts/bump-k8s.sh
+      inputs:
+        - name: git-kubo-ci
+        - name: git-kubo-release
+        - name: k8s-release
+      params:
+        ACCESS_KEY_ID: ((gcs-access-key-id))
+        SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+        CFCR_USER_TOKEN: ((cfcr-git-user-token))
+        GIT_SSH_KEY: |
+        ((git-ssh-key))
