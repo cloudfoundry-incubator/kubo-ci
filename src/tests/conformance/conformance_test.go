@@ -62,7 +62,7 @@ var _ = Describe("Conformance Tests", func() {
 		Eventually(func() string {
 			outputs := kubectl.GetOutput("log", "sonobuoy", "-n", "sonobuoy")
 			return strings.Join(outputs, " ")
-		}, "60m", "1m").Should(ContainSubstring("no-exit was specified, sonobuoy is now blocking"))
+		}, "90m", "1m").Should(ContainSubstring("no-exit was specified, sonobuoy is now blocking"))
 
 		By("Locate test results")
 		session = kubectl.RunKubectlCommandInNamespace("sonobuoy", "log", "sonobuoy")
