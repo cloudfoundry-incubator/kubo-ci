@@ -24,7 +24,6 @@ blobstore:
 EOF
     bosh upload-blobs
     generate_pull_request "kubernetes" $tag
-    exit 1
 fi
 
 popd
