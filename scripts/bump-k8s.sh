@@ -22,8 +22,8 @@ blobstore:
     access_key_id: ${ACCESS_KEY_ID}
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
-    #bosh upload-blobs
-    #generate_pull_request "kubernetes" $tag
+    bosh upload-blobs
+    generate_pull_request "kubernetes" $tag
     exit 1
 fi
 
