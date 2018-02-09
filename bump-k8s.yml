@@ -1,4 +1,11 @@
 ---
+resource_types:
+- name: github-release-with-version-filtering
+  type: docker-image
+  source:
+    repository: pcfkubo/github-release-resource
+    tag: filter-version
+
 resources:
 - name: k8s-release
   type: github-release-with-version-filtering
@@ -30,7 +37,6 @@ jobs:
     - get: git-kubo-release
     - get: k8s-release
       trigger: true
-      #params: { globs: ["govc_linux_amd64.gz"] }
   - task: bump-k8s
     config:
       platform: linux
@@ -50,4 +56,4 @@ jobs:
         SECRET_ACCESS_KEY: ((gcs-secret-access-key))
         CFCR_USER_TOKEN: ((cfcr-git-user-token))
         GIT_SSH_KEY: |
-        ((git-ssh-key))
+          ((git-ssh-key))

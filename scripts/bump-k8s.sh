@@ -1,7 +1,7 @@
 #!/bin/bash
 set -exu -o pipefail
 
-source ./lib/generate-pr.sh
+source git-kubo-ci/scripts/lib/generate-pr.sh
 
 tag=$(cat "$PWD/k8s-release/tag")
 version=$(cat "$PWD/k8s-release/version")
