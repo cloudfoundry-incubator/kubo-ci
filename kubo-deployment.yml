@@ -16,7 +16,7 @@
 %>
 ---
 pins:
-  stemcell_version: &stemcell_version "3468.13"
+  stemcell_version: &stemcell_version "3541.2"
 
 groups:
 - name: all
