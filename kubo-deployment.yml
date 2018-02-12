@@ -216,6 +216,13 @@ resources:
     bucket: kubo-pipeline-store
     versioned_file: bosh/creds.yml
 
+- name: gcs-kubeconfig
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: k8s/config
+
 - name: gcs-kubo-release-tarball-untested
   type: gcs
   source:
@@ -958,6 +965,10 @@ end
       kubo-lock: kubo-lock-upgrade-<%= iaas %>
       git-kubo-deployment: unpacked_dir
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+  - put: gcs-kubeconfig
+    params:
+      file: gcs-kubeconfig/config
+
 
 - name: deploy-workload-upgrade-<%= iaas %>
   plan:
@@ -984,6 +995,8 @@ end
     - get: git-kubo-release
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     - get: git-kubo-deployment
+      passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+    - get: gcs-kubeconfig
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
 
   - task: unpack-kubo-deployment-release

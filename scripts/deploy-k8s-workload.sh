@@ -12,13 +12,8 @@ if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 fi
 
-bosh_ca_cert=$(bosh int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/default_ca/ca)
-client_secret=$(bosh int "${KUBO_ENVIRONMENT_DIR}/creds.yml" --path=/bosh_admin_client_secret)
-
-director_ip=$(bosh int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_ip")
-
-"$KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" ci-service
-
+mkdir -p ~/.kube
+cp gcs-kubeconfig/config ~/.kube/config
 
 randomString() {
   head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo ''

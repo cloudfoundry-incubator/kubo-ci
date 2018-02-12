@@ -52,3 +52,6 @@ if [[ -f "${KUBO_CI_DIR}/manifests/ops-files/${DEPLOYMENT_OPS_FILE}" ]]; then
 fi
 
 "$KUBO_DEPLOYMENT_DIR/bin/deploy_k8s" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" "$release_source"
+
+"$KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
+mv ~/.kube/config gcs-kubeconfig/config
