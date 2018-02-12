@@ -46,10 +46,10 @@ resources:
 #    - 'NOTICE'
 
 - name: golang-release
-  type: github-release
+  type: git
   source:
-    owner: bosh-packages
-    repository: golang-release
+    uri: https://github.com/bosh-packages/golang-release
+    branch: master
 
 
 ############################################
@@ -64,14 +64,13 @@ jobs:
     - get: git-kubo-release
     - get: golang-release
       trigger: true
-      params:
-        include_source_tarball: true
   - task: bump-release-golang
     file: git-kubo-ci/tasks/bump-release-golang.yml
     input_mapping: { release: git-kubo-release }
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+      MINOR_GO_VERSION: "1.9"
   - put: git-kubo-release
     params:
       repository: modified-release
@@ -84,14 +83,13 @@ jobs:
     - get: git-kubo-etcd
     - get: golang-release
       trigger: true
-      params:
-        include_source_tarball: true
   - task: bump-release-golang
     file: git-kubo-ci/tasks/bump-release-golang.yml
     input_mapping: { release: git-kubo-etcd }
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+      MINOR_GO_VERSION: "1.9"
   - put: git-kubo-etcd
     params:
       repository: modified-release
@@ -104,14 +102,13 @@ jobs:
 #    - get: git-docker-boshrelease
 #    - get: golang-release
 #      trigger: true
-#      params:
-#        include_source_tarball: true
 #  - task: bump-release-golang
 #    file: git-kubo-ci/tasks/bump-release-golang.yml
 #    input_mapping: { reeease: git-docker-boshrelease }
 #    params:
 #      ACCESS_KEY_ID: ((gcs-access-key-id))
 #      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+#      MINOR_GO_VERSION: "1.9"
 #  - put: git-docker-boshrelease
 #    params:
 #      repository: modified-release

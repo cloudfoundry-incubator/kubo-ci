@@ -16,3 +16,6 @@ inputs:
 
 outputs:
   - name: modified-release
+
+params:
+  MINOR_GO_VERSION:

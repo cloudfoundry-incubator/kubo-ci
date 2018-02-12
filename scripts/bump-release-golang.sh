@@ -2,16 +2,10 @@
 
 set -exu -o pipefail
 
-MINOR_GO_VERSION="1.9"
 HOME_DIR="$PWD"
 
-extract_golang_release() {
-  mkdir golang
-  tar -xzvf golang-release/*.tar.gz -C "$HOME_DIR"/golang
-}
-
 vendor_golang() {
-  pushd "$HOME_DIR"/golang/bosh-packages-golang-release-*
+  pushd "$HOME_DIR"/golang-release
     blob_name=$(bosh blobs --json | jq '.Tables[0].Rows[] | .path | select(test("'"${MINOR_GO_VERSION}"'.*linux"))' --raw-output)
     go_version="${blob_name%.tar.gz}"
   popd
@@ -25,7 +19,7 @@ blobstore:
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
     set -x
-    bosh vendor-package golang-"$MINOR_GO_VERSION"-linux "$HOME_DIR"/golang/bosh-packages-golang-release-*
+    bosh vendor-package golang-"${MINOR_GO_VERSION}"-linux "$HOME_DIR"/golang-release
 
     git config --global user.email "cfcr+cibot@pivotal.io"
     git config --global user.name "CFCR CI BOT"
@@ -43,7 +37,6 @@ create_output_directory() {
 
 main() {
   create_output_directory
-  extract_golang_release
   vendor_golang
 }
 
