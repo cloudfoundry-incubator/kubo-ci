@@ -981,10 +981,10 @@ end
     - get: git-kubo-deployment
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
 
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+  - task: unpack-kubo-deployment-release
+    file: git-kubo-ci/tasks/unpack-kubo-deployment-release.yml
     input_mapping:
-      gcs-kubo-deployment-pre: old-kubo-deployment-tarball
+      gcs-kubo-deployment-release: old-kubo-deployment-tarball
     tags: ['<%= iaas %>']
 
   - task: deploy
