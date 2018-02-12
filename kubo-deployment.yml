@@ -524,6 +524,7 @@ jobs:
     tags: [<%= env %>]
     params:
       DEPLOYMENT_NAME: ci-service-k8s-with-abac
+      CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     attempts: 2
