@@ -284,11 +284,6 @@ resources:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
 
-- name: ubuntu-trusty-stemcell-boshlite
-  type: bosh-io-stemcell
-  source:
-    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
-
 - name: gh-release-kubo-release
   type: github-release
   source:
@@ -356,9 +351,6 @@ jobs:
     - get: git-kubo-release
       passed: [ 'run-unit-tests' ]
       trigger: true
-    - get: ubuntu-trusty-stemcell-boshlite
-      version:
-        version: *stemcell_version
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
     on_failure: *on_failure_alert
@@ -367,7 +359,6 @@ jobs:
     privileged: true
     input_mapping:
       kubo-ci: git-kubo-ci
-      stemcell: ubuntu-trusty-stemcell-boshlite
       release: kubo-release
   - put: gcs-kubo-release-tarball-untested
     params:
