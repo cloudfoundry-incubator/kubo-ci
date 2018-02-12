@@ -103,12 +103,12 @@ groups:
   <% end %>
 - name: proxy
   jobs:
-  - claim-lock-proxy-gcp
-  - install-bosh-proxy-gcp
-  - deploy-k8s-proxy-gcp
-  - run-k8s-integration-tests-proxy-gcp
-  - destroy-k8s-proxy-gcp
-  - destroy-bosh-proxy-gcp
+  - claim-lock-proxy-vsphere
+  - install-bosh-proxy-vsphere
+  - deploy-k8s-proxy-vsphere
+  - run-k8s-integration-tests-proxy-vsphere
+  - destroy-k8s-proxy-vsphere
+  - destroy-bosh-proxy-vsphere
 
 resource_types:
 - name: gcs
@@ -174,13 +174,13 @@ resources:
     pool: kubo-<%= env %>
 <% end %>
 
-- name: kubo-lock-proxy-gcp
+- name: kubo-lock-proxy-vsphere
   type: pool
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key))
-    pool: kubo-gcp
+    pool: kubo-vsphere
 
 <% iaases.each do |iaas| %>
 - name: kubo-lock-upgrade-<%= iaas %>
@@ -1163,7 +1163,7 @@ end
       release: kubo-lock-upgrade-<%= iaas %>
 <% end %>
 
-- name: claim-lock-proxy-gcp
+- name: claim-lock-proxy-vsphere
   max_in_flight: 1
   plan:
   - aggregate:
@@ -1178,33 +1178,33 @@ end
       passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'package-kubo-deployment-tarball' ]
-  - put: kubo-lock-proxy-gcp
+  - put: kubo-lock-proxy-vsphere
     params: { acquire: true }
 
-- name: install-bosh-proxy-gcp
+- name: install-bosh-proxy-vsphere
   plan:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
     - get: git-kubo-deployment
-      passed: [ 'claim-lock-proxy-gcp' ]
-    - get: kubo-lock-proxy-gcp
+      passed: [ 'claim-lock-proxy-vsphere' ]
+    - get: kubo-lock-proxy-vsphere
       version: every
       trigger: true
-      passed: [ 'claim-lock-proxy-gcp' ]
+      passed: [ 'claim-lock-proxy-vsphere' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'claim-lock-proxy-gcp' ]
+      passed: [ 'claim-lock-proxy-vsphere' ]
     - get: git-kubo-release
-      passed: [ 'claim-lock-proxy-gcp' ]
+      passed: [ 'claim-lock-proxy-vsphere' ]
     - get: kubo-version
-      passed: [ 'claim-lock-proxy-gcp' ]
+      passed: [ 'claim-lock-proxy-vsphere' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'claim-lock-proxy-gcp' ]
+      passed: [ 'claim-lock-proxy-vsphere' ]
   - task: install
     attempts: 2
-    tags: [gcp]
+    tags: [vsphere]
     file: git-kubo-ci/tasks/install-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-proxy-gcp}
+    input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
     params:
       USE_TURBULENCE: 1
     on_failure: *on_failure_alert
@@ -1216,50 +1216,50 @@ end
       params:
         file: bosh-state/state.json
 
-- name: deploy-k8s-proxy-gcp
+- name: deploy-k8s-proxy-vsphere
   plan:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
-    - get: kubo-lock-proxy-gcp
+    - get: kubo-lock-proxy-vsphere
       version: every
       trigger: true
-      passed: [ 'install-bosh-proxy-gcp' ]
+      passed: [ 'install-bosh-proxy-vsphere' ]
     - get: git-kubo-deployment
-      passed: [ 'install-bosh-proxy-gcp' ]
+      passed: [ 'install-bosh-proxy-vsphere' ]
     - get: git-kubo-release
-      passed: [ 'install-bosh-proxy-gcp' ]
+      passed: [ 'install-bosh-proxy-vsphere' ]
     - get: kubo-version
-      passed: [ 'install-bosh-proxy-gcp' ]
+      passed: [ 'install-bosh-proxy-vsphere' ]
     - get: gcs-bosh-state
-      passed: [ 'install-bosh-proxy-gcp' ]
+      passed: [ 'install-bosh-proxy-vsphere' ]
     - get: gcs-bosh-creds
-      passed: [ 'install-bosh-proxy-gcp' ]
+      passed: [ 'install-bosh-proxy-vsphere' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'install-bosh-proxy-gcp' ]
+      passed: [ 'install-bosh-proxy-vsphere' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'install-bosh-proxy-gcp' ]
+      passed: [ 'install-bosh-proxy-vsphere' ]
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
       gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
-    tags: [gcp]
+    tags: [vsphere]
   - task: deploy-tinyproxy
     file: git-kubo-ci/tasks/deploy-tinyproxy.yml
-    tags: [gcp]
-    input_mapping: {kubo-lock: kubo-lock-proxy-gcp}
+    tags: [vsphere]
+    input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
     params:
-      IAAS: "gcp"
+      IAAS: "vsphere"
   - task: apply-runtime-config
     file: git-kubo-ci/tasks/apply-runtime-config.yml
-    tags: [gcp]
-    input_mapping: {kubo-lock: kubo-lock-proxy-gcp}
+    tags: [vsphere]
+    input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
   - task: apply-proxy-to-env
     file: git-kubo-ci/tasks/apply-proxy-to-env.yml
-    tags: [gcp]
-    input_mapping: {kubo-lock: kubo-lock-proxy-gcp}
+    tags: [vsphere]
+    input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
   - task: deploy
-    tags: [gcp]
+    tags: [vsphere]
     params:
       DEPLOYMENT_NAME: ci-service-k8s-with-proxy
     input_mapping:
@@ -1268,35 +1268,35 @@ end
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     on_failure: *on_failure_alert
 
-- name: run-k8s-integration-tests-proxy-gcp
+- name: run-k8s-integration-tests-proxy-vsphere
   plan:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
-    - get: kubo-lock-proxy-gcp
+    - get: kubo-lock-proxy-vsphere
       version: every
       trigger: true
-      passed: [ 'deploy-k8s-proxy-gcp' ]
+      passed: [ 'deploy-k8s-proxy-vsphere' ]
     - get: git-kubo-deployment
-      passed: [ 'deploy-k8s-proxy-gcp' ]
+      passed: [ 'deploy-k8s-proxy-vsphere' ]
     - get: gcs-bosh-state
-      passed: [ 'deploy-k8s-proxy-gcp' ]
+      passed: [ 'deploy-k8s-proxy-vsphere' ]
     - get: gcs-bosh-creds
-      passed: [ 'deploy-k8s-proxy-gcp' ]
+      passed: [ 'deploy-k8s-proxy-vsphere' ]
     - get: kubo-version
-      passed: [ 'deploy-k8s-proxy-gcp' ]
+      passed: [ 'deploy-k8s-proxy-vsphere' ]
     - get: git-kubo-release
-      passed: [ 'deploy-k8s-proxy-gcp' ]
+      passed: [ 'deploy-k8s-proxy-vsphere' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'deploy-k8s-proxy-gcp' ]
+      passed: [ 'deploy-k8s-proxy-vsphere' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'deploy-k8s-proxy-gcp' ]
+      passed: [ 'deploy-k8s-proxy-vsphere' ]
   - task: apply-proxy-to-env
     file: git-kubo-ci/tasks/apply-proxy-to-env.yml
-    tags: [gcp]
-    input_mapping: {kubo-lock: kubo-lock-proxy-gcp}
+    tags: [vsphere]
+    input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
   - task: integration-tests
-    tags: [gcp]
+    tags: [vsphere]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
     input_mapping:
       kubo-lock: kubo-lock-with-proxy
@@ -1305,7 +1305,7 @@ end
       DEPLOYMENT_NAME: ci-service-k8s-with-proxy
     on_failure: *on_failure_alert
   - task: pod-to-pod
-    tags: [gcp]
+    tags: [vsphere]
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping:
       kubo-lock: kubo-lock-with-proxy
@@ -1313,67 +1313,67 @@ end
       DEPLOYMENT_NAME: ci-service-k8s-with-proxy
     on_failure: *on_failure_alert
 
-- name: destroy-k8s-proxy-gcp
+- name: destroy-k8s-proxy-vsphere
   plan:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
-    - get: kubo-lock-proxy-gcp
+    - get: kubo-lock-proxy-vsphere
       version: every
       trigger: true
-      passed: [ 'run-k8s-integration-tests-proxy-gcp' ]
+      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
     - get: kubo-version
-      passed: [ 'run-k8s-integration-tests-proxy-gcp' ]
+      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
     - get: git-kubo-deployment
-      passed: [ 'run-k8s-integration-tests-proxy-gcp' ]
+      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
     - get: git-kubo-release
-      passed: [ 'run-k8s-integration-tests-proxy-gcp' ]
+      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
     - get: gcs-bosh-state
-      passed: [ 'run-k8s-integration-tests-proxy-gcp' ]
+      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
     - get: gcs-bosh-creds
-      passed: [ 'run-k8s-integration-tests-proxy-gcp' ]
+      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'run-k8s-integration-tests-proxy-gcp' ]
+      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'run-k8s-integration-tests-proxy-gcp' ]
+      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
   - task: destroy-k8s
-    tags: [gcp]
+    tags: [vsphere]
     params:
       DEPLOYMENT_NAME: ci-service-k8s-with-proxy
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-    input_mapping: {kubo-lock: kubo-lock-proxy-gcp}
+    input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
     on_failure: *on_failure_alert
 
-- name: destroy-bosh-proxy-gcp
+- name: destroy-bosh-proxy-vsphere
   plan:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
     - get: git-kubo-deployment
-      passed: [ 'destroy-k8s-proxy-gcp' ]
+      passed: [ 'destroy-k8s-proxy-vsphere' ]
     - get: git-kubo-release
-      passed: [ 'destroy-k8s-proxy-gcp' ]
-    - get: kubo-lock-proxy-gcp
+      passed: [ 'destroy-k8s-proxy-vsphere' ]
+    - get: kubo-lock-proxy-vsphere
       version: every
       trigger: true
-      passed: [ 'destroy-k8s-proxy-gcp' ]
+      passed: [ 'destroy-k8s-proxy-vsphere' ]
     - get: kubo-version
-      passed: [ 'destroy-k8s-proxy-gcp' ]
+      passed: [ 'destroy-k8s-proxy-vsphere' ]
     - get: gcs-bosh-state
-      passed: [ 'destroy-k8s-proxy-gcp' ]
+      passed: [ 'destroy-k8s-proxy-vsphere' ]
     - get: gcs-bosh-creds
-      passed: [ 'destroy-k8s-proxy-gcp' ]
+      passed: [ 'destroy-k8s-proxy-vsphere' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'destroy-k8s-proxy-gcp' ]
+      passed: [ 'destroy-k8s-proxy-vsphere' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'destroy-k8s-proxy-gcp' ]
+      passed: [ 'destroy-k8s-proxy-vsphere' ]
   - task: destroy
-    tags: [gcp]
+    tags: [vsphere]
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-proxy-gcp}
+    input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
     on_failure: *on_failure_alert
-  - put: kubo-lock-proxy-gcp
-    params: { release: kubo-lock-proxy-gcp }
+  - put: kubo-lock-proxy-vsphere
+    params: { release: kubo-lock-proxy-vsphere }
 
 <%
   passed_requirements = env_list.map {|env| "destroy-bosh-#{env}" unless env == 'openstack'}.compact
