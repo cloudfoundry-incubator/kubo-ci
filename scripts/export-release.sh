@@ -10,11 +10,11 @@ source /tmp/local-bosh/director/env
 # stemcell metadata/upload
 #
 
-tar -xzf stemcell/*.tgz $( tar -tzf stemcell/*.tgz | grep 'stemcell.MF' )
-STEMCELL_OS=$( grep -E '^operating_system: ' stemcell.MF | awk '{print $2}' | tr -d "\"'" )
-STEMCELL_VERSION=$( grep -E '^version: ' stemcell.MF | awk '{print $2}' | tr -d "\"'" )
+STEMCELL_OS=$(bosh int git-kubo-deployment/manifests/cfcr.yml --path /stemcells/0/os)
+STEMCELL_VERSION=$(bosh int git-kubo-deployment/manifests/cfcr.yml --path /stemcells/0/version)
 
-bosh -n upload-stemcell stemcell/*.tgz
+
+bosh -n upload-stemcell "https://s3.amazonaws.com/bosh-core-stemcells/warden/bosh-stemcell-$STEMCELL_VERSION-warden-boshlite-$STEMCELL_OS-go_agent.tgz"
 
 #
 # release metadata/upload
@@ -51,7 +51,7 @@ instance_groups: []
 EOF
 
 bosh -n -d compilation deploy manifest.yml
-bosh -d compilation export-release $RELEASE_NAME/$RELEASE_VERSION $STEMCELL_OS/$STEMCELL_VERSION
+bosh -d compilation export-release "$RELEASE_NAME/$RELEASE_VERSION" "$STEMCELL_OS/$STEMCELL_VERSION"
 
-mv *.tgz compiled-release/$( echo *.tgz | sed "s/\.tgz$/-$( date -u +%Y%m%d%H%M%S ).tgz/" )
+mv *.tgz compiled-release/"$( echo *.tgz | sed "s/\\.tgz$/-$( date -u +%Y%m%d%H%M%S ).tgz/" )"
 sha1sum compiled-release/*.tgz
