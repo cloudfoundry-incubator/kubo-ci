@@ -9,6 +9,7 @@ image_resource:
 inputs:
 - name: kubo-ci
 - name: release
+- name: git-kubo-deployment
 
 outputs:
 - name: compiled-release
