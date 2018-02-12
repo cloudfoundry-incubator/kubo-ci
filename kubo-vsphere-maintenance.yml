@@ -1,6 +1,7 @@
 <%
+    require 'pathname'
     vsphere_lock_files =  Dir.glob(File.join(__dir__, "..", "kubo-locks", "kubo-vsphere", "*", "*"))
-    vsphere_lb_lock_files =  Dir.glob(File.join(__dir__, "..", "kubo-locks", "kubo-vsphere-lb", "*", "*"))
+    vsphere_lb_lock_files =  Dir.glob(File.join(__dir__, "..", "kubo-locks", "*-vsphere-lb", "*", "*"))
 
     vsphere_envs = vsphere_lock_files.collect do |file|
       {
@@ -10,8 +11,9 @@
     end
 
     vsphere_lb_envs = vsphere_lb_lock_files.collect do |file|
+      pool_name = Pathname(file).each_filename.to_a[-3]
       {
-        "pool_name" => "kubo-vsphere-lb",
+        "pool_name" => pool_name,
         "name" => File.basename(file)
       }
     end
