@@ -22,5 +22,5 @@ inputs:
   - name: gcs-bosh-creds
   - name: kubo-lock
 
-output:
+outputs:
   - name: gcs-kubeconfig
