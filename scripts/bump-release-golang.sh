@@ -12,7 +12,7 @@ extract_golang_release() {
 
 vendor_golang() {
   pushd "$HOME_DIR"/golang/bosh-packages-golang-release-*
-    blob_name="$(bosh blobs | grep linux | grep 1.9 | awk '{print $1}')"
+    blob_name=$(bosh blobs --json | jq '.Tables[0].Rows[] | .path | select(test("'"${MINOR_GO_VERSION}"'.*linux"))' --raw-output)
     go_version="${blob_name%.tar.gz}"
   popd
 
