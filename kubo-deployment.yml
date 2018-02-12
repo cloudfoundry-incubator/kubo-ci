@@ -983,7 +983,7 @@ end
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
-      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
+      gcs-kubo-deployment-pre: old-kubo-deployment-tarball
     tags: ['<%= iaas %>']
 
   - task: deploy
