@@ -86,6 +86,11 @@ groups:
   - destroy-bosh-upgrade-<%= env %>
   <% end %>
 <% end %>
+- name: build
+  jobs:
+  - run-unit-tests
+  - build-kubo-release
+  - package-kubo-deployment-tarball
 - name: integration-tests
   jobs:
   <% env_list.each do |env| %>
