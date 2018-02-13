@@ -24,6 +24,7 @@ update_stemcell() {
   echo "$manifest" > $manifest_path
 
   echo "Updating Stemcell..."
+  export DEPLOYMENT_NAME=ci-service
   ${DIR}/deploy-k8s-instance.sh
 }
 
