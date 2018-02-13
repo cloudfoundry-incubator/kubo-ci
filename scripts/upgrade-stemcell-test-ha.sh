@@ -34,6 +34,7 @@ EOF
 }
 
 set_kubeconfig() {
+  mkdir -p ~/.kube
   cp gcs-kubeconfig/config ~/.kube/config
 }
 
