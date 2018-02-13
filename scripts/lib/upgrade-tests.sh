@@ -1,5 +1,10 @@
 . "$DIR/lib/lb-info.sh"
 
+set_kubeconfig() {
+  mkdir -p ~/.kube
+  cp gcs-kubeconfig/config ~/.kube/config
+}
+
 query_loop() {
   local timeout_seconds=10
   local pid_to_wait="$1"
