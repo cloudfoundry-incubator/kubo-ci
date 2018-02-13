@@ -10,10 +10,6 @@ lb_address_blocking() {
   current_attempt=0
   max_attempts=30
 
-  set -e
-    "${kubo_deployment_dir}/bin/set_kubeconfig" "${kubo_environment_dir}" ci-service
-  set +e
-
   while [ -z "$lb_address" ]; do
     current_attempt=$((current_attempt+1))
     if [ ${current_attempt} -gt ${max_attempts} ]; then

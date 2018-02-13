@@ -1040,6 +1040,8 @@ end
       passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
     - get: git-kubo-deployment
       passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
+    - get: gcs-kubeconfig
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
 
   - task: unpack-tgz
     file: git-kubo-ci/tasks/unpack-tgz.yml

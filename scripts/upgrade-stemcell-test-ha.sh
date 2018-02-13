@@ -26,5 +26,10 @@ update_stemcell() {
   ${DIR}/deploy-k8s-instance.sh
 }
 
+set_kubeconfig() {
+  cp gcs-kubeconfig/config ~/.kube/config
+}
+
+set_kubeconfig
 upload_new_releases
 run_upgrade_test update_stemcell "$HA_MIN_SERVICE_AVAILABILITY"

@@ -6,7 +6,6 @@ image_resource:
     tag: stable
 run:
   path: git-kubo-ci/scripts/upgrade-stemcell-test-ha.sh
-params:
 
 inputs:
 - name: git-kubo-ci
@@ -16,6 +15,7 @@ inputs:
 - name: gcs-bosh-state
 - name: gcs-bosh-creds
 - name: new-bosh-stemcell
+- name: gcs-kubeconfig
 outputs:
 - name: bosh-state
 - name: bosh-creds
