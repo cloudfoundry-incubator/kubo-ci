@@ -20,14 +20,7 @@ update_stemcell() {
   existing_version="$(bosh int "$manifest_path" --path=/stemcells/0/version)"
 
   echo "Updating $manifest_path's stemcell version from '$existing_version' to '$BOSH_STEMCELL_VERSION'"
-  ruby -e <<EOF
-  require 'yaml'
-  data = YAML.load_file("${manifest_path}")
-  data["stemcells"][0]["version"] = "${BOSH_STEMCELL_VERSION}";
-  File.open("${manifest_path}", 'w') do |f|
-    f.write(data.to_yaml.gsub("---\\n", ""))
-  end
-EOF
+  bosh int "$manifest_path" -o "$DIR/../manifests/ops-files/stemcell-upgrade.yml" -v "stemcell-version=$BOSH_STEMCELL_VERSION"
 
   echo "Updating Stemcell..."
   ${DIR}/deploy-k8s-instance.sh
