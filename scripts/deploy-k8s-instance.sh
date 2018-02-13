@@ -47,6 +47,7 @@ export CLOUD_CONFIG_OPS_FILES
 
 release_source="local"
 
+DEPLOYMENT_OPS_FILE=${DEPLOYMENT_OPS_FILE:-""}
 if [[ -f "${KUBO_CI_DIR}/manifests/ops-files/${DEPLOYMENT_OPS_FILE}" ]]; then
   cp "${KUBO_CI_DIR}/manifests/ops-files/${DEPLOYMENT_OPS_FILE}" "${KUBO_ENVIRONMENT_DIR}/${DEPLOYMENT_NAME}.yml"
 fi
