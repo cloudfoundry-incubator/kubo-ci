@@ -2,8 +2,10 @@
   iaases = %w(gcp vsphere aws openstack)
   stemcell_types = {
     'gcp' => 'google-kvm',
+    'gcp-lb' => 'google-kvm',
     'vsphere' => 'vsphere-esxi',
     'aws' => 'aws-xen',
+    'aws-lb' => 'aws-xen',
     'openstack' => 'openstack-kvm'
   }
   additional_envs = %w(gcp-lb aws-lb)
@@ -13,6 +15,7 @@
     abac: 200
   }
 
+  upgrade_test_iaases = %w(aws-lb gcp-lb openstack vsphere)
 %>
 ---
 pins:
