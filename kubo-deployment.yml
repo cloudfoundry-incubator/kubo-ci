@@ -1085,7 +1085,7 @@ end
       passed: [ 'upgrade-stemcell-<%= iaas %>' ]
     - get: git-kubo-deployment
       passed: [ 'upgrade-stemcell-<%= iaas %>' ]
-     - get: gcs-kubeconfig
+    - get: gcs-kubeconfig
       passed: [ 'upgrade-stemcell-<%= iaas %>' ]
 
   - task: unpack-kubo-deployment
