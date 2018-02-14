@@ -6,14 +6,14 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 . "$DIR/lib/environment.sh"
 . "$DIR/lib/lb-info.sh"
+. "$DIR/lib/utils.sh"
 
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   cp "gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
   cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 fi
 
-mkdir -p ~/.kube
-cp gcs-kubeconfig/config ~/.kube/config
+set_kubeconfig
 
 randomString() {
   head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo ''

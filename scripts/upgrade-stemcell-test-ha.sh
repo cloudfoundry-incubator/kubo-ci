@@ -6,6 +6,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 . "$DIR/lib/environment.sh"
 . "$DIR/lib/upgrade-tests.sh"
+. "$DIR/lib/utils.sh"
 
 HA_MIN_SERVICE_AVAILABILITY="${HA_MIN_SERVICE_AVAILABILITY:-1}"
 
@@ -26,11 +27,6 @@ update_stemcell() {
   echo "Updating Stemcell..."
   export DEPLOYMENT_NAME=ci-service
   ${DIR}/deploy-k8s-instance.sh
-}
-
-set_kubeconfig() {
-  mkdir -p ~/.kube
-  cp gcs-kubeconfig/config ~/.kube/config
 }
 
 set_kubeconfig

@@ -15,6 +15,7 @@ inputs:
 - name: gcs-bosh-state
 - name: gcs-bosh-creds
 - name: gcs-kubo-release-tarball
+- name: gcs-kubeconfig
 outputs:
 - name: bosh-state
 - name: bosh-creds
