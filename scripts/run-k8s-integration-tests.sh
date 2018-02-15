@@ -10,12 +10,13 @@ BASE_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 verify_args() {
   set +e # Cant be set since read returns a non-zero when it reaches EOF
   read -r -d '' usage <<-EOF
-	Usage: $(basename "$0") [-h] environment deployment-name [--skip-addons-tests] [--skip-cloud-agnostic-tests]
+	Usage: $(basename "$0") [-h] environment deployment-name [--skip-addons-tests] [--skip-cloud-agnostic-tests] [--enable-multi-az-tests]
 
 	Help Options:
-          -h                             show this help text
-          --skip-addons-tests            skip the add ons tests
+          -h                            show this help text
+          --skip-addons-tests           skip the add ons tests
           --skip-cloud-agnostic-tests   skip the cloud agnostic tests
+          --enable-multi-az-tests       run the multi az tests
 	EOF
   set -e
 
@@ -88,6 +89,7 @@ run_tests() {
   local deployment="$2"
   local skip_addons_tests=""
   local skip_cloud_agnostic_tests=""
+  local enable_multi_az_tests=""
 
   shift 2
   for flag in "$@"; do
@@ -97,6 +99,9 @@ run_tests() {
         ;;
       --skip-cloud-agnostic-tests)
         skip_cloud_agnostic_tests=true
+        ;;
+      --enable-multi-az-tests)
+        enable_multi_az_tests=true
         ;;
       *)
         echo "$flag is not a valid flag"
@@ -115,6 +120,10 @@ run_tests() {
 
   if [[ -z "$skip_cloud_agnostic_tests" ]]; then
     execute_cloud_agnostic_tests "${routing_mode}" "${authorization_mode}" "${skip_addons_tests}"
+  fi
+
+  if [ "$enable_multi_az_tests" = true ]; then
+    ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/multiaz"
   fi
 
   execute_cloud_specific_tests "${routing_mode}" "${iaas}"
