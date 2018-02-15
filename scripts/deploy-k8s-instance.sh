@@ -34,17 +34,6 @@ cp "$tarball_name" "$KUBO_DEPLOYMENT_DIR/../kubo-release.tgz"
 
 "$KUBO_DEPLOYMENT_DIR/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
 
-iaas=$(bosh int $metadata_path --path=/iaas)
-iaas_cc_opsfile="$KUBO_CI_DIR/manifests/ops-files/${iaas}-k8s-cloud-config.yml"
-
-CLOUD_CONFIG_OPS_FILE=${CLOUD_CONFIG_OPS_FILE:-""}
-if [[ -f "$KUBO_CI_DIR/manifests/ops-files/$CLOUD_CONFIG_OPS_FILE" ]]; then
-  CLOUD_CONFIG_OPS_FILES="$KUBO_CI_DIR/manifests/ops-files/$CLOUD_CONFIG_OPS_FILE"
-elif [[ -f "$iaas_cc_opsfile" ]]; then
-  CLOUD_CONFIG_OPS_FILES="${iaas_cc_opsfile}"
-fi
-export CLOUD_CONFIG_OPS_FILES
-
 release_source="local"
 
 DEPLOYMENT_OPS_FILE=${DEPLOYMENT_OPS_FILE:-""}

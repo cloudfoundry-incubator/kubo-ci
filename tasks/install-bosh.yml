@@ -8,6 +8,7 @@ run:
   path: git-kubo-ci/scripts/install-bosh.sh
 params:
   USE_TURBULENCE:
+  CLOUD_CONFIG_OPS_FILE: ~
 
 inputs:
 - name: git-kubo-ci

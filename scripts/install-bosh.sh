@@ -41,6 +41,17 @@ export BOSH_EXTRA_OPS
 set +x
 echo "Deploying BOSH"
 
+iaas=$(bosh int $metadata_path --path=/iaas)
+iaas_cc_opsfile="$KUBO_CI_DIR/manifests/ops-files/${iaas}-k8s-cloud-config.yml"
+
+CLOUD_CONFIG_OPS_FILE=${CLOUD_CONFIG_OPS_FILE:-""}
+if [[ -f "$KUBO_CI_DIR/manifests/ops-files/$CLOUD_CONFIG_OPS_FILE" ]]; then
+  CLOUD_CONFIG_OPS_FILES="$KUBO_CI_DIR/manifests/ops-files/$CLOUD_CONFIG_OPS_FILE"
+elif [[ -f "$iaas_cc_opsfile" ]]; then
+  CLOUD_CONFIG_OPS_FILES="${iaas_cc_opsfile}"
+fi
+export CLOUD_CONFIG_OPS_FILES
+
 if [ "$iaas" = "gcp" ]; then
   if [[ ! -z "${GCP_SERVICE_ACCOUNT+x}" ]] && [[ "$GCP_SERVICE_ACCOUNT" != "" ]]; then
     echo "$GCP_SERVICE_ACCOUNT" >> "$PWD/key.json"
@@ -57,6 +68,8 @@ elif [ "$iaas" = "openstack" ]; then
 else
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}"
 fi
+
+"$KUBO_DEPLOYMENT_DIR/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
 
 # for Concourse outputs
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
