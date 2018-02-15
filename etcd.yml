@@ -6,6 +6,7 @@ groups:
   - eats
   - eats-turbulence
   - teardown-eats-infrastructure
+  - upload-etcd-release
 - name: kubo-etcd-acceptance
   jobs:
   - deploy-turbulence-api-server
@@ -37,6 +38,15 @@ resource_types:
     repository: cloudfoundry/bosh-deployment-resource
 
 resources:
+- name: kubo-etcd-version
+  type: semver
+  source:
+    driver: gcs
+    key: kubo-etcd-version
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    initial_version: 9.0.0
+
 - name: 60m
   type: time
   source: {interval: 60m}
@@ -980,3 +990,37 @@ jobs:
       BOSH_DEPLOYMENT: jfmyers9-etcd-acceptance-total-network-partition
       BOSH_ENVIRONMENT: https://10.100.0.6:25555
       ERRAND_NAME: read-availability-during-total-network-partition
+
+- name: upload-etcd-release
+  plan:
+  - aggregate:
+    - get: git-kubo-etcd
+      passed: [ 'eats-turbulence' ]
+    - get: git-kubo-ci
+    - get: kubo-etcd-version
+  - task: upload-releases
+    file: git-kubo-ci/tasks/upload-kubo-etcd-release.yml
+    params:
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - aggregate:
+    - do:
+      - put: git-kubo-etcd
+        params:
+          repository: git-kubo-etcd-output
+      # We need to push the tags separately due to
+      # https://github.com/concourse/git-resource/issues/110
+      - put: git-kubo-etcd
+        params:
+          repository: git-kubo-etcd-output
+          only_tag: true
+      - put: gh-release-kubo-etcd
+        params:
+          name: kubo-etcd/name
+          tag: kubo-etcd-version/version
+          tag_prefix: v
+          body: kubo-etcd/body
+          globs: ["kubo-etcd/*.tgz"]
+  - put: kubo-etcd-version
+    params:
+      bump: major

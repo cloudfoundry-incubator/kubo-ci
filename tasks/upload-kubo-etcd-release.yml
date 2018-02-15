@@ -1,0 +1,21 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+    tag: stable
+run:
+  path: git-kubo-ci/scripts/upload-kubo-etcd-release.sh
+
+
+params:
+  ACCESS_KEY_ID: ""
+  SECRET_ACCESS_KEY: ""
+
+inputs:
+  - name: git-kubo-ci
+  - name: git-kubo-etcd
+  - name: kubo-etcd-version
+outputs:
+  - name: kubo-etcd
+  - name: git-kubo-etcd-output
