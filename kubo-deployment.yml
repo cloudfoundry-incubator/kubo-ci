@@ -1362,6 +1362,11 @@ end
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
     on_failure: *on_failure_alert
+  - task: destroy-tinyproxy
+    tags: [vsphere]
+    file: git-kubo-ci/tasks/destroy-tinyproxy.yml
+    input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
+    on_failure: *on_failure_alert
 
 - name: destroy-bosh-proxy-vsphere
   plan:
