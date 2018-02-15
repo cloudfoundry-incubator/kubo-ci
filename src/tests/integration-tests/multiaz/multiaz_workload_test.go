@@ -21,7 +21,7 @@ var _ = Describe("Multi-AZ workload deployment", func() {
 		session.Wait("60s")
 	})
 
-	FIt("deploys three pods across three azs", func() {
+	It("deploys three pods across three azs", func() {
 		nodeList := runner.RunKubectlCommand("get", "nodes", "-o", "yaml")
 		Eventually(nodeList, "60s").Should(gexec.Exit(0))
 		nodeZones, err := getNodeZones(nodeList.Out.Contents())
