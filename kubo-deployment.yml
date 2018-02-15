@@ -61,6 +61,11 @@ groups:
   - release-version
   - upload-github-releases
   - bump-minor-version
+- name: build
+  jobs:
+  - run-unit-tests
+  - build-kubo-release
+  - package-kubo-deployment-tarball
 <% env_list.each do |env| %>
 - name: <%= env %>
   jobs:
@@ -89,11 +94,6 @@ groups:
   - destroy-bosh-upgrade-<%= env %>
   <% end %>
 <% end %>
-- name: build
-  jobs:
-  - run-unit-tests
-  - build-kubo-release
-  - package-kubo-deployment-tarball
 - name: integration-tests
   jobs:
   <% env_list.each do |env| %>
