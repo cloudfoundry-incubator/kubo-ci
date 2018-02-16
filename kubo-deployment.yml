@@ -709,6 +709,7 @@ jobs:
     - get: slackers
     - get: git-kubo-ci
     - get: kubo-lock-<%= env %>
+      version: every
       trigger: true
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-bosh-state
