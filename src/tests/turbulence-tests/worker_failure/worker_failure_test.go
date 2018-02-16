@@ -19,7 +19,7 @@ var _ = Describe("Worker failure scenarios", func() {
 		deployment          director.Deployment
 		countRunningWorkers func() int
 		kubectl             *KubectlRunner
-		nginxSpec           = PathFromRoot("specs/nginx.yml")
+		nginxDaemonSetSpec  = PathFromRoot("specs/nginx-daemonset.yml")
 		testconfig          *config.Config
 	)
 
@@ -44,7 +44,7 @@ var _ = Describe("Worker failure scenarios", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", nginxSpec)
+		kubectl.RunKubectlCommand("delete", "-f", nginxDaemonSetSpec)
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
 
@@ -83,8 +83,8 @@ var _ = Describe("Worker failure scenarios", func() {
 		Eventually(func() bool { return AllBoshWorkersHaveJoinedK8s(deployment, kubectl) }, 600, 20).Should(BeTrue())
 
 		By("Deploying nginx on 3 nodes")
-		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxSpec), "30s", "5s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), "120s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxDaemonSetSpec), "30s", "5s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("rollout", "status", "daemonset/nginx", "-w"), "120s").Should(gexec.Exit(0))
 
 		By("Verifying nginx got deployed on new node")
 		nodeNames := GetNodeNamesForRunningPods(kubectl)
