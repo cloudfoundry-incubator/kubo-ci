@@ -16,7 +16,7 @@ func TestK8sMultiAZ(t *testing.T) {
 
 var (
 	runner     *test_helpers.KubectlRunner
-	nginxSpec  = test_helpers.PathFromRoot("specs/nginx.yml")
+	nginxSpec  = test_helpers.PathFromRoot("specs/nginx-daemonset.yml")
 	testconfig *config.Config
 )
 

@@ -12,7 +12,7 @@ var _ = Describe("Multi-AZ workload deployment", func() {
 		deployNginx := runner.RunKubectlCommand("create", "-f", nginxSpec)
 		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
 
-		rolloutWatch := runner.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w")
+		rolloutWatch := runner.RunKubectlCommand("rollout", "status", "daemonset/nginx", "-w")
 		Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
 	})
 
