@@ -470,6 +470,11 @@ jobs:
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     params:
       USE_TURBULENCE: 1
+      <% if env.include? 'openstack' %>
+      CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
+      <% elsif env.include? 'gcp' %>
+      CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
+      <% end %>
     on_failure: *on_failure_alert
   - aggregate:
     - put: gcs-bosh-creds
@@ -531,7 +536,6 @@ jobs:
     tags: [<%= env %>]
     params:
       DEPLOYMENT_NAME: ci-service-k8s-with-abac
-      CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     attempts: 2
@@ -650,10 +654,7 @@ jobs:
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
       WITH_PRIVILEGED_CONTAINERS: 1
-    <% if env.include? 'openstack' %>
-      CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
-    <% elsif env.include? 'gcp' %>
-      CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
+    <% if env.include? 'gcp' %>
       DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
     <% end %>
     on_failure: *on_failure_alert
