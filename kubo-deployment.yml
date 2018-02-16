@@ -52,7 +52,6 @@ groups:
   - install-old-bosh-<%= iaas %>
   - deploy-old-k8s-<%= iaas %>
   - deploy-workload-upgrade-<%= iaas %>
-  - upgrade-stemcell-<%= iaas %>
   - upgrade-bosh-and-kubo-<%= iaas %>
   - destroy-k8s-upgrade-<%= iaas %>
   - destroy-bosh-upgrade-<%= iaas %>
@@ -94,7 +93,6 @@ groups:
   - install-old-bosh-<%= env %>
   - deploy-old-k8s-<%= env %>
   - deploy-workload-upgrade-<%= env %>
-  - upgrade-stemcell-<%= env %>
   - upgrade-bosh-and-kubo-<%= env %>
   - destroy-k8s-upgrade-<%= env %>
   - destroy-bosh-upgrade-<%= env %>
@@ -195,13 +193,6 @@ resources:
     branch: master
     private_key: ((git-ssh-key))
     pool: kubo-vsphere
-
-<% upgrade_test_iaases.each do |iaas| %>
-- name: ubuntu-trusty-stemcell-<%= iaas %>
-  type: bosh-io-stemcell
-  source:
-    name: bosh-<%= stemcell_types[iaas] %>-ubuntu-trusty-go_agent
-<% end %>
 
 - name: gcs-bosh-state
   type: gcs
@@ -1016,58 +1007,6 @@ end
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
 
-- name: upgrade-stemcell-<%= iaas %>
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
-      version: every
-      trigger: true
-      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
-    - get: old-kubo-deployment-tarball
-      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
-    - get: old-kubo-release-tarball
-      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
-    - get: gcs-bosh-state
-      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
-    - get: gcs-bosh-creds
-      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
-    - get: ubuntu-trusty-stemcell-<%= iaas %>
-      params:
-        tarball: false
-    - get: kubo-version
-      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
-    - get: git-kubo-release
-      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
-    - get: git-kubo-deployment
-      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
-    - get: gcs-kubeconfig
-      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
-
-  - task: unpack-tgz
-    file: git-kubo-ci/tasks/unpack-tgz.yml
-    tags: ['<%= iaas %>']
-    input_mapping:
-      source_tarball: old-kubo-deployment-tarball
-    params:
-      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
-
-  - task: upgrade
-    tags: ['<%= iaas %>']
-    file: git-kubo-ci/tasks/upgrade-stemcell.yml
-    input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir
-      gcs-kubo-release-tarball: old-kubo-release-tarball
-      new-bosh-stemcell: ubuntu-trusty-stemcell-<%= iaas %>
-    params:
-      HA_MIN_SERVICE_AVAILABILITY: "0.99"
-
 - name: upgrade-bosh-and-kubo-<%= iaas %>
   plan:
   - aggregate:
@@ -1075,23 +1014,23 @@ end
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
     - get: kubo-version
-      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
     - get: git-kubo-release
-      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
     - get: git-kubo-deployment
-      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
     - get: gcs-kubeconfig
-      passed: [ 'upgrade-stemcell-<%= iaas %>' ]
+      passed: [ 'deploy-workload-upgrade-<%= iaas %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
