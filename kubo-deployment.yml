@@ -8,7 +8,7 @@
     'aws-lb' => 'aws-xen',
     'openstack' => 'openstack-kvm'
   }
-  additional_envs = %w(gcp-lb aws-lb)
+  additional_envs = %w(gcp-lb aws-lb vsphere-lb)
   env_list = iaases + additional_envs
   enable_failure_alert = true
   k8s_api_port_bumps = {
@@ -16,6 +16,8 @@
   }
 
   upgrade_test_iaases = %w(aws-lb gcp-lb openstack vsphere)
+  conformance_test_iaases = iaases
+  deploy_bosh_test_iaases = iaases
 %>
 ---
 pins:
@@ -69,12 +71,16 @@ groups:
 <% env_list.each do |env| %>
 - name: <%= env %>
   jobs:
-  - deploy-bosh-test-<%= env.split('-').first %>
+  <% if deploy_bosh_test_iaases.include? env %>
+  - deploy-bosh-test-<%= env %>
+  <% end %>
   - claim-lock-<%= env %>
   - install-bosh-<%= env %>
   - deploy-k8s-<%= env %>
   - run-k8s-integration-tests-<%= env %>
-  - run-k8s-conformance-tests-<%= env.split('-').first %>
+  <% if conformance_test_iaases.include? env %>
+  - run-k8s-conformance-tests-<%= env %>
+  <% end %>
   - run-k8s-turbulence-tests-<%= env %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
@@ -101,8 +107,8 @@ groups:
   <% end %>
 - name: conformance-tests
   jobs:
-  <% env_list.each do |env| %>
-  - run-k8s-conformance-tests-<%= env.split('-').first %>
+  <% conformance_test_iaases.each do |env| %>
+  - run-k8s-conformance-tests-<%= env %>
   <% end %>
 - name: turbulence-tests
   jobs:
@@ -395,7 +401,7 @@ jobs:
     params:
       file: kubo-deployment-tarball/kubo-deployment*.tgz
 
-<% iaases.each do |iaas| %>
+<% deploy_bosh_test_iaases.each do |iaas| %>
 - name: deploy-bosh-test-<%= iaas %>
   max_in_flight: 1
   plan:
@@ -536,6 +542,7 @@ jobs:
     tags: [<%= env %>]
     params:
       DEPLOYMENT_NAME: ci-service-k8s-with-abac
+      CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     attempts: 2
@@ -654,7 +661,7 @@ jobs:
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
       WITH_PRIVILEGED_CONTAINERS: 1
-    <% if env.include? 'gcp' %>
+    <% if env =~ /^(gcp|vsphere-lb)/ %>
       DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
     <% end %>
     on_failure: *on_failure_alert
