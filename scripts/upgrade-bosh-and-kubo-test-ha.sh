@@ -17,6 +17,7 @@ update_bosh() {
 
 update_kubo() {
   echo "Updating Kubo..."
+  export DEPLOYMENT_NAME=ci-service
   ${DIR}/deploy-k8s-instance.sh
 }
 
