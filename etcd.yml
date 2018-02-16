@@ -205,6 +205,14 @@ resources:
     bucket: kubo-public
     versioned_file: latest-kubo-etcd.tgz
 
+- name: gh-release-kubo-etcd
+  type: github-release
+  source:
+    owner: pivotal-cf-experimental
+    repository: kubo-etcd
+    access_token: ((github-token-key))
+    drafts: true
+
 - name: jfmyers9-long-running-etcd-deployment
   type: bosh-deployment
   source:
