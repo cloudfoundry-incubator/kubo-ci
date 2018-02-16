@@ -10,7 +10,6 @@ run:
 params:
   KUBERNETES_AUTHENTICATION_POLICY:
   DEPLOYMENT_NAME: ci-service
-  TEST_MULTI_AZ:
 
 inputs:
   - name: git-kubo-ci

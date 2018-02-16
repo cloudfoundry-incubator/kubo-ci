@@ -6,7 +6,6 @@ set -eu
 set -o pipefail
 
 BASE_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/../.. && pwd)
-flags=()
 
 setup_env() {
   export GOPATH="$BASE_DIR"
@@ -22,10 +21,7 @@ setup_env() {
 
 main() {
   setup_env
-  if [[ ! -z ${TEST_MULTI_AZ+x} ]] && [[ ! -z "${TEST_MULTI_AZ}" ]] && [[ "${TEST_MULTI_AZ}" = true ]]; then
-    flags+=("--enable-multi-az-tests")
-  fi
-  "$BASE_DIR/scripts/run-k8s-integration-tests.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" "${flags[@]}"
+  "$BASE_DIR/scripts/run-k8s-integration-tests.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" "$@"
 }
 
 main "$@"
