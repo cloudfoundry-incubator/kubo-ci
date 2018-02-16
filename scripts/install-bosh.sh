@@ -38,9 +38,6 @@ fi
 
 export BOSH_EXTRA_OPS
 
-set +x
-echo "Deploying BOSH"
-
 iaas=$(bosh int $metadata_path --path=/iaas)
 iaas_cc_opsfile="$KUBO_CI_DIR/manifests/ops-files/${iaas}-k8s-cloud-config.yml"
 
@@ -51,6 +48,9 @@ elif [[ -f "$iaas_cc_opsfile" ]]; then
   CLOUD_CONFIG_OPS_FILES="${iaas_cc_opsfile}"
 fi
 export CLOUD_CONFIG_OPS_FILES
+
+set +x
+echo "Deploying BOSH"
 
 if [ "$iaas" = "gcp" ]; then
   if [[ ! -z "${GCP_SERVICE_ACCOUNT+x}" ]] && [[ "$GCP_SERVICE_ACCOUNT" != "" ]]; then
