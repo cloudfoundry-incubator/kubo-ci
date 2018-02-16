@@ -469,7 +469,7 @@ jobs:
       USE_TURBULENCE: 1
       <% if env.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
-      <% elsif env.include? 'gcp' %>
+      <% elsif env =~ /^(gcp|vsphere-lb)/ %>
       CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
       <% end %>
     on_failure: *on_failure_alert
