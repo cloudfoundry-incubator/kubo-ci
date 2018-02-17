@@ -1,0 +1,48 @@
+- type: replace
+  path: /azs/name=z2?
+  value:
+    name: z2
+    cloud_properties:
+      zone: us-east1-c
+
+- type: replace
+  path: /azs/name=z3?
+  value:
+    name: z3
+    cloud_properties:
+      zone: us-east1-a
+
+- type: replace
+  path: /networks/name=default/subnets/0/azs?
+  value: [ z1 ]
+
+- type: remove
+  path: /networks/name=default/subnets/0/az?
+
+- type: replace
+  path: /networks/name=default/subnets/-
+  value:
+    azs:
+    - z2
+    cloud_properties:
+      subnet: subnet-e5d4c7ae
+    dns:
+    - 169.254.169.253
+    gateway: 10.0.23.1
+    range: 10.0.23.0/24
+    reserved:
+    - 10.0.23.1/30
+
+- type: replace
+  path: /networks/name=default/subnets/-
+  value:
+    azs:
+    - z3
+    cloud_properties:
+      subnet: subnet-790b371d
+    dns:
+    - 169.254.169.253
+    gateway: 10.0.22.1
+    range: 10.0.22.0/24
+    reserved:
+    - 10.0.22.1/30
