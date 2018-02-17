@@ -480,6 +480,10 @@ jobs:
     - put: gcs-bosh-state
       params:
         file: bosh-state/state.json
+  - task: configure-bosh-for-turbulence
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/configure-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
 
 <% if env == 'gcp' %>
 - name: deploy-k8s-with-abac-<%= env %>
@@ -655,13 +659,6 @@ jobs:
       DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
     <% end %>
     on_failure: *on_failure_alert
-
-  - task: configure-bosh-for-turbulence
-    tags: ['<%= env %>']
-    input_mapping:
-      kubo-lock: kubo-lock-<%= env %>
-    file: git-kubo-ci/tasks/configure-bosh.yml
-    tags: ['<%= env %>']
 
 - name: run-k8s-integration-tests-<%= env %>
   plan:
