@@ -259,7 +259,6 @@ jobs:
       kubo-lock: environment
       gcs-bosh-creds: bosh-creds
     params:
-      KUBERNETES_AUTHENTICATION_POLICY: RBAC
       DEPLOYMENT_NAME: ci-service-integration
   - task: pod-to-pod
     tags: ['gcp']

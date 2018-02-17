@@ -577,7 +577,6 @@ jobs:
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
     params:
-      KUBERNETES_AUTHENTICATION_POLICY: ABAC
       DEPLOYMENT_NAME: ci-service-k8s-with-abac
     on_failure: *on_failure_alert
   - task: pod-to-pod
@@ -691,8 +690,6 @@ jobs:
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
-    params:
-      KUBERNETES_AUTHENTICATION_POLICY: RBAC
     on_failure: *on_failure_alert
   - task: pod-to-pod
     tags: [<%= env %>]
@@ -1268,7 +1265,6 @@ end
     input_mapping:
       kubo-lock: kubo-lock-with-proxy
     params:
-      KUBERNETES_AUTHENTICATION_POLICY: RBAC
       DEPLOYMENT_NAME: ci-service-k8s-with-proxy
     on_failure: *on_failure_alert
   - task: pod-to-pod

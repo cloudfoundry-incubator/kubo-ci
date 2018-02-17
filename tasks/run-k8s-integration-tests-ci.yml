@@ -8,7 +8,6 @@ run:
   path: git-kubo-ci/scripts/ci/run-k8s-integration-tests-ci.sh
 
 params:
-  KUBERNETES_AUTHENTICATION_POLICY:
   DEPLOYMENT_NAME: ci-service
 
 inputs:
