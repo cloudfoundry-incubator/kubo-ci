@@ -1,0 +1,106 @@
+resource_types:
+- name: bosh-deployment
+  type: docker-image
+  source:
+    repository: cloudfoundry/bosh-deployment-resource
+
+resources:
+- name: git-cfcr-etcd-release
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/cfcr-etcd-release
+    branch: master
+
+- name: stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-google-kvm-ubuntu-trusty-go_agent
+
+- name: single-node-deployment
+  type: bosh-deployment
+  source:
+    deployment: etcd-single-node
+    target: ((cfcr-etcd-bosh.target))
+    client: ((cfcr-etcd-bosh.client))
+    client_secret: ((cfcr-etcd-bosh.client_secret))
+    ca_cert: ((cfcr-etcd-bosh.ca_cert))
+    jumpbox_url: ((cfcr-etcd-bosh.jumpbox_url))
+    jumpbox_ssh_key: ((cfcr-etcd-bosh.jumpbox_ssh_key))
+
+jobs:
+- name: deploy-etcd
+  plan:
+  - aggregate:
+    - get: git-cfcr-etcd-release
+      trigger: true
+    - get: stemcell
+  - task: create-release
+    config:
+      inputs:
+      - name: git-cfcr-etcd-release
+      outputs:
+      - name: cfcr-etcd-release-tarball
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: pcfkubo/kubo-ci}
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          set -exu
+
+          bosh sync-blobs --dir=git-cfcr-etcd-release
+          bosh create-release --dir=git-cfcr-etcd-release --tarball=cfcr-etcd-release-tarball/cfcr-etcd-release.tgz --timestamp-version
+  - put: single-node-deployment
+    params:
+      manifest: git-cfcr-etcd-release/manifests/single-node.yml
+      stemcells:
+      - stemcell/stemcell.tgz
+      releases:
+      - cfcr-etcd-release-tarball/cfcr-etcd-release.tgz
+
+- name: run-acceptance
+  plan:
+  - get: git-cfcr-etcd-release
+    passed: [ deploy-etcd ]
+    trigger: true
+  - task: run-acceptance-errand
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: pcfkubo/kubo-ci}
+      params:
+        BOSH_ENVIRONMENT: ((cfcr-etcd-bosh.target))
+        BOSH_CLIENT: ((cfcr-etcd-bosh.client))
+        BOSH_CLIENT_SECRET: ((cfcr-etcd-bosh.client_secret))
+        BOSH_CA_CERT: ((cfcr-etcd-bosh.ca_cert))
+        BOSH_DEPLOYMENT: etcd-single-node
+        JUMPBOX_URL: ((cfcr-etcd-bosh.jumpbox_url))
+        JUMPBOX_SSH_KEY: ((cfcr-etcd-bosh.jumpbox_ssh_key))
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          set -eu
+
+          ROOT="${PWD}"
+
+          echo "${JUMPBOX_SSH_KEY}" > "${ROOT}/jumpbox.key"
+          chmod 600 "${ROOT}/jumpbox.key"
+          export BOSH_ALL_PROXY="ssh+socks5://${JUMPBOX_URL}?private-key=${ROOT}/jumpbox.key"
+
+          bosh run-errand acceptance
+
+- name: delete-etcd
+  plan:
+  - get: git-cfcr-etcd-release
+    passed: [ run-acceptance ]
+    trigger: true
+  - put: single-node-deployment
+    params:
+      delete:
+        enabled: true
