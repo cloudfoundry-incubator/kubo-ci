@@ -22,8 +22,14 @@ BOSH_CLIENT=bosh_admin
 BOSH_CLIENT_SECRET="$(get_bosh_secret)"
 export BOSH_CLIENT BOSH_CLIENT_SECRET
 
-bosh -n -e "${BOSH_ENVIRONMENT}" \
-  update-cloud-config "${KUBO_DEPLOYMENT_DIR}/configurations/${IAAS}/cloud-config.yml" \
+bosh -n update-cloud-config "${KUBO_DEPLOYMENT_DIR}/configurations/${IAAS}/cloud-config.yml" \
   -l "${KUBO_ENVIRONMENT_DIR}/director.yml"
-bosh -n -e "${BOSH_ENVIRONMENT}" upload-stemcell "${stemcell_url}"
-bosh -n -e "${BOSH_ENVIRONMENT}" deploy "${manifest_file}" -d "tinyproxy"
+
+bosh -n upload-stemcell "${stemcell_url}"
+
+opsfile_arguments=""
+if [[ -n ${PROXY_STATIC_IP} ]]; then
+  opsfile_arguments=" -o ${PWD}/git-kubo-ci/manifests/ops-files/airgap-tinyproxy.yml -v proxy_static_ip=${PROXY_STATIC_IP}"
+fi
+
+bosh -n -d tinyproxy deploy "${manifest_file}" ${opsfile_arguments}

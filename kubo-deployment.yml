@@ -192,7 +192,7 @@ resources:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key))
-    pool: kubo-vsphere
+    pool: kubo-vsphere-proxy
 
 - name: gcs-bosh-state
   type: gcs
@@ -1211,6 +1211,7 @@ end
     input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
     params:
       IAAS: "vsphere"
+      PROXY_STATIC_IP: 10.74.42.132
   - task: apply-runtime-config
     file: git-kubo-ci/tasks/apply-runtime-config.yml
     tags: [vsphere]
