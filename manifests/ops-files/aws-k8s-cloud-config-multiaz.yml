@@ -3,14 +3,14 @@
   value:
     name: z2
     cloud_properties:
-      availability_zone: us-east1-c
+      availability_zone: us-east-1c
 
 - type: replace
   path: /azs/name=z3?
   value:
     name: z3
     cloud_properties:
-      availability_zone: us-east1-a
+      availability_zone: us-east-1a
 
 - type: replace
   path: /networks/name=default/subnets/0/azs?
