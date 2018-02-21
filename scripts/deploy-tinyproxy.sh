@@ -23,7 +23,7 @@ BOSH_CLIENT_SECRET="$(get_bosh_secret)"
 export BOSH_CLIENT BOSH_CLIENT_SECRET
 
 bosh -n update-cloud-config "${KUBO_DEPLOYMENT_DIR}/configurations/${IAAS}/cloud-config.yml" \
-  -l "${KUBO_ENVIRONMENT_DIR}/director.yml"
+  -l "${KUBO_ENVIRONMENT_DIR}/director.yml" -o "${PWD}/git-kubo-ci/manifests/ops-files/vsphere-proxy-cloud-config.yml" -v "proxy_static_ip=${PROXY_STATIC_IP}"
 
 bosh -n upload-stemcell "${stemcell_url}"
 
