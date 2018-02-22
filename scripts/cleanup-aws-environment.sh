@@ -32,6 +32,17 @@ delete_volumes() {
   done
 }
 
+cleanup_load_balancers() {
+  local is_k8s_lb
+  local lbs=$(aws elb describe-load-balancers --output json | jq '.LoadBalancerDescriptions | .[] | .LoadBalancerName | select(test("^[a-z0-9]+$"))' -r)
+  for lb in $lbs; do
+    is_k8s_lb=$(aws elb describe-tags --load-balancer-name "${lb}" --output json | jq '.TagDescriptions[0].Tags | .[] | select(.Key == "kubernetes.io/cluster/'"${director_name}"'").Value' -r)
+    if [[ $is_k8s_lb -eq 'owned' ]]; then
+      aws elb delete-load-balancer --load-balancer-name "${lb}"
+    fi
+  done
+}
+
 director_instance_id=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text --filters "Name=network-interface.addresses.private-ip-address,Values=${director_ip}" "Name=subnet-id,Values=${subnet_id}")
 if [ -z "$director_instance_id" ]; then
   echo "No instance found for BOSH Director IP address"
@@ -60,3 +71,6 @@ if [ ! -z "$volume_ids" ]; then
   echo "Deleting volumes tagged with director name '${director_name}'"
   delete_volumes "$volume_ids"
 fi
+
+echo "Deleting load balancers"
+cleanup_load_balancers
