@@ -18,6 +18,7 @@
   upgrade_test_iaases = %w(aws-lb gcp-lb)
   conformance_test_iaases = iaases
   deploy_bosh_test_iaases = iaases
+  proxy_iaases = %w(vsphere)
 %>
 ---
 pins:
@@ -55,6 +56,14 @@ groups:
   - upgrade-bosh-and-kubo-<%= iaas %>
   - destroy-k8s-upgrade-<%= iaas %>
   - destroy-bosh-upgrade-<%= iaas %>
+<% end %>
+<% proxy_iaases.each do |env| %>
+  - claim-lock-proxy-<%= env %>
+  - install-bosh-proxy-<%= env %>
+  - deploy-k8s-proxy-<%= env %>
+  - run-k8s-integration-tests-proxy-<%= env %>
+  - destroy-k8s-proxy-<%= env %>
+  - destroy-bosh-proxy-<%= env %>
 <% end %>
   - upload-kubo-deployment
   - upload-kubo-release
@@ -115,12 +124,14 @@ groups:
   <% end %>
 - name: proxy
   jobs:
-  - claim-lock-proxy-vsphere
-  - install-bosh-proxy-vsphere
-  - deploy-k8s-proxy-vsphere
-  - run-k8s-integration-tests-proxy-vsphere
-  - destroy-k8s-proxy-vsphere
-  - destroy-bosh-proxy-vsphere
+  <% proxy_iaases.each do |env| %>
+    - claim-lock-proxy-<%= env %>
+    - install-bosh-proxy-<%= env %>
+    - deploy-k8s-proxy-<%= env %>
+    - run-k8s-integration-tests-proxy-<%= env %>
+    - destroy-k8s-proxy-<%= env %>
+    - destroy-bosh-proxy-<%= env %>
+  <% end %>
 
 resource_types:
 - name: gcs
@@ -1344,6 +1355,7 @@ end
 <%
   passed_requirements = env_list.map {|env| "destroy-bosh-#{env}" unless env == 'openstack'}.compact
   passed_requirements += upgrade_test_iaases.map {|iaas| "destroy-bosh-upgrade-#{iaas}" unless iaas == 'openstack'}.compact
+  passed_requirements += proxy_iaases.map {|iaas| "destroy-bosh-proxy-#{iaas}"}.compact
   passed_deploy_bosh = iaases.map {|iaas| "deploy-bosh-test-#{iaas}" unless iaas =='openstack' }.compact
 %>
 
