@@ -2,10 +2,6 @@ pins:
   stemcell_version: &stemcell_version "3468.13"
 groups: []
 resources:
-- name: ubuntu-trusty
-  type: bosh-io-stemcell
-  source:
-    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
 - name: kubo-etcd-release
   type: github-release
   source:
@@ -39,6 +35,11 @@ resources:
   source:
     branch: master
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
+- name: git-kubo-deployment
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/kubo-deployment
 resource_types:
 - name: gcs
   type: docker-image
@@ -49,11 +50,9 @@ jobs:
   plan:
   - aggregate:
     - get: kubo-ci
+    - get: git-kubo-deployment
     - get: docker-boshrelease
       trigger: true
-    - get: ubuntu-trusty
-      version:
-        version: *stemcell_version
   - task: export-release
     privileged: true
     file: kubo-ci/tasks/export-release.yml
@@ -67,11 +66,9 @@ jobs:
   plan:
   - aggregate:
     - get: kubo-ci
+    - get: git-kubo-deployment
     - get: kubo-etcd-release
       trigger: true
-    - get: ubuntu-trusty
-      version:
-        version: *stemcell_version
   - task: export-release
     privileged: true
     file: kubo-ci/tasks/export-release.yml
@@ -85,11 +82,9 @@ jobs:
   plan:
   - aggregate:
     - get: kubo-ci
+    - get: git-kubo-deployment
     - get: cf-mysql-release
       trigger: true
-    - get: ubuntu-trusty
-      version:
-        version: *stemcell_version
   - task: export-release
     privileged: true
     file: kubo-ci/tasks/export-release.yml
@@ -103,11 +98,9 @@ jobs:
   plan:
   - aggregate:
     - get: kubo-ci
+    - get: git-kubo-deployment
     - get: uaa-release
       trigger: true
-    - get: ubuntu-trusty
-      version:
-        version: *stemcell_version
   - task: export-release
     privileged: true
     file: kubo-ci/tasks/export-release.yml
@@ -122,11 +115,9 @@ jobs:
   plan:
   - aggregate:
     - get: kubo-ci
+    - get: git-kubo-deployment
     - get: syslog-migration-release
       trigger: true
-    - get: ubuntu-trusty
-      version:
-        version: *stemcell_version
   - task: export-release
     privileged: true
     file: kubo-ci/tasks/export-release.yml
