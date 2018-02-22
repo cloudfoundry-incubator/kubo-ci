@@ -38,6 +38,7 @@ cleanup_load_balancers() {
   for lb in $lbs; do
     is_k8s_lb=$(aws elb describe-tags --load-balancer-name "${lb}" --output json | jq '.TagDescriptions[0].Tags | .[] | select(.Key == "kubernetes.io/cluster/'"${director_name}"'").Value' -r)
     if [[ "owned" == "${is_k8s_lb}" ]]; then
+      echo "Deleting load balancer ${lb}"
       aws elb delete-load-balancer --load-balancer-name "${lb}"
     fi
   done
