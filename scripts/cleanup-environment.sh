@@ -36,7 +36,7 @@ delete_firewall_rules() {
   local env_name=$(bosh int ${ENV_FILE} --path='/director_name')
   local fw_rules=$(gcloud compute firewall-rules list --filter="targetTags:(${env_name}-ci-service-worker)" --format='value(NAME)')
   if [[ -n $fw_rules ]]; then
-    gcloud compute firewall-rules delete $fw_rules
+    gcloud compute firewall-rules delete --quiet $fw_rules
   fi
 }
 
