@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/onsi/ginkgo/config"
@@ -168,4 +169,56 @@ func (runner *KubectlRunner) GetPodStatus(namespace string, podName string) stri
 	matches := re.FindStringSubmatch(string(session.Out.Contents()))
 	podStatus := matches[1]
 	return podStatus
+}
+
+func (runner *KubectlRunner) GetLBAddress(service, iaas string) string {
+	output := []string{}
+	loadBalancerAddress := ""
+	if iaas == "gcp" {
+		output = runner.GetOutput("get", "service", service, "-o", "jsonpath={.status.loadBalancer.ingress[0].ip}")
+	} else if iaas == "aws" {
+		output = runner.GetOutput("get", "service", service, "-o", "jsonpath={.status.loadBalancer.ingress[0].hostname}")
+	}
+	fmt.Printf("Output [%s]", output)
+	if len(output) != 0 {
+		loadBalancerAddress = output[0]
+	}
+	return loadBalancerAddress
+}
+
+func (runner *KubectlRunner) CleanupServiceWithLB(loadBalancerAddress, pathToSpec, iaas string) {
+	lbSecurityGroup := ""
+
+	if iaas == "aws" {
+		// Get the LB
+		if loadBalancerAddress != "" {
+			// Get the security group
+			cmd := exec.Command("aws", "elb", "describe-load-balancers", "--query",
+				fmt.Sprintf("LoadBalancerDescriptions[?DNSName==`%s`].[SecurityGroups]", loadBalancerAddress),
+				"--output", "text")
+			fmt.Fprintf(GinkgoWriter, "Get LoadBalancer security group - %s\n", cmd.Args)
+			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+			Eventually(session, "10s").Should(gexec.Exit(0))
+			Expect(err).NotTo(HaveOccurred())
+			output := strings.Fields(string(session.Out.Contents()))
+			if len(output) != 0 {
+				lbSecurityGroup = output[0]
+				fmt.Printf("Found LB security group [%s]", lbSecurityGroup)
+			}
+
+		}
+	}
+
+	session := runner.RunKubectlCommand("delete", "-f", pathToSpec)
+	session.Wait("60s")
+
+	// Teardown the security group
+	if lbSecurityGroup != "" {
+		cmd := exec.Command("aws", "ec2", "revoke-security-group-ingress", "--group-id",
+			os.Getenv("AWS_INGRESS_GROUP_ID"), "--source-group", lbSecurityGroup, "--protocol", "all")
+		fmt.Fprintf(GinkgoWriter, "Teardown security groups - %s\n", cmd.Args)
+		session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+		Expect(err).NotTo(HaveOccurred())
+		Eventually(session, "10s").Should(gexec.Exit(0))
+	}
 }
