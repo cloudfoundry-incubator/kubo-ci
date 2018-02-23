@@ -107,20 +107,25 @@ groups:
   - destroy-bosh-upgrade-<%= env %>
   <% end %>
 <% end %>
-- name: integration-tests
+- name: integration
   jobs:
   <% env_list.each do |env| %>
   - run-k8s-integration-tests-<%= env %>
   <% end %>
-- name: conformance-tests
+- name: conformance
   jobs:
   <% conformance_test_iaases.each do |env| %>
   - run-k8s-conformance-tests-<%= env %>
   <% end %>
-- name: turbulence-tests
+- name: turbulence
   jobs:
   <% env_list.each do |env| %>
   - run-k8s-turbulence-tests-<%= env %>
+  <% end %>
+- name: upgrade
+  jobs:
+  <% upgrade_test_iaases.each do |env| %>
+  - upgrade-bosh-and-kubo-<%= env %>
   <% end %>
 - name: proxy
   jobs:
