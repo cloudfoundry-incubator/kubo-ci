@@ -4,7 +4,7 @@ set -exu -o pipefail
 
 cp -r git-kubo-ci/. git-kubo-ci-output
 
-pushd "$HOME_DIR"/golang-release
+pushd golang-release
   blob_name=$(bosh blobs --json | jq '.Tables[0].Rows[] | .path | select(test("'"${MINOR_GO_VERSION}"'.*linux"))' --raw-output)
   go_version="${blob_name%.tar.gz}"
 popd
