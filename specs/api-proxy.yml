@@ -6,11 +6,10 @@ metadata:
   name: api-proxy
 spec:
   ports:
-    - nodePort: 31100
-      port: 8443
+    - port: 8443
   selector:
     app: api-proxy
-  type: NodePort
+  type: LoadBalancer
 
 ---
 apiVersion: extensions/v1beta1
