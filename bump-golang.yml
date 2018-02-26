@@ -95,6 +95,36 @@ jobs:
       repository: modified-release
       rebase: true
 
+- name: bump-docker-image-golang
+  plan:
+    - get: git-kubo-ci
+    - get: golang-release
+      trigger: true
+  - task: bump-golang
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      run:
+        path: git-kubo-ci/scripts/bump-docker-image-golang.sh
+      inputs:
+        - name: git-kubo-ci
+        - name: golang-release
+      outputs:
+        - name: git-kubo-ci-output
+    params:
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+      MINOR_GO_VERSION: "1.9"
+  - put: git-kubo-ci
+    params:
+      repository: git-kubo-ci-output
+      rebase: true
+
+
 #- name: bump-docker-boshrelease-golang
 #  plan:
 #  - aggregate:
