@@ -97,6 +97,7 @@ jobs:
 
 - name: bump-docker-image-golang
   plan:
+  - aggregate:
     - get: git-kubo-ci
     - get: golang-release
       trigger: true
@@ -116,8 +117,6 @@ jobs:
       outputs:
         - name: git-kubo-ci-output
     params:
-      ACCESS_KEY_ID: ((gcs-access-key-id))
-      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
       MINOR_GO_VERSION: "1.9"
   - put: git-kubo-ci
     params:
