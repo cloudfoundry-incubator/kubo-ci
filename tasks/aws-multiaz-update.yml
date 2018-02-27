@@ -7,7 +7,7 @@ image_resource:
     tag: stable
 
 run:
-  path: git-kubo-ci/scripts/setup-multiaz-aws.sh
+  path: git-kubo-ci/scripts/update-creds-lock-multiaz-aws.sh
 
 params:
   DEPLOYMENT_NAME: ci-service
