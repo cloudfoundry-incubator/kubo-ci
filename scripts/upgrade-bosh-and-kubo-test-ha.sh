@@ -19,32 +19,11 @@ update_kubo() {
   ${DIR}/deploy-k8s-instance.sh
 }
 
-# copy state and creds so that deploy_bosh has the correct context
-copy_state_and_creds() {
-  cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
-  cp "$PWD/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}/"
-  cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
-  touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
-}
-
-export GOPATH="${DIR}/.."
-DEPLOYMENT_NAME=${DEPLOYMENT_NAME:="ci-service"}
-KUBO_ENVIRONMENT_DIR="${PWD}/environment"
-mkdir -p "${KUBO_ENVIRONMENT_DIR}"
-
-if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
-  copy_state_and_creds
-fi
+KUBO_ENVIRONMENT_DIR=$1
+DEPLOYMENT_NAME=$2
 
 tmpfile=$(mktemp)
 $DIR/generate-test-config.sh "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
 export CONFIG="${tmpfile}"
 
-set_kubeconfig
 ginkgo -progress -v "$DIR/../src/tests/upgrade-tests"
-
-# for Concourse outputs
-if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
-  cp "${KUBO_ENVIRONMENT_DIR}/creds.yml" "$PWD/bosh-creds/"
-  cp "${KUBO_ENVIRONMENT_DIR}/state.json" "$PWD/bosh-state/"
-fi
