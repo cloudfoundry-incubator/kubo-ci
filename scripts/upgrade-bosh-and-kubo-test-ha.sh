@@ -27,18 +27,18 @@ copy_state_and_creds() {
   touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
 }
 
+export GOPATH="${DIR}/.."
 DEPLOYMENT_NAME=${DEPLOYMENT_NAME:="ci-service"}
 KUBO_ENVIRONMENT_DIR="${PWD}/environment"
 mkdir -p "${KUBO_ENVIRONMENT_DIR}"
 
-tmpfile=$(mktemp)
-$DIR/generate-test-config.sh "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
-export CONFIG="${tmpfile}"
-
-export GOPATH="${DIR}/.."
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   copy_state_and_creds
 fi
+
+tmpfile=$(mktemp)
+$DIR/generate-test-config.sh "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
+export CONFIG="${tmpfile}"
 
 set_kubeconfig
 ginkgo -progress -v "$DIR/../src/tests/upgrade-tests"
