@@ -20,8 +20,9 @@ const (
 	CONNECTION_FAILURE_THRESHOLD = 3
 )
 
+var loadbalancerAddress string
+
 var _ = Describe("CFCR Upgrade", func() {
-	var loadbalancerAddress string
 	nginxSpec := test_helpers.PathFromRoot("specs/nginx-lb.yml")
 
 	BeforeEach(func() {
@@ -33,57 +34,65 @@ var _ = Describe("CFCR Upgrade", func() {
 		k8sRunner.CleanupServiceWithLB(loadbalancerAddress, nginxSpec, testconfig.Bosh.Iaas)
 	})
 
-	FIt("keeps the workload available", func() {
-		By("deploying nginx")
-		By("getting the LB address")
-		Eventually(func() string {
-			loadbalancerAddress = k8sRunner.GetLBAddress("nginx", testconfig.Bosh.Iaas)
-			return loadbalancerAddress
-		}, "120s", "5s").Should(Not(Equal("")))
-
-		By("monitoring availability")
-		doneChannel := make(chan bool)
-		totalCount := 0
-		successCount := 0
-		go func(doneChannel chan bool) {
-			for {
-				select {
-				case <-doneChannel:
-					return
-				default:
-					appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
-
-					timeout := time.Duration(45 * time.Second)
-					httpClient := http.Client{
-						Timeout: timeout,
-					}
-
-					result, err := httpClient.Get(appUrl)
-					totalCount++
-					if err != nil {
-						fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: %v", appUrl, err)
-					} else if result != nil && result.StatusCode != 200 {
-						fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: StatusCode %v", appUrl, result.StatusCode)
-					} else {
-						successCount++
-					}
-					fmt.Fprintf(os.Stdout, "\nSuccessfully curled server %d out of %d times (%.2f)", successCount, totalCount, float64(successCount)/float64(totalCount))
-					time.Sleep(time.Second)
-				}
-			}
-		}(doneChannel)
-
-		By("run cfcr-release upgrade")
-		deployK8sScript := test_helpers.PathFromRoot("scripts/deploy-k8s-instance.sh")
-		cmd := exec.Command(deployK8sScript)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		close(doneChannel)
-		Expect(err).NotTo(HaveOccurred())
-
-		By("reporting the availability during the upgrade")
-		Expect(totalCount - successCount).To(BeNumerically("<=", CONNECTION_FAILURE_THRESHOLD))
-
+	FIt("Upgrades CFCR Release", func() {
+		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release")
 	})
+
+	XIt("Upgrades stemcell", func() {
+		upgradeAndMonitorAvailability("scripts/upgrade-stemcell.sh", "stemcell")
+	})
+
 })
+
+func upgradeAndMonitorAvailability(pathToScript string, component string) {
+	By("Getting the LB address")
+	Eventually(func() string {
+		loadbalancerAddress = k8sRunner.GetLBAddress("nginx", testconfig.Bosh.Iaas)
+		return loadbalancerAddress
+	}, "120s", "5s").Should(Not(Equal("")))
+
+	By("Monitoring availability")
+	doneChannel := make(chan bool)
+	totalCount := 0
+	successCount := 0
+	go func(doneChannel chan bool) {
+		for {
+			select {
+			case <-doneChannel:
+				return
+			default:
+				appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
+
+				timeout := time.Duration(45 * time.Second)
+				httpClient := http.Client{
+					Timeout: timeout,
+				}
+
+				result, err := httpClient.Get(appUrl)
+				totalCount++
+				if err != nil {
+					fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: %v", appUrl, err)
+				} else if result != nil && result.StatusCode != 200 {
+					fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: StatusCode %v", appUrl, result.StatusCode)
+				} else {
+					successCount++
+				}
+				fmt.Fprintf(os.Stdout, "\nSuccessfully curled server %d out of %d times (%.2f)", successCount, totalCount, float64(successCount)/float64(totalCount))
+				time.Sleep(time.Second)
+			}
+		}
+	}(doneChannel)
+
+	By(fmt.Sprintf("Running %s upgrade", component))
+	script := test_helpers.PathFromRoot(pathToScript)
+	cmd := exec.Command(script)
+	cmd.Dir = test_helpers.PathFromRoot("..")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	close(doneChannel)
+	Expect(err).NotTo(HaveOccurred())
+
+	By("Reporting the availability during the upgrade")
+	Expect(totalCount - successCount).To(BeNumerically("<=", CONNECTION_FAILURE_THRESHOLD))
+}
