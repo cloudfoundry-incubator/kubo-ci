@@ -27,6 +27,10 @@ copy_state_and_creds() {
   touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
 }
 
+DEPLOYMENT_NAME=${DEPLOYMENT_NAME:="ci-service"}
+KUBO_ENVIRONMENT_DIR="${PWD}/environment"
+mkdir -p "${KUBO_ENVIRONMENT_DIR}"
+
 tmpfile=$(mktemp)
 $DIR/generate-test-config.sh "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
 export CONFIG="${tmpfile}"
