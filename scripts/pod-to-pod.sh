@@ -20,14 +20,16 @@ director_ip=$(bosh int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_
 
 "git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
 
-trap "kubectl delete -f 'git-kubo-ci/specs/guestbook.yml'" EXIT
+kubectl create namespace pod2pod
 
-kubectl apply -f "git-kubo-ci/specs/guestbook.yml"
+trap "kubectl -n pod2pod delete -f 'git-kubo-ci/specs/guestbook.yml'" EXIT
+
+kubectl -n pod2pod apply -f "git-kubo-ci/specs/guestbook.yml"
 # wait for deployment to finish
-kubectl rollout status deployment/frontend -w
-kubectl rollout status deployment/redis-master -w
-kubectl rollout status deployment/redis-slave -w
-nodeport=$(kubectl describe svc/frontend | grep 'NodePort:' | awk '{print $3}' | sed -e 's/\/TCP//g')
+kubectl -n pod2pod rollout status deployment/frontend -w
+kubectl -n pod2pod rollout status deployment/redis-master -w
+kubectl -n pod2pod rollout status deployment/redis-slave -w
+nodeport=$(kubectl -n pod2pod describe svc/frontend | grep 'NodePort:' | awk '{print $3}' | sed -e 's/\/TCP//g')
 
 
 worker_ip=$(BOSH_CLIENT=bosh_admin BOSH_CLIENT_SECRET=${client_secret} BOSH_CA_CERT="${bosh_ca_cert}" bosh -e "${director_ip}" vms -d "${DEPLOYMENT_NAME}"  | grep worker | head -n1 | awk '{print $4}')
