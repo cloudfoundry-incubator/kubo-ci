@@ -27,12 +27,13 @@ copy_state_and_creds() {
   touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
 }
 
+export GOPATH="$DIR/.."
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
   copy_state_and_creds
 fi
 
 set_kubeconfig
-ginkgo -progress -v "$ginkgo_flags" "$DIR/src/tests/upgrade-tests"
+ginkgo -progress -v "$DIR/../src/tests/upgrade-tests"
 
 # for Concourse outputs
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
