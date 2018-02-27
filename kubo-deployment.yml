@@ -528,6 +528,7 @@ jobs:
 - name: deploy-k8s-multiaz-<%= env %>
   plan:
   - aggregate:
+    - get: slackers
     - get: git-kubo-ci
     - get: kubo-lock-<%= env %>
       version: every
@@ -570,6 +571,7 @@ jobs:
 - name: run-k8s-integration-tests-multiaz-<%= env %>
   plan:
   - aggregate:
+    - get: slackers
     - get: git-kubo-ci
     - get: kubo-lock-<%= env %>
       version: every
@@ -626,6 +628,7 @@ jobs:
 - name: run-k8s-turbulence-tests-multiaz-<%= env %>
   plan:
   - aggregate:
+    - get: slackers
     - get: git-kubo-ci
     - get: kubo-lock-<%= env %>
       version: every
@@ -661,6 +664,7 @@ jobs:
 - name: destroy-k8s-multiaz-<%= env %>
   plan:
   - aggregate:
+    - get: slackers
     - get: git-kubo-ci
     - get: kubo-lock-<%= env %>
       version: every
