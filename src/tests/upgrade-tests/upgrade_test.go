@@ -12,14 +12,30 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
+)
+
+const (
+	// There should only be at most one connection failure for each worker rolling
+	CONNECTION_FAILURE_THRESHOLD = 3
 )
 
 var _ = Describe("CFCR Upgrade", func() {
-	It("keeps the workload available", func() {
-		Expect(true).To(BeTrue())
+	var loadbalancerAddress string
+	nginxSpec := test_helpers.PathFromRoot("specs/nginx-lb.yml")
 
+	BeforeEach(func() {
+		deployNginx := k8sRunner.RunKubectlCommand("create", "-f", nginxSpec)
+		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
+	})
+
+	AfterEach(func() {
+		k8sRunner.CleanupServiceWithLB(loadbalancerAddress, nginxSpec, testconfig.Bosh.Iaas)
+	})
+
+	FIt("keeps the workload available", func() {
+		By("deploying nginx")
 		By("getting the LB address")
-		loadbalancerAddress := ""
 		Eventually(func() string {
 			loadbalancerAddress = k8sRunner.GetLBAddress("nginx", testconfig.Bosh.Iaas)
 			return loadbalancerAddress
@@ -27,15 +43,15 @@ var _ = Describe("CFCR Upgrade", func() {
 
 		By("monitoring availability")
 		doneChannel := make(chan bool)
+		totalCount := 0
+		successCount := 0
 		go func(doneChannel chan bool) {
-			totalCount := 0
-			successCount := 0
 			for {
 				select {
 				case <-doneChannel:
 					return
 				default:
-					appUrl := fmt.Sprintf("http://%s", "localhost:8080")
+					appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
 
 					timeout := time.Duration(45 * time.Second)
 					httpClient := http.Client{
@@ -45,33 +61,29 @@ var _ = Describe("CFCR Upgrade", func() {
 					result, err := httpClient.Get(appUrl)
 					totalCount++
 					if err != nil {
-						fmt.Fprintf(os.Stdout, "Failed to get response from %s: %v\n", appUrl, err)
+						fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: %v", appUrl, err)
 					} else if result != nil && result.StatusCode != 200 {
-						fmt.Fprintf(os.Stdout, "Failed to get response from %s: StatusCode %v\n", appUrl, result.StatusCode)
+						fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: StatusCode %v", appUrl, result.StatusCode)
 					} else {
 						successCount++
 					}
-					fmt.Fprintf(os.Stdout, "Successfully curled server %d out of %d times (%.2f)\n", successCount, totalCount, float64(successCount)/float64(totalCount))
+					fmt.Fprintf(os.Stdout, "\nSuccessfully curled server %d out of %d times (%.2f)", successCount, totalCount, float64(successCount)/float64(totalCount))
 					time.Sleep(time.Second)
 				}
 			}
 		}(doneChannel)
 
-		By("triggering a cfcr-release upgrade")
-		exec.Command("%s/scripts/deploy_k8s_instance.sh")
+		By("run cfcr-release upgrade")
 		deployK8sScript := test_helpers.PathFromRoot("scripts/deploy-k8s-instance.sh")
 		cmd := exec.Command(deployK8sScript)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 		err := cmd.Run()
-		Expect(err).NotTo(HaveOccurred())
 		close(doneChannel)
-
-		By("waiting on completion of the upgrade")
+		Expect(err).NotTo(HaveOccurred())
 
 		By("reporting the availability during the upgrade")
-
-	})
-
-	AfterEach(func() {
+		Expect(totalCount - successCount).To(BeNumerically("<=", CONNECTION_FAILURE_THRESHOLD))
 
 	})
 })
