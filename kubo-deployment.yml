@@ -12,8 +12,8 @@
   env_list = iaases + additional_envs
   enable_failure_alert = true
   k8s_api_port_bumps = {
-    abac: 200,
-    multiaz: 400
+    abac: 400,
+    multiaz: 200
   }
 
   upgrade_test_iaases = %w(aws-lb gcp-lb)
