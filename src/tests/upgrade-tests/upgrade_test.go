@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"time"
 
@@ -22,7 +23,7 @@ const (
 
 var loadbalancerAddress string
 
-var _ = Describe("CFCR Upgrade", func() {
+var _ = Describe("Upgrade components", func() {
 	nginxSpec := test_helpers.PathFromRoot("specs/nginx-lb.yml")
 
 	BeforeEach(func() {
@@ -34,7 +35,7 @@ var _ = Describe("CFCR Upgrade", func() {
 		k8sRunner.CleanupServiceWithLB(loadbalancerAddress, nginxSpec, testconfig.Bosh.Iaas)
 	})
 
-	FIt("Upgrades CFCR Release", func() {
+	It("Upgrades CFCR Release", func() {
 		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release")
 	})
 
@@ -86,7 +87,9 @@ func upgradeAndMonitorAvailability(pathToScript string, component string) {
 	By(fmt.Sprintf("Running %s upgrade", component))
 	script := test_helpers.PathFromRoot(pathToScript)
 	cmd := exec.Command(script)
-	cmd.Dir = test_helpers.PathFromRoot("..")
+	pwd := os.Getenv("PWD")
+	dirs := strings.Split(pwd, "/")
+	cmd.Dir = strings.Join(dirs[:4], "/")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
