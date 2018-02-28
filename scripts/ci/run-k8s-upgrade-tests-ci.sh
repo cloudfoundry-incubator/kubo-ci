@@ -9,7 +9,7 @@ BASE_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/../.. && pwd)
 
 setup_env() {
   export GOPATH="$BASE_DIR"
-  DEPLOYMENT_NAME=${DEPLOYMENT_NAME:="ci-service"}
+  export DEPLOYMENT_NAME=${DEPLOYMENT_NAME:="ci-service"}
   KUBO_ENVIRONMENT_DIR="${PWD}/environment"
   mkdir -p "${KUBO_ENVIRONMENT_DIR}"
   cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
