@@ -38,11 +38,6 @@ var _ = Describe("Upgrade components", func() {
 		upgradeAndMonitorAvailability("scripts/install-bosh.sh", "bosh", 0)
 		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release", CONNECTION_FAILURE_THRESHOLD)
 	})
-
-	XIt("upgrades stemcell", func() {
-		upgradeAndMonitorAvailability("scripts/upgrade-stemcell.sh", "stemcell", CONNECTION_FAILURE_THRESHOLD)
-	})
-
 })
 
 func upgradeAndMonitorAvailability(pathToScript string, component string, requestLossThreshold int) {
