@@ -12,10 +12,10 @@ cp -r git-kubo-deployment/. git-kubo-deployment-output
 pushd git-kubo-deployment-output
 
 existing_version=$(bosh int manifests/cfcr.yml --path=/releases/name=docker/version)
-sed -E -i -e "s/${existing_version}/${version}/" manifests/cfcr.yml
+sed -E -i -e "s/version: ${existing_version}/version: ${version}/" manifests/cfcr.yml
 
 existing_url=$(bosh int manifests/cfcr.yml --path=/releases/name=docker/url)
-sed -E -i -e "s/${existing_url}/${download_url}/" manifests/cfcr.yml
+sed -E -i -e "s,${existing_url},${download_url},g" manifests/cfcr.yml
 
 exisitng_sha1=$(bosh int manifests/cfcr.yml --path=/releases/name=docker/sha1)
 sed -E -i -e "s/${exisitng_sha1}/${release_sha1}/" manifests/cfcr.yml
