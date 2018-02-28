@@ -18,7 +18,7 @@ if [[ -z ${LOCAL_DEV+x} ]] || [[ "$LOCAL_DEV" != "1" ]]; then
 
   # Copy guestbook if WITHOUT_ADDONS isn't set to true
   if [[ -z ${WITHOUT_ADDONS+x} ]] || [[ "$WITHOUT_ADDONS" != "1" ]]; then
-    cp "git-kubo-ci/specs/guestbook.yml" "${KUBO_ENVIRONMENT_DIR}/addons.yml"
+    cp "${ROOT}/git-kubo-ci/specs/guestbook.yml" "${KUBO_ENVIRONMENT_DIR}/addons.yml"
   else
     # Delete the addons_spec_path from director.yml
     sed -i.bak '/^addons_spec_path:/d' ${metadata_path}
@@ -47,5 +47,5 @@ fi
 
 "$KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
 if [[ -z ${LOCAL_DEV+x} ]] || [[ "$LOCAL_DEV" != "1" ]]; then
-  mv ~/.kube/config gcs-kubeconfig/config
+  mv "~/.kube/config" "${ROOT}/gcs-kubeconfig/config"
 fi
