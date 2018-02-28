@@ -21,6 +21,7 @@ pushd git-kubo-release-output
 scripts/download_container_images "$SPEC_IMAGE_URL:$tag"
 sed -E -i -e "/${SPEC_IMAGE_NAME}:/s/v([0-9]+\.)+[0-9]+/${tag}/" scripts/download_container_images
 sed -E -i -e "/${SPEC_IMAGE_NAME}:/s/v([0-9]+\.)+[0-9]+/${tag}/" "jobs/apply-specs/templates/specs/${SPEC_NAME}.yml.erb"
+bosh remove-blob $( bosh blobs --column path | grep "${SPEC_IMAGE_NAME}" )
 
 set +x
 cat <<EOF > "config/private.yml"
