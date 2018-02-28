@@ -13,7 +13,7 @@ export DEBUG=1
 metadata_path="${KUBO_ENVIRONMENT_DIR}/director.yml"
 if [[ -z ${LOCAL_DEV+x} ]] || [[ "$LOCAL_DEV" != "1" ]]; then
   cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
-  cp "kubo-lock/metadata" "$metadata_path"
+  cp "${ROOT}/kubo-lock/metadata" "$metadata_path"
   tarball_name=$(ls ${ROOT}/gcs-kubo-release-tarball/kubo-*.tgz | head -n1)
 
   # Copy guestbook if WITHOUT_ADDONS isn't set to true
