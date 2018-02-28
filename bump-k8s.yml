@@ -15,6 +15,26 @@ resources:
     # only patches get updated
     version_filter: "< 1.10.0"
 
+- name: heapster-release
+  type: github-release
+  source:
+    owner: kubernetes
+    repository: heapster
+
+# Influxdb does not cut new releases, nor does it post images with every release
+# which is the case with heapster n k8s-dashboard
+# - name: influxdb-release
+#   type: github-release
+#   source:
+#     owner: influxdata
+#     repository: influxdb
+
+- name: kubernetes-dashboard-release
+  type: github-release
+  source:
+    owner: kubernetes
+    repository: dashboard
+
 - name: git-kubo-ci
   type: git
   source:
@@ -28,6 +48,15 @@ resources:
     uri: git@github.com:cloudfoundry-incubator/kubo-release.git
     branch: master
     private_key: ((git-ssh-key))
+
+groups:
+- name: bump-k8s
+  jobs:
+  - bump-k8s
+
+- name: bump-specs
+  jobs:
+  - bump-dashboard-heapster-components
 
 jobs:
 - name: bump-k8s
@@ -57,3 +86,26 @@ jobs:
         CFCR_USER_TOKEN: ((cfcr-git-user-token))
         GIT_SSH_KEY: |
           ((git-ssh-key))
+
+- name: bump-dashboard-heapster-components
+  plan:
+  - aggregate:
+    - get: heapster-release
+      trigger: true
+    # - get: influxdb-release
+    #   trigger: true
+    - get: kubernetes-dashboard-release
+      trigger: true
+    - get: git-kubo-ci
+    - get: git-kubo-release
+  - task: compare-specs
+    file: git-kubo-ci/tasks/bump-tasks/compare-specs.yml
+  - task: bump-spec
+    privileged: true
+    file: git-kubo-ci/tasks/bump-tasks/bump-k8s-spec.yml
+    params:
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - put: git-kubo-release
+    params:
+      repository: git-kubo-release-output
