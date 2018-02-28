@@ -2,17 +2,19 @@
 
 set -exu -o pipefail
 
+ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
+
 . "$(dirname "$0")/lib/environment.sh"
 
 export BOSH_LOG_LEVEL=debug
-export BOSH_LOG_PATH="$PWD/bosh.log"
+export BOSH_LOG_PATH="${ROOT}/bosh.log"
 export DEBUG=1
 
 metadata_path="${KUBO_ENVIRONMENT_DIR}/director.yml"
 if [[ -z ${LOCAL_DEV+x} ]] || [[ "$LOCAL_DEV" != "1" ]]; then
-  cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+  cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
   cp "kubo-lock/metadata" "$metadata_path"
-  tarball_name=$(ls $PWD/gcs-kubo-release-tarball/kubo-*.tgz | head -n1)
+  tarball_name=$(ls ${ROOT}/gcs-kubo-release-tarball/kubo-*.tgz | head -n1)
 
   # Copy guestbook if WITHOUT_ADDONS isn't set to true
   if [[ -z ${WITHOUT_ADDONS+x} ]] || [[ "$WITHOUT_ADDONS" != "1" ]]; then

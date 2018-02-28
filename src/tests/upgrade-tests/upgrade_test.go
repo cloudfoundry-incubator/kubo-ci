@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 
 	"time"
 
@@ -87,9 +86,6 @@ func upgradeAndMonitorAvailability(pathToScript string, component string) {
 	By(fmt.Sprintf("Running %s upgrade", component))
 	script := test_helpers.PathFromRoot(pathToScript)
 	cmd := exec.Command(script)
-	pwd := os.Getenv("PWD")
-	dirs := strings.Split(pwd, "/")
-	cmd.Dir = strings.Join(dirs[:4], "/")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
