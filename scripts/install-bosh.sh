@@ -12,13 +12,13 @@ export DEBUG=1
 
 metadata_path="${KUBO_ENVIRONMENT_DIR}/director.yml"
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
-  cp "kubo-lock/metadata" "$metadata_path"
+  cp "${ROOT}/kubo-lock/metadata" "$metadata_path"
 
-  if [ -f "gcs-bosh-creds/creds.yml" ]; then
-    cp gcs-bosh-creds/creds.yml "${KUBO_ENVIRONMENT_DIR}/creds.yml"
+  if [ -f "${ROOT}/gcs-bosh-creds/creds.yml" ]; then
+    cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/creds.yml"
   fi
-  if [ -f "gcs-bosh-state/state.json" ]; then
-    cp gcs-bosh-state/state.json "${KUBO_ENVIRONMENT_DIR}/state.json"
+  if [ -f "${ROOT}/gcs-bosh-state/state.json" ]; then
+    cp "${ROOT}/gcs-bosh-state/state.json" "${KUBO_ENVIRONMENT_DIR}/state.json"
   fi
 
   touch "${KUBO_ENVIRONMENT_DIR}/director-secrets.yml"
