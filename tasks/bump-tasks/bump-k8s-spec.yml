@@ -19,3 +19,6 @@ inputs:
 # - name: influxdb-release
 - name: kubernetes-dashboard-release
 - name: spec-to-update
+
+outputs:
+- name: git-kubo-release-output
