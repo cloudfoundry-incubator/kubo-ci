@@ -32,7 +32,7 @@ if [[ -z ${WITH_PRIVILEGED_CONTAINERS+x} ]] || [[ "$WITH_PRIVILEGED_CONTAINERS" 
   echo "allow_privileged_containers: true" >> "${metadata_path}"
 fi
 
-cp "$tarball_name" "$KUBO_DEPLOYMENT_DIR/../kubo-release.tgz"
+cp "$tarball_name" "${ROOT}/kubo-release.tgz"
 
 "$KUBO_DEPLOYMENT_DIR/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
 
