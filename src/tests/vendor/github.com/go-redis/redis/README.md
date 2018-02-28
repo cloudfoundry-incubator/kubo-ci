@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/go-redis/redis.png?branch=master)](https://travis-ci.org/go-redis/redis)
 [![GoDoc](https://godoc.org/github.com/go-redis/redis?status.svg)](https://godoc.org/github.com/go-redis/redis)
+[![Airbrake](https://img.shields.io/badge/kudos-airbrake.io-orange.svg)](https://airbrake.io)
 
 Supports:
 
@@ -17,7 +18,7 @@ Supports:
 - [Ring](https://godoc.org/github.com/go-redis/redis#NewRing).
 - [Instrumentation](https://godoc.org/github.com/go-redis/redis#ex-package--Instrumentation).
 - [Cache friendly](https://github.com/go-redis/cache).
-- [Rate limiting](https://github.com/go-redis/rate).
+- [Rate limiting](https://github.com/go-redis/redis_rate).
 - [Distributed Locks](https://github.com/bsm/redis-lock).
 
 API docs: https://godoc.org/github.com/go-redis/redis.
@@ -66,14 +67,14 @@ func ExampleClient() {
 
 	val2, err := client.Get("key2").Result()
 	if err == redis.Nil {
-		fmt.Println("key2 does not exists")
+		fmt.Println("key2 does not exist")
 	} else if err != nil {
 		panic(err)
 	} else {
 		fmt.Println("key2", val2)
 	}
 	// Output: key value
-	// key2 does not exists
+	// key2 does not exist
 }
 ```
 

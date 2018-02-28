@@ -4,17 +4,13 @@ import (
 	"io"
 	"net"
 	"strings"
+
+	"github.com/go-redis/redis/internal/proto"
 )
 
-const Nil = RedisError("redis: nil")
-
-type RedisError string
-
-func (e RedisError) Error() string { return string(e) }
-
-func IsRetryableError(err error) bool {
+func IsRetryableError(err error, retryNetError bool) bool {
 	if IsNetworkError(err) {
-		return true
+		return retryNetError
 	}
 	s := err.Error()
 	if s == "ERR max number of clients reached" {
@@ -30,7 +26,7 @@ func IsRetryableError(err error) bool {
 }
 
 func IsRedisError(err error) bool {
-	_, ok := err.(RedisError)
+	_, ok := err.(proto.RedisError)
 	return ok
 }
 
@@ -40,6 +36,10 @@ func IsNetworkError(err error) bool {
 	}
 	_, ok := err.(net.Error)
 	return ok
+}
+
+func IsReadOnlyError(err error) bool {
+	return strings.HasPrefix(err.Error(), "READONLY ")
 }
 
 func IsBadConn(err error, allowTimeout bool) bool {

@@ -1,5 +1,5 @@
-hash: ec54c45b764c35a437df470f6cc41293ac99509f554fde202b2960f37ec8be55
-updated: 2017-09-05T10:36:54.430647008+01:00
+hash: 26f6e14e243ab961c935bbacb3cbe8a99f5a08072fd617a186c85f65d4e04ef6
+updated: 2018-02-28T15:28:18.577225Z
 imports:
 - name: code.cloudfoundry.org/clock
   version: 2269160ae1757f96bbb8c6475e6fa36c805e73e0
@@ -28,6 +28,10 @@ imports:
   - retrystrategy
   - system
   - uuid
+- name: github.com/cppforlife/go-patch
+  version: 250da0e0e68ce3367b4302f34218f6c064eb9559
+  subpackages:
+  - patch
 - name: github.com/cppforlife/go-semi-semantic
   version: 576b6af77ae4f3ccef356902fb3b9a9ae22e0b11
   subpackages:
@@ -138,10 +142,4 @@ imports:
   version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 testImports:
 - name: github.com/go-redis/redis
-  version: 74d5147d860804ea34633071d0c91a7f4b0b5c3a
-  subpackages:
-  - internal
-  - internal/consistenthash
-  - internal/hashtag
-  - internal/pool
-  - internal/proto
+  version: 68362cfda1eeb3a69316e7bc00169a9a8de4823a

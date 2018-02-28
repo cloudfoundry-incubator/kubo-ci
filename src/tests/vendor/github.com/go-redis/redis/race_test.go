@@ -105,7 +105,7 @@ var _ = Describe("races", func() {
 	It("should handle big vals in Get", func() {
 		C, N = 4, 100
 
-		bigVal := bytes.Repeat([]byte{'*'}, 1<<17) // 128kb
+		bigVal := bigVal()
 
 		err := client.Set("key", bigVal, 0).Err()
 		Expect(err).NotTo(HaveOccurred())
@@ -126,8 +126,7 @@ var _ = Describe("races", func() {
 	It("should handle big vals in Set", func() {
 		C, N = 4, 100
 
-		bigVal := bytes.Repeat([]byte{'*'}, 1<<17) // 128kb
-
+		bigVal := bigVal()
 		perform(C, func(id int) {
 			for i := 0; i < N; i++ {
 				err := client.Set("key", bigVal, 0).Err()
@@ -244,4 +243,23 @@ var _ = Describe("races", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(n).To(Equal(int64(N)))
 	})
+
+	It("should TxPipeline", func() {
+		pipe := client.TxPipeline()
+		perform(N, func(id int) {
+			pipe.Incr("key")
+		})
+
+		cmds, err := pipe.Exec()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cmds).To(HaveLen(N))
+
+		n, err := client.Get("key").Int64()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(n).To(Equal(int64(N)))
+	})
 })
+
+func bigVal() []byte {
+	return bytes.Repeat([]byte{'*'}, 1<<17) // 128kb
+}

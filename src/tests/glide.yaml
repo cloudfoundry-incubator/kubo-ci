@@ -1,7 +1,7 @@
 package: tests
 import:
 - package: github.com/cloudfoundry/bosh-cli
-  version: ^2.0.35
+  version: 2.0.35
   subpackages:
   - director
   - uaa
@@ -12,13 +12,14 @@ import:
   subpackages:
   - client
 - package: github.com/onsi/ginkgo
-  version: ^1.4.0
+  version: 1.4.0
   subpackages:
   - config
 - package: github.com/onsi/gomega
-  version: ^1.2.0
+  version: 1.2.0
   subpackages:
   - gexec
+- package: github.com/cppforlife/go-patch
 testImport:
 - package: github.com/go-redis/redis
   version: ^6.6.0

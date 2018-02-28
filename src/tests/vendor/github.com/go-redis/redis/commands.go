@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"errors"
 	"io"
 	"time"
 
@@ -11,7 +12,7 @@ func readTimeout(timeout time.Duration) time.Duration {
 	if timeout == 0 {
 		return 0
 	}
-	return timeout + time.Second
+	return timeout + 10*time.Second
 }
 
 func usePrecise(dur time.Duration) bool {
@@ -42,6 +43,9 @@ type Cmdable interface {
 	Pipeline() Pipeliner
 	Pipelined(fn func(Pipeliner) error) ([]Cmder, error)
 
+	TxPipelined(fn func(Pipeliner) error) ([]Cmder, error)
+	TxPipeline() Pipeliner
+
 	ClientGetName() *StringCmd
 	Echo(message interface{}) *StringCmd
 	Ping() *StatusCmd
@@ -67,8 +71,10 @@ type Cmdable interface {
 	RenameNX(key, newkey string) *BoolCmd
 	Restore(key string, ttl time.Duration, value string) *StatusCmd
 	RestoreReplace(key string, ttl time.Duration, value string) *StatusCmd
-	Sort(key string, sort Sort) *StringSliceCmd
-	SortInterfaces(key string, sort Sort) *SliceCmd
+	Sort(key string, sort *Sort) *StringSliceCmd
+	SortStore(key, store string, sort *Sort) *IntCmd
+	SortInterfaces(key string, sort *Sort) *SliceCmd
+	Touch(keys ...string) *IntCmd
 	TTL(key string) *DurationCmd
 	Type(key string) *StatusCmd
 	Scan(cursor uint64, match string, count int64) *ScanCmd
@@ -140,6 +146,7 @@ type Cmdable interface {
 	SInterStore(destination string, keys ...string) *IntCmd
 	SIsMember(key string, member interface{}) *BoolCmd
 	SMembers(key string) *StringSliceCmd
+	SMembersMap(key string) *StringStructMapCmd
 	SMove(source, destination string, member interface{}) *BoolCmd
 	SPop(key string) *StringCmd
 	SPopN(key string, count int64) *StringSliceCmd
@@ -211,6 +218,7 @@ type Cmdable interface {
 	ScriptKill() *StatusCmd
 	ScriptLoad(script string) *StringCmd
 	DebugObject(key string) *StringCmd
+	Publish(channel string, message interface{}) *IntCmd
 	PubSubChannels(pattern string) *StringSliceCmd
 	PubSubNumSub(channels ...string) *StringIntMapCmd
 	PubSubNumPat() *IntCmd
@@ -247,6 +255,7 @@ type StatefulCmdable interface {
 	Cmdable
 	Auth(password string) *StatusCmd
 	Select(index int) *StatusCmd
+	SwapDB(index1, index2 int) *StatusCmd
 	ClientSetName(name string) *BoolCmd
 	ReadOnly() *StatusCmd
 	ReadWrite() *StatusCmd
@@ -307,6 +316,12 @@ func (c *cmdable) Quit() *StatusCmd {
 
 func (c *statefulCmdable) Select(index int) *StatusCmd {
 	cmd := NewStatusCmd("select", index)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *statefulCmdable) SwapDB(index1, index2 int) *StatusCmd {
+	cmd := NewStatusCmd("swapdb", index1, index2)
 	c.process(cmd)
 	return cmd
 }
@@ -479,11 +494,10 @@ func (c *cmdable) RestoreReplace(key string, ttl time.Duration, value string) *S
 
 type Sort struct {
 	By            string
-	Offset, Count float64
+	Offset, Count int64
 	Get           []string
 	Order         string
-	IsAlpha       bool
-	Store         string
+	Alpha         bool
 }
 
 func (sort *Sort) args(key string) []interface{} {
@@ -500,23 +514,41 @@ func (sort *Sort) args(key string) []interface{} {
 	if sort.Order != "" {
 		args = append(args, sort.Order)
 	}
-	if sort.IsAlpha {
+	if sort.Alpha {
 		args = append(args, "alpha")
-	}
-	if sort.Store != "" {
-		args = append(args, "store", sort.Store)
 	}
 	return args
 }
 
-func (c *cmdable) Sort(key string, sort Sort) *StringSliceCmd {
+func (c *cmdable) Sort(key string, sort *Sort) *StringSliceCmd {
 	cmd := NewStringSliceCmd(sort.args(key)...)
 	c.process(cmd)
 	return cmd
 }
 
-func (c *cmdable) SortInterfaces(key string, sort Sort) *SliceCmd {
+func (c *cmdable) SortStore(key, store string, sort *Sort) *IntCmd {
+	args := sort.args(key)
+	if store != "" {
+		args = append(args, "store", store)
+	}
+	cmd := NewIntCmd(args...)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) SortInterfaces(key string, sort *Sort) *SliceCmd {
 	cmd := NewSliceCmd(sort.args(key)...)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) Touch(keys ...string) *IntCmd {
+	args := make([]interface{}, len(keys)+1)
+	args[0] = "touch"
+	for i, key := range keys {
+		args[i+1] = key
+	}
+	cmd := NewIntCmd(args...)
 	c.process(cmd)
 	return cmd
 }
@@ -672,6 +704,7 @@ func (c *cmdable) DecrBy(key string, decrement int64) *IntCmd {
 	return cmd
 }
 
+// Redis `GET key` command. It returns redis.Nil error when key does not exist.
 func (c *cmdable) Get(key string) *StringCmd {
 	cmd := NewStringCmd("get", key)
 	c.process(cmd)
@@ -1159,8 +1192,16 @@ func (c *cmdable) SIsMember(key string, member interface{}) *BoolCmd {
 	return cmd
 }
 
+// Redis `SMEMBERS key` command output as a slice
 func (c *cmdable) SMembers(key string) *StringSliceCmd {
 	cmd := NewStringSliceCmd("smembers", key)
+	c.process(cmd)
+	return cmd
+}
+
+// Redis `SMEMBERS key` command output as a map
+func (c *cmdable) SMembersMap(key string) *StringStructMapCmd {
+	cmd := NewStringStructMapCmd("smembers", key)
 	c.process(cmd)
 	return cmd
 }
@@ -1762,7 +1803,7 @@ func (c *cmdable) shutdown(modifier string) *StatusCmd {
 		}
 	} else {
 		// Server did not quit. String reply contains the reason.
-		cmd.err = internal.RedisError(cmd.val)
+		cmd.err = errors.New(cmd.val)
 		cmd.val = ""
 	}
 	return cmd
@@ -1877,8 +1918,8 @@ func (c *cmdable) DebugObject(key string) *StringCmd {
 //------------------------------------------------------------------------------
 
 // Publish posts the message to the channel.
-func (c *cmdable) Publish(channel, message string) *IntCmd {
-	cmd := NewIntCmd("PUBLISH", channel, message)
+func (c *cmdable) Publish(channel string, message interface{}) *IntCmd {
+	cmd := NewIntCmd("publish", channel, message)
 	c.process(cmd)
 	return cmd
 }
