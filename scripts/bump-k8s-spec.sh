@@ -5,7 +5,6 @@ set -eu -o pipefail
 source /common.sh
 start_docker
 
-#docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
 set -x
 if [ ! -f spec-to-update/spec.env ]; then
     echo "No new versions found to update."
@@ -32,11 +31,10 @@ blobstore:
 EOF
 set -x
 
-git diff
-# bosh upload-blobs
+bosh upload-blobs
 
-# git config --global user.email "cfcr+cibot@pivotal.io"
-# git config --global user.name "CFCR CI BOT"
-# git add .
-# git commit -m "Bump ${SPEC_NAME} to version ${version}"
+git config --global user.email "cfcr+cibot@pivotal.io"
+git config --global user.name "CFCR CI BOT"
+git add .
+git commit -m "Bump ${SPEC_NAME} to version ${version}"
 popd
