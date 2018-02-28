@@ -4,6 +4,8 @@
 
 set -eu
 
+ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
+
 verify_args() {
   set +e # Cant be set since read returns a non-zero when it reaches EOF
   read -r -d '' usage <<-EOF
@@ -55,6 +57,11 @@ generate_test_config() {
 
   local director_name=$(bosh int "${environment}/director.yml" --path="/director_name")
 
+  local new_bosh_stemcell_version=""
+  if [[ -f "${ROOT}/new-bosh-stemcell/version" ]]; then
+    new_bosh_stemcell_version="$(cat ${ROOT}/new-bosh-stemcell/version)"
+  fi
+
   set +e # Cant be set since read returns a non-zero when it reaches EOF
   read -r -d '' config <<-EOF
 	{
@@ -84,7 +91,11 @@ generate_test_config() {
 	    "tls_cert": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/certificate' --json | jq .Blocks[0]),
 	    "tls_private_key": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/private_key' --json | jq .Blocks[0])
 	  },
-	  "timeout_scale": $(bosh int $director_yml --path=/timeout_scale 2>/dev/null || echo 1)
+	  "timeout_scale": $(bosh int $director_yml --path=/timeout_scale 2>/dev/null || echo 1),
+	  "cfcr": {
+	    "deployment_path": "${ROOT}/git-kubo-deployment",
+	    "upgrade_to_stemcell_version": "${new_bosh_stemcell_version}"
+	  }
 	}
 	EOF
   set -e

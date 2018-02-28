@@ -13,6 +13,7 @@ type Config struct {
 	Cf           Cf         `json:"cf"`
 	Kubernetes   Kubernetes `json:"kubernetes"`
 	TimeoutScale float64    `json:"timeout_scale"`
+	CFCR         CFCR       `json:"cfcr"`
 }
 
 type Bosh struct {
@@ -43,6 +44,11 @@ type Kubernetes struct {
 	PathToKubeConfig  string `json:"path_to_kube_config"`
 	TLSCert           string `json:"tls_cert"`
 	TLSPrivateKey     string `json:"tls_private_key"`
+}
+
+type CFCR struct {
+	DeploymentPath           string `json:"deployment_path"`
+	UpgradeToStemcellVersion string `json:"upgrade_to_stemcell_version"`
 }
 
 func InitConfig() (*Config, error) {

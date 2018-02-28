@@ -2,17 +2,21 @@ package upgrade_tests_test
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"time"
 
 	"os/exec"
 	"tests/test_helpers"
 
+	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	yaml "gopkg.in/yaml.v2"
 )
 
 const (
@@ -38,7 +42,33 @@ var _ = Describe("Upgrade components", func() {
 		upgradeAndMonitorAvailability("scripts/install-bosh.sh", "bosh", 0)
 		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release", CONNECTION_FAILURE_THRESHOLD)
 	})
+
+	It("upgrades stemcell", func() {
+		applyUpdateStemcellVersionOps(filepath.Join(testconfig.CFCR.DeploymentPath, "manifests", "cfcr.yml"), testconfig.CFCR.UpgradeToStemcellVersion)
+		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "stemcell", CONNECTION_FAILURE_THRESHOLD)
+	})
 })
+
+func applyUpdateStemcellVersionOps(manifestPath, stemcellVersion string) {
+	manifestContents, err := ioutil.ReadFile(manifestPath)
+	Expect(err).NotTo(HaveOccurred())
+
+	var oldManifest interface{}
+	err = yaml.Unmarshal(manifestContents, &oldManifest)
+	Expect(err).NotTo(HaveOccurred())
+
+	newManifest, err := patch.ReplaceOp{
+		Path:  patch.MustNewPointerFromString("/stemcells/0/version"),
+		Value: stemcellVersion,
+	}.Apply(oldManifest)
+	Expect(err).NotTo(HaveOccurred())
+
+	newManifestContents, err := yaml.Marshal(newManifest)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = ioutil.WriteFile(manifestPath, newManifestContents, os.ModePerm)
+	Expect(err).NotTo(HaveOccurred())
+}
 
 func upgradeAndMonitorAvailability(pathToScript string, component string, requestLossThreshold int) {
 	By("Getting the LB address")

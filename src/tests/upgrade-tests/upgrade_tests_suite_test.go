@@ -18,7 +18,6 @@ var (
 func TestUpgradeTests(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "UpgradeTests Suite")
-	//	t.Skip("New upgrade tests are being developed. This is currently covered elsewhere. - see https://www.pivotaltracker.com/story/show/155330320")
 }
 
 var _ = BeforeSuite(func() {
