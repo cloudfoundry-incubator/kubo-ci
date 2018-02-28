@@ -8,17 +8,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$DIR/lib/upgrade-tests.sh"
 . "$DIR/lib/utils.sh"
 
-update_bosh() {
-  echo "Updating BOSH..."
-  ${DIR}/install-bosh.sh
-}
-
-update_kubo() {
-  echo "Updating Kubo..."
-  export DEPLOYMENT_NAME=ci-service
-  ${DIR}/deploy-k8s-instance.sh
-}
-
 KUBO_ENVIRONMENT_DIR=$1
 DEPLOYMENT_NAME=$2
 

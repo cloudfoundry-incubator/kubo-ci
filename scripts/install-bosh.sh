@@ -2,10 +2,12 @@
 
 set -exu -o pipefail
 
+ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
+
 . "$(dirname "$0")/lib/environment.sh"
 
 export BOSH_LOG_LEVEL=debug
-export BOSH_LOG_PATH="$PWD/bosh.log"
+export BOSH_LOG_PATH="${ROOT}/bosh.log"
 export DEBUG=1
 
 metadata_path="${KUBO_ENVIRONMENT_DIR}/director.yml"
@@ -54,17 +56,17 @@ echo "Deploying BOSH"
 
 if [ "$iaas" = "gcp" ]; then
   if [[ ! -z "${GCP_SERVICE_ACCOUNT+x}" ]] && [[ "$GCP_SERVICE_ACCOUNT" != "" ]]; then
-    echo "$GCP_SERVICE_ACCOUNT" >> "$PWD/key.json"
+    echo "$GCP_SERVICE_ACCOUNT" >> "${ROOT}/key.json"
   else
-    bosh int $metadata_path --path=/gcp_service_account > "$PWD/key.json"
+    bosh int $metadata_path --path=/gcp_service_account > "${ROOT}/key.json"
   fi
-  "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key.json"
+  "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "${ROOT}/key.json"
 elif [ "$iaas" = "aws" ]; then
-  bosh int $metadata_path --path=/private_key > "$PWD/key"
-  "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key"
+  bosh int $metadata_path --path=/private_key > "${ROOT}/key"
+  "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "${ROOT}/key"
 elif [ "$iaas" = "openstack" ]; then
-  bosh int $metadata_path --path=/private_key > "$PWD/key"
-  "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key"
+  bosh int $metadata_path --path=/private_key > "${ROOT}/key"
+  "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "${ROOT}/key"
 else
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}"
 fi
@@ -73,6 +75,6 @@ fi
 
 # for Concourse outputs
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
-  cp "${KUBO_ENVIRONMENT_DIR}/creds.yml" "$PWD/bosh-creds/"
-  cp "${KUBO_ENVIRONMENT_DIR}/state.json" "$PWD/bosh-state/"
+  cp "${KUBO_ENVIRONMENT_DIR}/creds.yml" "${ROOT}/bosh-creds/"
+  cp "${KUBO_ENVIRONMENT_DIR}/state.json" "${ROOT}/bosh-state/"
 fi

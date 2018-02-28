@@ -34,17 +34,18 @@ var _ = Describe("Upgrade components", func() {
 		k8sRunner.CleanupServiceWithLB(loadbalancerAddress, nginxSpec, testconfig.Bosh.Iaas)
 	})
 
-	It("Upgrades CFCR Release", func() {
-		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release")
+	It("upgrades BOSH and CFCR Release", func() {
+		upgradeAndMonitorAvailability("scripts/install-bosh.sh", "bosh", 0)
+		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release", CONNECTION_FAILURE_THRESHOLD)
 	})
 
-	XIt("Upgrades stemcell", func() {
-		upgradeAndMonitorAvailability("scripts/upgrade-stemcell.sh", "stemcell")
+	XIt("upgrades stemcell", func() {
+		upgradeAndMonitorAvailability("scripts/upgrade-stemcell.sh", "stemcell", CONNECTION_FAILURE_THRESHOLD)
 	})
 
 })
 
-func upgradeAndMonitorAvailability(pathToScript string, component string) {
+func upgradeAndMonitorAvailability(pathToScript string, component string, requestLossThreshold int) {
 	By("Getting the LB address")
 	Eventually(func() string {
 		loadbalancerAddress = k8sRunner.GetLBAddress("nginx", testconfig.Bosh.Iaas)
@@ -93,5 +94,5 @@ func upgradeAndMonitorAvailability(pathToScript string, component string) {
 	Expect(err).NotTo(HaveOccurred())
 
 	By("Reporting the availability during the upgrade")
-	Expect(totalCount - successCount).To(BeNumerically("<=", CONNECTION_FAILURE_THRESHOLD))
+	Expect(totalCount - successCount).To(BeNumerically("<=", requestLossThreshold))
 }
