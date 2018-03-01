@@ -45,6 +45,7 @@ run_tests() {
   $BASE_DIR/scripts/generate-test-config.sh $environment $deployment > $tmpfile
   export CONFIG=$tmpfile
 
+  ginkgo -progress -v "$BASE_DIR/src/tests/turbulence-tests/worker_drain"
   ginkgo -progress -v "$BASE_DIR/src/tests/turbulence-tests/worker_failure"
   ginkgo -progress -v "$BASE_DIR/src/tests/turbulence-tests/master_failure"
   if [[ "${iaas}" == "gcp" || "${iaas}" == "aws" || "${iaas}" == "vsphere" ]]; then
