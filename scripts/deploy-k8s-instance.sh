@@ -47,5 +47,5 @@ fi
 
 "$KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
 if [[ -z ${LOCAL_DEV+x} ]] || [[ "$LOCAL_DEV" != "1" ]]; then
-  mv ~/.kube/config "${ROOT}/gcs-kubeconfig/config"
+  cp ~/.kube/config "${ROOT}/gcs-kubeconfig/config"
 fi
