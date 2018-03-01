@@ -14,4 +14,4 @@ tmpfile=$(mktemp)
 $DIR/generate-test-config.sh "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
 export CONFIG="${tmpfile}"
 
-ginkgo -progress -v "$DIR/../src/tests/upgrade-tests"
+ginkgo -progress -v -failFast "$DIR/../src/tests/upgrade-tests"

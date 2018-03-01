@@ -76,7 +76,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	By("Waiting until LB address resolves")
 	Eventually(func() ([]string, error) {
 		return net.LookupHost(loadbalancerAddress)
-	}, "120s", "5s").ShouldNot(HaveLen(0))
+	}, "5m", "5s").ShouldNot(HaveLen(0))
 
 	By("Monitoring availability")
 	doneChannel := make(chan bool)
