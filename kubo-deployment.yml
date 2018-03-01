@@ -4,8 +4,8 @@
     'gcp' => 'google-kvm',
     'gcp-lb' => 'google-kvm',
     'vsphere' => 'vsphere-esxi',
-    'aws' => 'aws-xen',
-    'aws-lb' => 'aws-xen',
+    'aws' => 'aws-xen-hvm',
+    'aws-lb' => 'aws-xen-hvm',
     'openstack' => 'openstack-kvm'
   }
   additional_envs = %w(gcp-lb aws-lb vsphere-lb)
