@@ -31,7 +31,6 @@ networks:
   - range: ((internal_cidr))
     gateway: ((internal_gw))
     az: z1
-    dns: [8.8.8.8]
     reserved: ((reserved_ips))
     cloud_properties: {subnet: ((subnet_id))}
 - name: vip
