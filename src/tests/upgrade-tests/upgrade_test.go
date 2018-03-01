@@ -19,11 +19,6 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-const (
-	// There should only be at most one connection failure for each worker rolling
-	CONNECTION_FAILURE_THRESHOLD = 3
-)
-
 var loadbalancerAddress string
 
 var _ = Describe("Upgrade components", func() {
@@ -39,13 +34,13 @@ var _ = Describe("Upgrade components", func() {
 	})
 
 	It("upgrades BOSH and CFCR Release", func() {
-		upgradeAndMonitorAvailability("scripts/install-bosh.sh", "bosh", 0)
-		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release", CONNECTION_FAILURE_THRESHOLD)
+		upgradeAndMonitorAvailability("scripts/install-bosh.sh", "bosh", 0.99)
+		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release", 0.99)
 	})
 
 	It("upgrades stemcell", func() {
 		applyUpdateStemcellVersionOps(filepath.Join(testconfig.CFCR.DeploymentPath, "manifests", "cfcr.yml"), testconfig.CFCR.UpgradeToStemcellVersion)
-		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "stemcell", CONNECTION_FAILURE_THRESHOLD)
+		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "stemcell", 0.99)
 	})
 })
 
@@ -70,7 +65,7 @@ func applyUpdateStemcellVersionOps(manifestPath, stemcellVersion string) {
 	Expect(err).NotTo(HaveOccurred())
 }
 
-func upgradeAndMonitorAvailability(pathToScript string, component string, requestLossThreshold int) {
+func upgradeAndMonitorAvailability(pathToScript string, component string, requestLossThreshold float64) {
 	By("Getting the LB address")
 	Eventually(func() string {
 		loadbalancerAddress = k8sRunner.GetLBAddress("nginx", testconfig.Bosh.Iaas)
@@ -119,5 +114,5 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	Expect(err).NotTo(HaveOccurred())
 
 	By("Reporting the availability during the upgrade")
-	Expect(totalCount - successCount).To(BeNumerically("<=", requestLossThreshold))
+	Expect(float64(successCount) / float64(totalCount)).To(BeNumerically("<=", requestLossThreshold))
 }
