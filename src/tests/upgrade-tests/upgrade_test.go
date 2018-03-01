@@ -3,6 +3,7 @@ package upgrade_tests_test
 import (
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -71,6 +72,11 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 		loadbalancerAddress = k8sRunner.GetLBAddress("nginx", testconfig.Bosh.Iaas)
 		return loadbalancerAddress
 	}, "120s", "5s").Should(Not(Equal("")))
+
+	By("Waiting until LB address resolves")
+	Eventually(func() ([]string, error) {
+		return net.LookupHost(loadbalancerAddress)
+	}, "120s", "5s").ShouldNot(HaveLen(0))
 
 	By("Monitoring availability")
 	doneChannel := make(chan bool)
