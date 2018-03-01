@@ -16,6 +16,7 @@ inputs:
 - name: gcs-bosh-creds
 - name: gcs-kubo-release-tarball
 - name: gcs-kubeconfig
+- name: new-bosh-stemcell
 outputs:
 - name: bosh-state
 - name: bosh-creds

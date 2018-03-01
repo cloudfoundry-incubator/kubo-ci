@@ -309,6 +309,13 @@ resources:
     pre_release: true
     access_token: ((github-kubo-gitbot-access-token))
 
+<% upgrade_test_iaases.each do |env| %>
+- name: new-bosh-stemcell-<%= env %>
+  type: bosh-io-stemcell
+  source:
+    name: bosh-<%= stemcell_types[env] %>-ubuntu-trusty-go_agent
+<% end %>
+
 - name: conformance-results
   type: gcs
   source:
@@ -1193,6 +1200,8 @@ end
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     - get: gcs-kubeconfig
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+    - get: new-bosh-stemcell
+      resource: new-bosh-stemcell-<%= iaas %>
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
