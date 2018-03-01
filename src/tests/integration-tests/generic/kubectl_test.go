@@ -49,11 +49,8 @@ var _ = Describe("Kubectl", func() {
 	})
 
 	It("Should be able to run kubectl top successfully", func() {
-		s := kubectl.RunKubectlCommand("top", "nodes", "--heapster-scheme=https")
-		Eventually(s, "15s").Should(gexec.Exit(0))
-
-		s = kubectl.RunKubectlCommand("top", "pods", "--heapster-scheme=https")
-		Eventually(s, "15s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("top", "nodes", "--heapster-scheme=https"), "120s", "10s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("top", "pods", "--heapster-scheme=https"), "120s", "10s").Should(gexec.Exit(0))
 	})
 
 	Context("Dashboard", func() {
