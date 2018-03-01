@@ -5,7 +5,7 @@ set -exu -o pipefail
 base_dir="$PWD"
 tag=$(cat "$base_dir/docker-boshrelease/tag")
 version=$(cat "$base_dir/docker-boshrelease/version")
-release_sha1=$(sha1sum "$base_dir/docker-boshrelease/docker-${version}.tgz")
+release_sha1=$(sha1sum "$base_dir/docker-boshrelease/docker-${version}.tgz" | awk '{print $1}')
 download_url="https://github.com/cloudfoundry-incubator/docker-boshrelease/releases/download/${tag}/docker-${version}.tgz"
 
 cp -r git-kubo-deployment/. git-kubo-deployment-output
