@@ -38,7 +38,6 @@ var _ = Describe("Kubectl", func() {
 	})
 
 	It("Should be able to run kubectl commands within pod", func() {
-
 		roleBindingName := kubectl.Namespace() + "-admin"
 		s := kubectl.RunKubectlCommand("create", "rolebinding", roleBindingName, "--clusterrole=admin", "--user=system:serviceaccount:"+kubectl.Namespace()+":default")
 		Eventually(s, "15s").Should(gexec.Exit(0))
@@ -47,6 +46,14 @@ var _ = Describe("Kubectl", func() {
 		session := kubectl.RunKubectlCommand("run", podName, "--image", "pcfkubo/alpine:stable", "--restart=Never", "--image-pull-policy=Always", "-ti", "--rm", "--", "kubectl", "get", "services")
 		session.Wait(120)
 		Expect(session).To(gexec.Exit(0))
+	})
+
+	It("Should be able to run kubectl top successfully", func() {
+		s := kubectl.RunKubectlCommand("top", "nodes", "--heapster-scheme=https")
+		Eventually(s, "15s").Should(gexec.Exit(0))
+
+		s = kubectl.RunKubectlCommand("top", "pods", "--heapster-scheme=https")
+		Eventually(s, "15s").Should(gexec.Exit(0))
 	})
 
 	Context("Dashboard", func() {
