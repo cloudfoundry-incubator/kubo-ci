@@ -120,5 +120,5 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	Expect(err).NotTo(HaveOccurred())
 
 	By("Reporting the availability during the upgrade")
-	Expect(float64(successCount) / float64(totalCount)).To(BeNumerically("<=", requestLossThreshold))
+	Expect(float64(successCount) / float64(totalCount)).To(BeNumerically(">=", requestLossThreshold))
 }
