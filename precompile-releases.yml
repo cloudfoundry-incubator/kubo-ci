@@ -7,6 +7,7 @@ resources:
   source:
     owner: pivotal-cf-experimental
     repository: kubo-etcd
+    access_token: ((github-kubo-gitbot-access-token))
 - name: docker-boshrelease
   type: bosh-io-release
   source:
@@ -24,6 +25,7 @@ resources:
   source:
     owner: pivotal-cf
     repository: syslog-migration-release
+    access_token: ((github-kubo-gitbot-access-token))
 - name: compiled-releases
   type: gcs
   source:
@@ -40,6 +42,12 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry-incubator/kubo-deployment
+- name: backup-and-restore-sdk-release
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: backup-and-restore-sdk-release
+    access_token: ((github-kubo-gitbot-access-token))
 resource_types:
 - name: gcs
   type: docker-image
@@ -127,3 +135,21 @@ jobs:
   - put: compiled-releases
     params:
       file: compiled-release/*.tgz
+
+- name: compile-backup-and-restore-sdk-release-ubuntu-trusty
+  plan:
+  - aggregate:
+    - get: kubo-ci
+    - get: git-kubo-deployment
+    - get: backup-and-restore-sdk-release
+      trigger: true
+  - task: export-release
+    privileged: true
+    file: kubo-ci/tasks/export-release.yml
+    input_mapping:
+      release: backup-and-restore-sdk-release
+      stemcell: ubuntu-trusty
+  - put: compiled-releases
+    params:
+      file: compiled-release/*.tgz
+      
