@@ -48,7 +48,7 @@ var _ = Describe("Kubectl", func() {
 		Expect(session).To(gexec.Exit(0))
 	})
 
-	FIt("Should be able to run kubectl top successfully", func() {
+	It("Should be able to run kubectl top successfully", func() {
 		Eventually(func() int {
 			return kubectl.RunKubectlCommand("top", "nodes", "--heapster-scheme=https").Wait().ExitCode()
 		}, "120s", "10s").Should(Equal(0))
