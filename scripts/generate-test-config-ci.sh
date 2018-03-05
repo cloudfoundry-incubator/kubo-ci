@@ -9,10 +9,14 @@ ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 verify_args() {
   set +e # Cant be set since read returns a non-zero when it reaches EOF
   read -r -d '' usage <<-EOF
-	Usage: $(basename "$0") [-h] environment deployment-name --enable-multi-az-tests
+	Usage: $(basename "$0") [-h] environment deployment-name
 
-	Help Options:
-		-h  show this help text
+	Options:
+		-h                               show this help text
+		--enable-multi-az-tests          [env:ENABLE_MULTI_AZ_TESTS]
+	        --enable-addons-tests            [env:ENABLE_ADDONS_TESTS]
+		--enable_persistent_volume_tests [env:ENABLE_PERSISTENT_VOLUME_TEST]
+		--enable_iaas_k8s_lb             [env:ENABLE_IAAS_K8S_LB]
 	EOF
   set -e
 
@@ -49,8 +53,10 @@ credhub_login() {
 generate_test_config() {
   local environment="$1"
   local deployment="$2"
-  local enable_addons_tests="false"
-  local enable_multi_az_tests="false"
+  local enable_addons_tests="${ENABLE_ADDONS_TESTS:-false}"
+  local enable_multi_az_tests="${ENABLE_MULTI_AZ_TESTS:-false}"
+  local enable_persistent_volume_tests="${ENABLE_PERSISTENT_VOLUME_TEST:-false}"
+  local enable_iaas_k8s_lb="${ENABLE_IAAS_K8S_LB:-false}"
 
   shift 2
   for flag in "$@"; do
@@ -60,6 +66,12 @@ generate_test_config() {
         ;;
       --enable-multi-az-tests)
         enable_multi_az_tests=true
+        ;;
+      --enable-persistent-volume-tests)
+        enable_persistent_volume_tests=true
+        ;;
+      --enable-iaas-k8s-lb)
+        enable_iaas_k8s_lb=true
         ;;
       *)
         echo "$flag is not a valid flag"
@@ -75,6 +87,7 @@ generate_test_config() {
 
   local director_name=$(bosh int "${environment}/director.yml" --path="/director_name")
   local authorization_mode=$(bosh int "${environment}/director.yml" --path='/authorization_mode')
+  local iaas=$(bosh int "$environment/director.yml" --path='/iaas')
   local routing_mode=$(bosh int "$environment/director.yml" --path='/routing_mode')
 
   local enable_rbac_tests="false"
@@ -92,9 +105,27 @@ generate_test_config() {
     new_bosh_stemcell_version="$(cat ${ROOT}/new-bosh-stemcell/version)"
   fi
 
+
+  local aws_config=""
+  if [[ ${routing_mode} == "iaas" ]]; then
+    case "${iaas}" in
+      aws)
+	aws_config=$(cat <<EOF
+	"aws": {
+	  "aws_access_key_id": "$(bosh int "${environment}/director.yml" --path=/access_key_id)",
+	  "aws_secret_access_key":  "$(bosh int "${environment}/director.yml" --path=/secret_access_key)",
+	  "aws_region": "$(bosh int "${environment}/director.yml" --path=/region)",
+	  "aws_ingress_group_id": "$(bosh int "${environment}/director.yml" --path=/default_security_groups/0)"
+	},
+EOF
+)
+    esac
+  fi
+
   set +e # Cant be set since read returns a non-zero when it reaches EOF
   read -r -d '' config <<-EOF
 	{
+	  $aws_config
 	  "test_suites": {
 	    "include_api_extensions": true,
 	    "include_generic": true,
@@ -104,8 +135,8 @@ generate_test_config() {
 	    "include_rbac": ${enable_rbac_tests},
 	    "include_cloudfoundry": ${enable_cloudfoundry_tests},
 	    "include_multiaz": ${enable_multi_az_tests},
-	    "include_workload": true,
-	    "include_persistent_volume": true
+	    "include_k8s_lb": ${enable_iaas_k8s_lb},
+	    "include_persistent_volume": ${enable_persistent_volume_tests}
 	  },
 	  "bosh": {
 	     "iaas": "$(bosh int $director_yml --path=/iaas)",

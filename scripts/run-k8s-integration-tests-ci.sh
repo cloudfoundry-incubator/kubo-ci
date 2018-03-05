@@ -1,50 +1,34 @@
 #!/usr/bin/env bash
 
-[ -z "$DEBUG" ] || set -x
+set -eu -o pipefail
 
-set -eu
-set -o pipefail
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
-BASE_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
+DEPLOYMENT_NAME="${DEPLOYMENT_NAME:="ci-service"}"
+KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
 
-ENVIRONMENT=${ENVIRONMENT:-"default"}
-DEPLOYMENT=${DEPLOYMENT:-"default"}
-ENABLE_ADDONS_TESTS=${ENABLE_ADDONS_TESTS}
-ENABLE_MULTI_AZ_TESTS=${ENABLE_MULTI_AZ_TESTS}
-IAAS=${IAAS}
+export GOPATH="${ROOT}/git-kubo-ci"
+export ENABLE_ADDONS_TESTS="${ENABLE_ADDONS_TESTS:-true}"
+export ENABLE_MULTI_AZ_TESTS="${ENABLE_MULTI_AZ_TESTS:-true}"
+export ENABLE_PERSISTENT_VOLUME_TEST="${ENABLE_PERSISTENT_VOLUME_TEST:-true}"
+export ENABLE_IAAS_K8S_LB="${ENABLE_IAAS_K8S_LB:-true}"
 
-execute_cloud_specific_tests(){
-  local routing_mode="$1"
-  local iaas="$2"
+setup_env() {
+  mkdir -p "${KUBO_ENVIRONMENT_DIR}"
+  cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+  cp "${ROOT}/kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 
-  if [[ ${routing_mode} == "iaas" ]]; then
-    case "${iaas}" in
-      aws)
-        aws configure set aws_access_key_id "$(bosh int "${environment}/director.yml" --path=/access_key_id)"
-        aws configure set aws_secret_access_key  "$(bosh int "${environment}/director.yml" --path=/secret_access_key)"
-        aws configure set default.region "$(bosh int "${environment}/director.yml" --path=/region)"
-        AWS_INGRESS_GROUP_ID=$(bosh int "${environment}/director.yml" --path=/default_security_groups/0)
-        export AWS_INGRESS_GROUP_ID
-        ;;
-    esac
-
-    ginkgo -r -progress -v "$BASE_DIR/src/tests/integration-tests/workload"
-  fi
-
-  ginkgo -progress -v "$BASE_DIR/src/tests/integration-tests/persistent_volume"
+  "${ROOT}/git-kubo-deployment/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
+  "${ROOT}/git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
 }
 
-run_tests() {
-  local tmpfile=$(mktemp)
-  $BASE_DIR/scripts/generate-test-config.sh $environment $deployment > $tmpfile
-  export CONFIG=$tmpfile
+main() {
+  setup_env
 
-  # local iaas=$(bosh int "$environment/director.yml" --path='/iaas')
-  # local routing_mode=$(bosh int "$environment/director.yml" --path='/routing_mode')
-  # execute_cloud_specific_tests "${routing_mode}" "${iaas}"
+  local tmpfile=$(mktemp) && echo "CONFIG=${tmpfile}"
+  "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" ${KUBO_ENVIRONMENT_DIR} ${DEPLOYMENT_NAME} > "${tmpfile}"
 
-  ginkgo -r -progress -dryRun  -v "$BASE_DIR/src/tests/integration-tests/"
-  return 0
+  CONFIG="${tmpfile}" ginkgo -r -progress -v "${ROOT}/git-kubo-ci/src/tests/integration-tests/"
 }
 
-run_tests "$@"
+main
