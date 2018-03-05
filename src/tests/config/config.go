@@ -8,6 +8,7 @@ import (
 )
 
 type Config struct {
+	AWS          AWS        `json:"aws"`
 	Bosh         Bosh       `json:"bosh"`
 	Turbulence   Turbulence `json:"turbulence"`
 	Cf           Cf         `json:"cf"`
@@ -15,6 +16,13 @@ type Config struct {
 	TimeoutScale float64    `json:"timeout_scale"`
 	CFCR         CFCR       `json:"cfcr"`
 	TestSuites   TestSuites `json:"test_suites"`
+}
+
+type AWS struct {
+	AccessKeyID     string `json:"access_key_id"`
+	SecretAccessKey string `json:"secret_access_key"`
+	Region          string `json:"region"`
+	IngressGroupID  string `json:"ingress_group_id"`
 }
 
 type Bosh struct {
@@ -47,7 +55,7 @@ type TestSuites struct {
 	IncludeRBAC             bool `json:"include_rbac"`
 	IncludeCloudFoundry     bool `json:"include_cloudfoundry"`
 	IncludeMultiAZ          bool `json:"include_multiaz"`
-	IncludeWorkload         bool `json:"include_workload"`
+	IncludeK8SLB            bool `json:"include_k8s_lb"`
 	IncludePersistentVolume bool `json:"include_persistent_volume"`
 }
 
@@ -86,6 +94,12 @@ func InitConfig() (*Config, error) {
 	// Do not allow zero for timeout scale as it would fail all the time.
 	if config.TimeoutScale == 0 {
 		config.TimeoutScale = 1
+	}
+
+	if config.AWS.AccessKeyID != "" && config.AWS.SecretAccessKey != "" && config.AWS.Region != "" {
+		os.Setenv("AWS_ACCESS_KEY_ID", config.AWS.AccessKeyID)
+		os.Setenv("AWS_SECRET_ACCESS_KEY", config.AWS.SecretAccessKey)
+		os.Setenv("AWS_REGION", config.AWS.Region)
 	}
 
 	return &config, nil

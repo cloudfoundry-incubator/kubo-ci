@@ -13,7 +13,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/onsi/ginkgo/config"
@@ -186,7 +185,7 @@ func (runner *KubectlRunner) GetLBAddress(service, iaas string) string {
 	return loadBalancerAddress
 }
 
-func (runner *KubectlRunner) CleanupServiceWithLB(loadBalancerAddress, pathToSpec, iaas string) {
+func (runner *KubectlRunner) CleanupServiceWithLB(loadBalancerAddress, pathToSpec, iaas, ingressGroupID string) {
 	lbSecurityGroup := ""
 
 	if iaas == "aws" {
@@ -215,7 +214,7 @@ func (runner *KubectlRunner) CleanupServiceWithLB(loadBalancerAddress, pathToSpe
 	// Teardown the security group
 	if lbSecurityGroup != "" {
 		cmd := exec.Command("aws", "ec2", "revoke-security-group-ingress", "--group-id",
-			os.Getenv("AWS_INGRESS_GROUP_ID"), "--source-group", lbSecurityGroup, "--protocol", "all")
+			ingressGroupID, "--source-group", lbSecurityGroup, "--protocol", "all")
 		fmt.Fprintf(GinkgoWriter, "Teardown security groups - %s\n", cmd.Args)
 		session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())

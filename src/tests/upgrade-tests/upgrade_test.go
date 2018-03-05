@@ -31,7 +31,7 @@ var _ = Describe("Upgrade components", func() {
 	})
 
 	AfterEach(func() {
-		k8sRunner.CleanupServiceWithLB(loadbalancerAddress, nginxSpec, testconfig.Bosh.Iaas)
+		k8sRunner.CleanupServiceWithLB(loadbalancerAddress, nginxSpec, testconfig.Bosh.Iaas, testconfig.AWS.IngressGroupID)
 	})
 
 	It("upgrades BOSH and CFCR Release", func() {

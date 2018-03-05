@@ -10,7 +10,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = WorkloadDescribe("Deploy workload", func() {
+var _ = K8SLBDescribe("Deploy workload", func() {
 
 	var loadbalancerAddress string
 	It("exposes routes via LBs", func() {
@@ -45,7 +45,7 @@ var _ = WorkloadDescribe("Deploy workload", func() {
 	})
 
 	AfterEach(func() {
-		runner.CleanupServiceWithLB(loadbalancerAddress, nginxLBSpec, testconfig.Bosh.Iaas)
+		runner.CleanupServiceWithLB(loadbalancerAddress, nginxLBSpec, testconfig.Bosh.Iaas, testconfig.AWS.IngressGroupID)
 	})
 
 })

@@ -35,12 +35,11 @@ var _ = AfterSuite(func() {
 	}
 })
 
-func WorkloadDescribe(description string, callback func()) bool {
-	return Describe("[workload]", func() {
+func K8SLBDescribe(description string, callback func()) bool {
+	return Describe("[k8s_lb]", func() {
 		BeforeEach(func() {
-
-			if !testconfig.TestSuites.IncludeWorkload {
-				Skip(`Skipping this test suite because Config.TestSuites.IncludeWorkload is set to 'false'.`)
+			if !testconfig.TestSuites.IncludeK8SLB {
+				Skip(`Skipping this test suite because Config.TestSuites.IncludeK8SLB is set to 'false'.`)
 			}
 		})
 		Describe(description, callback)
