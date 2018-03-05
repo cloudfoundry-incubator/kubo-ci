@@ -18,7 +18,7 @@ resources:
     name: bosh-google-kvm-ubuntu-trusty-go_agent
 
 jobs:
-- name: update-stemcell
+- name: bump-stemcell
   plan:
   - get: git-kubo-deployment
   - get: git-kubo-ci
@@ -34,7 +34,7 @@ jobs:
       outputs:
       - name: git-kubo-deployment-with-updated-stemcell
       run:
-        path: ./git-kubo-ci/scripts/update-stemcell.sh
+        path: ./git-kubo-ci/scripts/bump-stemcell.sh
       image_resource:
         type: docker-image
         source:
