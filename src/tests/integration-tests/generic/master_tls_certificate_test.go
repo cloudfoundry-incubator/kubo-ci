@@ -10,7 +10,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("MasterTlsCertificate", func() {
+var _ = GenericDescribe("MasterTlsCertificate", func() {
 
 	var (
 		kubectl *KubectlRunner

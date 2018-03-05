@@ -28,3 +28,14 @@ var _ = BeforeSuite(func() {
 	message := fmt.Sprintf("Expected IAAS to be one of the following values: %#v", platforms)
 	Expect(platforms).To(ContainElement(testconfig.Bosh.Iaas), message)
 })
+
+func PersistentVolumeDescribe(description string, callback func()) bool {
+	return Describe("[PersistentVolume]", func() {
+		BeforeEach(func() {
+			if !testconfig.TestSuites.IncludePersistentVolume {
+				Skip(`Skipping this test suite because Config.TestSuites.IncludePersistentVolume is set to 'false'.`)
+			}
+		})
+		Describe(description, callback)
+	})
+}

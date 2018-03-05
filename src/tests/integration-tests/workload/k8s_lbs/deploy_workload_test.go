@@ -10,7 +10,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Deploy workload", func() {
+var _ = WorkloadDescribe("Deploy workload", func() {
 
 	var loadbalancerAddress string
 	It("exposes routes via LBs", func() {

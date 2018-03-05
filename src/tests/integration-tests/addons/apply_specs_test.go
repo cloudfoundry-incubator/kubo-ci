@@ -1,4 +1,4 @@
-package generic_test
+package addons_test
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("check apply-specs errand has run correctly", func() {
+var _ = AddonsDescribe("check apply-specs errand has run correctly", func() {
 	var (
 		kubectl *KubectlRunner
 	)

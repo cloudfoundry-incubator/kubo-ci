@@ -34,3 +34,14 @@ var _ = AfterSuite(func() {
 		runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("60s")
 	}
 })
+
+func PodLogsDescribe(description string, callback func()) bool {
+	return Describe("[pod_logs]", func() {
+		BeforeEach(func() {
+			if !testconfig.TestSuites.IncludePodLogs {
+				Skip(`Skipping this test suite because Config.TestSuites.IncludePodLogs is set to 'false'.`)
+			}
+		})
+		Describe(description, callback)
+	})
+}

@@ -14,7 +14,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Guestbook storage", func() {
+var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 
 	var (
 		deployment director.Deployment

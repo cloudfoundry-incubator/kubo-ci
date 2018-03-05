@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Kubectl", func() {
+var _ = OSSOnlyDescribe("Kubectl", func() {
 	var (
 		runner *test_helpers.KubectlRunner
 	)

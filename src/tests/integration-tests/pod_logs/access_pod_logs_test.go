@@ -7,7 +7,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Deploy workload", func() {
+var _ = PodLogsDescribe("Deploy workload", func() {
 
 	It("allows access to pod logs", func() {
 

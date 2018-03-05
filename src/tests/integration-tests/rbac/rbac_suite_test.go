@@ -21,3 +21,14 @@ var _ = BeforeSuite(func() {
 	testconfig, err = config.InitConfig()
 	Expect(err).NotTo(HaveOccurred())
 })
+
+func RBACDescribe(description string, callback func()) bool {
+	return Describe("[rbac]", func() {
+		BeforeEach(func() {
+			if !testconfig.TestSuites.IncludeRBAC {
+				Skip(`Skipping this test suite because Config.TestSuites.IncludeRBAC is set to 'false'.`)
+			}
+		})
+		Describe(description, callback)
+	})
+}

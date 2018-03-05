@@ -13,7 +13,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Deploy workload", func() {
+var _ = CloudFoundryDescribe("Deploy workload", func() {
 
 	var (
 		tcpPort   string

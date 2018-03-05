@@ -1,4 +1,4 @@
-package generic_test
+package addons_test
 
 import (
 	"tests/config"
@@ -9,9 +9,9 @@ import (
 	"testing"
 )
 
-func TestGeneric(t *testing.T) {
+func TestAddons(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Generic Suite")
+	RunSpecs(t, "Addons Suite")
 }
 
 var testconfig *config.Config
@@ -22,11 +22,11 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 })
 
-func GenericDescribe(description string, callback func()) bool {
-	return Describe("[generic]", func() {
+func AddonsDescribe(description string, callback func()) bool {
+	return Describe("[addons]", func() {
 		BeforeEach(func() {
-			if !testconfig.TestSuites.IncludeGeneric {
-				Skip(`Skipping this test suite because Config.TestSuites.IncludeGeneric is set to 'false'.`)
+			if !testconfig.TestSuites.IncludeAddons {
+				Skip(`Skipping this test suite because Config.TestSuites.IncludeAddons is set to 'false'.`)
 			}
 		})
 		Describe(description, callback)

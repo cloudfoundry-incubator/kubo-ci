@@ -14,7 +14,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Testing Ingress Controller", func() {
+var _ = CloudFoundryDescribe("Testing Ingress Controller", func() {
 
 	var (
 		ingressConfig IngressTestConfig

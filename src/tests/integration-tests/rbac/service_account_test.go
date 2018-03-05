@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Service Accounts", func() {
+var _ = RBACDescribe("Service Accounts", func() {
 	var (
 		kubectl *KubectlRunner
 	)

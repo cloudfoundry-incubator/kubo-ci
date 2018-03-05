@@ -14,6 +14,7 @@ type Config struct {
 	Kubernetes   Kubernetes `json:"kubernetes"`
 	TimeoutScale float64    `json:"timeout_scale"`
 	CFCR         CFCR       `json:"cfcr"`
+	TestSuites   TestSuites `json:"test_suites"`
 }
 
 type Bosh struct {
@@ -35,6 +36,19 @@ type Turbulence struct {
 
 type Cf struct {
 	AppsDomain string `json:"apps_domain"`
+}
+
+type TestSuites struct {
+	IncludeAPIExtensions    bool `json:"include_api_extensions"`
+	IncludeGeneric          bool `json:"include_generic"`
+	IncludeAddons           bool `json:"include_addons"`
+	IncludeOSSOnly          bool `json:"include_oss_only"`
+	IncludePodLogs          bool `json:"include_pod_logs"`
+	IncludeRBAC             bool `json:"include_rbac"`
+	IncludeCloudFoundry     bool `json:"include_cloudfoundry"`
+	IncludeMultiAZ          bool `json:"include_multiaz"`
+	IncludeWorkload         bool `json:"include_workload"`
+	IncludePersistentVolume bool `json:"include_persistent_volume"`
 }
 
 type Kubernetes struct {

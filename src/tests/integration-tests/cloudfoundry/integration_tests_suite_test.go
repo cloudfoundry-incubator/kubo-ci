@@ -20,3 +20,14 @@ var _ = BeforeSuite(func() {
 	testconfig, err = config.InitConfig()
 	Expect(err).NotTo(HaveOccurred())
 })
+
+func CloudFoundryDescribe(description string, callback func()) bool {
+	return Describe("[cloudfoundry]", func() {
+		BeforeEach(func() {
+			if !testconfig.TestSuites.IncludeCloudFoundry {
+				Skip(`Skipping this test suite because Config.TestSuites.IncludeCloudFoundry is set to 'false'.`)
+			}
+		})
+		Describe(description, callback)
+	})
+}

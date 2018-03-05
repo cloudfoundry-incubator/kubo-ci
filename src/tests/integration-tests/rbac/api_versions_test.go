@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("API Versions", func() {
+var _ = RBACDescribe("API Versions", func() {
 	var (
 		kubectl *KubectlRunner
 	)

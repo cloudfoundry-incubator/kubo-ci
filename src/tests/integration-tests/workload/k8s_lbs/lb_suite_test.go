@@ -34,3 +34,15 @@ var _ = AfterSuite(func() {
 		runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("60s")
 	}
 })
+
+func WorkloadDescribe(description string, callback func()) bool {
+	return Describe("[workload]", func() {
+		BeforeEach(func() {
+
+			if !testconfig.TestSuites.IncludeWorkload {
+				Skip(`Skipping this test suite because Config.TestSuites.IncludeWorkload is set to 'false'.`)
+			}
+		})
+		Describe(description, callback)
+	})
+}

@@ -21,3 +21,14 @@ var _ = BeforeSuite(func() {
 	testconfig, err = config.InitConfig()
 	Expect(err).NotTo(HaveOccurred())
 })
+
+func OSSOnlyDescribe(description string, callback func()) bool {
+	return Describe("[oss_only]", func() {
+		BeforeEach(func() {
+			if !testconfig.TestSuites.IncludeOSSOnly {
+				Skip(`Skipping this test suite because Config.TestSuites.IncludeOSSOnly is set to 'false'.`)
+			}
+		})
+		Describe(description, callback)
+	})
+}

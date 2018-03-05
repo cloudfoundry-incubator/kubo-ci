@@ -7,7 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var _ = Describe("Multi-AZ workload deployment", func() {
+var _ = MultiAZDescribe("Multi-AZ workload deployment", func() {
 	BeforeEach(func() {
 		deployNginx := runner.RunKubectlCommand("create", "-f", nginxSpec)
 		Eventually(deployNginx, "60s").Should(gexec.Exit(0))

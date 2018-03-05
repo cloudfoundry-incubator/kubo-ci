@@ -15,7 +15,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Kubectl", func() {
+var _ = GenericDescribe("Kubectl", func() {
 	var (
 		deployment director.Deployment
 		kubectl    *KubectlRunner
