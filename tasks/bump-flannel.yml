@@ -5,7 +5,7 @@ image_resource:
     repository: pcfkubo/kubo-ci
     tag: stable
 run:
-  path: git-kubo-ci/scripts/update-flannel-blob.sh
+  path: git-kubo-ci/scripts/bump-flannel.sh
 
 params:
   ACCESS_KEY_ID: ""
