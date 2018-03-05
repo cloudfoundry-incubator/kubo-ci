@@ -99,7 +99,7 @@ func InitConfig() (*Config, error) {
 	if config.AWS.AccessKeyID != "" && config.AWS.SecretAccessKey != "" && config.AWS.Region != "" {
 		os.Setenv("AWS_ACCESS_KEY_ID", config.AWS.AccessKeyID)
 		os.Setenv("AWS_SECRET_ACCESS_KEY", config.AWS.SecretAccessKey)
-		os.Setenv("AWS_REGION", config.AWS.Region)
+		os.Setenv("AWS_DEFAULT_REGION", config.AWS.Region)
 	}
 
 	return &config, nil
