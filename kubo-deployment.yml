@@ -1211,7 +1211,7 @@ end
 
   - task: upgrade
     tags: ['<%= iaas %>']
-    file: git-kubo-ci/tasks/upgrade-bosh-and-kubo.yml
+    file: git-kubo-ci/tasks/run-k8s-upgrade-tests.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested

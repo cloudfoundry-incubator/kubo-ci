@@ -21,7 +21,7 @@ setup_env() {
 
 main() {
   setup_env
-  "$BASE_DIR/scripts/upgrade-bosh-and-kubo-test-ha.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" "$@"
+  "$BASE_DIR/scripts/run-k8s-upgrade-tests.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" "$@"
 }
 
 main "$@"
