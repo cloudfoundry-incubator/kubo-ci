@@ -3,6 +3,7 @@ package test_helpers
 import (
 	"errors"
 	"math/rand"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -14,6 +15,7 @@ import (
 
 	"fmt"
 	"strings"
+	testconfig "tests/config"
 
 	"github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega/gexec"
@@ -185,7 +187,7 @@ func (runner *KubectlRunner) GetLBAddress(service, iaas string) string {
 	return loadBalancerAddress
 }
 
-func (runner *KubectlRunner) CleanupServiceWithLB(loadBalancerAddress, pathToSpec, iaas, ingressGroupID string) {
+func (runner *KubectlRunner) CleanupServiceWithLB(loadBalancerAddress, pathToSpec, iaas string, aws testconfig.AWS) {
 	lbSecurityGroup := ""
 
 	if iaas == "aws" {
@@ -195,6 +197,11 @@ func (runner *KubectlRunner) CleanupServiceWithLB(loadBalancerAddress, pathToSpe
 			cmd := exec.Command("aws", "elb", "describe-load-balancers", "--query",
 				fmt.Sprintf("LoadBalancerDescriptions[?DNSName==`%s`].[SecurityGroups]", loadBalancerAddress),
 				"--output", "text")
+			cmd.Env = append(os.Environ(),
+				fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", aws.AccessKeyID),
+				fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", aws.SecretAccessKey),
+				fmt.Sprintf("AWS_DEFAULT_REGION=%s", aws.Region),
+			)
 			fmt.Fprintf(GinkgoWriter, "Get LoadBalancer security group - %s\n", cmd.Args)
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Eventually(session, "10s").Should(gexec.Exit(0))
@@ -214,7 +221,13 @@ func (runner *KubectlRunner) CleanupServiceWithLB(loadBalancerAddress, pathToSpe
 	// Teardown the security group
 	if lbSecurityGroup != "" {
 		cmd := exec.Command("aws", "ec2", "revoke-security-group-ingress", "--group-id",
-			ingressGroupID, "--source-group", lbSecurityGroup, "--protocol", "all")
+			aws.IngressGroupID, "--source-group", lbSecurityGroup, "--protocol", "all")
+		cmd.Env = append(os.Environ(),
+			fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", aws.AccessKeyID),
+			fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", aws.SecretAccessKey),
+			fmt.Sprintf("AWS_DEFAULT_REGION=%s", aws.Region),
+		)
+
 		fmt.Fprintf(GinkgoWriter, "Teardown security groups - %s\n", cmd.Args)
 		session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())

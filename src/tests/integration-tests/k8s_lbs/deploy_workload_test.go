@@ -45,7 +45,7 @@ var _ = K8SLBDescribe("Deploy workload", func() {
 	})
 
 	AfterEach(func() {
-		runner.CleanupServiceWithLB(loadbalancerAddress, nginxLBSpec, testconfig.Bosh.Iaas, testconfig.AWS.IngressGroupID)
+		runner.CleanupServiceWithLB(loadbalancerAddress, nginxLBSpec, testconfig.Bosh.Iaas, testconfig.AWS)
 	})
 
 })
