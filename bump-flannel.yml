@@ -30,7 +30,7 @@ jobs:
       trigger: true
       params: { globs: ["flannel-v*-linux-amd64.tar.gz"] }
   - task: update-flannel-blob
-    file: git-kubo-ci/tasks/update-flannel-blob.yml
+    file: git-kubo-ci/tasks/bump-flannel.yml
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
