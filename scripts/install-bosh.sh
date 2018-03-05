@@ -52,6 +52,7 @@ fi
 export CLOUD_CONFIG_OPS_FILES
 
 set +x
+export DEBUG=0
 echo "Deploying BOSH"
 
 if [ "$iaas" = "gcp" ]; then
@@ -70,6 +71,8 @@ elif [ "$iaas" = "openstack" ]; then
 else
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}"
 fi
+set -x
+export DEBUG=1
 
 "$KUBO_DEPLOYMENT_DIR/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
 

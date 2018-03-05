@@ -12,4 +12,5 @@ export BOSH_CA_CERT="$(bosh int "${creds_path}" --path=/director_ssl/ca)"
 export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 
+set +x
 bosh -d "${DEPLOYMENT_NAME}" -n delete-deployment

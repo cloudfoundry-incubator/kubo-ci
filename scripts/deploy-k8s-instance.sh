@@ -43,7 +43,11 @@ if [[ -f "${KUBO_CI_DIR}/manifests/ops-files/${DEPLOYMENT_OPS_FILE}" ]]; then
   cp "${KUBO_CI_DIR}/manifests/ops-files/${DEPLOYMENT_OPS_FILE}" "${KUBO_ENVIRONMENT_DIR}/${DEPLOYMENT_NAME}.yml"
 fi
 
+set +x
+export DEBUG=0
 "$KUBO_DEPLOYMENT_DIR/bin/deploy_k8s" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" "$release_source"
+set -x
+export DEBUG=1
 
 "$KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
 if [[ -z ${LOCAL_DEV+x} ]] || [[ "$LOCAL_DEV" != "1" ]]; then
