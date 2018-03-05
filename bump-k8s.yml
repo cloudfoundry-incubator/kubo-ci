@@ -99,10 +99,10 @@ jobs:
     - get: git-kubo-ci
     - get: git-kubo-release
   - task: compare-specs
-    file: git-kubo-ci/tasks/bump-tasks/compare-specs.yml
+    file: git-kubo-ci/tasks/bump/compare-specs.yml
   - task: bump-spec
     privileged: true
-    file: git-kubo-ci/tasks/bump-tasks/bump-k8s-spec.yml
+    file: git-kubo-ci/tasks/bump/bump-k8s-spec.yml
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
