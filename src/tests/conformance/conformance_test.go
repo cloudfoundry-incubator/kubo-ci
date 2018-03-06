@@ -77,11 +77,11 @@ var _ = Describe("Conformance Tests", func() {
 		logPath := matches[0]
 
 		By("Get the release version and iaas")
-		releaseVersion := os.Getenv("CONFORMANCE_RELEASE_VERSION")
-		iaas := os.Getenv("CONFORMANCE_IAAS")
+		releaseVersion := testconfig.Conformance.ReleaseVersion
+		iaas := testconfig.Iaas
 
 		By("Move results to output dir")
-		conformanceResultsDir := os.Getenv("CONFORMANCE_RESULTS_DIR")
+		conformanceResultsDir := testconfig.Conformance.ResultsDir
 		fmt.Println(fmt.Sprintf("conformance results dir: %s", conformanceResultsDir))
 		conformanceResultsPath := filepath.Join(conformanceResultsDir, fmt.Sprintf("conformance-results-%s-%s.tar.gz", iaas, releaseVersion))
 		containerAddressedLogPath := fmt.Sprintf("sonobuoy:%s", logPath)

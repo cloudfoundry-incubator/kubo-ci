@@ -12,11 +12,14 @@ verify_args() {
 	Usage: $(basename "$0") [-h] environment deployment-name
 
 	Options:
-		-h                               show this help text
-		--enable-multi-az-tests          [env:ENABLE_MULTI_AZ_TESTS]
-	        --enable-addons-tests            [env:ENABLE_ADDONS_TESTS]
-		--enable_persistent_volume_tests [env:ENABLE_PERSISTENT_VOLUME_TEST]
-		--enable_iaas_k8s_lb             [env:ENABLE_IAAS_K8S_LB]
+		-h                                       show this help text
+		--enable-multi-az-tests                  [env:ENABLE_MULTI_AZ_TESTS]
+		--enable-addons-tests                    [env:ENABLE_ADDONS_TESTS]
+		--enable_persistent_volume_tests         [env:ENABLE_PERSISTENT_VOLUME_TEST]
+		--enable_iaas_k8s_lb                     [env:ENABLE_IAAS_K8S_LB]
+
+		--conformance_release_version=<some-value> [env:CONFORMANCE_RELEASE_VERSION]
+		--conformance_results_dir=<some-value>     [env:CONFORMANCE_RESULTS_DIR]
 	EOF
   set -e
 
@@ -57,9 +60,13 @@ generate_test_config() {
   local enable_multi_az_tests="${ENABLE_MULTI_AZ_TESTS:-false}"
   local enable_persistent_volume_tests="${ENABLE_PERSISTENT_VOLUME_TEST:-false}"
   local enable_iaas_k8s_lb="${ENABLE_IAAS_K8S_LB:-false}"
+  local conformance_release_version="${CONFORMANCE_RELEASE_VERSION:-dev}"
+  local conformance_results_dir="${CONFORMANCE_RESULTS_DIR:-/tmp}"
 
   shift 2
-  for flag in "$@"; do
+  for arg in "$@"; do
+    local flag="${arg%%=*}"
+    local value="${arg##*=}"
     case "$flag" in
       --enable-addons-tests)
         enable_addons_tests=true
@@ -73,6 +80,12 @@ generate_test_config() {
       --enable-iaas-k8s-lb)
         enable_iaas_k8s_lb=true
         ;;
+      --conformance_release_version)
+	conformance_release_version="${value}"
+	;;
+      --conformance_results_dir)
+	conformance_results_dir="${value}"
+	;;
       *)
         echo "$flag is not a valid flag"
         exit 1
@@ -108,6 +121,7 @@ generate_test_config() {
   set +e # Cant be set since read returns a non-zero when it reaches EOF
   read -r -d '' config <<-EOF
 	{
+	  "iaas": "$(bosh int $director_yml --path=/iaas)",
 	  "test_suites": {
 	    "include_api_extensions": true,
 	    "include_generic": true,
@@ -120,8 +134,11 @@ generate_test_config() {
 	    "include_k8s_lb": ${enable_iaas_k8s_lb},
 	    "include_persistent_volume": ${enable_persistent_volume_tests}
 	  },
+	  "conformance": {
+	    "results_dir": "${conformance_results_dir}",
+	    "release_version": "${conformance_release_version}"
+	  },
 	  "bosh": {
-	     "iaas": "$(bosh int $director_yml --path=/iaas)",
 	     "environment": "$(bosh int $director_yml --path=/internal_ip)",
 	     "ca_cert": $(bosh int $creds_yml --path=/default_ca/ca --json | jq .Blocks[0]),
 	     "client": "bosh_admin",

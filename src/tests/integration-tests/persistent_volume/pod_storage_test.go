@@ -43,7 +43,7 @@ var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 		)
 
 		BeforeEach(func() {
-			storageClassSpec = PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Bosh.Iaas))
+			storageClassSpec = PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
 			Eventually(kubectl.RunKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 			pvcSpec = PathFromRoot("specs/persistent-volume-claim.yml")
 			Eventually(kubectl.RunKubectlCommand("create", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
@@ -90,7 +90,7 @@ var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 		)
 
 		BeforeEach(func() {
-			if testconfig.Bosh.Iaas != "gcp" {
+			if testconfig.Iaas != "gcp" {
 				Skip("Default Storage Class is only supported by gcp.")
 			}
 

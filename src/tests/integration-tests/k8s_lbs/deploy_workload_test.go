@@ -20,7 +20,7 @@ var _ = K8SLBDescribe("Deploy workload", func() {
 		Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
 		loadbalancerAddress = ""
 		Eventually(func() string {
-			loadbalancerAddress = runner.GetLBAddress("nginx", testconfig.Bosh.Iaas)
+			loadbalancerAddress = runner.GetLBAddress("nginx", testconfig.Iaas)
 			return loadbalancerAddress
 		}, "240s", "5s").Should(Not(Equal("")))
 
@@ -45,7 +45,7 @@ var _ = K8SLBDescribe("Deploy workload", func() {
 	})
 
 	AfterEach(func() {
-		runner.CleanupServiceWithLB(loadbalancerAddress, nginxLBSpec, testconfig.Bosh.Iaas, testconfig.AWS)
+		runner.CleanupServiceWithLB(loadbalancerAddress, nginxLBSpec, testconfig.Iaas, testconfig.AWS)
 	})
 
 })

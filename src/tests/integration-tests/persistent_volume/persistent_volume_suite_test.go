@@ -26,7 +26,7 @@ var _ = BeforeSuite(func() {
 
 	platforms := []string{"aws", "gcp", "vsphere", "openstack"}
 	message := fmt.Sprintf("Expected IAAS to be one of the following values: %#v", platforms)
-	Expect(platforms).To(ContainElement(testconfig.Bosh.Iaas), message)
+	Expect(platforms).To(ContainElement(testconfig.Iaas), message)
 })
 
 func PersistentVolumeDescribe(description string, callback func()) bool {

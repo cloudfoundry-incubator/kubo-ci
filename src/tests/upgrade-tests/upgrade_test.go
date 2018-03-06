@@ -31,7 +31,7 @@ var _ = Describe("Upgrade components", func() {
 	})
 
 	AfterEach(func() {
-		k8sRunner.CleanupServiceWithLB(loadbalancerAddress, nginxSpec, testconfig.Bosh.Iaas, testconfig.AWS)
+		k8sRunner.CleanupServiceWithLB(loadbalancerAddress, nginxSpec, testconfig.Iaas, testconfig.AWS)
 	})
 
 	It("upgrades BOSH and CFCR Release", func() {
@@ -69,7 +69,7 @@ func applyUpdateStemcellVersionOps(manifestPath, stemcellVersion string) {
 func upgradeAndMonitorAvailability(pathToScript string, component string, requestLossThreshold float64) {
 	By("Getting the LB address")
 	Eventually(func() string {
-		loadbalancerAddress = k8sRunner.GetLBAddress("nginx", testconfig.Bosh.Iaas)
+		loadbalancerAddress = k8sRunner.GetLBAddress("nginx", testconfig.Iaas)
 		return loadbalancerAddress
 	}, "120s", "5s").Should(Not(Equal("")))
 

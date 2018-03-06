@@ -8,14 +8,16 @@ import (
 )
 
 type Config struct {
-	AWS          AWS        `json:"aws"`
-	Bosh         Bosh       `json:"bosh"`
-	Turbulence   Turbulence `json:"turbulence"`
-	Cf           Cf         `json:"cf"`
-	Kubernetes   Kubernetes `json:"kubernetes"`
-	TimeoutScale float64    `json:"timeout_scale"`
-	CFCR         CFCR       `json:"cfcr"`
-	TestSuites   TestSuites `json:"test_suites"`
+	Iaas         string      `json:"iaas"`
+	TimeoutScale float64     `json:"timeout_scale"`
+	AWS          AWS         `json:"aws"`
+	Bosh         Bosh        `json:"bosh"`
+	Turbulence   Turbulence  `json:"turbulence"`
+	Cf           Cf          `json:"cf"`
+	Kubernetes   Kubernetes  `json:"kubernetes"`
+	CFCR         CFCR        `json:"cfcr"`
+	TestSuites   TestSuites  `json:"test_suites"`
+	Conformance  Conformance `json:"conformance"`
 }
 
 type AWS struct {
@@ -26,7 +28,6 @@ type AWS struct {
 }
 
 type Bosh struct {
-	Iaas         string `json:"iaas"`
 	Environment  string `json:"environment"`
 	CaCert       string `json:"ca_cert"`
 	Client       string `json:"client"`
@@ -71,6 +72,11 @@ type Kubernetes struct {
 type CFCR struct {
 	DeploymentPath           string `json:"deployment_path"`
 	UpgradeToStemcellVersion string `json:"upgrade_to_stemcell_version"`
+}
+
+type Conformance struct {
+	ResultsDir     string `json:"results_dir"`
+	ReleaseVersion string `json:"release_version"`
 }
 
 func InitConfig() (*Config, error) {
