@@ -656,10 +656,14 @@ jobs:
     params:
       BUMP_AMOUNT: <%= k8s_api_port_bumps[:multiaz] %>
   - task: turbulence-tests
-    file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
+    file: git-kubo-ci/tasks/run-k8s-turbulence-tests.yml
     tags: ['<%= env %>']
     params:
       DEPLOYMENT_NAME: multiaz-ci-service
+      ENABLE_TURBULENCE_WORKER_DRAIN_TESTS: true
+      ENABLE_TURBULENCE_WORKER_FAILURE_TESTS: true
+      ENABLE_TURBULENCE_MASTER_FAILURE_TESTS: true
+      ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS: true
     on_failure: *on_failure_alert
 
 - name: destroy-k8s-multiaz-<%= env %>
@@ -1002,6 +1006,11 @@ jobs:
     tags: ['<%= env %>']
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
+    params:
+      ENABLE_TURBULENCE_WORKER_DRAIN_TESTS: true
+      ENABLE_TURBULENCE_WORKER_FAILURE_TESTS: true
+      ENABLE_TURBULENCE_MASTER_FAILURE_TESTS: true
+      ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS: true
 
 <%
   destroy_k8s_passed_reqs = ["run-k8s-turbulence-tests-#{env}"]
