@@ -70,7 +70,7 @@ generate_test_config() {
   local enable_pod_logs_tests="${ENABLE_POD_LOGS_TESTS:-false}"
   local conformance_release_version="${CONFORMANCE_RELEASE_VERSION:-dev}"
   local conformance_results_dir="${CONFORMANCE_RESULTS_DIR:-/tmp}"
-  local new_bosh_stemcell_version="${NEW_BOSH_STEMCELL_VERSION}"
+  local new_bosh_stemcell_version="${NEW_BOSH_STEMCELL_VERSION:-""}"
 
   shift 2
   for arg in "$@"; do
