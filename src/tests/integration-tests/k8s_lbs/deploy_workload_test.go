@@ -22,7 +22,7 @@ var _ = K8SLBDescribe("Deploy workload", func() {
 		Eventually(func() string {
 			loadbalancerAddress = runner.GetLBAddress("nginx", testconfig.Bosh.Iaas)
 			return loadbalancerAddress
-		}, "120s", "5s").Should(Not(Equal("")))
+		}, "240s", "5s").Should(Not(Equal("")))
 
 		appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
 

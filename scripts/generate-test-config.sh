@@ -157,17 +157,17 @@ generate_test_config() {
 
   if [[ "${routing_mode}" == "iaas" && "${iaas}" == "aws" ]]; then
     config="$(echo ${config} | jq \
-      --arg aws_access_key_id "$(bosh int "${environment}/director.yml" --path=/access_key_id)" \
-      --arg aws_secret_access_key "$(bosh int "${environment}/director.yml" --path=/secret_access_key)" \
-      --arg aws_region "$(bosh int "${environment}/director.yml" --path=/region)" \
-      --arg aws_ingress_group_id "$(bosh int "${environment}/director.yml" --path=/default_security_groups/0)" \
+      --arg access_key_id "$(bosh int "${environment}/director.yml" --path=/access_key_id)" \
+      --arg secret_access_key "$(bosh int "${environment}/director.yml" --path=/secret_access_key)" \
+      --arg region "$(bosh int "${environment}/director.yml" --path=/region)" \
+      --arg ingress_group_id "$(bosh int "${environment}/director.yml" --path=/default_security_groups/0)" \
       '. +
       {
 	"aws": {
-	  "aws_access_key_id": $aws_access_key_id,
-	  "aws_secret_access_key": $aws_secret_access_key,
-	  "aws_region": $aws_region,
-	  "aws_ingress_group_id": $aws_ingress_group_id
+	  "access_key_id": $access_key_id,
+	  "secret_access_key": $secret_access_key,
+	  "region": $region,
+	  "ingress_group_id": $ingress_group_id
 	}
       }')"
   fi
