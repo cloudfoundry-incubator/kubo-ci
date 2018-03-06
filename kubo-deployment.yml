@@ -604,30 +604,23 @@ jobs:
       BUMP_AMOUNT: <%= k8s_api_port_bumps[:multiaz] %>
   - task: integration-tests
     tags: [<%= env %>]
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pcfkubo/kubo-ci
-          tag: stable
-      run:
-        path: git-kubo-ci/scripts/ci/run-k8s-integration-tests-ci.sh
-        args:
-        - --enable-multi-az-tests
-      params:
-        DEPLOYMENT_NAME: multiaz-ci-service
-      inputs:
-        - name: git-kubo-ci
-        - name: git-kubo-deployment
-        - name: gcs-bosh-creds
-        - name: kubo-lock
+    file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
+    params:
+      DEPLOYMENT_NAME: multiaz-ci-service
+      ENABLE_ADDONS_TESTS: true
+      ENABLE_API_EXTENSIONS_TESTS: true
+      ENABLE_GENERIC_TESTS: true
+      ENABLE_MULTI_AZ_TESTS: true
+      ENABLE_OSS_ONLY_TESTS: true
+      ENABLE_PERSISTENT_VOLUME_TESTS: true
+      ENABLE_POD_LOGS_TESTS: true
   - task: pod-to-pod
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
     params:
-        DEPLOYMENT_NAME: multiaz-ci-service
+      DEPLOYMENT_NAME: multiaz-ci-service
     on_failure: *on_failure_alert
 
 - name: run-k8s-turbulence-tests-multiaz-<%= env %>
@@ -797,10 +790,18 @@ jobs:
       BUMP_AMOUNT: <%= k8s_api_port_bumps[:abac] %>
   - task: integration-tests
     tags: [<%= env %>]
-    file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
+    file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure_alert
     params:
       DEPLOYMENT_NAME: ci-service-k8s-with-abac
-    on_failure: *on_failure_alert
+      ENABLE_ADDONS_TESTS: true
+      ENABLE_API_EXTENSIONS_TESTS: true
+      ENABLE_GENERIC_TESTS: true
+      ENABLE_MULTI_AZ_TESTS: true
+      ENABLE_OSS_ONLY_TESTS: true
+      ENABLE_PERSISTENT_VOLUME_TESTS: true
+      ENABLE_POD_LOGS_TESTS: true
   - task: pod-to-pod
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
@@ -901,9 +902,18 @@ jobs:
       passed: [ 'deploy-k8s-<%= env %>' ]
   - task: integration-tests
     tags: [<%= env %>]
-    file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
+    file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
+    params:
+      DEPLOYMENT_NAME: ci-service
+      ENABLE_ADDONS_TESTS: true
+      ENABLE_API_EXTENSIONS_TESTS: true
+      ENABLE_GENERIC_TESTS: true
+      ENABLE_MULTI_AZ_TESTS: true
+      ENABLE_OSS_ONLY_TESTS: true
+      ENABLE_PERSISTENT_VOLUME_TESTS: true
+      ENABLE_POD_LOGS_TESTS: true
   - task: pod-to-pod
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml

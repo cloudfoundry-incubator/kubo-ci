@@ -13,10 +13,13 @@ verify_args() {
 
 	Options:
 		-h                                       show this help text
-		--enable-multi-az-tests                  [env:ENABLE_MULTI_AZ_TESTS]
 		--enable-addons-tests                    [env:ENABLE_ADDONS_TESTS]
-		--enable_persistent_volume_tests         [env:ENABLE_PERSISTENT_VOLUME_TEST]
-		--enable_iaas_k8s_lb                     [env:ENABLE_IAAS_K8S_LB]
+		--enable-multi-az-tests                  [env:ENABLE_MULTI_AZ_TESTS]
+		--enable-persistent-volume-tests         [env:ENABLE_PERSISTENT_VOLUME_TESTS]
+	        --enable-api-extensions-tests            [env:ENABLE_API_EXTENSIONS_TESTS]
+	        --enable-generic-tests                   [env:ENABLE_GENERIC_TESTS]
+	        --enable-oss-only-tests                  [env:ENABLE_OSS_ONLY_TESTS]
+	        --enable-pod-logs-tests                  [env:ENABLE_POD_LOGS_TESTS]
 
 		--conformance_release_version=<some-value> [env:CONFORMANCE_RELEASE_VERSION]
 		--conformance_results_dir=<some-value>     [env:CONFORMANCE_RESULTS_DIR]
@@ -57,9 +60,12 @@ generate_test_config() {
   local environment="$1"
   local deployment="$2"
   local enable_addons_tests="${ENABLE_ADDONS_TESTS:-false}"
+  local enable_api_extensions_tests="${ENABLE_API_EXTENSIONS_TESTS:-false}"
+  local enable_generic_tests="${ENABLE_GENERIC_TESTS:-false}"
   local enable_multi_az_tests="${ENABLE_MULTI_AZ_TESTS:-false}"
-  local enable_persistent_volume_tests="${ENABLE_PERSISTENT_VOLUME_TEST:-false}"
-  local enable_iaas_k8s_lb="${ENABLE_IAAS_K8S_LB:-false}"
+  local enable_oss_only_tests="${ENABLE_OSS_ONLY_TESTS:-false}"
+  local enable_persistent_volume_tests="${ENABLE_PERSISTENT_VOLUME_TESTS:-false}"
+  local enable_pod_logs_tests="${ENABLE_POD_LOGS_TESTS:-false}"
   local conformance_release_version="${CONFORMANCE_RELEASE_VERSION:-dev}"
   local conformance_results_dir="${CONFORMANCE_RESULTS_DIR:-/tmp}"
 
@@ -69,17 +75,26 @@ generate_test_config() {
     local value="${arg##*=}"
     case "$flag" in
       --enable-addons-tests)
-        enable_addons_tests=true
-        ;;
+	enable_addons_tests=true
+	;;
+      --enable-api-extensions-tests)
+	enable_api_extensions_tests=true
+	;;
+      --enable-generic-tests)
+	enable_generic_tests=true
+	;;
       --enable-multi-az-tests)
-        enable_multi_az_tests=true
-        ;;
+	enable_multi_az_tests=true
+	;;
+      --enable-oss-only-tests)
+	enable_oss_only_tests=true
+	;;
       --enable-persistent-volume-tests)
-        enable_persistent_volume_tests=true
-        ;;
-      --enable-iaas-k8s-lb)
-        enable_iaas_k8s_lb=true
-        ;;
+	enable_persistent_volume_tests=true
+	;;
+      --enable-pod-logs-tests)
+	enable_pod_logs_tests=true
+	;;
       --conformance_release_version)
 	conformance_release_version="${value}"
 	;;
@@ -113,6 +128,11 @@ generate_test_config() {
     enable_cloudfoundry_tests="true"
   fi
 
+  local enable_iaas_k8s_lb_tests="false"
+  if [[ ${routing_mode} == "iaas" ]]; then
+    enable_iaas_k8s_lb_tests="true"
+  fi
+
   local new_bosh_stemcell_version=""
   if [[ -f "${ROOT}/new-bosh-stemcell/version" ]]; then
     new_bosh_stemcell_version="$(cat ${ROOT}/new-bosh-stemcell/version)"
@@ -123,16 +143,16 @@ generate_test_config() {
 	{
 	  "iaas": "$(bosh int $director_yml --path=/iaas)",
 	  "test_suites": {
-	    "include_api_extensions": true,
-	    "include_generic": true,
 	    "include_addons": ${enable_addons_tests},
-	    "include_oss_only": true,
-	    "include_pod_logs": true,
-	    "include_rbac": ${enable_rbac_tests},
+	    "include_api_extensions": ${enable_api_extensions_tests},
 	    "include_cloudfoundry": ${enable_cloudfoundry_tests},
+	    "include_generic": ${enable_generic_tests},
+	    "include_k8s_lb": ${enable_iaas_k8s_lb_tests},
 	    "include_multiaz": ${enable_multi_az_tests},
-	    "include_k8s_lb": ${enable_iaas_k8s_lb},
+	    "include_oss_only": ${enable_oss_only_tests},
 	    "include_persistent_volume": ${enable_persistent_volume_tests}
+	    "include_pod_logs": ${enable_pod_logs_tests},
+	    "include_rbac": ${enable_rbac_tests},
 	  },
 	  "conformance": {
 	    "results_dir": "${conformance_results_dir}",
