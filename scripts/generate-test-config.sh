@@ -23,6 +23,8 @@ verify_args() {
 
 		--conformance_release_version=<some-value> [env:CONFORMANCE_RELEASE_VERSION]
 		--conformance_results_dir=<some-value>     [env:CONFORMANCE_RESULTS_DIR]
+
+		--new-bosh-stemcell-version=<some-value>   [env:NEW_BOSH_STEMCELL_VERSION]
 	EOF
   set -e
 
@@ -68,6 +70,7 @@ generate_test_config() {
   local enable_pod_logs_tests="${ENABLE_POD_LOGS_TESTS:-false}"
   local conformance_release_version="${CONFORMANCE_RELEASE_VERSION:-dev}"
   local conformance_results_dir="${CONFORMANCE_RESULTS_DIR:-/tmp}"
+  local new_bosh_stemcell_version="${NEW_BOSH_STEMCELL_VERSION}"
 
   shift 2
   for arg in "$@"; do
@@ -101,6 +104,9 @@ generate_test_config() {
       --conformance_results_dir)
 	conformance_results_dir="${value}"
 	;;
+      --new-bosh-stemcell-version)
+	new_bosh_stemcell_version="${value}"
+	;;
       *)
         echo "$flag is not a valid flag"
         exit 1
@@ -131,11 +137,6 @@ generate_test_config() {
   local enable_iaas_k8s_lb_tests="false"
   if [[ ${routing_mode} == "iaas" ]]; then
     enable_iaas_k8s_lb_tests="true"
-  fi
-
-  local new_bosh_stemcell_version=""
-  if [[ -f "${ROOT}/new-bosh-stemcell/version" ]]; then
-    new_bosh_stemcell_version="$(cat ${ROOT}/new-bosh-stemcell/version)"
   fi
 
   set +e # Cant be set since read returns a non-zero when it reaches EOF

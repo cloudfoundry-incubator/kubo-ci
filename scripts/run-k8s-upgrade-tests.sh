@@ -1,27 +1,31 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -eo pipefail
+set -eu -o pipefail
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
-. "$DIR/lib/environment.sh"
-. "$DIR/lib/utils.sh"
+DEPLOYMENT_NAME="${DEPLOYMENT_NAME:="ci-service"}"
+KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
 
-KUBO_ENVIRONMENT_DIR=$1
-DEPLOYMENT_NAME=$2
+export GOPATH="${ROOT}/git-kubo-ci"
+export NEW_BOSH_STEMCELL_VERSION="$(cat ${ROOT}/new-bosh-stemcell/version)"
 
-tmpfile=$(mktemp)
-$DIR/generate-test-config.sh "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
-export CONFIG="${tmpfile}"
+setup_env() {
+  mkdir -p "${KUBO_ENVIRONMENT_DIR}"
+  cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+  cp "${ROOT}/kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 
-IAAS=$(bosh int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path='/iaas')
+  "${ROOT}/git-kubo-deployment/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
+  "${ROOT}/git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
+}
 
-if [[ "${IAAS}" == "aws" ]]; then
-  aws configure set aws_access_key_id "$(bosh int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path=/access_key_id)"
-  aws configure set aws_secret_access_key  "$(bosh int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path=/secret_access_key)"
-  aws configure set default.region "$(bosh int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path=/region)"
-  AWS_INGRESS_GROUP_ID=$(bosh int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path=/default_security_groups/0)
-  export AWS_INGRESS_GROUP_ID
-fi
+main() {
+  setup_env
 
-ginkgo -progress -v -failFast "$DIR/../src/tests/upgrade-tests"
+  local tmpfile="$(mktemp)" && echo "CONFIG=${tmpfile}"
+  "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" ${KUBO_ENVIRONMENT_DIR} ${DEPLOYMENT_NAME} > "${tmpfile}"
+
+  CONFIG="${tmpfile}" ginkgo -r -progress -v "${ROOT}/git-kubo-ci/src/tests/upgrade-tests/"
+}
+
+main
