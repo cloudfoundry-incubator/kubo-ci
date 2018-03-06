@@ -16,10 +16,10 @@ verify_args() {
 		--enable-addons-tests                    [env:ENABLE_ADDONS_TESTS]
 		--enable-multi-az-tests                  [env:ENABLE_MULTI_AZ_TESTS]
 		--enable-persistent-volume-tests         [env:ENABLE_PERSISTENT_VOLUME_TESTS]
-	        --enable-api-extensions-tests            [env:ENABLE_API_EXTENSIONS_TESTS]
-	        --enable-generic-tests                   [env:ENABLE_GENERIC_TESTS]
-	        --enable-oss-only-tests                  [env:ENABLE_OSS_ONLY_TESTS]
-	        --enable-pod-logs-tests                  [env:ENABLE_POD_LOGS_TESTS]
+		--enable-api-extensions-tests            [env:ENABLE_API_EXTENSIONS_TESTS]
+		--enable-generic-tests                   [env:ENABLE_GENERIC_TESTS]
+		--enable-oss-only-tests                  [env:ENABLE_OSS_ONLY_TESTS]
+		--enable-pod-logs-tests                  [env:ENABLE_POD_LOGS_TESTS]
 
 		--conformance_release_version=<some-value> [env:CONFORMANCE_RELEASE_VERSION]
 		--conformance_results_dir=<some-value>     [env:CONFORMANCE_RESULTS_DIR]
@@ -150,9 +150,9 @@ generate_test_config() {
 	    "include_k8s_lb": ${enable_iaas_k8s_lb_tests},
 	    "include_multiaz": ${enable_multi_az_tests},
 	    "include_oss_only": ${enable_oss_only_tests},
-	    "include_persistent_volume": ${enable_persistent_volume_tests}
+	    "include_persistent_volume": ${enable_persistent_volume_tests},
 	    "include_pod_logs": ${enable_pod_logs_tests},
-	    "include_rbac": ${enable_rbac_tests},
+	    "include_rbac": ${enable_rbac_tests}
 	  },
 	  "conformance": {
 	    "results_dir": "${conformance_results_dir}",
