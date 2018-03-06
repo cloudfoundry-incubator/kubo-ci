@@ -1002,7 +1002,7 @@ jobs:
     tags: ['<%= env %>']
 
   - task: turbulence-tests
-    file: git-kubo-ci/tasks/run-k8s-turbulence-tests-ci.yml
+    file: git-kubo-ci/tasks/run-k8s-turbulence-tests.yml
     tags: ['<%= env %>']
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
