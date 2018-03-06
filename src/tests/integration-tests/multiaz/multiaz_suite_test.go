@@ -29,6 +29,12 @@ var _ = BeforeSuite(func() {
 	runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
 })
 
+var _ = AfterSuite(func() {
+	if runner != nil {
+		runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("60s")
+	}
+})
+
 func MultiAZDescribe(description string, callback func()) bool {
 	return Describe("[multiaz]", func() {
 		BeforeEach(func() {
@@ -39,9 +45,3 @@ func MultiAZDescribe(description string, callback func()) bool {
 		Describe(description, callback)
 	})
 }
-
-var _ = AfterSuite(func() {
-	if runner != nil {
-		runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("60s")
-	}
-})
