@@ -137,7 +137,11 @@ groups:
 - name: upgrade
   jobs:
   <% upgrade_test_iaases.each do |env| %>
+  - install-old-bosh-<%= env %>
+  - deploy-old-k8s-<%= env %>
   - upgrade-bosh-and-kubo-<%= env %>
+  - destroy-k8s-upgrade-<%= env %>
+  - destroy-bosh-upgrade-<%= env %>
   <% end %>
 - name: proxy
   jobs:
