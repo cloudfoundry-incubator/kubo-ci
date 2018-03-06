@@ -25,8 +25,8 @@ var _ = BeforeSuite(func() {
 func AddonsDescribe(description string, callback func()) bool {
 	return Describe("[addons]", func() {
 		BeforeEach(func() {
-			if !testconfig.TestSuites.IncludeAddons {
-				Skip(`Skipping this test suite because Config.TestSuites.IncludeAddons is set to 'false'.`)
+			if !testconfig.IntegrationTests.IncludeAddons {
+				Skip(`Skipping this test suite because Config.IntegrationTests.IncludeAddons is set to 'false'.`)
 			}
 		})
 		Describe(description, callback)

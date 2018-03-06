@@ -1,7 +1,6 @@
 package master_failure_test
 
 import (
-	"tests/config"
 	. "tests/test_helpers"
 
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -13,21 +12,14 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("A single master and etcd failure", func() {
+var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 
 	var (
 		deployment                    director.Deployment
-		testconfig                    *config.Config
 		kubectl                       *KubectlRunner
 		nginxSpec                     = PathFromRoot("specs/nginx.yml")
 		countRunningApiServerOnMaster func() int
 	)
-
-	BeforeSuite(func() {
-		var err error
-		testconfig, err = config.InitConfig()
-		Expect(err).NotTo(HaveOccurred())
-	})
 
 	BeforeEach(func() {
 		var err error

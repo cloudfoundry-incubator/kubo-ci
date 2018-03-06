@@ -8,16 +8,17 @@ import (
 )
 
 type Config struct {
-	Iaas         string      `json:"iaas"`
-	TimeoutScale float64     `json:"timeout_scale"`
-	AWS          AWS         `json:"aws"`
-	Bosh         Bosh        `json:"bosh"`
-	Turbulence   Turbulence  `json:"turbulence"`
-	Cf           Cf          `json:"cf"`
-	Kubernetes   Kubernetes  `json:"kubernetes"`
-	CFCR         CFCR        `json:"cfcr"`
-	TestSuites   TestSuites  `json:"test_suites"`
-	Conformance  Conformance `json:"conformance"`
+	Iaas             string           `json:"iaas"`
+	TimeoutScale     float64          `json:"timeout_scale"`
+	AWS              AWS              `json:"aws"`
+	Bosh             Bosh             `json:"bosh"`
+	Turbulence       Turbulence       `json:"turbulence"`
+	TurbulenceTests  TurbulenceTests  `json:"turbulence_tests"`
+	Cf               Cf               `json:"cf"`
+	Kubernetes       Kubernetes       `json:"kubernetes"`
+	CFCR             CFCR             `json:"cfcr"`
+	IntegrationTests IntegrationTests `json:"integration_tests"`
+	Conformance      Conformance      `json:"conformance"`
 }
 
 type AWS struct {
@@ -43,11 +44,18 @@ type Turbulence struct {
 	CaCert   string `json:"ca_cert"`
 }
 
+type TurbulenceTests struct {
+	IncludeWorkerDrain        bool `json:"include_worker_drain"`
+	IncludeWorkerFailure      bool `json:"include_worker_failure"`
+	IncludeMasterFailure      bool `json:"include_master_failure"`
+	IncludePersistenceFailure bool `json:"include_persistence_failure"`
+}
+
 type Cf struct {
 	AppsDomain string `json:"apps_domain"`
 }
 
-type TestSuites struct {
+type IntegrationTests struct {
 	IncludeAPIExtensions    bool `json:"include_api_extensions"`
 	IncludeGeneric          bool `json:"include_generic"`
 	IncludeAddons           bool `json:"include_addons"`

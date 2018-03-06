@@ -25,8 +25,8 @@ var _ = BeforeSuite(func() {
 func OSSOnlyDescribe(description string, callback func()) bool {
 	return Describe("[oss_only]", func() {
 		BeforeEach(func() {
-			if !testconfig.TestSuites.IncludeOSSOnly {
-				Skip(`Skipping this test suite because Config.TestSuites.IncludeOSSOnly is set to 'false'.`)
+			if !testconfig.IntegrationTests.IncludeOSSOnly {
+				Skip(`Skipping this test suite because Config.IntegrationTests.IncludeOSSOnly is set to 'false'.`)
 			}
 		})
 		Describe(description, callback)

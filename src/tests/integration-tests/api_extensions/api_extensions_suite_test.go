@@ -30,8 +30,8 @@ var _ = BeforeSuite(func() {
 func APIExtensionsDescribe(description string, callback func()) bool {
 	return Describe("[api_extensions]", func() {
 		BeforeEach(func() {
-			if !testconfig.TestSuites.IncludeAPIExtensions {
-				Skip(`Skipping this test suite because Config.TestSuites.IncludAPIExtensions is set to 'false'.`)
+			if !testconfig.IntegrationTests.IncludeAPIExtensions {
+				Skip(`Skipping this test suite because Config.IntegrationTests.IncludAPIExtensions is set to 'false'.`)
 			}
 		})
 		Describe(description, callback)

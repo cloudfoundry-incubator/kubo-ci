@@ -38,8 +38,8 @@ var _ = AfterSuite(func() {
 func PodLogsDescribe(description string, callback func()) bool {
 	return Describe("[pod_logs]", func() {
 		BeforeEach(func() {
-			if !testconfig.TestSuites.IncludePodLogs {
-				Skip(`Skipping this test suite because Config.TestSuites.IncludePodLogs is set to 'false'.`)
+			if !testconfig.IntegrationTests.IncludePodLogs {
+				Skip(`Skipping this test suite because Config.IntegrationTests.IncludePodLogs is set to 'false'.`)
 			}
 		})
 		Describe(description, callback)

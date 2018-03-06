@@ -38,8 +38,8 @@ var _ = AfterSuite(func() {
 func K8SLBDescribe(description string, callback func()) bool {
 	return Describe("[k8s_lb]", func() {
 		BeforeEach(func() {
-			if !testconfig.TestSuites.IncludeK8SLB {
-				Skip(`Skipping this test suite because Config.TestSuites.IncludeK8SLB is set to 'false'.`)
+			if !testconfig.IntegrationTests.IncludeK8SLB {
+				Skip(`Skipping this test suite because Config.IntegrationTests.IncludeK8SLB is set to 'false'.`)
 			}
 		})
 		Describe(description, callback)

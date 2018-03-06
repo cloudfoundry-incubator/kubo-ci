@@ -32,8 +32,8 @@ var _ = BeforeSuite(func() {
 func PersistentVolumeDescribe(description string, callback func()) bool {
 	return Describe("[persistent_volume]", func() {
 		BeforeEach(func() {
-			if !testconfig.TestSuites.IncludePersistentVolume {
-				Skip(`Skipping this test suite because Config.TestSuites.IncludePersistentVolume is set to 'false'.`)
+			if !testconfig.IntegrationTests.IncludePersistentVolume {
+				Skip(`Skipping this test suite because Config.IntegrationTests.IncludePersistentVolume is set to 'false'.`)
 			}
 		})
 		Describe(description, callback)

@@ -24,8 +24,8 @@ var _ = BeforeSuite(func() {
 func CloudFoundryDescribe(description string, callback func()) bool {
 	return Describe("[cloudfoundry]", func() {
 		BeforeEach(func() {
-			if !testconfig.TestSuites.IncludeCloudFoundry {
-				Skip(`Skipping this test suite because Config.TestSuites.IncludeCloudFoundry is set to 'false'.`)
+			if !testconfig.IntegrationTests.IncludeCloudFoundry {
+				Skip(`Skipping this test suite because Config.IntegrationTests.IncludeCloudFoundry is set to 'false'.`)
 			}
 		})
 		Describe(description, callback)

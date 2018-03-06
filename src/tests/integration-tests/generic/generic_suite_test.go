@@ -25,8 +25,8 @@ var _ = BeforeSuite(func() {
 func GenericDescribe(description string, callback func()) bool {
 	return Describe("[generic]", func() {
 		BeforeEach(func() {
-			if !testconfig.TestSuites.IncludeGeneric {
-				Skip(`Skipping this test suite because Config.TestSuites.IncludeGeneric is set to 'false'.`)
+			if !testconfig.IntegrationTests.IncludeGeneric {
+				Skip(`Skipping this test suite because Config.IntegrationTests.IncludeGeneric is set to 'false'.`)
 			}
 		})
 		Describe(description, callback)

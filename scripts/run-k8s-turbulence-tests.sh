@@ -1,63 +1,30 @@
 #!/usr/bin/env bash
 
-[ -z "$DEBUG" ] || set -x
+set -eu -o pipefail
 
-set -eu
-set -o pipefail
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
-BASE_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
+DEPLOYMENT_NAME="${DEPLOYMENT_NAME:="ci-service"}"
+KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
 
-verify_args() {
-  set +e # Cant be set since read returns a non-zero when it reaches EOF
-  read -r -d '' usage <<-EOF
-	Usage: $(basename "$0") [-h] environment deployment-name
-	
-	Help Options:
-		-h  show this help text
-	EOF
-  set -e
+export GOPATH="${ROOT}/git-kubo-ci"
 
-  while getopts ':h' option; do
-    case "$option" in
-      h) echo "$usage"
-         exit 0
-         ;;
-     \?) printf "Illegal option: -%s\n" "$OPTARG" >&2
-         echo "$usage" >&2
-         exit 64
-         ;;
-    esac
-  done
-  shift $((OPTIND - 1))
-  if [[ $# -lt 2 ]]; then
-    echo "$usage" >&2
-    exit 64
-  fi
-}
+setup_env() {
+  mkdir -p "${KUBO_ENVIRONMENT_DIR}"
+  cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+  cp "${ROOT}/kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 
-run_tests() {
-  local environment="$1"
-  local deployment="$2"
-
-  local iaas=$(bosh int "$environment/director.yml" --path='/iaas')
-
-  local tmpfile=$(mktemp)
-  $BASE_DIR/scripts/generate-test-config.sh $environment $deployment > $tmpfile
-  export CONFIG=$tmpfile
-
-  ginkgo -progress -v "$BASE_DIR/src/tests/turbulence-tests/worker_drain"
-  ginkgo -progress -v "$BASE_DIR/src/tests/turbulence-tests/worker_failure"
-  ginkgo -progress -v "$BASE_DIR/src/tests/turbulence-tests/master_failure"
-  if [[ "${iaas}" == "gcp" || "${iaas}" == "aws" || "${iaas}" == "vsphere" ]]; then
-    ginkgo -progress -v "$BASE_DIR/src/tests/turbulence-tests/persistence_failure"
-  fi
-
-  return 0
+  "${ROOT}/git-kubo-deployment/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
+  "${ROOT}/git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
 }
 
 main() {
-  verify_args "$@"
-  run_tests "$@"
+  setup_env
+
+  local tmpfile="$(mktemp)" && echo "CONFIG=${tmpfile}"
+  "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
+
+  CONFIG="${tmpfile}" ginkgo -progress -v -r "${ROOT}/git-kubo-ci/src/tests/turbulence-tests"
 }
 
-main "$@"
+main

@@ -12,19 +12,24 @@ verify_args() {
 	Usage: $(basename "$0") [-h] environment deployment-name
 
 	Options:
-		-h                                       show this help text
-		--enable-addons-tests                    [env:ENABLE_ADDONS_TESTS]
-		--enable-multi-az-tests                  [env:ENABLE_MULTI_AZ_TESTS]
-		--enable-persistent-volume-tests         [env:ENABLE_PERSISTENT_VOLUME_TESTS]
-		--enable-api-extensions-tests            [env:ENABLE_API_EXTENSIONS_TESTS]
-		--enable-generic-tests                   [env:ENABLE_GENERIC_TESTS]
-		--enable-oss-only-tests                  [env:ENABLE_OSS_ONLY_TESTS]
-		--enable-pod-logs-tests                  [env:ENABLE_POD_LOGS_TESTS]
+		-h                                            show this help text
+		--enable-addons-tests                         [env:ENABLE_ADDONS_TESTS]
+		--enable-multi-az-tests                       [env:ENABLE_MULTI_AZ_TESTS]
+		--enable-persistent-volume-tests              [env:ENABLE_PERSISTENT_VOLUME_TESTS]
+		--enable-api-extensions-tests                 [env:ENABLE_API_EXTENSIONS_TESTS]
+		--enable-generic-tests                        [env:ENABLE_GENERIC_TESTS]
+		--enable-oss-only-tests                       [env:ENABLE_OSS_ONLY_TESTS]
+		--enable-pod-logs-tests                       [env:ENABLE_POD_LOGS_TESTS]
 
-		--conformance_release_version=<some-value> [env:CONFORMANCE_RELEASE_VERSION]
-		--conformance_results_dir=<some-value>     [env:CONFORMANCE_RESULTS_DIR]
+		--conformance_release_version=<some-value>    [env:CONFORMANCE_RELEASE_VERSION]
+		--conformance_results_dir=<some-value>        [env:CONFORMANCE_RESULTS_DIR]
 
-		--new-bosh-stemcell-version=<some-value>   [env:NEW_BOSH_STEMCELL_VERSION]
+		--new-bosh-stemcell-version=<some-value>      [env:NEW_BOSH_STEMCELL_VERSION]
+
+		--enable-turbulence-worker-drain-tests        [env:ENABLE_TURBULENCE_WORKER_DRAIN_TESTS]
+		--enable-turbulence-worker-failure-tests      [env:ENABLE_TURBULENCE_WORKER_FAILURE_TESTS]
+		--enable-turbulence-master-failure-tests      [env:ENABLE_TURBULENCE_MASTER_FAILURE_TESTS]
+		--enable-turbulence-persistence-failure-tests [env:ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS]
 	EOF
   set -e
 
@@ -71,6 +76,10 @@ generate_test_config() {
   local conformance_release_version="${CONFORMANCE_RELEASE_VERSION:-dev}"
   local conformance_results_dir="${CONFORMANCE_RESULTS_DIR:-/tmp}"
   local new_bosh_stemcell_version="${NEW_BOSH_STEMCELL_VERSION:-""}"
+  local enable_turbulence_worker_drain_tests="${ENABLE_TURBULENCE_WORKER_DRAIN_TESTS:-false}"
+  local enable_turbulence_worker_failure_tests="${ENABLE_TURBULENCE_WORKER_FAILURE_TESTS:-false}"
+  local enable_turbulence_master_failure_tests="${ENABLE_TURBULENCE_MASTER_FAILURE_TESTS:-false}"
+  local enable_turbulence_persistence_failure_tests="${ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS:-false}"
 
   shift 2
   for arg in "$@"; do
@@ -106,6 +115,18 @@ generate_test_config() {
 	;;
       --new-bosh-stemcell-version)
 	new_bosh_stemcell_version="${value}"
+	;;
+      --enable-turbulence-worker-drain-tests)
+        enable_turbulence_worker_drain_tests=true
+	;;
+      --enable-turbulence-worker-failure-tests)
+        enable_turbulence_worker_failure_tests=true
+	;;
+      --enable-turbulence-master-failure-tests)
+        enable_turbulence_master_failure_tests=true
+	;;
+      --enable-turbulence-persistence-failure-tests)
+        enable_turbulence_persistence_failure_tests=true
 	;;
       *)
         echo "$flag is not a valid flag"
@@ -143,7 +164,7 @@ generate_test_config() {
   read -r -d '' config <<-EOF
 	{
 	  "iaas": "$(bosh int $director_yml --path=/iaas)",
-	  "test_suites": {
+	  "integration_tests": {
 	    "include_addons": ${enable_addons_tests},
 	    "include_api_extensions": ${enable_api_extensions_tests},
 	    "include_cloudfoundry": ${enable_cloudfoundry_tests},
@@ -172,6 +193,12 @@ generate_test_config() {
 	    "username": "turbulence",
 	    "password": "$(bosh int $creds_yml --path=/turbulence_api_password 2>/dev/null)",
 	    "ca_cert": $(bosh int $creds_yml --path=/turbulence_api_ca/ca --json | jq .Blocks[0])
+	  },
+	  "turbulence_tests": {
+	    "include_worker_drain": ${enable_turbulence_worker_drain_tests},
+	    "include_worker_failure": ${enable_turbulence_worker_failure_tests},
+	    "include_master_failure": ${enable_turbulence_master_failure_tests},
+	    "include_persistence_failure": ${enable_turbulence_persistence_failure_tests}
 	  },
 	  "cf": {
 	    "apps_domain": "$(bosh int $director_yml --path=/routing_cf_app_domain_name 2>/dev/null)"

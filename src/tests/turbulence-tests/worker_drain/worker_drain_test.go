@@ -1,7 +1,6 @@
 package worker_drain
 
 import (
-	"tests/config"
 	. "tests/test_helpers"
 
 	director "github.com/cloudfoundry/bosh-cli/director"
@@ -10,21 +9,14 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Worker drain scenarios", func() {
+var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 
 	var (
 		deployment          director.Deployment
 		countRunningWorkers func() int
 		kubectl             *KubectlRunner
 		drainTypesSpec      = PathFromRoot("specs/drain-types.yml")
-		testconfig          *config.Config
 	)
-
-	BeforeSuite(func() {
-		var err error
-		testconfig, err = config.InitConfig()
-		Expect(err).NotTo(HaveOccurred())
-	})
 
 	BeforeEach(func() {
 		var err error

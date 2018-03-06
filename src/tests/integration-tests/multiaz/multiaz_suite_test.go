@@ -38,8 +38,8 @@ var _ = AfterSuite(func() {
 func MultiAZDescribe(description string, callback func()) bool {
 	return Describe("[multiaz]", func() {
 		BeforeEach(func() {
-			if !testconfig.TestSuites.IncludeMultiAZ {
-				Skip(`Skipping this test suite because Config.TestSuites.IncludeMultiAZ is set to 'false'.`)
+			if !testconfig.IntegrationTests.IncludeMultiAZ {
+				Skip(`Skipping this test suite because Config.IntegrationTests.IncludeMultiAZ is set to 'false'.`)
 			}
 		})
 		Describe(description, callback)

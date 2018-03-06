@@ -25,8 +25,8 @@ var _ = BeforeSuite(func() {
 func RBACDescribe(description string, callback func()) bool {
 	return Describe("[rbac]", func() {
 		BeforeEach(func() {
-			if !testconfig.TestSuites.IncludeRBAC {
-				Skip(`Skipping this test suite because Config.TestSuites.IncludeRBAC is set to 'false'.`)
+			if !testconfig.IntegrationTests.IncludeRBAC {
+				Skip(`Skipping this test suite because Config.IntegrationTests.IncludeRBAC is set to 'false'.`)
 			}
 		})
 		Describe(description, callback)

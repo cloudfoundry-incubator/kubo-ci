@@ -1,7 +1,6 @@
 package workload_test
 
 import (
-	"tests/config"
 	. "tests/test_helpers"
 
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -13,21 +12,14 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Worker failure scenarios", func() {
+var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 
 	var (
 		deployment          director.Deployment
 		countRunningWorkers func() int
 		kubectl             *KubectlRunner
 		nginxDaemonSetSpec  = PathFromRoot("specs/nginx-daemonset.yml")
-		testconfig          *config.Config
 	)
-
-	BeforeSuite(func() {
-		var err error
-		testconfig, err = config.InitConfig()
-		Expect(err).NotTo(HaveOccurred())
-	})
 
 	BeforeEach(func() {
 		var err error
