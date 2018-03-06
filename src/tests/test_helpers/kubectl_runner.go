@@ -194,13 +194,12 @@ func (runner *KubectlRunner) CleanupServiceWithLB(loadBalancerAddress, pathToSpe
 		// Get the LB
 		if loadBalancerAddress != "" {
 			// Get the security group
-			cmd := exec.Command("aws", "elb", "describe-load-balancers", "--query",
+			cmd := exec.Command("aws", "elb", "describe-load-balancers", "--region", aws.Region, "--query",
 				fmt.Sprintf("LoadBalancerDescriptions[?DNSName==`%s`].[SecurityGroups]", loadBalancerAddress),
 				"--output", "text")
 			cmd.Env = append(os.Environ(),
 				fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", aws.AccessKeyID),
 				fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", aws.SecretAccessKey),
-				fmt.Sprintf("AWS_DEFAULT_REGION=%s", aws.Region),
 			)
 			fmt.Fprintf(GinkgoWriter, "Get LoadBalancer security group - %s\n", cmd.Args)
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
@@ -220,12 +219,11 @@ func (runner *KubectlRunner) CleanupServiceWithLB(loadBalancerAddress, pathToSpe
 
 	// Teardown the security group
 	if lbSecurityGroup != "" {
-		cmd := exec.Command("aws", "ec2", "revoke-security-group-ingress", "--group-id",
+		cmd := exec.Command("aws", "ec2", "revoke-security-group-ingress", "--region", aws.Region, "--group-id",
 			aws.IngressGroupID, "--source-group", lbSecurityGroup, "--protocol", "all")
 		cmd.Env = append(os.Environ(),
 			fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", aws.AccessKeyID),
 			fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", aws.SecretAccessKey),
-			fmt.Sprintf("AWS_DEFAULT_REGION=%s", aws.Region),
 		)
 
 		fmt.Fprintf(GinkgoWriter, "Teardown security groups - %s\n", cmd.Args)
