@@ -4,7 +4,7 @@ set -eu -o pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
-DEPLOYMENT_NAME="${DEPLOYMENT_NAME:="ci-service"}"
+export DEPLOYMENT_NAME="${DEPLOYMENT_NAME:="ci-service"}"
 KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
 
 export GOPATH="${ROOT}/git-kubo-ci"
