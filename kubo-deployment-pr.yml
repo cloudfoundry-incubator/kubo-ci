@@ -179,9 +179,17 @@ jobs:
       status: pending
   - task: integration-tests
     tags: [<%= iaas %>]
-    file: git-kubo-ci/tasks/run-k8s-integration-tests-ci.yml
+    file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure_<%= iaas %>
+    params:
+      DEPLOYMENT_NAME: ci-service
+      ENABLE_ADDONS_TESTS: true
+      ENABLE_API_EXTENSIONS_TESTS: true
+      ENABLE_GENERIC_TESTS: true
+      ENABLE_OSS_ONLY_TESTS: true
+      ENABLE_PERSISTENT_VOLUME_TESTS: true
+      ENABLE_POD_LOGS_TESTS: true
   - task: pod-to-pod
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
