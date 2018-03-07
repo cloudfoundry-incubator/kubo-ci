@@ -111,6 +111,7 @@ func (runner *KubectlRunner) GetOutputBytesInNamespace(namespace string, kubectl
 }
 
 func init() {
+	fmt.Println("[init] Seed:", config.GinkgoConfig.RandomSeed)
 	rand.Seed(config.GinkgoConfig.RandomSeed)
 }
 
