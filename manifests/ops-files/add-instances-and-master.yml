@@ -9,3 +9,8 @@
 - type: replace
   path: /variables/name=tls-kubernetes/options/alternative_names/-
   value: ((master_ip))
+
+  # To override the existing deployment check in deploy_utils.genrate_manifest()
+- type: replace
+  path: /update/max_in_flight
+  value: 100%
