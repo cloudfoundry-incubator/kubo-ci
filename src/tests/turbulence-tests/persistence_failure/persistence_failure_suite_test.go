@@ -1,7 +1,6 @@
 package persistence_failure_test
 
 import (
-	"fmt"
 	"tests/config"
 
 	. "github.com/onsi/ginkgo"
@@ -31,20 +30,7 @@ func PersistenceFailureDescribe(description string, callback func()) bool {
 			if !testconfig.TurbulenceTests.IncludePersistenceFailure {
 				Skip(`Skipping this test suite because Config.TurbulenceTests.IncludePersistenceFailure is set to 'false'.`)
 			}
-
-			if !supportedPlatform(testconfig.Iaas) {
-				Skip(fmt.Sprintf(`Skipping this test suite because persistence failure test is not supported on %s`, testconfig.Iaas))
-			}
 		})
 		Describe(description, callback)
 	})
-}
-
-func supportedPlatform(iaas string) bool {
-	for _, platform := range []string{"aws", "gcp", "vsphere"} {
-		if testconfig.Iaas == platform {
-			return true
-		}
-	}
-	return false
 }

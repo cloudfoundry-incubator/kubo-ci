@@ -1010,7 +1010,9 @@ jobs:
       ENABLE_TURBULENCE_WORKER_DRAIN_TESTS: true
       ENABLE_TURBULENCE_WORKER_FAILURE_TESTS: true
       ENABLE_TURBULENCE_MASTER_FAILURE_TESTS: true
+      <% if env != "openstack" %>
       ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS: true
+      <% end %>
 
 <%
   destroy_k8s_passed_reqs = ["run-k8s-turbulence-tests-#{env}"]
