@@ -154,6 +154,12 @@
   version = "v1.2.0"
 
 [[projects]]
+  name = "github.com/satori/go.uuid"
+  packages = ["."]
+  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
+  version = "v1.2.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/vito/go-interact"
   packages = [
@@ -219,6 +225,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "81f85f159cf53a80edf3bc704e2bddb2976fbc7e178bc14eb7b0378bd27fca0b"
+  inputs-digest = "ebc80bbedf6a1a134098de9826b1050b621779c638773d0811fe8ba409c156cf"
   solver-name = "gps-cdcl"
   solver-version = 1

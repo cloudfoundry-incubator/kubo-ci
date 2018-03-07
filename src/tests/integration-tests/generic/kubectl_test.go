@@ -42,7 +42,7 @@ var _ = GenericDescribe("Kubectl", func() {
 		s := kubectl.RunKubectlCommand("create", "rolebinding", roleBindingName, "--clusterrole=admin", "--user=system:serviceaccount:"+kubectl.Namespace()+":default")
 		Eventually(s, "15s").Should(gexec.Exit(0))
 
-		podName := GenerateRandomName()
+		podName := GenerateRandomUUID()
 		session := kubectl.RunKubectlCommand("run", podName, "--image", "pcfkubo/alpine:stable", "--restart=Never", "--image-pull-policy=Always", "-ti", "--rm", "--", "kubectl", "get", "services")
 		session.Wait(120)
 		Expect(session).To(gexec.Exit(0))

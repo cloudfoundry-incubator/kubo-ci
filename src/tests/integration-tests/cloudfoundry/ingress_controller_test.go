@@ -71,7 +71,7 @@ var _ = CloudFoundryDescribe("Testing Ingress Controller", func() {
 	})
 
 	It("Allows routing via Ingress Controller", func() {
-		serviceName := GenerateRandomName()
+		serviceName := GenerateRandomUUID()
 		appUrl := fmt.Sprintf("http://%s.%s", serviceName, testconfig.Cf.AppsDomain)
 		httpClient := http.Client{
 			Timeout: time.Duration(5 * time.Second),

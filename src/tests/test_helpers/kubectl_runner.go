@@ -2,23 +2,23 @@ package test_helpers
 
 import (
 	"errors"
-	"math/rand"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 
 	"github.com/cloudfoundry/bosh-cli/director"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 
-	"fmt"
-	"strings"
 	testconfig "tests/config"
 
-	"github.com/onsi/ginkgo/config"
-	"github.com/onsi/gomega/gexec"
+	uuid "github.com/satori/go.uuid"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 type KubectlRunner struct {
@@ -36,7 +36,7 @@ func NewKubectlRunner(pathToKubeConfig string) *KubectlRunner {
 		Fail("path to kubeconfig must be specified")
 	}
 
-	runner.namespace = "test-" + GenerateRandomName()
+	runner.namespace = "test-" + GenerateRandomUUID()
 	runner.Timeout = "60s"
 
 	return runner
@@ -73,13 +73,9 @@ func (runner KubectlRunner) ExpectEventualSuccess(args ...string) {
 	Eventually(runner.RunKubectlCommand(args...), runner.Timeout).Should(gexec.Exit(0))
 }
 
-func GenerateRandomName() string {
-	letterRunes := []rune("abcdefghijklmnopqrstuvwxyz")
-	b := make([]rune, 20)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
+func GenerateRandomUUID() string {
+	randomUUID := uuid.NewV4()
+	return randomUUID.String()
 }
 
 func (runner KubectlRunner) CreateNamespace() {
@@ -108,11 +104,6 @@ func (runner *KubectlRunner) GetOutputBytesInNamespace(namespace string, kubectl
 	Eventually(session, "20s").Should(gexec.Exit(0))
 	output := session.Out.Contents()
 	return output
-}
-
-func init() {
-	fmt.Println("[init] Seed:", config.GinkgoConfig.RandomSeed)
-	rand.Seed(config.GinkgoConfig.RandomSeed)
 }
 
 func (runner *KubectlRunner) GetNodePort(service string) (string, error) {

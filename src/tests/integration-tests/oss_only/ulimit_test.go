@@ -24,7 +24,7 @@ var _ = OSSOnlyDescribe("Kubectl", func() {
 	})
 
 	It("Should have a ulimit of 65536", func() {
-		podName := test_helpers.GenerateRandomName()
+		podName := test_helpers.GenerateRandomUUID()
 		output := runner.GetOutput("run", podName, "--image", "pcfkubo/ulimit", "--restart=Never", "-i", "--rm")
 		Expect(output[0]).To(Equal("65536"))
 	})
