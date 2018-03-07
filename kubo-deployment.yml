@@ -13,14 +13,12 @@
   enable_failure_alert = true
   k8s_api_port_bumps = {
     abac: 400,
-    multiaz: 200
   }
 
   upgrade_test_iaases = %w(aws-lb gcp-lb)
   conformance_test_iaases = iaases
   deploy_bosh_test_iaases = iaases
   proxy_iaases = %w(vsphere)
-  multiaz_test_iaases = %w(gcp)
 %>
 ---
 pins:
@@ -49,12 +47,6 @@ groups:
   - run-k8s-integration-tests-on-abac-<%= env %>
   - destroy-k8s-with-abac-<%= env %>
   <% end %>
-<% end %>
-<% multiaz_test_iaases.each do |env| %>
-  - deploy-k8s-multiaz-<%= env %>
-  - run-k8s-integration-tests-multiaz-<%= env %>
-  - run-k8s-turbulence-tests-multiaz-<%= env %>
-  - destroy-k8s-multiaz-<%= env %>
 <% end %>
 <% upgrade_test_iaases.each do |iaas| %>
   - claim-lock-upgrade-<%= iaas %>
@@ -104,12 +96,6 @@ groups:
   - run-k8s-integration-tests-on-abac-<%= env %>
   - destroy-k8s-with-abac-<%= env %>
   <% end %>
-  <% if multiaz_test_iaases.include? env %>
-  - deploy-k8s-multiaz-<%= env %>
-  - run-k8s-integration-tests-multiaz-<%= env %>
-  - run-k8s-turbulence-tests-multiaz-<%= env %>
-  - destroy-k8s-multiaz-<%= env %>
-  <% end %>
   <% if upgrade_test_iaases.include? env %>
   - claim-lock-upgrade-<%= env %>
   - install-old-bosh-<%= env %>
@@ -152,14 +138,6 @@ groups:
     - run-k8s-integration-tests-proxy-<%= env %>
     - destroy-k8s-proxy-<%= env %>
     - destroy-bosh-proxy-<%= env %>
-  <% end %>
-- name: multiaz
-  jobs:
-  <% multiaz_test_iaases.each do |env| %>
-  - deploy-k8s-multiaz-<%= env %>
-  - run-k8s-integration-tests-multiaz-<%= env %>
-  - run-k8s-turbulence-tests-multiaz-<%= env %>
-  - destroy-k8s-multiaz-<%= env %>
   <% end %>
 
 resource_types:
@@ -532,177 +510,6 @@ jobs:
     file: git-kubo-ci/tasks/configure-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
 
-# For multi AZ deployments
-<% if multiaz_test_iaases.include?(env) %>
-- name: deploy-k8s-multiaz-<%= env %>
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
-      version: every
-      trigger: true
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: git-kubo-deployment
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: git-kubo-release
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: kubo-version
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: gcs-bosh-state
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: gcs-bosh-creds
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'install-bosh-<%= env %>' ]
-  - task: delay-execution # To avoid the stemcell upload conflicts
-    file: git-kubo-ci/tasks/delay-execution.yml
-    params:
-      DELAY_TIME_SECS: 180
-  - task: bump_kubernetes_port
-    file: git-kubo-ci/tasks/bump-kubernetes-port.yml
-    input_mapping: {kubo-lock-pre: kubo-lock-<%= env %>}
-    tags: [<%= env %>]
-    params:
-      BUMP_AMOUNT: <%= k8s_api_port_bumps[:multiaz] %>
-  - task: deploy
-    tags: [<%= env %>]
-    input_mapping:
-      gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
-    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-    params:
-      DEPLOYMENT_NAME: multiaz-ci-service
-      DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
-    on_failure: *on_failure_alert
-
-- name: run-k8s-integration-tests-multiaz-<%= env %>
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
-      version: every
-      trigger: true
-      passed: [ 'deploy-k8s-multiaz-<%= env %>' ]
-    - get: git-kubo-deployment
-      passed: [ 'deploy-k8s-multiaz-<%= env %>' ]
-    - get: gcs-bosh-state
-      passed: [ 'deploy-k8s-multiaz-<%= env %>' ]
-    - get: gcs-bosh-creds
-      passed: [ 'deploy-k8s-multiaz-<%= env %>' ]
-    - get: kubo-version
-      passed: [ 'deploy-k8s-multiaz-<%= env %>' ]
-    - get: git-kubo-release
-      passed: [ 'deploy-k8s-multiaz-<%= env %>' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'deploy-k8s-multiaz-<%= env %>' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'deploy-k8s-multiaz-<%= env %>' ]
-  - task: bump_kubernetes_port
-    file: git-kubo-ci/tasks/bump-kubernetes-port.yml
-    input_mapping: {kubo-lock-pre: kubo-lock-<%= env %>}
-    tags: [<%= env %>]
-    params:
-      BUMP_AMOUNT: <%= k8s_api_port_bumps[:multiaz] %>
-  - task: integration-tests
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
-    on_failure: *on_failure_alert
-    params:
-      DEPLOYMENT_NAME: multiaz-ci-service
-      ENABLE_ADDONS_TESTS: true
-      ENABLE_API_EXTENSIONS_TESTS: true
-      ENABLE_GENERIC_TESTS: true
-      ENABLE_MULTI_AZ_TESTS: true
-      ENABLE_OSS_ONLY_TESTS: true
-      ENABLE_PERSISTENT_VOLUME_TESTS: true
-      ENABLE_POD_LOGS_TESTS: true
-  - task: pod-to-pod
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/pod-to-pod.yml
-    params:
-      DEPLOYMENT_NAME: multiaz-ci-service
-    on_failure: *on_failure_alert
-
-- name: run-k8s-turbulence-tests-multiaz-<%= env %>
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
-      version: every
-      trigger: true
-      passed: [ 'run-k8s-integration-tests-multiaz-<%= env %>' ]
-    - get: gcs-bosh-state
-      passed: [ 'run-k8s-integration-tests-multiaz-<%= env %>' ]
-    - get: gcs-bosh-creds
-      passed: [ 'run-k8s-integration-tests-multiaz-<%= env %>' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'run-k8s-integration-tests-multiaz-<%= env %>' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'run-k8s-integration-tests-multiaz-<%= env %>' ]
-    - get: git-kubo-deployment
-      passed: [ 'run-k8s-integration-tests-multiaz-<%= env %>' ]
-    - get: git-kubo-release
-      passed: [ 'run-k8s-integration-tests-multiaz-<%= env %>' ]
-    - get: kubo-version
-      passed: [ 'run-k8s-integration-tests-multiaz-<%= env %>' ]
-  - task: bump_kubernetes_port
-    file: git-kubo-ci/tasks/bump-kubernetes-port.yml
-    input_mapping: {kubo-lock-pre: kubo-lock-<%= env %>}
-    tags: [<%= env %>]
-    params:
-      BUMP_AMOUNT: <%= k8s_api_port_bumps[:multiaz] %>
-  - task: turbulence-tests
-    file: git-kubo-ci/tasks/run-k8s-turbulence-tests.yml
-    tags: ['<%= env %>']
-    params:
-      DEPLOYMENT_NAME: multiaz-ci-service
-      ENABLE_TURBULENCE_WORKER_DRAIN_TESTS: true
-      ENABLE_TURBULENCE_WORKER_FAILURE_TESTS: true
-      ENABLE_TURBULENCE_MASTER_FAILURE_TESTS: true
-      ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS: true
-    on_failure: *on_failure_alert
-
-- name: destroy-k8s-multiaz-<%= env %>
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
-      version: every
-      trigger: true
-      passed: [ 'run-k8s-turbulence-tests-multiaz-<%= env %>' ]
-    - get: kubo-version
-      passed: [ 'run-k8s-turbulence-tests-multiaz-<%= env %>' ]
-    - get: git-kubo-deployment
-      passed: [ 'run-k8s-turbulence-tests-multiaz-<%= env %>' ]
-    - get: git-kubo-release
-      passed: [ 'run-k8s-turbulence-tests-multiaz-<%= env %>' ]
-    - get: gcs-bosh-state
-      passed: [ 'run-k8s-turbulence-tests-multiaz-<%= env %>' ]
-    - get: gcs-bosh-creds
-      passed: [ 'run-k8s-turbulence-tests-multiaz-<%= env %>' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'run-k8s-turbulence-tests-multiaz-<%= env %>' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'run-k8s-turbulence-tests-multiaz-<%= env %>' ]
-  - task: bump_kubernetes_port
-    file: git-kubo-ci/tasks/bump-kubernetes-port.yml
-    input_mapping: {kubo-lock-pre: kubo-lock-<%= env %>}
-    tags: [<%= env %>]
-    params:
-      BUMP_AMOUNT: <%= k8s_api_port_bumps[:multiaz] %>
-  - task: destroy-k8s
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-    params:
-      DEPLOYMENT_NAME: multiaz-ci-service
-    on_failure: *on_failure_alert
-<% end %>
-
 <% if env == 'gcp' %>
 - name: deploy-k8s-with-abac-<%= env %>
   plan:
@@ -877,10 +684,28 @@ jobs:
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
       WITH_PRIVILEGED_CONTAINERS: 1
-    <% if env =~ /^(gcp|vsphere-lb)/ %>
+    <% if env == 'aws-lb' %>
+      DEPLOYMENT_OPS_FILE: reset-instances-and-zones.yml
+      SKIP_ERRANDS: 1
+    <% elsif env =~ /^(gcp|vsphere-lb)/ %>
       DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
     <% end %>
     on_failure: *on_failure_alert
+  <% if env == 'aws-lb' %>
+  - task: <%= env %>-multiaz-setup
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/aws-multiaz-update.yml
+    input_mapping: {kubo-lock-pre: kubo-lock-<%= env %>}
+    on_failure: *on_failure_alert
+  - task: deploy-with-workers-<%= env %>
+    tags: [<%= env %>]
+    input_mapping: {gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested}
+    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    on_failure: *on_failure_alert
+    params:
+      DEPLOYMENT_NAME: ci-service
+      DEPLOYMENT_OPS_FILE: add-instances-and-master.yml
+  <% end %>
 
 - name: run-k8s-integration-tests-<%= env %>
   plan:
@@ -918,6 +743,9 @@ jobs:
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
       ENABLE_POD_LOGS_TESTS: true
+      <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
+      ENABLE_MULTI_AZ_TESTS: true
+      <% end %>
   - task: pod-to-pod
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
@@ -1051,7 +879,6 @@ jobs:
 destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
 if env == 'gcp'
   destroy_bosh_passed_reqs << "destroy-k8s-with-abac-#{env}"
-  destroy_bosh_passed_reqs << "destroy-k8s-multiaz-#{env}"
 end
 %>
 
