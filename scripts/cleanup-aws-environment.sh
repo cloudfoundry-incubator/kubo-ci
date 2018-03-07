@@ -52,9 +52,9 @@ else
   aws ec2 wait instance-terminated --filters "Name=instance-id,Values=${director_instance_id}"
 fi
 
-instance_ids=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --filters "Name=subnet-id,Values=${subnet_id}")
+instance_ids=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --filters "Name=tag:KubernetesCluster,Values=${director_name}")
 if [ -z "$instance_ids" ]; then
-  echo "No instances found in subnet '${subnet_id}'"
+  echo "No instances found with tag KubernetesCluster:'${director_name}'"
 else
   aws ec2 terminate-instances --instance-ids ${instance_ids}
   aws ec2 wait instance-terminated --instance-ids ${instance_ids}
