@@ -20,6 +20,11 @@ var _ = GenericDescribe("MasterTlsCertificate", func() {
 		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 	})
 
+	AfterEach(func() {
+		kubectl.RunKubectlCommandInNamespace("default",
+			"delete", "pods", "test-master-cert-via-curl", "--grace-period=0", "--force", "--ignore-not-found=true").Wait("60s")
+	})
+
 	DescribeTable("hostnames", func(hostname string) {
 		url := fmt.Sprintf("https://%s", hostname)
 		session := kubectl.RunKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl", "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", url, "--cacert", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
