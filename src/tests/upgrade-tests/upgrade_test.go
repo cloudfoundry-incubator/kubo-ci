@@ -78,7 +78,6 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 		return net.LookupHost(loadbalancerAddress)
 	}, "5m", "5s").ShouldNot(HaveLen(0))
 
-	//need make we the first 200
 	By("Monitoring availability")
 	appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
 	doneChannel := make(chan bool)
