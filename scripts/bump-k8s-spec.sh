@@ -18,7 +18,7 @@ version=$(cat "$PWD/$SPEC_RELEASE_DIR/version")
 cp -r git-kubo-release/. git-kubo-release-output
 pushd git-kubo-release-output
 
-bosh remove-blob $( bosh blobs --column path | grep "${SPEC_IMAGE_NAME}" )
+bosh remove-blob $( bosh blobs --column path | grep "${SPEC_BLOB_NAME}" )
 scripts/download_container_images "$SPEC_IMAGE_URL:$tag"
 sed -E -i -e "/${SPEC_IMAGE_NAME}:/s/v([0-9]+\.)+[0-9]+/${tag}/" scripts/download_container_images
 sed -E -i -e "/${SPEC_IMAGE_NAME}:/s/v([0-9]+\.)+[0-9]+/${tag}/" "jobs/apply-specs/templates/specs/${SPEC_NAME}.yml.erb"
