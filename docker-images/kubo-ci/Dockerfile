@@ -100,6 +100,6 @@ COPY Gemfile.lock .
 RUN gem install bundler --no-ri --no-rdoc
 RUN bundle install
 
-RUN git clone https://github.com/sstephenson/bats.git /tmp/bats
-RUN /tmp/bats/install.sh /usr/local
-RUN rm -rf /tmp/bats
+ARG SPRUCE_VERSION=v1.16.2
+RUN https://github.com/geofffranks/spruce/releases/download/${SPRUCE_VERSION}/spruce-linux-amd64 /tmp/spruce
+RUN /tmp/spruce /usr/local && chmod +x /usr/local/spruce
