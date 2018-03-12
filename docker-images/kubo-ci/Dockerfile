@@ -101,5 +101,5 @@ RUN gem install bundler --no-ri --no-rdoc
 RUN bundle install
 
 ARG SPRUCE_VERSION=v1.16.2
-RUN https://github.com/geofffranks/spruce/releases/download/${SPRUCE_VERSION}/spruce-linux-amd64 /tmp/spruce
+RUN wget https://github.com/geofffranks/spruce/releases/download/${SPRUCE_VERSION}/spruce-linux-amd64 -O /tmp/spruce
 RUN /tmp/spruce /usr/local && chmod +x /usr/local/spruce
