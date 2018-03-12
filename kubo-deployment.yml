@@ -1245,7 +1245,7 @@ end
       DEPLOYMENT_NAME: ci-service-k8s-with-proxy
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
-      kubo-lock: kubo-lock-with-proxy
+      kubo-lock: kubo-lock-proxy-vsphere
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     on_failure: *on_failure_alert
 
@@ -1276,7 +1276,7 @@ end
     tags: [vsphere]
     file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
     input_mapping:
-      kubo-lock: kubo-lock-with-proxy
+      kubo-lock: kubo-lock-proxy-vsphere
     params:
       DEPLOYMENT_NAME: ci-service-k8s-with-proxy
       ENABLE_ADDONS_TESTS: true
@@ -1290,7 +1290,7 @@ end
     tags: [vsphere]
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping:
-      kubo-lock: kubo-lock-with-proxy
+      kubo-lock: kubo-lock-proxy-vsphere
     params:
       DEPLOYMENT_NAME: ci-service-k8s-with-proxy
     on_failure: *on_failure_alert
