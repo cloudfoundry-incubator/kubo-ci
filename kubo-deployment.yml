@@ -1365,7 +1365,7 @@ end
 <%
   passed_requirements = env_list.map {|env| "destroy-bosh-#{env}" unless env == 'openstack'}.compact
   passed_requirements += upgrade_test_iaases.map {|iaas| "destroy-bosh-upgrade-#{iaas}" unless iaas == 'openstack'}.compact
-  #passed_requirements += proxy_iaases.map {|iaas| "destroy-bosh-proxy-#{iaas}"}.compact
+  passed_requirements += proxy_iaases.map {|iaas| "destroy-bosh-proxy-#{iaas}"}.compact
   passed_deploy_bosh = iaases.map {|iaas| "deploy-bosh-test-#{iaas}" unless iaas =='openstack' }.compact
 %>
 
