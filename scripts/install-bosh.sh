@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -exu -o pipefail
+set -eu -o pipefail
 
 ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 
@@ -8,7 +8,7 @@ ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 
 export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="${ROOT}/bosh.log"
-export DEBUG=1
+export DEBUG=0
 
 metadata_path="${KUBO_ENVIRONMENT_DIR}/director.yml"
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
@@ -51,8 +51,6 @@ elif [[ -f "$iaas_cc_opsfile" ]]; then
 fi
 export CLOUD_CONFIG_OPS_FILES
 
-set +x
-export DEBUG=0
 echo "Deploying BOSH"
 
 if [ "$iaas" = "gcp" ]; then
@@ -71,8 +69,6 @@ elif [ "$iaas" = "openstack" ]; then
 else
   "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}"
 fi
-set -x
-export DEBUG=1
 
 "$KUBO_DEPLOYMENT_DIR/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
 
