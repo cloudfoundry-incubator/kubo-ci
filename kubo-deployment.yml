@@ -1239,10 +1239,6 @@ end
     file: git-kubo-ci/tasks/apply-runtime-config.yml
     tags: [vsphere]
     input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
-  - task: apply-proxy-to-env
-    file: git-kubo-ci/tasks/apply-proxy-to-env.yml
-    tags: [vsphere]
-    input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
   - task: deploy
     tags: [vsphere]
     params:
@@ -1276,10 +1272,6 @@ end
       passed: [ 'deploy-k8s-proxy-vsphere' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'deploy-k8s-proxy-vsphere' ]
-  - task: apply-proxy-to-env
-    file: git-kubo-ci/tasks/apply-proxy-to-env.yml
-    tags: [vsphere]
-    input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
   - task: integration-tests
     tags: [vsphere]
     file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
