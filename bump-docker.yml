@@ -5,6 +5,7 @@ resources:
   source:
     owner: cloudfoundry-incubator
     repository: docker-boshrelease
+    access_token: ((github-token-key))
 
 - name: git-kubo-ci
   type: git

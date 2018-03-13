@@ -13,6 +13,7 @@ resources:
     owner: coreos
     repository: etcd
     version_filter: "< 4.0.0"
+    access_token: ((github-token-key))
 
 - name: git-kubo-etcd
   type: git

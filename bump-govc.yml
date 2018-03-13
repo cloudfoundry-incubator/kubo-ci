@@ -5,6 +5,7 @@ resources:
   source:
     owner: vmware
     repository: govmomi
+    access_token: ((github-token-key))
 
 - name: git-kubo-ci
   type: git

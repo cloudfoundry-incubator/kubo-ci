@@ -14,12 +14,14 @@ resources:
     repository: kubernetes
     # only patches get updated
     version_filter: "< 1.10.0"
+    access_token: ((github-token-key))
 
 - name: heapster-release
   type: github-release
   source:
     owner: kubernetes
     repository: heapster
+    access_token: ((github-token-key))
 
 # Influxdb does not cut new releases, nor does it post images with every release
 # which is the case with heapster n k8s-dashboard
@@ -34,6 +36,7 @@ resources:
   source:
     owner: kubernetes
     repository: dashboard
+    access_token: ((github-token-key))
 
 - name: git-kubo-ci
   type: git

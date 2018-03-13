@@ -5,6 +5,7 @@ resources:
   source:
     owner: coreos
     repository: flannel
+    access_token: ((github-token-key))
 
 - name: git-kubo-ci
   type: git
