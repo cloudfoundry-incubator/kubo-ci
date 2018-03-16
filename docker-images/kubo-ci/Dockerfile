@@ -103,3 +103,6 @@ RUN bundle install
 ARG SPRUCE_VERSION=v1.16.2
 RUN wget https://github.com/geofffranks/spruce/releases/download/${SPRUCE_VERSION}/spruce-linux-amd64 -O /usr/bin/spruce && \
   chmod +x /usr/bin/spruce
+
+RUN git clone https://github.com/fsaintjacques/semver-tool && \
+  cd semver-tool && make install
