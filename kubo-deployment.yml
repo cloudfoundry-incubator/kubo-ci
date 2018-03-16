@@ -1,5 +1,5 @@
 <%
-  iaases = %w(gcp vsphere aws)
+  iaases = %w(gcp vsphere aws openstack)
   stemcell_types = {
     'gcp' => 'google-kvm',
     'gcp-lb' => 'google-kvm',
