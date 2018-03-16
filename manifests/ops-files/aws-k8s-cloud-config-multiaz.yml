@@ -25,13 +25,13 @@
     azs:
     - z2
     cloud_properties:
-      subnet: subnet-e5d4c7ae
+      subnet: ((az2_subnet_id))
     dns:
     - 169.254.169.253
-    gateway: 10.0.23.1
-    range: 10.0.23.0/24
+    gateway: ((az2_gateway_ip))
+    range: ((az2_cidr))
     reserved:
-    - 10.0.23.1/30
+    - ((az2_gateway_ip))/30
 
 - type: replace
   path: /networks/name=default/subnets/-
@@ -39,10 +39,10 @@
     azs:
     - z3
     cloud_properties:
-      subnet: subnet-790b371d
+      subnet: ((az3_subnet_id))
     dns:
     - 169.254.169.253
-    gateway: 10.0.22.1
-    range: 10.0.22.0/24
+    gateway: ((az3_gateway_ip))
+    range: ((az3_cidr))
     reserved:
-    - 10.0.22.1/30
+    - ((az3_gateway_ip))/30
