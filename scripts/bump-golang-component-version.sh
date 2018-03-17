@@ -9,7 +9,7 @@ golang_rel_tag=$(cat PWD/git-golang-release/tag)
 
 # Extract source tarball to a directory
 mkdir golang-release-tarball
-tar -zxvf "git-golang-release/${golang_rel_tag}.tar.gz" -C golang-release-tarball/
+tar -zxvf "git-golang-release/source.tar.gz" -C golang-release-tarball/
 
 pushd golang-release-tarball
 versions=$(spruce json config/blobs.yml | jq -r "keys[] | select(match(\".linux-amd64.tar.gz\"))" --raw-output | grep -oE "([0-9]+\.)+[0-9]+" | awk '{print $1}')
