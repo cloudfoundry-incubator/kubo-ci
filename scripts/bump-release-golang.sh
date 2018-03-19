@@ -2,8 +2,21 @@
 
 set -exu -o pipefail
 
+source git-kubo-ci/scripts/lib/semver.sh
+
 HOME_DIR="$PWD"
 GO_VERSION=$(cat $PWD/golang-version/component-golang-version)
+
+check_and_remove_existing_vendor_package() {
+  pushd "$HOME_DIR"/golang-release/.final_builds/packages
+    local existing_v=$(ls -al | grep golang | grep -oE "([0-9]+\.)+[0-9]+")
+    if [ $(compare_semvers $GO_VERSION $existing_v) -le 0 ]; then
+      echo "Release ${release} already at the latest golang vendor package"
+      exit 0
+    fi
+    rm -rf "golang-${existing_v}-linux/"
+  popd
+}
 
 vendor_golang() {
   pushd "$HOME_DIR"/golang-release
@@ -38,6 +51,7 @@ create_output_directory() {
 
 main() {
   create_output_directory
+  check_and_remove_existing_vendor_package
   vendor_golang
 }
 
