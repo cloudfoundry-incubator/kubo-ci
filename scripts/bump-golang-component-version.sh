@@ -4,10 +4,7 @@ set -exu -o pipefail
 
 source git-kubo-ci/scripts/lib/semver.sh
 
-existing_component_version=$(cat PWD/golang-version/component-golang-version)
-
-golang_rel_version=$(cat PWD/git-golang-release/version)
-golang_rel_tag=$(cat PWD/git-golang-release/tag)
+existing_component_version=$(cat $PWD/golang-version/component-golang-version)
 
 # Extract source tarball to a directory
 mkdir golang-release-tarball
@@ -29,6 +26,10 @@ fi
 if [ $(compare_semvers $latest_golang_version $existing_component_version) -le 0 ]; then
     echo "existing golang component version is already at the latest version..."
     exit 0
+else
+    echo $latest_golang_version > golang-version/component-golang-version
+    # removing the newline character at the end
+    truncate -s -1 golang-version/component-golang-version
 fi
 
 cp -a golang-version/. modified-golang-version
