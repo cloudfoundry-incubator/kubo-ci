@@ -8,7 +8,7 @@ HOME_DIR="$PWD"
 GO_VERSION=$(cat $PWD/golang-version/component-golang-version)
 
 check_and_remove_existing_vendor_package() {
-  pushd "$HOME_DIR"/golang-release/.final_builds/packages
+  pushd "$HOME_DIR"/release/.final_builds/packages
     local existing_v=$(ls -al | grep golang | grep -oE "([0-9]+\.)+[0-9]+")
     if [ $(compare_semvers $GO_VERSION $existing_v) -le 0 ]; then
       echo "Release ${release} already at the latest golang vendor package"
