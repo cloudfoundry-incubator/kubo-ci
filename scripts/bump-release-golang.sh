@@ -3,10 +3,11 @@
 set -exu -o pipefail
 
 HOME_DIR="$PWD"
+GO_VERSION=$(cat $PWD/golang-version/component-golang-version)
 
 vendor_golang() {
-  pushd "$HOME_DIR"/golang-release
-    blob_name=$(bosh blobs --json | jq '.Tables[0].Rows[] | .path | select(test("'"${MINOR_GO_VERSION}"'.*linux"))' --raw-output)
+  pushd "$HOME_DIR"/git-golang-release
+    blob_name=$(bosh blobs --json | jq '.Tables[0].Rows[] | .path | select(test("'"${GO_VERSION}"'.*linux"))' --raw-output)
     go_version="${blob_name%.tar.gz}"
   popd
 
@@ -19,7 +20,7 @@ blobstore:
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
     set -x
-    bosh vendor-package golang-"${MINOR_GO_VERSION}"-linux "$HOME_DIR"/golang-release
+    bosh vendor-package golang-"${GO_VERSION}"-linux "$HOME_DIR"/git-golang-release
 
     git config --global user.email "cfcr+cibot@pivotal.io"
     git config --global user.name "CFCR CI BOT"
