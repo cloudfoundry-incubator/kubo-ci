@@ -17,3 +17,4 @@ inputs:
 
 outputs:
   - name: modified-release
+  - name: existing-golang-version

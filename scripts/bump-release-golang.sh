@@ -6,15 +6,16 @@ source git-kubo-ci/scripts/lib/semver.sh
 
 HOME_DIR="$PWD"
 GO_VERSION=$(cat $PWD/golang-version/component-golang-version)
+EXISTING_V=""
 
 check_and_remove_existing_vendor_package() {
   pushd "$HOME_DIR"/release/.final_builds/packages
-    local existing_v=$(ls -al | grep golang | grep -oE "([0-9]+\.)+[0-9]+")
-    if [ $(compare_semvers $GO_VERSION $existing_v) -le 0 ]; then
-      echo "Release ${release} already at the latest golang vendor package"
+    EXISTING_V=$(ls -al | grep golang | grep -oE "([0-9]+\.)+[0-9]+")
+    if [ $(compare_semvers $GO_VERSION $EXISTING_V) -le 0 ]; then
+      echo "Release already at the latest golang vendor package"
       exit 0
     fi
-    rm -rf "golang-${existing_v}-linux/"
+    rm -rf "golang-${EXISTING_V}-linux/"
   popd
 }
 
@@ -49,9 +50,15 @@ create_output_directory() {
   cp -a release/. modified-release
 }
 
+output_existing_version() {
+  echo $EXISTING_V > existing_golang_version
+  truncate -s -1 existing_golang_version
+}
+
 main() {
   create_output_directory
   check_and_remove_existing_vendor_package
+  output_existing_version
   vendor_golang
 }
 

@@ -9,7 +9,7 @@ resources:
 - name: git-kubo-ci
   type: git
   source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    uri: git@github.com:cloudfoundry-incubator/kubo-ci.git
     branch: master
     private_key: ((git-ssh-key))
 
@@ -35,16 +35,28 @@ resources:
     - 'LICENSE'
     - 'NOTICE'
 
-#- name: git-docker-boshrelease
-#  type: git
-#  source:
-#    uri: git@github.com:cloudfoundry-incubator/docker-boshrelease.git
-#    branch: master
-#    private_key: ((git-ssh-key))
-#    ignore_paths:
-#    - '*.md'
-#    - 'LICENSE'
-#    - 'NOTICE'
+- name: git-docker-boshrelease
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/docker-boshrelease.git
+    branch: master
+    private_key: ((git-ssh-key))
+    ignore_paths:
+    - '*.md'
+    - 'LICENSE'
+    - 'NOTICE'
+
+- name: git-cfcr-etcd-release
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/cfcr-etcd-release.git
+    branch: master
+    private_key: ((git-ssh-key))
+    ignore_paths:
+    - '*.md'
+    - 'LICENSE'
+    - 'NOTICE'
+
 
 - name: golang-release
   type: git
@@ -52,11 +64,73 @@ resources:
     uri: https://github.com/bosh-packages/golang-release
     branch: master
 
+- name: git-golang-release
+  type: github-release
+  source:
+    owner: bosh-packages
+    repository: golang-release
+    access_token: ((github-token-key))
+
+- name: golang-version
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: component-golang-version
 
 ############################################
 # Jobs
 ############################################
 jobs:
+- name: update-component-golang-version
+  #disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-golang-release
+      trigger: true
+      params:
+        include_source_tarball: true
+    - get: golang-version
+  - task: get-latest-version
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      run:
+        path: git-kubo-ci/scripts/bump-golang-component-version.sh
+      inputs:
+        - name: git-kubo-ci
+        - name: git-golang-release
+        - name: golang-version
+      outputs:
+        - name: modified-golang-version
+  - put: golang-version
+    params:
+      file: modified-golang-version/component-golang-version
+
+- name: bump-docker-boshrelease-golang
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-docker-boshrelease
+    - get: golang-release
+    - get: golang-version
+      passed: ['update-component-golang-version']
+      trigger: true
+  - task: bump-release-golang
+    file: git-kubo-ci/tasks/bump-release-golang.yml
+    input_mapping: { release: git-docker-boshrelease }
+    params:
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - put: git-docker-boshrelease
+    params:
+      repository: modified-release
+      rebase: true
 
 - name: bump-kubo-release-golang
   plan:
@@ -64,6 +138,8 @@ jobs:
     - get: git-kubo-ci
     - get: git-kubo-release
     - get: golang-release
+    - get: golang-version
+      passed: ['update-component-golang-version']
       trigger: true
   - task: bump-release-golang
     file: git-kubo-ci/tasks/bump-release-golang.yml
@@ -71,7 +147,11 @@ jobs:
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
-      MINOR_GO_VERSION: "1.9"
+    # on_failure:
+    #   do:
+    #   - put: golang-version
+    #     params:
+    #       file: existing-golang-version
   - put: git-kubo-release
     params:
       repository: modified-release
@@ -83,6 +163,8 @@ jobs:
     - get: git-kubo-ci
     - get: git-kubo-etcd
     - get: golang-release
+    - get: golang-version
+      passed: ['update-component-golang-version']
       trigger: true
   - task: bump-release-golang
     file: git-kubo-ci/tasks/bump-release-golang.yml
@@ -90,8 +172,27 @@ jobs:
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
-      MINOR_GO_VERSION: "1.9"
   - put: git-kubo-etcd
+    params:
+      repository: modified-release
+      rebase: true
+
+- name: bump-kubo-etcd-golang
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-cfcr-etcd-release
+    - get: golang-release
+    - get: golang-version
+      passed: ['update-component-golang-version']
+      trigger: true
+  - task: bump-release-golang
+    file: git-kubo-ci/tasks/bump-release-golang.yml
+    input_mapping: { release: git-cfcr-etcd-release }
+    params:
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - put: git-cfcr-etcd-release
     params:
       repository: modified-release
       rebase: true
@@ -100,7 +201,8 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: golang-release
+    - get: golang-version
+      passed: ['update-component-golang-version']
       trigger: true
   - task: bump-golang
     config:
@@ -114,32 +216,10 @@ jobs:
         path: git-kubo-ci/scripts/bump-docker-image-golang.sh
       inputs:
         - name: git-kubo-ci
-        - name: golang-release
+        - name: golang-version
       outputs:
         - name: git-kubo-ci-output
-    params:
-      MINOR_GO_VERSION: "1.9"
   - put: git-kubo-ci
     params:
       repository: git-kubo-ci-output
       rebase: true
-
-
-#- name: bump-docker-boshrelease-golang
-#  plan:
-#  - aggregate:
-#    - get: git-kubo-ci
-#    - get: git-docker-boshrelease
-#    - get: golang-release
-#      trigger: true
-#  - task: bump-release-golang
-#    file: git-kubo-ci/tasks/bump-release-golang.yml
-#    input_mapping: { reeease: git-docker-boshrelease }
-#    params:
-#      ACCESS_KEY_ID: ((gcs-access-key-id))
-#      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
-#      MINOR_GO_VERSION: "1.9"
-#  - put: git-docker-boshrelease
-#    params:
-#      repository: modified-release
-#      rebase: true
