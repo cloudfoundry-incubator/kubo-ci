@@ -45,7 +45,7 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 		By("Deploying all of the drain types")
 		Eventually(kubectl.RunKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 		Eventually(kubectl.RunKubectlCommand("create", "-f", drainTypesSpec), "30s", "5s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommand("rollout", "status", "daemonset/fluentd-elasticsearch", "-w"), "120s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("rollout", "status", "daemonset/fluentd-elasticsearch", "-w"), "300s").Should(gexec.Exit(0))
 
 		By("Recreating all workers successfully")
 		dir := NewDirector(testconfig.Bosh)
