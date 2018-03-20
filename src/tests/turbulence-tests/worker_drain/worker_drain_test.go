@@ -17,7 +17,7 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 		countRunningWorkers func() int
 		kubectl             *KubectlRunner
 		drainTypesSpec      = PathFromRoot("specs/drain-types.yml")
-		storageClassSpec    = PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
+		storageClassSpec    string
 	)
 
 	BeforeEach(func() {
@@ -32,6 +32,7 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 
 		Expect(countRunningWorkers()).To(Equal(3))
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
+		storageClassSpec = PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
 	})
 
 	AfterEach(func() {
