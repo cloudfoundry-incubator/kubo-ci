@@ -20,14 +20,14 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-etcd.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
 
 - name: git-kubo-ci
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-ci.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
 
 jobs:
 - name: bump-etcd

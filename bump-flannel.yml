@@ -12,14 +12,14 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
 
 - name: git-kubo-release
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-release.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
 
 jobs:
 - name: check-and-upgrade-flannel
@@ -40,5 +40,5 @@ jobs:
     params:
       CFCR_USER_TOKEN: ((cfcr-git-user-token))
       GIT_SSH_KEY: |
-        ((git-ssh-key))
+        ((git-ssh-key.private_key))
 

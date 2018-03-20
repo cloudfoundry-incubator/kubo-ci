@@ -30,14 +30,14 @@ resources:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     pool: <%= pool %>-lifecycle
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
 
 - name: kubo-lock-<%= pool %>-lifecycle
   type: pool
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     pool: <%= pool %>-lifecycle
 
 - name: kubo-lock-<%= pool %>
@@ -45,7 +45,7 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     pool: <%= pool %>
 <% end %>
 

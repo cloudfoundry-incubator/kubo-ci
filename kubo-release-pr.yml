@@ -36,7 +36,7 @@ resources:
     uri: git@github.com:cloudfoundry-incubator/kubo-release
     repo: cloudfoundry-incubator/kubo-release
     base: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     access_token: ((github-token-key))
 
 <% iaas_list.each do |iaas| %>
@@ -45,7 +45,7 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     pool: kubo-<%= iaas %>
 <% end %>
 
@@ -55,7 +55,7 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     pool: kubo-<%= iaas %>
 
 - name: new-bosh-stemcell-<%= iaas %>

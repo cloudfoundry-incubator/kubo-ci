@@ -159,7 +159,7 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     pool: kubo-gcp
 
 - name: gcs-kubo-deployment-pre

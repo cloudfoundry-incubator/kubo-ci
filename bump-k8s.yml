@@ -43,14 +43,14 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
 
 - name: git-kubo-release
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-release.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
 
 groups:
 - name: bump-k8s
@@ -88,7 +88,7 @@ jobs:
         SECRET_ACCESS_KEY: ((gcs-secret-access-key))
         CFCR_USER_TOKEN: ((cfcr-git-user-token))
         GIT_SSH_KEY: |
-          ((git-ssh-key))
+          ((git-ssh-key.private_key))
 
 - name: bump-dashboard-heapster-components
   plan:

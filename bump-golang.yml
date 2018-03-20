@@ -11,14 +11,14 @@ resources:
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-ci.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
 
 - name: git-kubo-release
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-release.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     ignore_paths:
     - '*.md'
     - 'LICENSE'
@@ -29,7 +29,7 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-etcd.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     ignore_paths:
     - '*.md'
     - 'LICENSE'
@@ -40,7 +40,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry-incubator/docker-boshrelease.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     ignore_paths:
     - '*.md'
     - 'LICENSE'
@@ -51,7 +51,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry-incubator/cfcr-etcd-release.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-key.private_key))
     ignore_paths:
     - '*.md'
     - 'LICENSE'

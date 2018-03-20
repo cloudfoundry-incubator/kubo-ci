@@ -158,14 +158,14 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
 
 - name: git-kubo-deployment
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     ignore_paths:
     - 'LICENSE'
     - 'NOTICE'
@@ -175,7 +175,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-release.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     ignore_paths:
     - '*.md'
     - 'LICENSE'
@@ -185,7 +185,7 @@ resources:
   type: git
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-home.git
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     paths:
     - 'slackers'
 
@@ -200,7 +200,7 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     pool: kubo-<%= env %>
 <% end %>
 
@@ -209,7 +209,7 @@ resources:
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
-    private_key: ((git-ssh-key))
+    private_key: ((git-ssh-key.private_key))
     pool: kubo-vsphere-proxy
 
 - name: gcs-bosh-state
