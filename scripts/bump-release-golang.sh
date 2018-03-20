@@ -40,7 +40,7 @@ EOF
     git config --global user.name "CFCR CI BOT"
 
     set +e
-    git add .
+    git add -A
     git commit -m "Updates golang to version $go_version"
     set -e
   popd
