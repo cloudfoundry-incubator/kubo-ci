@@ -177,7 +177,7 @@ jobs:
       repository: modified-release
       rebase: true
 
-- name: bump-kubo-etcd-golang
+- name: bump-cfcr-etcd-release-golang
   plan:
   - aggregate:
     - get: git-kubo-ci
