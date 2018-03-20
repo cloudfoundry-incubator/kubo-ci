@@ -17,6 +17,7 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 		countRunningWorkers func() int
 		kubectl             *KubectlRunner
 		drainTypesSpec      = PathFromRoot("specs/drain-types.yml")
+		storageClassSpec    = PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
 	)
 
 	BeforeEach(func() {
@@ -36,11 +37,11 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 	AfterEach(func() {
 		kubectl.RunKubectlCommand("delete", "-f", drainTypesSpec)
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		kubectl.RunKubectlCommand("delete", "-f", storageClassSpec)
 	})
 
 	Specify("Workers are able to drain", func() {
 		By("Deploying all of the drain types")
-		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
 		Eventually(kubectl.RunKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 		Eventually(kubectl.RunKubectlCommand("create", "-f", drainTypesSpec), "30s", "5s").Should(gexec.Exit(0))
 		Eventually(kubectl.RunKubectlCommand("rollout", "status", "daemonset/fluentd-elasticsearch", "-w"), "120s").Should(gexec.Exit(0))
