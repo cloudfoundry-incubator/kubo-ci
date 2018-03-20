@@ -10,7 +10,7 @@ resources:
 - name: git-kubo-ci
   type: git
   source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    uri: git@github.com:cloudfoundry-incubator/kubo-ci.git
     branch: master
     private_key: ((git-ssh-key))
 
@@ -20,15 +20,6 @@ resources:
     uri: git@github.com:cloudfoundry-incubator/kubo-release.git
     branch: master
     private_key: ((git-ssh-key))
-
-- name: kubo-ci-stable
-  type: docker-image
-  source:
-    repository: pcfkubo/kubo-ci
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    tag: stable
 
 jobs:
 - name: bump-govc
@@ -69,9 +60,6 @@ jobs:
     - get: govc-release
       trigger: true
       params: { globs: [""] }
-    - get: kubo-ci-stable
-      params:
-        skip_download: true
   - task: bump-kubo-ci-docker-image
     config:
       platform: linux
@@ -87,10 +75,6 @@ jobs:
         - name: govc-release
       outputs:
         - name: git-kubo-ci-output
-  - put: kubo-ci-stable
-    params:
-      build: git-kubo-ci-output/docker-images/kubo-ci
-      dockerfile: git-kubo-ci-output/docker-images/kubo-ci/Dockerfile
   - put: git-kubo-ci
     params:
       repository: git-kubo-ci-output
