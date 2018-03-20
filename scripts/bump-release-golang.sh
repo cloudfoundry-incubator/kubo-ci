@@ -9,13 +9,17 @@ GO_VERSION=$(cat $PWD/golang-version/component-golang-version)
 EXISTING_V=""
 
 check_and_remove_existing_vendor_package() {
-  EXISTING_V=$(ls -al "$HOME_DIR"/packages | grep golang | grep -oE "([0-9]+\.)+[0-9]+")
+  pushd "$HOME_DIR"/modified-release/ > /dev/null
+
+  EXISTING_V=$(ls -al packages | grep golang | grep -oE "([0-9]+\.)+[0-9]+")
   if [ $(compare_semvers $GO_VERSION $EXISTING_V) -le 0 ]; then
     echo "Release already at the latest golang vendor package"
     exit 0
   fi
-  pushd "$HOME_DIR"/modified-release/.final_builds/packages >/dev/null; rm -rf "golang-${EXISTING_V}-linux/"; popd
-  pushd "$HOME_DIR"/packages >/dev/null; rm -rf "golang-${EXISTING_V}-linux/"; popd >/dev/null;
+  pushd .final_builds/packages >/dev/null; rm -rf "golang-${EXISTING_V}-linux/"; popd >/dev/null;
+  pushd packages >/dev/null; rm -rf "golang-${EXISTING_V}-linux/"; popd >/dev/null;
+
+  popd > /dev/null
 }
 
 vendor_golang() {
