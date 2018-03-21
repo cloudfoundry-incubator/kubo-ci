@@ -51,7 +51,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry-incubator/cfcr-etcd-release.git
     branch: master
-    private_key: ((git-key.private_key))
+    private_key: ((git-ssh-key.private_key))
     ignore_paths:
     - '*.md'
     - 'LICENSE'
@@ -127,6 +127,8 @@ jobs:
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - task: check-create-release
+    file: git-kubo-ci/tasks/bump/check-create-release.yml
   - put: git-docker-boshrelease
     params:
       repository: modified-release
@@ -147,11 +149,8 @@ jobs:
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
-    # on_failure:
-    #   do:
-    #   - put: golang-version
-    #     params:
-    #       file: existing-golang-version
+  - task: check-create-release
+    file: git-kubo-ci/tasks/bump/check-create-release.yml
   - put: git-kubo-release
     params:
       repository: modified-release
@@ -172,6 +171,8 @@ jobs:
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - task: check-create-release
+    file: git-kubo-ci/tasks/bump/check-create-release.yml
   - put: git-kubo-etcd
     params:
       repository: modified-release
@@ -192,6 +193,8 @@ jobs:
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - task: check-create-release
+    file: git-kubo-ci/tasks/bump/check-create-release.yml
   - put: git-cfcr-etcd-release
     params:
       repository: modified-release
