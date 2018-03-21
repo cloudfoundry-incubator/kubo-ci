@@ -52,7 +52,7 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 		Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
 		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
 		Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace(), "--force", "--grace-period=0")
+		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
 
 	Specify("K8s applications with persistence keeps their data when node is destroyed", func() {

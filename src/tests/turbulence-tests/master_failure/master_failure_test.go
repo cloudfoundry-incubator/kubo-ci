@@ -35,8 +35,8 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", nginxSpec, "--force", "--grace-period=0")
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace(), "--force", "--grace-period=0")
+		kubectl.RunKubectlCommand("delete", "-f", nginxSpec)
+		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
 
 	Specify("The cluster is healthy after master is resurrected", func() {
