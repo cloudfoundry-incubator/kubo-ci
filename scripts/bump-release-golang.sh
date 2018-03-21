@@ -29,6 +29,7 @@ vendor_golang() {
   popd
 
   pushd modified-release
+
     set +x
     cat <<EOF > "config/private.yml"
 blobstore:
@@ -38,6 +39,8 @@ blobstore:
 EOF
     set -x
     bosh vendor-package golang-"${GO_VERSION}"-linux "$HOME_DIR"/golang-release
+
+    grep --exclude=spec.lock --exclude-dir=src --exclude-dir=.git -r -o -l -E 'golang-([0-9]+\.)+[0-9]+' | xargs sed -E -i -e "/golang/s/([0-9]+\.)+[0-9]+/${GO_VERSION}/"
 
     git config --global user.email "cfcr+cibot@pivotal.io"
     git config --global user.name "CFCR CI BOT"
