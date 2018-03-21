@@ -36,9 +36,9 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", drainTypesSpec)
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
-		kubectl.RunKubectlCommand("delete", "-f", storageClassSpec)
+		kubectl.RunKubectlCommand("delete", "-f", drainTypesSpec, "--force", "--grace-period=0")
+		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace(), "--force", "--grace-period=0")
+		kubectl.RunKubectlCommand("delete", "-f", storageClassSpec, "--force", "--grace-period=0")
 	})
 
 	Specify("Workers are able to drain", func() {

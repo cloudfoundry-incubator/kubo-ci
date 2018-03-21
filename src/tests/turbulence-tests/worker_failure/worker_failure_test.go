@@ -36,8 +36,8 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", nginxDaemonSetSpec)
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		kubectl.RunKubectlCommand("delete", "-f", nginxDaemonSetSpec, "--force", "--grace-period=0")
+		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace(), "--force", "--grace-period=0")
 	})
 
 	Specify("K8s applications are scheduled on the resurrected node", func() {
