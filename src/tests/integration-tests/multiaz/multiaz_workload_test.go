@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 var _ = MultiAZDescribe("Multi-AZ workload deployment", func() {
@@ -17,8 +17,10 @@ var _ = MultiAZDescribe("Multi-AZ workload deployment", func() {
 	})
 
 	AfterEach(func() {
-		session := runner.RunKubectlCommand("delete", "-f", nginxSpec)
-		session.Wait("60s")
+		if !CurrentGinkgoTestDescription().Failed {
+			session := runner.RunKubectlCommand("delete", "-f", nginxSpec)
+			session.Wait("60s")
+		}
 	})
 
 	It("deploys three pods across three azs", func() {

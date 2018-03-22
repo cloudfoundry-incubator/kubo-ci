@@ -30,7 +30,7 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
-	if runner != nil {
+	if runner != nil && !CurrentGinkgoTestDescription().Failed {
 		runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("60s")
 	}
 })
