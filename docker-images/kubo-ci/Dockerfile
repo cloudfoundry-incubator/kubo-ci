@@ -106,3 +106,5 @@ RUN wget https://github.com/geofffranks/spruce/releases/download/${SPRUCE_VERSIO
 
 RUN git clone https://github.com/fsaintjacques/semver-tool && \
   cd semver-tool && make install
+
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
