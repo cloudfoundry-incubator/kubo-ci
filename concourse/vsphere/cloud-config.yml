@@ -22,7 +22,7 @@ vm_types:
   cloud_properties:
     ram: 8192
     cpu: 2
-    disk: 102400
+    disk: 307200
 
 disk_types:
 - name: 10240
