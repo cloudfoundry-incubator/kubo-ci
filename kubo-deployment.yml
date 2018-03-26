@@ -15,7 +15,7 @@
     abac: 400,
   }
 
-  upgrade_test_iaases = %w(aws-lb gcp-lb vsphere-lb)
+  upgrade_test_iaases = %w(aws-lb gcp-lb)
   conformance_test_iaases = iaases
   deploy_bosh_test_iaases = iaases
   proxy_iaases = %w(vsphere)
