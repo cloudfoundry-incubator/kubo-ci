@@ -46,7 +46,26 @@ jobs:
     trigger: true
   - get: gcs-slack-watcher-list
   - task: select-watcher
-    file: git-kubo-ci/tasks/select-watcher.yml
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      inputs:
+      - name: gcs-slack-watcher-list
+      outputs:
+      - name: slack-watcher-list-out
+      - name: slack-message
+      run:
+        path: /bin/bash
+        args:
+        - -exc
+        - |
+          cat gcs-slack-watcher-list/slack-watcher-list.txt | sed '1,1{H;1h;d;};$G' > slack-watcher-list-out/slack-watcher-list.txt
+          watcher=$(head -1 slack-watcher-list-out/slack-watcher-list.txt | awk '{ print $2; }')
+          echo "==> The OSS watcher for this week is <@${watcher%?}><==" > slack-message/announcement.txt
   - put: gcs-slack-watcher-list
     params:
       file: slack-watcher-list-out/slack-watcher-list.txt
