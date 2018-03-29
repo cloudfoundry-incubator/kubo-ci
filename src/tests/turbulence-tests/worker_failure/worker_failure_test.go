@@ -69,7 +69,7 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 			startingWorkerVms = DeploymentVmsOfType(deployment, WorkerVmType, VmStartingState)
 			return startingWorkerVms
 		}
-		Eventually(getStartingWorkerVms, 600, 20).Should(HaveLen(1))
+		Eventually(getStartingWorkerVms, 600, 5).Should(HaveLen(1))
 
 		By("Verifying that the Worker VM has joined the K8s cluster")
 		Eventually(func() bool { return AllBoshWorkersHaveJoinedK8s(deployment, kubectl) }, 600, 20).Should(BeTrue())

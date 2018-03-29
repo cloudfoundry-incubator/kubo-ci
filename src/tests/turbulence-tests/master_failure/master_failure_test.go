@@ -72,7 +72,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 			startingMasterVm = DeploymentVmsOfType(deployment, MasterVmType, VmStartingState)
 			return startingMasterVm
 		}
-		Eventually(getStartingMasterVm, 600, 20).Should(HaveLen(1))
+		Eventually(getStartingMasterVm, 600, 5).Should(HaveLen(1))
 
 		By("Waiting for resurrection")
 		Eventually(countRunningApiServerOnMaster, "10m", "20s").Should(Equal(1))
