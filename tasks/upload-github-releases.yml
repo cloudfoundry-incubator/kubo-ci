@@ -7,10 +7,10 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/upload-github-releases.sh
 
-
 params:
   ACCESS_KEY_ID: ""
   SECRET_ACCESS_KEY: ""
+  BRANCH: "master"
 
 inputs:
   - name: git-kubo-ci
