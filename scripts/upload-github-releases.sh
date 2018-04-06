@@ -11,7 +11,6 @@ git config --global user.email "cf-london-eng@pivotal.io"
 cp -r git-kubo-release/. git-kubo-release-output
 
 cd git-kubo-release-output
-original_branch="$(git rev-parse --abbrev-ref HEAD)"
 
 cat <<EOF > "config/private.yml"
 blobstore:
@@ -38,6 +37,6 @@ git checkout -b tmp/release
 git add .
 git commit -m "Final release for v${version}"
 git tag -a "v${version}" -m "Tag for version v${version}"
-git checkout "${original_branch}"
+git checkout "${BRANCH:-master}"
 git merge tmp/release -m "Merge release branch for v${version}"
 git branch -d tmp/release
