@@ -32,6 +32,10 @@ if [[ -z ${WITH_PRIVILEGED_CONTAINERS+x} ]] || [[ "$WITH_PRIVILEGED_CONTAINERS" 
   echo "allow_privileged_containers: true" >> "${metadata_path}"
 fi
 
+if [[ -z ${DISABLE_DENY_ESCALATING_EXEC+x} ]] || [[ "$DISABLE_DENY_ESCALATING_EXEC" == "1" ]]; then
+  echo "disable_deny_escalating_exec: true" >> "${metadata_path}"
+fi
+
 cp "$tarball_name" "${ROOT}/kubo-release.tgz"
 
 "$KUBO_DEPLOYMENT_DIR/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"

@@ -686,6 +686,7 @@ jobs:
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
       WITH_PRIVILEGED_CONTAINERS: 1
+      DISABLE_DENY_ESCALATING_EXEC: 1
     <% if env == 'aws-lb' %>
       DEPLOYMENT_OPS_FILE: reset-instances-and-zones.yml
       SKIP_ERRANDS: 1
