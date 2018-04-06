@@ -20,7 +20,7 @@ director_ip=$(bosh int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/internal_
 
 "git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
 
-kubectl apply -f "specs/pod2pod-ns.yml"
+kubectl apply -f "git-kubo-ci/specs/pod2pod-ns.yml"
 
 trap "kubectl -n pod2pod delete -f 'git-kubo-ci/specs/guestbook.yml'" EXIT
 
