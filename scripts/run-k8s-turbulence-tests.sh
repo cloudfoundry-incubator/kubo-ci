@@ -24,7 +24,10 @@ main() {
   local tmpfile="$(mktemp)" && echo "CONFIG=${tmpfile}"
   "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
 
-  CONFIG="${tmpfile}" ginkgo -progress -v -r "${ROOT}/git-kubo-ci/src/tests/turbulence-tests"
+  CONFIG="${tmpfile}" ginkgo -progress -v -r "${ROOT}/git-kubo-ci/src/tests/turbulence-tests/persistence_failure"
+  CONFIG="${tmpfile}" ginkgo -progress -v -r "${ROOT}/git-kubo-ci/src/tests/turbulence-tests/worker_drain"
+  CONFIG="${tmpfile}" ginkgo -progress -v -r "${ROOT}/git-kubo-ci/src/tests/turbulence-tests/worker_failure"
+  CONFIG="${tmpfile}" ginkgo -progress -v -r "${ROOT}/git-kubo-ci/src/tests/turbulence-tests/master_failure"
 }
 
 main
