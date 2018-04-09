@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: echoserver
+  name: echoserver
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: echoserver
+  type: LoadBalancer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: echoserver
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: echoserver
+    spec:
+      containers:
+      - name: echoserver
+        image: k8s.gcr.io/echoserver:1.4
