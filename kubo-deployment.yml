@@ -17,7 +17,6 @@
 
   upgrade_test_iaases = %w(aws-lb gcp-lb vsphere-lb)
   conformance_test_iaases = iaases
-  deploy_bosh_test_iaases = iaases
   proxy_iaases = %w(vsphere)
 %>
 ---
@@ -28,7 +27,6 @@ groups:
   - build-kubo-release
   - package-kubo-deployment-tarball
 <% iaases.each do |iaas| %>
-  - deploy-bosh-test-<%= iaas %>
   - run-k8s-conformance-tests-<%= iaas %>
 <% end %>
 <% env_list.each do |env| %>
@@ -75,9 +73,6 @@ groups:
 <% env_list.each do |env| %>
 - name: <%= env %>
   jobs:
-  <% if deploy_bosh_test_iaases.include? env %>
-  - deploy-bosh-test-<%= env %>
-  <% end %>
   - claim-lock-<%= env %>
   - install-bosh-<%= env %>
   - deploy-k8s-<%= env %>
@@ -414,36 +409,6 @@ jobs:
   - put: gcs-kubo-deployment-tarball-untested
     params:
       file: kubo-deployment-tarball/kubo-deployment*.tgz
-
-<% deploy_bosh_test_iaases.each do |iaas| %>
-- name: deploy-bosh-test-<%= iaas %>
-  max_in_flight: 1
-  plan:
-  - aggregate:
-    - get: git-kubo-deployment
-      passed: [ 'package-kubo-deployment-tarball' ]
-      trigger: true
-    - get: slackers
-    - get: git-kubo-ci
-  - put: kubo-lock-<%= iaas %>
-    params: { acquire: true }
-  - task: install
-    attempts: 2
-    tags: [<%= iaas %>]
-    file: git-kubo-ci/tasks/install-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure: *on_failure_alert
-  - task: destroy
-    tags: [<%= iaas %>]
-    file: git-kubo-ci/tasks/destroy-bosh.yml
-    input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>
-      gcs-bosh-state: bosh-state
-      gcs-bosh-creds: bosh-creds
-    on_failure: *on_failure_alert
-  - put: kubo-lock-<%= iaas %>
-    params: { release: kubo-lock-<%= iaas %> }
-<% end %>
 
 <% env_list.each do |env| %>
 - name: claim-lock-<%= env %>
@@ -1370,7 +1335,6 @@ end
   passed_requirements = env_list.map {|env| "destroy-bosh-#{env}" unless env == 'openstack'}.compact
   passed_requirements += upgrade_test_iaases.map {|iaas| "destroy-bosh-upgrade-#{iaas}" unless iaas == 'openstack'}.compact
   passed_requirements += proxy_iaases.map {|iaas| "destroy-bosh-proxy-#{iaas}"}.compact
-  passed_deploy_bosh = iaases.map {|iaas| "deploy-bosh-test-#{iaas}" unless iaas =='openstack' }.compact
 %>
 
 - name: upload-kubo-deployment
@@ -1379,7 +1343,7 @@ end
     - get: slackers
     - get: git-kubo-ci
     - get: git-kubo-deployment
-      passed: <%= passed_requirements + passed_deploy_bosh %>
+      passed: <%= passed_requirements %>
     - get: kubo-version
       passed: <%= passed_requirements %>
       trigger: true
@@ -1441,7 +1405,7 @@ end
     - get: git-kubo-release
       passed: <%= passed_requirements %>
     - get: git-kubo-deployment
-      passed: <%= passed_requirements + passed_deploy_bosh %>
+      passed: <%= passed_requirements %>
 
 - name: upload-github-releases
   plan:
