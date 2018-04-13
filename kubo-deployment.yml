@@ -1,5 +1,5 @@
 <%
-  iaases = %w(gcp vsphere aws openstack)
+  iaases = %w(gcp vsphere aws-lb openstack)
   stemcell_types = {
     'gcp' => 'google-kvm',
     'gcp-lb' => 'google-kvm',
@@ -8,7 +8,7 @@
     'aws-lb' => 'aws-xen-hvm',
     'openstack' => 'openstack-kvm'
   }
-  additional_envs = %w(gcp-lb aws-lb vsphere-lb)
+  additional_envs = %w(gcp-lb vsphere-lb)
   env_list = iaases + additional_envs
   enable_failure_alert = true
   k8s_api_port_bumps = {
@@ -21,9 +21,6 @@
   proxy_iaases = %w(vsphere)
 %>
 ---
-pins:
-  stemcell_version: &stemcell_version "3541.2"
-
 groups:
 - name: all
   jobs:
