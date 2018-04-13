@@ -262,6 +262,9 @@ jobs:
     - get: gcs-bosh-creds
       passed: [ 'install-old-bosh-<%= iaas %>' ]
     - get: old-kubo-release-tarball
+      params:
+        globs:
+        - "kubo-release*"
     - get: gcs-kubo-release-tarball
       passed: [ 'install-old-bosh-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball
