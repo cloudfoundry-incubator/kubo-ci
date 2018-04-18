@@ -21,12 +21,16 @@ import (
 )
 
 var loadbalancerAddress, nginxSpec string
+var requestLossThreshold float64
 
 var _ = Describe("Upgrade components", func() {
 	BeforeEach(func() {
 		nginxSpec = test_helpers.PathFromRoot("specs/nginx-lb.yml")
 		if testconfig.Iaas == "vsphere" {
+			requestLossThreshold = 0.1
 			nginxSpec = test_helpers.PathFromRoot("specs/nginx-specified-nodeport.yml")
+		} else {
+			requestLossThreshold = 0.99
 		}
 
 		deployNginx := k8sRunner.RunKubectlCommand("create", "-f", nginxSpec)
@@ -43,12 +47,6 @@ var _ = Describe("Upgrade components", func() {
 	})
 
 	It("upgrades stemcell", func() {
-		var requestLossThreshold float64
-		if testconfig.Iaas == "vsphere" {
-			requestLossThreshold = -1.0
-		} else {
-			requestLossThreshold = 0.99
-		}
 		applyUpdateStemcellVersionOps(filepath.Join(testconfig.CFCR.DeploymentPath, "manifests", "cfcr.yml"), testconfig.CFCR.UpgradeToStemcellVersion)
 		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "stemcell", requestLossThreshold)
 	})
