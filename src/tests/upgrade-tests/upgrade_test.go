@@ -82,7 +82,10 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 			director := test_helpers.NewDirector(testconfig.Bosh)
 			deployment, err := director.FindDeployment(testconfig.Bosh.Deployment)
 			Expect(err).NotTo(HaveOccurred())
+
 			vms := test_helpers.DeploymentVmsOfType(deployment, "haproxy", test_helpers.VmRunningState)
+			Expect(vms).NotTo(BeEmpty(), "haproxy should be present in the deployment")
+
 			loadbalancerAddress = vms[0].IPs[0]
 		} else {
 			loadbalancerAddress = k8sRunner.GetLBAddress("nginx", testconfig.Iaas)
@@ -137,7 +140,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 
 	By(fmt.Sprintf("Running %s upgrade", component))
 	if testconfig.Iaas == "vsphere" {
-		os.Setenv("DEPLOYMENT_OPS_FILE", test_helpers.PathFromRoot("manifests/ops-files/add-haproxy.yml"))
+		os.Setenv("DEPLOYMENT_OPS_FILE", "add-haproxy.yml")
 	}
 	script := test_helpers.PathFromRoot(pathToScript)
 	cmd := exec.Command(script)

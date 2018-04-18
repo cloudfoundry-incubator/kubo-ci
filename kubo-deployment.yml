@@ -4,6 +4,7 @@
     'gcp' => 'google-kvm',
     'gcp-lb' => 'google-kvm',
     'vsphere' => 'vsphere-esxi',
+    'vsphere-lb' => 'vsphere-esxi',
     'aws' => 'aws-xen-hvm',
     'aws-lb' => 'aws-xen-hvm',
     'openstack' => 'openstack-kvm'
@@ -991,7 +992,7 @@ end
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     <% if iaas == 'vsphere-lb' %>
     params:
-      DEPLOYMENT_OPS_FILE: git-kubo-ci/manifests/ops-files/add-haproxy.yml
+      DEPLOYMENT_OPS_FILE: add-haproxy.yml
     <% end %>
   - put: gcs-kubeconfig
     params:
