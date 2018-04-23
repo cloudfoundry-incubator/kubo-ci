@@ -23,13 +23,12 @@ instance_groups:
   vm_type: workers
   stemcell: trusty
   azs: [z1]
-  networks: [{name: ((deployments_network))}]
+  networks: [{name: default}]
   jobs:
   - name: groundcrew
     release: concourse
     properties:
       tags:
-        - aws
         - aws-lb
       tsa:
         worker_key: ((worker-key))
