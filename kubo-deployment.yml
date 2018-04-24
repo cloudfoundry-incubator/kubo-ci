@@ -642,6 +642,13 @@ jobs:
       passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-<%= env %>' ]
+  <% if env == 'aws-lb' %>
+  - task: <%= env %>-multiaz-setup
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/aws-multiaz-update.yml
+    input_mapping: {kubo-lock-pre: kubo-lock-<%= env %>}
+    on_failure: *on_failure_alert
+  <% end %>
   - task: deploy
     tags: [<%= env %>]
     input_mapping:
@@ -649,30 +656,12 @@ jobs:
       kubo-lock: kubo-lock-<%= env %>
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
-      WITH_PRIVILEGED_CONTAINERS: 1
       DISABLE_DENY_ESCALATING_EXEC: 1
-    <% if env == 'aws-lb' %>
-      DEPLOYMENT_OPS_FILE: reset-instances-and-zones.yml
-      SKIP_ERRANDS: 1
-    <% elsif env =~ /^(gcp|vsphere-lb)/ %>
+      WITH_PRIVILEGED_CONTAINERS: 1
+    <% if env =~ /^(gcp|vsphere-lb)/ %>
       DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
     <% end %>
     on_failure: *on_failure_alert
-  <% if env == 'aws-lb' %>
-  - task: <%= env %>-multiaz-setup
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/aws-multiaz-update.yml
-    input_mapping: {kubo-lock-pre: kubo-lock-<%= env %>}
-    on_failure: *on_failure_alert
-  - task: deploy-with-workers-<%= env %>
-    tags: [<%= env %>]
-    input_mapping: {gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested}
-    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-    on_failure: *on_failure_alert
-    params:
-      DEPLOYMENT_NAME: ci-service
-      DEPLOYMENT_OPS_FILE: add-instances-and-master.yml
-  <% end %>
 
 - name: run-k8s-integration-tests-<%= env %>
   plan:

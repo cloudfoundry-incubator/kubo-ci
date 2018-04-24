@@ -4,3 +4,4 @@ pkg/
 *.iml
 .vscode/
 creds.yml
+concourse/**/bbl

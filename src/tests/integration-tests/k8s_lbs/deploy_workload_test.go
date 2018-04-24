@@ -84,6 +84,10 @@ var _ = K8SLBDescribe("When deploying a loadbalancer", func() {
 
 	Context("with externalTrafficPolicy to local", func() {
 		It("shows a different source client IPs", func() {
+			if testconfig.Iaas != "gcp" {
+				Skip("Test only valid for GCP")
+			}
+
 			deployEchoserver := runner.RunKubectlCommand("create", "-f", echoserverLBSpec)
 			Eventually(deployEchoserver, "120s").Should(gexec.Exit(0))
 			rolloutWatch := runner.RunKubectlCommand("rollout", "status", "deployment/echoserver", "-w")

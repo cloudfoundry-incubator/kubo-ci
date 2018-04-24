@@ -172,7 +172,13 @@ func (runner *KubectlRunner) GetLBAddress(service, iaas string) string {
 	} else if iaas == "aws" {
 		output = runner.GetOutput("get", "service", service, "-o", "jsonpath={.status.loadBalancer.ingress[0].hostname}")
 	}
-	fmt.Printf("Output [%s]", output)
+
+	if len(output) == 0 {
+		fmt.Printf("loadbalancer still pending creation\n")
+		return ""
+	}
+
+	fmt.Printf("Output %#v", output)
 	if len(output) != 0 {
 		loadBalancerAddress = output[0]
 	}
