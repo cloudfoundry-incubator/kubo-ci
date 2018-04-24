@@ -14,22 +14,23 @@ verify_args() {
 	Options:
 		-h                                            show this help text
 		--enable-addons-tests                         [env:ENABLE_ADDONS_TESTS]
-		--enable-multi-az-tests                       [env:ENABLE_MULTI_AZ_TESTS]
-		--enable-persistent-volume-tests              [env:ENABLE_PERSISTENT_VOLUME_TESTS]
 		--enable-api-extensions-tests                 [env:ENABLE_API_EXTENSIONS_TESTS]
 		--enable-generic-tests                        [env:ENABLE_GENERIC_TESTS]
+		--enable-multi-az-tests                       [env:ENABLE_MULTI_AZ_TESTS]
 		--enable-oss-only-tests                       [env:ENABLE_OSS_ONLY_TESTS]
+		--enable-persistent-volume-tests              [env:ENABLE_PERSISTENT_VOLUME_TESTS]
 		--enable-pod-logs-tests                       [env:ENABLE_POD_LOGS_TESTS]
+		--enable-certificate-tests                    [env:ENABLE_CERTIFICATE_TESTS]
 
 		--conformance_release_version=<some-value>    [env:CONFORMANCE_RELEASE_VERSION]
 		--conformance_results_dir=<some-value>        [env:CONFORMANCE_RESULTS_DIR]
 
 		--new-bosh-stemcell-version=<some-value>      [env:NEW_BOSH_STEMCELL_VERSION]
 
-		--enable-turbulence-worker-drain-tests        [env:ENABLE_TURBULENCE_WORKER_DRAIN_TESTS]
-		--enable-turbulence-worker-failure-tests      [env:ENABLE_TURBULENCE_WORKER_FAILURE_TESTS]
 		--enable-turbulence-master-failure-tests      [env:ENABLE_TURBULENCE_MASTER_FAILURE_TESTS]
 		--enable-turbulence-persistence-failure-tests [env:ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS]
+		--enable-turbulence-worker-drain-tests        [env:ENABLE_TURBULENCE_WORKER_DRAIN_TESTS]
+		--enable-turbulence-worker-failure-tests      [env:ENABLE_TURBULENCE_WORKER_FAILURE_TESTS]
 	EOF
   set -e
 
@@ -69,6 +70,7 @@ generate_test_config() {
   local enable_addons_tests="${ENABLE_ADDONS_TESTS:-false}"
   local enable_api_extensions_tests="${ENABLE_API_EXTENSIONS_TESTS:-false}"
   local enable_generic_tests="${ENABLE_GENERIC_TESTS:-false}"
+  local enable_certificate_tests="${ENABLE_CERTIFICATE_TESTS:-false}"
   local enable_multi_az_tests="${ENABLE_MULTI_AZ_TESTS:-false}"
   local enable_oss_only_tests="${ENABLE_OSS_ONLY_TESTS:-false}"
   local enable_persistent_volume_tests="${ENABLE_PERSISTENT_VOLUME_TESTS:-false}"
@@ -94,6 +96,9 @@ generate_test_config() {
 	;;
       --enable-generic-tests)
 	enable_generic_tests=true
+	;;
+      --enable-certificate-tests)
+	enable_certificate_tests=true
 	;;
       --enable-multi-az-tests)
 	enable_multi_az_tests=true
@@ -167,6 +172,7 @@ generate_test_config() {
 	  "integration_tests": {
 	    "include_addons": ${enable_addons_tests},
 	    "include_api_extensions": ${enable_api_extensions_tests},
+	    "include_certificates": ${enable_certificate_tests},
 	    "include_cloudfoundry": ${enable_cloudfoundry_tests},
 	    "include_generic": ${enable_generic_tests},
 	    "include_k8s_lb": ${enable_iaas_k8s_lb_tests},

@@ -57,15 +57,16 @@ type Cf struct {
 
 type IntegrationTests struct {
 	IncludeAPIExtensions    bool `json:"include_api_extensions"`
-	IncludeGeneric          bool `json:"include_generic"`
 	IncludeAddons           bool `json:"include_addons"`
+	IncludeCertificates     bool `json:"include_certificates"`
+	IncludeCloudFoundry     bool `json:"include_cloudfoundry"`
+	IncludeGeneric          bool `json:"include_generic"`
+	IncludeK8SLB            bool `json:"include_k8s_lb"`
+	IncludeMultiAZ          bool `json:"include_multiaz"`
 	IncludeOSSOnly          bool `json:"include_oss_only"`
+	IncludePersistentVolume bool `json:"include_persistent_volume"`
 	IncludePodLogs          bool `json:"include_pod_logs"`
 	IncludeRBAC             bool `json:"include_rbac"`
-	IncludeCloudFoundry     bool `json:"include_cloudfoundry"`
-	IncludeMultiAZ          bool `json:"include_multiaz"`
-	IncludeK8SLB            bool `json:"include_k8s_lb"`
-	IncludePersistentVolume bool `json:"include_persistent_volume"`
 }
 
 type Kubernetes struct {
