@@ -643,13 +643,6 @@ jobs:
       passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-<%= env %>' ]
-  <% if env == 'aws-lb' %>
-  - task: <%= env %>-multiaz-setup
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/aws-multiaz-update.yml
-    input_mapping: {kubo-lock-pre: kubo-lock-<%= env %>}
-    on_failure: *on_failure_alert
-  <% end %>
   - task: deploy
     tags: [<%= env %>]
     input_mapping:
@@ -659,7 +652,7 @@ jobs:
     params:
       DISABLE_DENY_ESCALATING_EXEC: 1
       WITH_PRIVILEGED_CONTAINERS: 1
-    <% if env =~ /^(gcp|vsphere-lb)/ %>
+    <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
       DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
     <% end %>
     on_failure: *on_failure_alert
