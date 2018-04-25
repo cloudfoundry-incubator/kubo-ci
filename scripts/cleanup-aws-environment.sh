@@ -4,6 +4,7 @@
 set -eu -o pipefail
 
 director_name="$(bosh int "${ENV_FILE}" --path=/director_name)"
+kubernetes_cluster_tag="$(bosh int "${ENV_FILE}" --path=/kubernetes_cluster_tag)"
 director_ip="$(bosh int "${ENV_FILE}" --path=/internal_ip)"
 subnet_id="$(bosh int "${ENV_FILE}" --path=/subnet_id)"
 access_key_id="$(bosh int "${ENV_FILE}" --path=/access_key_id)"
@@ -36,7 +37,7 @@ cleanup_load_balancers() {
   local is_k8s_lb
   local lbs=$(aws elb describe-load-balancers --output json | jq '.LoadBalancerDescriptions | .[] | .LoadBalancerName | select(test("^[a-z0-9]+$"))' -r)
   for lb in $lbs; do
-    is_k8s_lb=$(aws elb describe-tags --load-balancer-name "${lb}" --output json | jq '.TagDescriptions[0].Tags | .[] | select(.Key == "kubernetes.io/cluster/'"${director_name}"'").Value' -r)
+    is_k8s_lb=$(aws elb describe-tags --load-balancer-name "${lb}" --output json | jq '.TagDescriptions[0].Tags | .[] | select(.Key == "kubernetes.io/cluster/'"${kubernetes_cluster_tag}"'").Value' -r)
     if [[ "owned" == "${is_k8s_lb}" ]]; then
       echo "Deleting load balancer ${lb}"
       aws elb delete-load-balancer --load-balancer-name "${lb}"
@@ -52,9 +53,9 @@ else
   aws ec2 wait instance-terminated --filters "Name=instance-id,Values=${director_instance_id}"
 fi
 
-instance_ids=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --filters "Name=tag:KubernetesCluster,Values=${director_name}")
+instance_ids=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --filters "Name=tag:KubernetesCluster,Values=${kubernetes_cluster_tag}")
 if [ -z "$instance_ids" ]; then
-  echo "No instances found with tag KubernetesCluster:'${director_name}'"
+  echo "No instances found with tag KubernetesCluster:'${kubernetes_cluster_tag}'"
 else
   aws ec2 terminate-instances --instance-ids ${instance_ids}
   aws ec2 wait instance-terminated --instance-ids ${instance_ids}
