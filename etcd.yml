@@ -133,7 +133,7 @@ resources:
 - name: git-kubo-etcd
   type: git
   source:
-    uri: https://github.com/pivotal-cf-experimental/kubo-etcd
+    uri: https://github.com/cloudfoundry-incubator/cfcr-etcd-release.git
     branch: master
 
 - name: git-jfmyers9-etcd
@@ -458,9 +458,9 @@ jobs:
       release: etcd-release
   - put: long-running-etcd-deployment
     params:
-      manifest: git-kubo-etcd/manifests/3-node-with-ssl-bosh-dns.yml
+      manifest: git-kubo-etcd/manifests/etcd.yml
       ops_files:
-      - "git-kubo-etcd/manifests/operations/turbulence-agent.yml"
+      - "git-kubo-ci/turbulence-agent.yml"
       stemcells:
       - "gcp-stemcell/*.tgz"
       releases:

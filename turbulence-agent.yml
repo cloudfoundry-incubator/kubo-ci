@@ -1,0 +1,16 @@
+---
+- type: replace
+  path: /instance_groups/name=etcd/jobs/name=turbulence_agent?
+  value:
+    name: turbulence_agent
+    release: turbulence
+    consumes:
+      api:
+        from: api
+        deployment: turbulence
+
+- type: replace
+  path: /releases/name=turbulence?
+  value:
+    name: turbulence
+    version: latest
