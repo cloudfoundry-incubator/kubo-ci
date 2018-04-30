@@ -145,7 +145,7 @@ resources:
 - name: git-etcd-acceptance
   type: git
   source:
-    uri: https://github.com/jfmyers9/etcd-acceptance-release
+    uri: https://github.com/cfcr/etcd-acceptance-release
     branch: master
 
 - name: git-turbulence-release
@@ -461,11 +461,11 @@ jobs:
       manifest: git-kubo-etcd/manifests/etcd.yml
       ops_files:
       - "git-kubo-ci/turbulence-agent.yml"
+      - "git-kubo-etcd/manifests/ops-files/share-links.yml"
       stemcells:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-release/*.tgz"
-      - "bosh-dns-release/*.tgz"
       - "turbulence-release/*.tgz"
       cleanup: true
 
@@ -492,17 +492,18 @@ jobs:
       release: etcd-release
   - put: network-partition-etcd-deployment
     params:
-      manifest: git-kubo-etcd/manifests/3-node-with-ssl-bosh-dns.yml
+      manifest: git-kubo-etcd/manifests/etcd.yml
       ops_files:
-      - "git-kubo-ci/etcd/deployment-name.yml"
-      - "git-kubo-etcd/manifests/operations/turbulence-agent.yml"
+      - "git-kubo-ci/turbulence-agent.yml"
+      - "git-kubo-etcd/manifests/ops-files/share-links.yml"
+      - "git-kubo-etcd/manifests/ops-files/rename-network-and-deployment.yml"
       vars:
+        network-name: default
         deployment-name: etcd-network-partition
       stemcells:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-release/*.tgz"
-      - "bosh-dns-release/*.tgz"
       - "turbulence-release/*.tgz"
       cleanup: true
 
@@ -529,17 +530,18 @@ jobs:
       release: etcd-release
   - put: total-network-partition-etcd-deployment
     params:
-      manifest: git-kubo-etcd/manifests/3-node-with-ssl-bosh-dns.yml
+      manifest: git-kubo-etcd/manifests/etcd.yml
       ops_files:
-      - "git-kubo-ci/etcd/deployment-name.yml"
-      - "git-kubo-etcd/manifests/operations/turbulence-agent.yml"
+      - "git-kubo-ci/turbulence-agent.yml"
+      - "git-kubo-etcd/manifests/ops-files/share-links.yml"
+      - "git-kubo-etcd/manifests/ops-files/rename-network-and-deployment.yml"
       vars:
+        network-name: default
         deployment-name: etcd-total-network-partition
       stemcells:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-release/*.tgz"
-      - "bosh-dns-release/*.tgz"
       - "turbulence-release/*.tgz"
       cleanup: true
 
@@ -575,7 +577,6 @@ jobs:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-acceptance-release/*.tgz"
-      - "bosh-dns-release/*.tgz"
       cleanup: true
       vars:
         director-url: https://10.100.0.6:25555
@@ -627,7 +628,6 @@ jobs:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-acceptance-release/*.tgz"
-      - "bosh-dns-release/*.tgz"
       cleanup: true
       vars:
         director-url: https://10.100.0.6:25555
@@ -689,7 +689,6 @@ jobs:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-acceptance-release/*.tgz"
-      - "bosh-dns-release/*.tgz"
       cleanup: true
       vars:
         director-url: https://10.100.0.6:25555
@@ -742,7 +741,6 @@ jobs:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-release/*.tgz"
-      - "bosh-dns-release/*.tgz"
       - "turbulence-release/*.tgz"
       - "bpm-release/*.tgz"
       vars:
@@ -789,7 +787,6 @@ jobs:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-release/*.tgz"
-      - "bosh-dns-release/*.tgz"
       - "turbulence-release/*.tgz"
       - "bpm-release/*.tgz"
       cleanup: true
@@ -832,7 +829,6 @@ jobs:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-release/*.tgz"
-      - "bosh-dns-release/*.tgz"
       - "turbulence-release/*.tgz"
       - "bpm-release/*.tgz"
       cleanup: true
@@ -872,7 +868,6 @@ jobs:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-acceptance-release/*.tgz"
-      - "bosh-dns-release/*.tgz"
       cleanup: true
       vars:
         director-url: https://10.100.0.6:25555
@@ -926,7 +921,6 @@ jobs:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-acceptance-release/*.tgz"
-      - "bosh-dns-release/*.tgz"
       cleanup: true
       vars:
         director-url: https://10.100.0.6:25555
@@ -980,7 +974,6 @@ jobs:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-acceptance-release/*.tgz"
-      - "bosh-dns-release/*.tgz"
       cleanup: true
       vars:
         director-url: https://10.100.0.6:25555
