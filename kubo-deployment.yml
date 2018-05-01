@@ -38,7 +38,7 @@ groups:
   - run-k8s-turbulence-tests-<%= env %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
-  <% if env == 'gcp-lb' %>
+  <% if env == 'gcp' %>
   - deploy-k8s-with-abac-<%= env %>
   - run-k8s-integration-tests-on-abac-<%= env %>
   - destroy-k8s-with-abac-<%= env %>
@@ -84,7 +84,7 @@ groups:
   - run-k8s-turbulence-tests-<%= env %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
-  <% if env == 'gcp-lb' %>
+  <% if env == 'gcp' %>
   - deploy-k8s-with-abac-<%= env %>
   - run-k8s-integration-tests-on-abac-<%= env %>
   - destroy-k8s-with-abac-<%= env %>
@@ -476,7 +476,7 @@ jobs:
     file: git-kubo-ci/tasks/configure-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
 
-<% if env == 'gcp-lb' %>
+<% if env == 'gcp' %>
 - name: deploy-k8s-with-abac-<%= env %>
   plan:
   - aggregate:
@@ -828,7 +828,7 @@ jobs:
 
 <%
 destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
-if env == 'gcp-lb'
+if env == 'gcp'
   destroy_bosh_passed_reqs << "destroy-k8s-with-abac-#{env}"
 end
 %>

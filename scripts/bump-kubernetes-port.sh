@@ -24,8 +24,7 @@ EOF
 }
 
 main() {
-  # Uncomment this for CF routing
-  #bump_port "external_kubo_port" "${BUMP_AMOUNT}"
+  bump_port "external_kubo_port" "${BUMP_AMOUNT}"
   bump_port "kubernetes_master_port" "${BUMP_AMOUNT}"
 
   cp -R kubo-lock-pre/* kubo-lock
