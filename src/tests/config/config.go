@@ -84,8 +84,9 @@ type CFCR struct {
 }
 
 type Conformance struct {
-	ResultsDir     string `json:"results_dir"`
-	ReleaseVersion string `json:"release_version"`
+	ResultsDir              string `json:"results_dir"`
+	ReleaseVersion          string `json:"release_version"`
+	SonobuoyCreationTimeout int    `json:"sonobuoy_creation_timeout"`
 }
 
 func InitConfig() (*Config, error) {
@@ -109,6 +110,14 @@ func InitConfig() (*Config, error) {
 	// Do not allow zero for timeout scale as it would fail all the time.
 	if config.TimeoutScale == 0 {
 		config.TimeoutScale = 1
+	}
+
+	if config.Conformance.SonobuoyCreationTimeout < 0 {
+		return nil, errors.New("sonobuoy_create_timeout must be a positive integer")
+	}
+
+	if config.Conformance.SonobuoyCreationTimeout == 0 {
+		config.Conformance.SonobuoyCreationTimeout = 60
 	}
 
 	return &config, nil

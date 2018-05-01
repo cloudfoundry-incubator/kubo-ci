@@ -56,7 +56,7 @@ var _ = Describe("Conformance Tests", func() {
 		Eventually(func() string {
 			outputs := kubectl.GetOutput("get", "pod/sonobuoy", "-n", "sonobuoy", "-o", "jsonpath={.status.phase}")
 			return string(outputs[0])
-		}, "60s", "2s").Should(Equal("Running"))
+		}, testconfig.Conformance.SonobuoyCreationTimeout, "2s").Should(Equal("Running"))
 
 		By("Waiting for conformance tests to complete")
 		Eventually(func() string {
