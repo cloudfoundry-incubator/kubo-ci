@@ -63,7 +63,7 @@ RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download
   -O credhub-linux-1.4.0.tgz && tar xvf credhub-linux-1.4.0.tgz && mv credhub /usr/bin
 
 # kubectl
-RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.7.1/bin/linux/amd64/kubectl -O /usr/bin/kubectl && \
+RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.10.2/bin/linux/amd64/kubectl -O /usr/bin/kubectl && \
   chmod +x /usr/bin/kubectl
 
 # Direnv
