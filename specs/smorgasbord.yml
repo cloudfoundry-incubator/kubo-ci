@@ -83,31 +83,31 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx
+  name: nginx-smorgasbord
   labels:
-    app: nginx
+    app: nginx-smorgasbord
 spec:
   ports:
   - port: 80
     name: web
   clusterIP: None
   selector:
-    app: nginx
+    app: nginx-smorgasbord
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: web
 spec:
-  serviceName: "nginx"
+  serviceName: "nginx-smorgasbord"
   replicas: 3
   selector:
     matchLabels:
-      app: nginx
+      app: nginx-smorgasbord
   template:
     metadata:
       labels:
-        app: nginx
+        app: nginx-smorgasbord
     spec:
       containers:
       - name: nginx
@@ -133,13 +133,52 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: pi
+  name: myapp-job
 spec:
   template:
     spec:
       containers:
-      - name: pi
-        image: perl
-        command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(20000)"]
+      - name: myapp-container
+        image: busybox
+        command: ['sh', '-c', 'echo Hello Kubernetes! && while :; do sleep 1; done']
       restartPolicy: Never
   backoffLimit: 4
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: nginx-smorgasbord
+spec:
+  replicas: 3
+  selector:
+    app: nginx-smorgasbord
+  template:
+    metadata:
+      name: nginx-smorgasbord
+      labels:
+        app: nginx-smorgasbord
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: hello
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: hello
+            image: busybox
+            args:
+            - /bin/sh
+            - -c
+            - date; echo Hello from the Kubernetes cluster
+          restartPolicy: OnFailure

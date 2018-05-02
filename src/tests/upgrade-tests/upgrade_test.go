@@ -35,10 +35,14 @@ var _ = Describe("Upgrade components", func() {
 
 		deployNginx := k8sRunner.RunKubectlCommand("create", "-f", nginxSpec)
 		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
+
+		test_helpers.DeploySmorgasbord(k8sRunner, testconfig.Iaas)
 	})
 
 	AfterEach(func() {
+		test_helpers.DeleteSmorgasbord(k8sRunner, testconfig.Iaas)
 		k8sRunner.CleanupServiceWithLB(loadbalancerAddress, nginxSpec, testconfig.Iaas, testconfig.AWS)
+		k8sRunner.RunKubectlCommand("delete", "namespace", k8sRunner.Namespace())
 	})
 
 	It("upgrades BOSH and CFCR Release", func() {
@@ -150,4 +154,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 
 	By("Reporting the availability during the upgrade")
 	Expect(float64(successCount) / float64(totalCount)).To(BeNumerically(">=", requestLossThreshold))
+
+	By("Checking that all workloads are running once again")
+	test_helpers.CheckSmorgasbord(k8sRunner, "10m")
 }
