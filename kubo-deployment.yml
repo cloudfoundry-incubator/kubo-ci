@@ -653,7 +653,7 @@ jobs:
       DISABLE_DENY_ESCALATING_EXEC: 1
       WITH_PRIVILEGED_CONTAINERS: 1
     <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
-      DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
+      DEPLOYMENT_OPS_FILE: enable-multiaz-workers-and-masters.yml
     <% end %>
     on_failure: *on_failure_alert
 
