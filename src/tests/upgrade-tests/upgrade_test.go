@@ -142,7 +142,9 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 
 	By(fmt.Sprintf("Running %s upgrade", component))
 	if testconfig.Iaas == "vsphere" {
-		os.Setenv("DEPLOYMENT_OPS_FILE", "add-haproxy.yml")
+		os.Setenv("DEPLOYMENT_OPS_FILE", "vsphere-upgrade.yml")
+	} else {
+		os.Setenv("DEPLOYMENT_OPS_FILE", "enable-multiaz-workers-and-masters.yml")
 	}
 	script := test_helpers.PathFromRoot(pathToScript)
 	cmd := exec.Command(script)
