@@ -49,6 +49,7 @@ type TurbulenceTests struct {
 	IncludeWorkerFailure      bool `json:"include_worker_failure"`
 	IncludeMasterFailure      bool `json:"include_master_failure"`
 	IncludePersistenceFailure bool `json:"include_persistence_failure"`
+	IsMultiAZ                 bool `json:"is_multiaz"`
 }
 
 type Cf struct {

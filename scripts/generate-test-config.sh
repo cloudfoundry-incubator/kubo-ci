@@ -204,7 +204,8 @@ generate_test_config() {
 	    "include_worker_drain": ${enable_turbulence_worker_drain_tests},
 	    "include_worker_failure": ${enable_turbulence_worker_failure_tests},
 	    "include_master_failure": ${enable_turbulence_master_failure_tests},
-	    "include_persistence_failure": ${enable_turbulence_persistence_failure_tests}
+	    "include_persistence_failure": ${enable_turbulence_persistence_failure_tests},
+	    "is_multiaz": ${enable_multi_az_tests}
 	  },
 	  "cf": {
 	    "apps_domain": "$(bosh int $director_yml --path=/routing_cf_app_domain_name 2>/dev/null)"

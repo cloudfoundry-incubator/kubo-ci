@@ -28,7 +28,11 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		Expect(err).NotTo(HaveOccurred())
 		countRunningApiServerOnMaster = CountProcessesOnVmsOfType(deployment, MasterVmType, "kube-apiserver", VmRunningState)
 
-		Expect(countRunningApiServerOnMaster()).To(Equal(1))
+		if testconfig.TurbulenceTests.IsMultiAZ {
+			Expect(countRunningApiServerOnMaster()).To(Equal(3))
+		} else {
+			Expect(countRunningApiServerOnMaster()).To(Equal(1))
+		}
 
 		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 		kubectl.CreateNamespace()
@@ -64,6 +68,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		}
 		incident := hellRaiser.CreateIncident(killOneMaster)
 		incident.Wait()
+
 		Expect(countRunningApiServerOnMaster()).Should(Equal(0))
 
 		By("Verifying the master VM has restarted")
@@ -75,7 +80,11 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		Eventually(getStartingMasterVm, 600, 5).Should(HaveLen(1))
 
 		By("Waiting for resurrection")
-		Eventually(countRunningApiServerOnMaster, "10m", "20s").Should(Equal(1))
+		if testconfig.TurbulenceTests.IsMultiAZ {
+			Eventually(countRunningApiServerOnMaster, "10m", "20s").Should(Equal(3))
+		} else {
+			Eventually(countRunningApiServerOnMaster, "10m", "20s").Should(Equal(1))
+		}
 		ExpectAllComponentsToBeHealthy(kubectl)
 
 		By("Checking that all nodes are available")
