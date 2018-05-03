@@ -69,7 +69,11 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		incident := hellRaiser.CreateIncident(killOneMaster)
 		incident.Wait()
 
-		Expect(countRunningApiServerOnMaster()).Should(Equal(0))
+		if testconfig.TurbulenceTests.IsMultiAZ {
+			Expect(countRunningApiServerOnMaster()).To(Equal(2))
+		} else {
+			Expect(countRunningApiServerOnMaster()).To(Equal(0))
+		}
 
 		By("Verifying the master VM has restarted")
 		var startingMasterVm []director.VMInfo
