@@ -13,4 +13,4 @@ export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 
 set +x
-bosh -d "${DEPLOYMENT_NAME}" -n delete-deployment
+bosh -d "${DEPLOYMENT_NAME}" -n delete-deployment --force
