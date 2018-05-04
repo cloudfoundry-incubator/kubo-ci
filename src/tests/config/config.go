@@ -18,6 +18,7 @@ type Config struct {
 	Kubernetes       Kubernetes       `json:"kubernetes"`
 	CFCR             CFCR             `json:"cfcr"`
 	IntegrationTests IntegrationTests `json:"integration_tests"`
+	UpgradeTests     UpgradeTests     `json:"upgrade_tests"`
 	Conformance      Conformance      `json:"conformance"`
 }
 
@@ -68,6 +69,10 @@ type IntegrationTests struct {
 	IncludePersistentVolume bool `json:"include_persistent_volume"`
 	IncludePodLogs          bool `json:"include_pod_logs"`
 	IncludeRBAC             bool `json:"include_rbac"`
+}
+
+type UpgradeTests struct {
+	IncludeMultiAZ bool `json:"include_multiaz"`
 }
 
 type Kubernetes struct {

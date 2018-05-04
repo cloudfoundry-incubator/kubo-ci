@@ -1322,6 +1322,7 @@ end
       <% elsif iaas.include? 'aws-lb' %>
       CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
       <% end %>
+      ENABLE_MULTI_AZ_TESTS: true
 
   - aggregate:
     - put: gcs-bosh-creds

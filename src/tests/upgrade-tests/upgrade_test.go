@@ -1,6 +1,7 @@
 package upgrade_tests_test
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -21,7 +22,7 @@ import (
 )
 
 var loadbalancerAddress, nginxSpec string
-var requestLossThreshold float64
+var requestLossThreshold, masterRequestLossThreshold float64
 
 var _ = Describe("Upgrade components", func() {
 	BeforeEach(func() {
@@ -32,6 +33,8 @@ var _ = Describe("Upgrade components", func() {
 		} else {
 			requestLossThreshold = 0.99
 		}
+
+		masterRequestLossThreshold = 0.99
 
 		deployNginx := k8sRunner.RunKubectlCommand("create", "-f", nginxSpec)
 		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
@@ -100,7 +103,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 		return net.LookupHost(loadbalancerAddress)
 	}, "5m", "5s").ShouldNot(HaveLen(0))
 
-	By("Monitoring availability")
+	By("Monitoring workload availability")
 	appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
 	doneChannel := make(chan bool)
 	totalCount := 0
@@ -140,6 +143,45 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 		}
 	}(doneChannel, curlNginx)
 
+	if testconfig.UpgradeTests.IncludeMultiAZ {
+		By("Monitoring master availability")
+		masterDoneChannel := make(chan bool)
+		masterTotalCount := 0
+		masterSuccessCount := 0
+		masterCheck := func() error {
+			k8sMasterRunner := test_helpers.NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+			session := k8sMasterRunner.RunKubectlCommandInNamespace(k8sRunner.Namespace(), "describe", "pod", "nginx")
+			session.Wait("120s")
+			if session.ExitCode() == 0 {
+				return nil
+			}
+
+			errorMessage, err := ioutil.ReadAll(session.Out)
+			Expect(err).NotTo(HaveOccurred())
+			return errors.New(fmt.Sprintf("Failed to run kubectl: %s", errorMessage))
+		}
+		Eventually(masterCheck, "5m", "5s").Should(BeNil())
+
+		go func(doneChannel chan bool, f func() error) {
+			fmt.Fprintf(os.Stdout, "\nStart kubectl describe pod\n")
+			for {
+				select {
+				case <-doneChannel:
+					fmt.Fprintf(os.Stdout, "\nDone checking endpoint. Successful response received %d out of %d times (%.2f)", successCount, totalCount, float64(successCount)/float64(totalCount))
+					return
+				default:
+					err := f()
+					masterTotalCount++
+					if err != nil {
+						fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: %v", appUrl, err)
+					}
+					masterSuccessCount++
+					time.Sleep(time.Second)
+				}
+			}
+		}(masterDoneChannel, masterCheck)
+	}
+
 	By(fmt.Sprintf("Running %s upgrade", component))
 	if testconfig.Iaas == "vsphere" {
 		os.Setenv("DEPLOYMENT_OPS_FILE", "vsphere-upgrade.yml")
@@ -154,8 +196,13 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	close(doneChannel)
 	Expect(err).NotTo(HaveOccurred())
 
-	By("Reporting the availability during the upgrade")
+	By("Reporting the workload availability during the upgrade")
 	Expect(float64(successCount) / float64(totalCount)).To(BeNumerically(">=", requestLossThreshold))
+
+	if testconfig.UpgradeTests.IncludeMultiAZ {
+		By("Reporting the master availability during the upgrade")
+		Expect(float64(masterSuccessCount) / float64(masterTtotalCount)).To(BeNumerically(">=", masterRequestLossThreshold))
+	}
 
 	By("Checking that all workloads are running once again")
 	test_helpers.CheckSmorgasbord(k8sRunner, "10m")

@@ -182,6 +182,9 @@ generate_test_config() {
 	    "include_pod_logs": ${enable_pod_logs_tests},
 	    "include_rbac": ${enable_rbac_tests}
 	  },
+	  "upgrade_tests": {
+	    "include_multiaz": ${enable_multi_az_tests},
+	  },
 	  "conformance": {
 	    "results_dir": "${conformance_results_dir}",
 	    "release_version": "${conformance_release_version}"
