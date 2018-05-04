@@ -175,8 +175,9 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 					masterTotalCount++
 					if err != nil {
 						fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: %v", appURL, err)
+					} else {
+						masterSuccessCount++
 					}
-					masterSuccessCount++
 					time.Sleep(time.Second)
 				}
 			}
