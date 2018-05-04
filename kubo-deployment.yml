@@ -1264,6 +1264,7 @@ end
       git-kubo-deployment: unpacked_dir
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
+      DEPLOYMENT_OPS_FILE: enable-multiaz-workers-and-masters.yml
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
       <% elsif iaas =~ /^(gcp|vsphere-lb)/ %>

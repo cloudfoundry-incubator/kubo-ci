@@ -148,6 +148,8 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 		By("Monitoring master availability")
 		masterDoneChannel := make(chan bool)
 		masterCheck := func() error {
+			defer GinkgoRecover()
+
 			k8sMasterRunner := test_helpers.NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 			session := k8sMasterRunner.RunKubectlCommandInNamespaceSilent(k8sRunner.Namespace(), "describe", "pod", "nginx")
 			session.Wait("120s")
