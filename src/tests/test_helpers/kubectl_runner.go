@@ -3,7 +3,6 @@ package test_helpers
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -73,7 +72,7 @@ func (runner KubectlRunner) RunKubectlCommandInNamespace(namespace string, args 
 func (runner KubectlRunner) RunKubectlCommandInNamespaceSilent(namespace string, args ...string) *gexec.Session {
 	newArgs := append([]string{"--kubeconfig", runner.configPath, "--namespace", namespace}, args...)
 	command := exec.Command("kubectl", newArgs...)
-	session, err := gexec.Start(command, ioutil.Discard, GinkgoWriter)
+	session, err := gexec.Start(command, nil, GinkgoWriter)
 
 	Expect(err).NotTo(HaveOccurred())
 	return session
