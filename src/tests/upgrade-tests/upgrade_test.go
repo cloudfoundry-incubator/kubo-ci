@@ -1,7 +1,6 @@
 package upgrade_tests_test
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -104,7 +103,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	}, "5m", "5s").ShouldNot(HaveLen(0))
 
 	By("Monitoring workload availability")
-	appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
+	appURL := fmt.Sprintf("http://%s", loadbalancerAddress)
 	doneChannel := make(chan bool)
 	totalCount := 0
 	successCount := 0
@@ -112,7 +111,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 		httpClient := http.Client{
 			Timeout: time.Duration(45 * time.Second),
 		}
-		ret, err := httpClient.Get(appUrl)
+		ret, err := httpClient.Get(appURL)
 		if err != nil {
 			return 0, err
 		}
@@ -121,7 +120,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	Eventually(curlNginx, "5m", "5s").Should(Equal(200))
 
 	go func(doneChannel chan bool, f func() (int, error)) {
-		fmt.Fprintf(os.Stdout, "\nStart curling endpoint %s", appUrl)
+		fmt.Fprintf(os.Stdout, "\nStart curling endpoint %s", appURL)
 		for {
 			select {
 			case <-doneChannel:
@@ -131,23 +130,23 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 				result, err := f()
 				totalCount++
 				if err != nil {
-					fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: %v", appUrl, err)
+					fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: %v", appURL, err)
 				}
 				if result == 200 {
 					successCount++
 				} else {
-					fmt.Fprintf(os.Stdout, "\nFailed to get 200 StatusCode from %s. Instead received StatusCode %v", appUrl, result)
+					fmt.Fprintf(os.Stdout, "\nFailed to get 200 StatusCode from %s. Instead received StatusCode %v", appURL, result)
 				}
 				time.Sleep(time.Second)
 			}
 		}
 	}(doneChannel, curlNginx)
 
+	masterTotalCount := 0
+	masterSuccessCount := 0
 	if testconfig.UpgradeTests.IncludeMultiAZ {
 		By("Monitoring master availability")
 		masterDoneChannel := make(chan bool)
-		masterTotalCount := 0
-		masterSuccessCount := 0
 		masterCheck := func() error {
 			k8sMasterRunner := test_helpers.NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 			session := k8sMasterRunner.RunKubectlCommandInNamespace(k8sRunner.Namespace(), "describe", "pod", "nginx")
@@ -158,7 +157,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 
 			errorMessage, err := ioutil.ReadAll(session.Out)
 			Expect(err).NotTo(HaveOccurred())
-			return errors.New(fmt.Sprintf("Failed to run kubectl: %s", errorMessage))
+			return fmt.Errorf("Failed to run kubectl: %s", errorMessage)
 		}
 		Eventually(masterCheck, "5m", "5s").Should(BeNil())
 
@@ -173,7 +172,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 					err := f()
 					masterTotalCount++
 					if err != nil {
-						fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: %v", appUrl, err)
+						fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: %v", appURL, err)
 					}
 					masterSuccessCount++
 					time.Sleep(time.Second)
@@ -201,7 +200,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 
 	if testconfig.UpgradeTests.IncludeMultiAZ {
 		By("Reporting the master availability during the upgrade")
-		Expect(float64(masterSuccessCount) / float64(masterTtotalCount)).To(BeNumerically(">=", masterRequestLossThreshold))
+		Expect(float64(masterSuccessCount) / float64(masterTotalCount)).To(BeNumerically(">=", masterRequestLossThreshold))
 	}
 
 	By("Checking that all workloads are running once again")
