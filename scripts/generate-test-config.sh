@@ -183,7 +183,7 @@ generate_test_config() {
 	    "include_rbac": ${enable_rbac_tests}
 	  },
 	  "upgrade_tests": {
-	    "include_multiaz": ${enable_multi_az_tests},
+	    "include_multiaz": ${enable_multi_az_tests}
 	  },
 	  "conformance": {
 	    "results_dir": "${conformance_results_dir}",
