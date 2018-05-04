@@ -156,7 +156,9 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 			}
 
 			errorMessage, err := ioutil.ReadAll(session.Out)
-			Expect(err).NotTo(HaveOccurred())
+			if err != nil {
+				return err
+			}
 			return fmt.Errorf("Failed to run kubectl: %s", errorMessage)
 		}
 		Eventually(masterCheck, "5m", "5s").Should(BeNil())
