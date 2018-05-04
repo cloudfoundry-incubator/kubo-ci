@@ -149,7 +149,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 		masterDoneChannel := make(chan bool)
 		masterCheck := func() error {
 			k8sMasterRunner := test_helpers.NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
-			session := k8sMasterRunner.RunKubectlCommandInNamespace(k8sRunner.Namespace(), "describe", "pod", "nginx")
+			session := k8sMasterRunner.RunKubectlCommandInNamespaceSilent(k8sRunner.Namespace(), "describe", "pod", "nginx")
 			session.Wait("120s")
 			if session.ExitCode() == 0 {
 				return nil
