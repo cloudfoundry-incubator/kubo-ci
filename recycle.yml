@@ -12,7 +12,7 @@ resources:
 - name: git-kubo-ci
   type: git
   source:
-    uri: https://github.com/pivotal-cf-experimental/kubo-ci
+    uri: https://github.com/cloudfoundry-incubator/kubo-ci
     branch: master
 
 <% pools.each do |pool| %>
