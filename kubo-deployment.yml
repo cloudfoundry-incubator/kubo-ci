@@ -1029,15 +1029,6 @@ end
     params:
       DEPLOYMENT_OPS_FILE: add-haproxy.yml
     <% end %>
-  - task: smoke-test
-    tags: [<%= iaas %>]
-    input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>
-    params:
-      ERRAND_NAME: smoke-tests
-      INSTANCE: "master/0"
-    file: git-kubo-ci/tasks/run-errand.yml
-    on_failure: *on_failure_alert
   - put: gcs-kubeconfig
     params:
       file: gcs-kubeconfig/config
