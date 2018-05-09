@@ -17,4 +17,4 @@ params:
   INSTANCE: ~
 
 run:
-  path: git-kubo-ci/scripts/etcd/run-errand.sh
+  path: git-kubo-ci/scripts/run-errand.sh
