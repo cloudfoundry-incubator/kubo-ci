@@ -560,6 +560,8 @@ jobs:
     on_failure: *on_failure_alert
   - task: smoke-test
     tags: [<%= env %>]
+    input_mapping:
+      kubo-lock: kubo-lock-<%= env %>
     params:
       ERRAND_NAME: smoke-tests
       INSTANCE: "master/0"
@@ -688,6 +690,8 @@ jobs:
     on_failure: *on_failure_alert
   - task: smoke-test
     tags: [<%= env %>]
+    input_mapping:
+      kubo-lock: kubo-lock-<%= env %>
     params:
       ERRAND_NAME: smoke-tests
       INSTANCE: "master/0"
@@ -1026,6 +1030,8 @@ end
     <% end %>
   - task: smoke-test
     tags: [<%= iaas %>]
+    input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>
     params:
       ERRAND_NAME: smoke-tests
       INSTANCE: "master/0"
@@ -1293,6 +1299,8 @@ end
       <% end %>
   - task: smoke-test
     tags: [<%= iaas %>]
+    input_mapping:
+      kubo-lock: kubo-lock-<%= iaas %>
     params:
       ERRAND_NAME: smoke-tests
       INSTANCE: "master/0"
@@ -1537,6 +1545,8 @@ end
     on_failure: *on_failure_alert
   - task: smoke-test
     tags: [vsphere]
+    input_mapping:
+      kubo-lock: kubo-lock-vsphere
     params:
       ERRAND_NAME: smoke-tests
       INSTANCE: "master/0"
