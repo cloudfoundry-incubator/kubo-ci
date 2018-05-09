@@ -190,7 +190,6 @@ jobs:
       ENABLE_GENERIC_TESTS: true
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
-      ENABLE_POD_LOGS_TESTS: true
   - task: pod-to-pod
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml

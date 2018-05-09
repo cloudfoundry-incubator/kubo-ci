@@ -67,7 +67,6 @@ type IntegrationTests struct {
 	IncludeMultiAZ          bool `json:"include_multiaz"`
 	IncludeOSSOnly          bool `json:"include_oss_only"`
 	IncludePersistentVolume bool `json:"include_persistent_volume"`
-	IncludePodLogs          bool `json:"include_pod_logs"`
 	IncludeRBAC             bool `json:"include_rbac"`
 }
 

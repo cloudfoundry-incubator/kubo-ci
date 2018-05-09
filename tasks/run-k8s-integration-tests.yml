@@ -16,7 +16,6 @@ params:
   ENABLE_MULTI_AZ_TESTS: false
   ENABLE_OSS_ONLY_TESTS: false
   ENABLE_PERSISTENT_VOLUME_TESTS: false
-  ENABLE_POD_LOGS_TESTS: false
 
 inputs:
   - name: git-kubo-ci

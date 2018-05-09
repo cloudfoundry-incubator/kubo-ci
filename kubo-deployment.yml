@@ -558,6 +558,13 @@ jobs:
     attempts: 2
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     on_failure: *on_failure_alert
+  - task: smoke-test
+    tags: [<%= env %>]
+    params:
+      ERRAND_NAME: smoke-tests
+      INSTANCE: "master/0"
+    file: git-kubo-ci/tasks/run-errand.yml
+    on_failure: *on_failure_alert
 
 - name: run-k8s-integration-tests-on-abac-<%= env %>
   plan:
@@ -604,7 +611,6 @@ jobs:
       ENABLE_GENERIC_TESTS: true
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
-      ENABLE_POD_LOGS_TESTS: true
   - task: pod-to-pod
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
@@ -680,6 +686,13 @@ jobs:
       DEPLOYMENT_OPS_FILE: enable-multiaz-workers-and-masters.yml
     <% end %>
     on_failure: *on_failure_alert
+  - task: smoke-test
+    tags: [<%= env %>]
+    params:
+      ERRAND_NAME: smoke-tests
+      INSTANCE: "master/0"
+    file: git-kubo-ci/tasks/run-errand.yml
+    on_failure: *on_failure_alert
 
 - name: run-k8s-integration-tests-<%= env %>
   plan:
@@ -717,7 +730,6 @@ jobs:
       ENABLE_GENERIC_TESTS: true
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
-      ENABLE_POD_LOGS_TESTS: true
       <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
       ENABLE_MULTI_AZ_TESTS: true
       <% end %>
@@ -1012,6 +1024,13 @@ end
     params:
       DEPLOYMENT_OPS_FILE: add-haproxy.yml
     <% end %>
+  - task: smoke-test
+    tags: [<%= iaas %>]
+    params:
+      ERRAND_NAME: smoke-tests
+      INSTANCE: "master/0"
+    file: git-kubo-ci/tasks/run-errand.yml
+    on_failure: *on_failure_alert
   - put: gcs-kubeconfig
     params:
       file: gcs-kubeconfig/config
@@ -1272,6 +1291,13 @@ end
       <% elsif iaas.include? 'aws-lb' %>
       CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
       <% end %>
+  - task: smoke-test
+    tags: [<%= iaas %>]
+    params:
+      ERRAND_NAME: smoke-tests
+      INSTANCE: "master/0"
+    file: git-kubo-ci/tasks/run-errand.yml
+    on_failure: *on_failure_alert
   - put: gcs-kubeconfig
     params:
       file: gcs-kubeconfig/config
@@ -1509,6 +1535,13 @@ end
       kubo-lock: kubo-lock-proxy-vsphere
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     on_failure: *on_failure_alert
+  - task: smoke-test
+    tags: [vsphere]
+    params:
+      ERRAND_NAME: smoke-tests
+      INSTANCE: "master/0"
+    file: git-kubo-ci/tasks/run-errand.yml
+    on_failure: *on_failure_alert
 
 - name: run-k8s-integration-tests-proxy-vsphere
   plan:
@@ -1546,7 +1579,6 @@ end
       ENABLE_GENERIC_TESTS: true
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
-      ENABLE_POD_LOGS_TESTS: true
     on_failure: *on_failure_alert
   - task: pod-to-pod
     tags: [vsphere]

@@ -9,14 +9,12 @@ image_resource:
 
 inputs:
   - name: git-kubo-ci
+  - name: gcs-bosh-creds
+  - name: kubo-lock
 
 params:
-  BOSH_CA_CERT: ~
-  BOSH_CLIENT: ~
-  BOSH_CLIENT_SECRET: ~
-  BOSH_DEPLOYMENT: ~
-  BOSH_ENVIRONMENT: ~
   ERRAND_NAME: ~
+  INSTANCE: ~
 
 run:
   path: git-kubo-ci/scripts/etcd/run-errand.sh

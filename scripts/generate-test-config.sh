@@ -19,7 +19,6 @@ verify_args() {
 		--enable-multi-az-tests                       [env:ENABLE_MULTI_AZ_TESTS]
 		--enable-oss-only-tests                       [env:ENABLE_OSS_ONLY_TESTS]
 		--enable-persistent-volume-tests              [env:ENABLE_PERSISTENT_VOLUME_TESTS]
-		--enable-pod-logs-tests                       [env:ENABLE_POD_LOGS_TESTS]
 		--enable-certificate-tests                    [env:ENABLE_CERTIFICATE_TESTS]
 
 		--conformance_release_version=<some-value>    [env:CONFORMANCE_RELEASE_VERSION]
@@ -74,7 +73,6 @@ generate_test_config() {
   local enable_multi_az_tests="${ENABLE_MULTI_AZ_TESTS:-false}"
   local enable_oss_only_tests="${ENABLE_OSS_ONLY_TESTS:-false}"
   local enable_persistent_volume_tests="${ENABLE_PERSISTENT_VOLUME_TESTS:-false}"
-  local enable_pod_logs_tests="${ENABLE_POD_LOGS_TESTS:-false}"
   local conformance_release_version="${CONFORMANCE_RELEASE_VERSION:-dev}"
   local conformance_results_dir="${CONFORMANCE_RESULTS_DIR:-/tmp}"
   local new_bosh_stemcell_version="${NEW_BOSH_STEMCELL_VERSION:-""}"
@@ -108,9 +106,6 @@ generate_test_config() {
 	;;
       --enable-persistent-volume-tests)
 	enable_persistent_volume_tests=true
-	;;
-      --enable-pod-logs-tests)
-	enable_pod_logs_tests=true
 	;;
       --conformance_release_version)
 	conformance_release_version="${value}"
@@ -179,7 +174,6 @@ generate_test_config() {
 	    "include_multiaz": ${enable_multi_az_tests},
 	    "include_oss_only": ${enable_oss_only_tests},
 	    "include_persistent_volume": ${enable_persistent_volume_tests},
-	    "include_pod_logs": ${enable_pod_logs_tests},
 	    "include_rbac": ${enable_rbac_tests}
 	  },
 	  "upgrade_tests": {
