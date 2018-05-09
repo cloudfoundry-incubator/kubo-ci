@@ -13,6 +13,7 @@ inputs:
   - name: kubo-lock
 
 params:
+  DEPLOYMENT_NAME: ci-service
   ERRAND_NAME: ~
   INSTANCE: ~
 

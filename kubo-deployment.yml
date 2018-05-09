@@ -563,6 +563,7 @@ jobs:
     input_mapping:
       kubo-lock: kubo-lock-<%= env %>
     params:
+      DEPLOYMENT_NAME: ci-service-k8s-with-abac
       ERRAND_NAME: smoke-tests
       INSTANCE: "master/0"
     file: git-kubo-ci/tasks/run-errand.yml

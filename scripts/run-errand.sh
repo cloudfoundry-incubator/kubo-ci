@@ -2,6 +2,7 @@
 
 set -euo pipefail
 
-source "$(dirname "$0")/lib/environment.sh"
+KUBO_CI="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../../" && pwd )"
+source "$KUBO_CI/scripts/bosh_director_creds.sh"
 
-bosh run-errand --instance "${INSTANCE}" "${ERRAND_NAME}" -n --keep-alive
+bosh -n -d "${DEPLOYMENT_NAME}" run-errand --instance "${INSTANCE}" "${ERRAND_NAME}"
