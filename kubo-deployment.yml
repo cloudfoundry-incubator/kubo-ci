@@ -1289,15 +1289,6 @@ end
       <% elsif iaas.include? 'aws-lb' %>
       CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
       <% end %>
-  - task: smoke-test
-    tags: [<%= iaas %>]
-    input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>
-    params:
-      ERRAND_NAME: smoke-tests
-      INSTANCE: "master/0"
-    file: git-kubo-ci/tasks/run-errand.yml
-    on_failure: *on_failure_alert
   - put: gcs-kubeconfig
     params:
       file: gcs-kubeconfig/config
