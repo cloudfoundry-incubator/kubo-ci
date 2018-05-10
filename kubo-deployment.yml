@@ -1531,6 +1531,7 @@ end
     input_mapping:
       kubo-lock: kubo-lock-proxy-vsphere
     params:
+      DEPLOYMENT_NAME: ci-service-k8s-with-proxy
       ERRAND_NAME: smoke-tests
       INSTANCE: "master/0"
     file: git-kubo-ci/tasks/run-errand.yml
