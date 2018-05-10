@@ -1529,7 +1529,7 @@ end
   - task: smoke-test
     tags: [vsphere]
     input_mapping:
-      kubo-lock: kubo-lock-vsphere
+      kubo-lock: kubo-lock-proxy-vsphere
     params:
       ERRAND_NAME: smoke-tests
       INSTANCE: "master/0"
