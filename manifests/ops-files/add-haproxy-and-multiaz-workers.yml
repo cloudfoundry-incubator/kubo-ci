@@ -1,3 +1,4 @@
+## Add ha-proxy
 - type: replace
   path: /instance_groups/-
   value:
@@ -23,3 +24,8 @@
     url: https://github.com/iainsproat/cfcr-haproxy-boshrelease/releases/download/v8.7.1/cfcr-haproxy-8.7.1.tgz
     sha1: 9fd2d2eaac3bee50643a537d69227f7e01ed32c5
     version: 8.7.1
+
+## Multi-AZ workers
+- type: replace
+  path: /instance_groups/name=worker/azs
+  value: [ z1, z2, z3 ]

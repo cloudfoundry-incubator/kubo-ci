@@ -1025,9 +1025,11 @@ end
       kubo-lock: kubo-lock-<%= iaas %>
       git-kubo-deployment: unpacked_dir
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-    <% if iaas == 'vsphere-lb' %>
     params:
-      DEPLOYMENT_OPS_FILE: add-haproxy.yml
+    <% if iaas == 'vsphere-lb' %>
+      DEPLOYMENT_OPS_FILE: add-haproxy-and-multiaz-workers.yml
+    <% else %>
+      DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
     <% end %>
   - put: gcs-kubeconfig
     params:
