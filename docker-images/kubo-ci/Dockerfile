@@ -71,7 +71,9 @@ RUN wget -O /usr/local/bin/direnv https://github.com/direnv/direnv/releases/down
   chmod +x /usr/local/bin/direnv
 
 # BOSH CLI
-RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.48-linux-amd64 -O bosh && \
+RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-3.0.1-linux-amd64 -O bosh && \
+  echo ccc893bab8b219e9e4a628ed044ebca6c6de9ca0 bosh > bosh-shasum && \
+  sha1sum -cw --status bosh-shasum && \
   install bosh /usr/local/bin && \
   ln -s /usr/local/bin/bosh /usr/local/bin/bosh-cli
 
