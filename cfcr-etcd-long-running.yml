@@ -20,6 +20,11 @@ resource_types:
   source:
     repository: cloudfoundry/bosh-deployment-resource
 
+- name: bosh-errand
+  type: docker-image
+  source:
+    repository: cfcommunity/bosh2-errand-resource
+
 resources:
 - name: 60m
   type: time
@@ -83,6 +88,33 @@ resources:
   type: bosh-deployment
   source:
     deployment: turbulence
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
+
+- name: run-etcd-acceptance-errand
+  type: bosh-errand
+  source:
+    deployment: etcd-acceptance
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
+
+- name: run-etcd-acceptance-network-partition-errand
+  type: bosh-errand
+  source:
+    deployment: etcd-acceptance-network-partition
+    target: https://10.100.0.6:25555
+    client: admin
+    client_secret: ((long-running-etcd-bosh-client-secret))
+    ca_cert: ((long-running-etcd-bosh-ca-cert.certificate))
+
+- name: run-etcd-acceptance-total-network-partition-errand
+  type: bosh-errand
+  source:
+    deployment: etcd-acceptance-total-network-partition
     target: https://10.100.0.6:25555
     client: admin
     client_secret: ((long-running-etcd-bosh-client-secret))
@@ -302,15 +334,10 @@ jobs:
         director-ca: ((long-running-etcd-bosh-ca-cert.certificate))
         director-client-secret: ((long-running-etcd-bosh-client-secret))
         etcd-deployment-name: etcd
-  - task: run-read-availability-during-recreate-errand
-    file: git-kubo-ci/tasks/etcd/run-errand.yml
+  - put: run-etcd-acceptance-errand
     params:
-      BOSH_CA_CERT: ((long-running-etcd-bosh-ca-cert.certificate))
-      BOSH_CLIENT: admin
-      BOSH_CLIENT_SECRET: ((long-running-etcd-bosh-client-secret))
-      BOSH_DEPLOYMENT: etcd-acceptance
-      BOSH_ENVIRONMENT: https://10.100.0.6:25555
-      ERRAND_NAME: read-availability-during-recreate
+      name: read-availability-during-recreate
+      keep_alive: true
 
 - name: deploy-and-run-etcd-acceptance-network-partition
   serial: true
@@ -354,15 +381,10 @@ jobs:
         director-client-secret: ((long-running-etcd-bosh-client-secret))
         etcd-deployment-name: etcd-network-partition
         deployment-name: etcd-acceptance-network-partition
-  - task: run-read-availability-during-network-partition-errand
-    file: git-kubo-ci/tasks/etcd/run-errand.yml
+  - put: run-etcd-acceptance-network-partition-errand
     params:
-      BOSH_CA_CERT: ((long-running-etcd-bosh-ca-cert.certificate))
-      BOSH_CLIENT: admin
-      BOSH_CLIENT_SECRET: ((long-running-etcd-bosh-client-secret))
-      BOSH_DEPLOYMENT: etcd-acceptance-network-partition
-      BOSH_ENVIRONMENT: https://10.100.0.6:25555
-      ERRAND_NAME: read-availability-during-network-partition
+      name: read-availability-during-network-partition
+      keep_alive: true
     ensure:
       task: restart-etcd-cluster
       file: git-kubo-ci/tasks/etcd/restart-cluster.yml
@@ -415,12 +437,7 @@ jobs:
         director-client-secret: ((long-running-etcd-bosh-client-secret))
         etcd-deployment-name: etcd-total-network-partition
         deployment-name: etcd-acceptance-total-network-partition
-  - task: run-read-availability-during-total-network-partition-errand
-    file: git-kubo-ci/tasks/etcd/run-errand.yml
+  - put: run-etcd-acceptance-total-network-partition-errand
     params:
-      BOSH_CA_CERT: ((long-running-etcd-bosh-ca-cert.certificate))
-      BOSH_CLIENT: admin
-      BOSH_CLIENT_SECRET: ((long-running-etcd-bosh-client-secret))
-      BOSH_DEPLOYMENT: etcd-acceptance-total-network-partition
-      BOSH_ENVIRONMENT: https://10.100.0.6:25555
-      ERRAND_NAME: read-availability-during-total-network-partition
+      name: read-availability-during-total-network-partition
+      keep_alive: true
