@@ -26,6 +26,13 @@ deploy() {
   export BOSH_CLIENT BOSH_CLIENT_SECRET BOSH_CA_CERT BOSH_ENVIRONMENT
 
 
+    cat <<EOF > bosh-env-master
+export BOSH_CLIENT=admin
+export BOSH_CLIENT_SECRET="${BOSH_CLIENT_SECRET}"
+export BOSH_CA_CERT="${BOSH_CA_CERT}"
+export BOSH_ENVIRONMENT="${BOSH_ENVIRONMENT}"
+EOF
+
   if [ -z "$(bosh stemcells | grep trusty)" ]; then
     local stemcell_version=3468.11
     local iaas_extension=
@@ -64,7 +71,7 @@ deploy() {
 
   echo ${deployment_name}
 
-  bosh -n deploy "$manifest_file" \
+  bosh deploy "$manifest_file" \
       -d "$deployment_name" \
       --vars-file <(echo "$private_yml")
 
