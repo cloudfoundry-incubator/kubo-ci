@@ -27,11 +27,9 @@ var _ = Describe("Upgrade components", func() {
 	BeforeEach(func() {
 		nginxSpec = test_helpers.PathFromRoot("specs/nginx-lb.yml")
 		if testconfig.Iaas == "vsphere" {
-			requestLossThreshold = 0.1
 			nginxSpec = test_helpers.PathFromRoot("specs/nginx-specified-nodeport.yml")
-		} else {
-			requestLossThreshold = 0.99
 		}
+		requestLossThreshold = 0.99
 
 		masterRequestLossThreshold = 0.99
 
@@ -79,47 +77,72 @@ func applyUpdateStemcellVersionOps(manifestPath, stemcellVersion string) {
 	Expect(err).NotTo(HaveOccurred())
 }
 
+func getvSphereLoadBalancer() *exec.Cmd {
+	director := test_helpers.NewDirector(testconfig.Bosh)
+	deployment, err := director.FindDeployment(testconfig.Bosh.Deployment)
+	Expect(err).NotTo(HaveOccurred())
+	content := []byte(`global
+maxconn 64000
+spread-checks 4
+defaults
+timeout connect 5000ms
+timeout client 50000ms
+timeout server 50000ms
+listen worker-nodes
+bind *:30303
+mode tcp
+balance roundrobin`)
+	tmpfile, err := ioutil.TempFile("", "haproxy-config-")
+	Expect(err).NotTo(HaveOccurred())
+	_, err = tmpfile.Write(content)
+	Expect(err).NotTo(HaveOccurred())
+	vms := test_helpers.DeploymentVmsOfType(deployment, test_helpers.WorkerVmType, test_helpers.VmRunningState)
+	for i, vm := range vms {
+		_, err = tmpfile.Write([]byte(fmt.Sprintf("\n  server worker%d %s check port 10250", i, vm.IPs[0])))
+		Expect(err).NotTo(HaveOccurred())
+	}
+	tmpfile.Close()
+	cmd := exec.Command("haproxy", "-f", tmpfile.Name())
+	err = cmd.Start()
+	Expect(err).NotTo(HaveOccurred())
+
+	loadbalancerAddress = "localhost:30303"
+
+	appURL := fmt.Sprintf("http://%s", loadbalancerAddress)
+	Eventually(func() (int, error) {
+		return curlURL(appURL)
+	}, "30s", "5s").Should(Equal(200))
+
+	return cmd
+}
+
 func upgradeAndMonitorAvailability(pathToScript string, component string, requestLossThreshold float64) {
 	By("Getting the LB address")
-	Eventually(func() string {
-		if testconfig.Iaas == "vsphere" {
-			director := test_helpers.NewDirector(testconfig.Bosh)
-			deployment, err := director.FindDeployment(testconfig.Bosh.Deployment)
-			Expect(err).NotTo(HaveOccurred())
-
-			vms := test_helpers.DeploymentVmsOfType(deployment, "haproxy", test_helpers.VmRunningState)
-			Expect(vms).NotTo(BeEmpty(), "haproxy should be present in the deployment")
-
-			loadbalancerAddress = vms[0].IPs[0]
-		} else {
+	if testconfig.Iaas == "vsphere" {
+		session := getvSphereLoadBalancer()
+		defer session.Process.Kill()
+	} else {
+		Eventually(func() string {
 			loadbalancerAddress = k8sRunner.GetLBAddress("nginx", testconfig.Iaas)
-		}
-		return loadbalancerAddress
-	}, "120s", "5s").Should(Not(Equal("")))
+			return loadbalancerAddress
+		}, "120s", "5s").Should(Not(Equal("")))
 
-	By("Waiting until LB address resolves")
-	Eventually(func() ([]string, error) {
-		return net.LookupHost(loadbalancerAddress)
-	}, "5m", "5s").ShouldNot(HaveLen(0))
+		By("Waiting until LB address resolves")
+		Eventually(func() ([]string, error) {
+			return net.LookupHost(loadbalancerAddress)
+		}, "5m", "5s").ShouldNot(HaveLen(0))
+	}
 
 	By("Monitoring workload availability")
 	appURL := fmt.Sprintf("http://%s", loadbalancerAddress)
 	doneChannel := make(chan bool)
 	totalCount := 0
 	successCount := 0
-	curlNginx := func() (int, error) {
-		httpClient := http.Client{
-			Timeout: time.Duration(45 * time.Second),
-		}
-		ret, err := httpClient.Get(appURL)
-		if err != nil {
-			return 0, err
-		}
-		return ret.StatusCode, err
-	}
-	Eventually(curlNginx, "5m", "5s").Should(Equal(200))
+	Eventually(func() (int, error) {
+		return curlURL(appURL)
+	}, "5m", "5s").Should(Equal(200))
 
-	go func(doneChannel chan bool, f func() (int, error)) {
+	go func(doneChannel chan bool, f func(string) (int, error)) {
 		fmt.Fprintf(os.Stdout, "\nStart curling endpoint %s", appURL)
 		for {
 			select {
@@ -127,7 +150,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 				fmt.Fprintf(os.Stdout, "\nDone curling endpoint. Successful response received %d out of %d times (%.2f)", successCount, totalCount, float64(successCount)/float64(totalCount))
 				return
 			default:
-				result, err := f()
+				result, err := f(appURL)
 				totalCount++
 				if err != nil {
 					fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: %v", appURL, err)
@@ -140,7 +163,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 				time.Sleep(time.Second)
 			}
 		}
-	}(doneChannel, curlNginx)
+	}(doneChannel, curlURL)
 
 	masterTotalCount := 0
 	masterSuccessCount := 0
@@ -187,11 +210,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	}
 
 	By(fmt.Sprintf("Running %s upgrade", component))
-	if testconfig.Iaas == "vsphere" {
-		os.Setenv("DEPLOYMENT_OPS_FILE", "vsphere-upgrade.yml")
-	} else {
-		os.Setenv("DEPLOYMENT_OPS_FILE", "enable-multiaz-workers-and-masters.yml")
-	}
+	os.Setenv("DEPLOYMENT_OPS_FILE", "enable-multiaz-workers-and-masters.yml")
 	script := test_helpers.PathFromRoot(pathToScript)
 	cmd := exec.Command(script)
 	cmd.Stdout = os.Stdout
@@ -210,4 +229,15 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 
 	By("Checking that all workloads are running once again")
 	test_helpers.CheckSmorgasbord(k8sRunner, "10m")
+}
+
+func curlURL(appURL string) (int, error) {
+	httpClient := http.Client{
+		Timeout: time.Duration(45 * time.Second),
+	}
+	ret, err := httpClient.Get(appURL)
+	if err != nil {
+		return 0, err
+	}
+	return ret.StatusCode, err
 }
