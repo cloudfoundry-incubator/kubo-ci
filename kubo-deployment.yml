@@ -17,6 +17,7 @@
   }
 
   upgrade_test_iaases = %w(aws-lb gcp-lb vsphere-lb)
+  multi_master_upgrade_test_iaases = %w(aws-lb gcp-lb)
   conformance_test_iaases = iaases
   proxy_iaases = %w(vsphere)
 %>
@@ -52,7 +53,7 @@ groups:
   - destroy-k8s-upgrade-<%= iaas %>
   - destroy-bosh-upgrade-<%= iaas %>
 <% end %>
-<% ["gcp-lb"].each do |iaas| %>
+<% multi_master_upgrade_test_iaases.each do |iaas| %>
   - claim-lock-upgrade-multi-master-<%= iaas %>
   - install-old-bosh-multi-master-<%= iaas %>
   - deploy-old-k8s-multi-master-<%= iaas %>
@@ -105,7 +106,7 @@ groups:
   - destroy-k8s-upgrade-<%= env %>
   - destroy-bosh-upgrade-<%= env %>
   <% end %>
-  <% if ["gcp-lb"].include? env %>
+  <% if multi_master_upgrade_test_iaases.include? env %>
   - claim-lock-upgrade-multi-master-<%= env %>
   - install-old-bosh-multi-master-<%= env %>
   - deploy-old-k8s-multi-master-<%= env %>
@@ -139,7 +140,7 @@ groups:
   - destroy-k8s-upgrade-<%= env %>
   - destroy-bosh-upgrade-<%= env %>
   <% end %>
-  <% ["gcp-lb"].each do |iaas| %>
+  <% multi_master_upgrade_test_iaases.each do |iaas| %>
   - claim-lock-upgrade-multi-master-<%= iaas %>
   - install-old-bosh-multi-master-<%= iaas %>
   - deploy-old-k8s-multi-master-<%= iaas %>
@@ -1169,7 +1170,7 @@ end
       release: kubo-lock-<%= iaas %>
 <% end %>
 
-<% ["gcp-lb"].each do |iaas| %>
+<% multi_master_upgrade_test_iaases.each do |iaas| %>
 - name: claim-lock-upgrade-multi-master-<%= iaas %>
   max_in_flight: 1
   plan:
