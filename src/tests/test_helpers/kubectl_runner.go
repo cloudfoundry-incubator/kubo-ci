@@ -236,6 +236,7 @@ func (runner *KubectlRunner) CleanupServiceWithLB(loadBalancerAddress, pathToSpe
 		fmt.Fprintf(GinkgoWriter, "Teardown security groups - %s\n", cmd.Args)
 		session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())
-		Eventually(session, "10s").Should(gexec.Exit(0))
+		Eventually(session, "10s").Should(gexec.Exit())
+		fmt.Printf("Tearing down security group exited with code '%d'\n", session.ExitCode())
 	}
 }
