@@ -31,6 +31,7 @@ instance_groups:
     properties:
       tags:
         - aws-lb
+        - aws
       tsa:
         worker_key: ((worker-key))
         host: ci.kubo.sh
