@@ -46,7 +46,6 @@ var _ = Describe("Upgrade components", func() {
 	})
 
 	It("upgrades BOSH and CFCR Release", func() {
-		upgradeAndMonitorAvailability("scripts/install-bosh.sh", "bosh", requestLossThreshold)
 		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release", requestLossThreshold)
 	})
 
