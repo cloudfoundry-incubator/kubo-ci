@@ -16,8 +16,9 @@
     abac: 400,
   }
 
-  upgrade_test_iaases = %w(aws-lb gcp-lb vsphere-lb)
+  upgrade_test_iaases = %w(gcp-lb vsphere-lb)
   multi_master_upgrade_test_iaases = %w(aws-lb gcp-lb)
+  iaases_for_new_bosh_stemcell = upgrade_test_iaases | multi_master_upgrade_test_iaases
   conformance_test_iaases = iaases
   proxy_iaases = %w(vsphere)
 %>
@@ -310,7 +311,7 @@ resources:
     pre_release: true
     access_token: ((github-kubo-gitbot-access-token))
 
-<% upgrade_test_iaases.each do |env| %>
+<% iaases_for_new_bosh_stemcell.each do |env| %>
 - name: new-bosh-stemcell-<%= env %>
   type: bosh-io-stemcell
   source:
