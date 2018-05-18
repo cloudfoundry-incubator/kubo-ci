@@ -8,6 +8,6 @@ export BBL_STATE_DIRECTORY
 
 eval "$(bbl print-env)"
 
-lpass_note_id="$(cat "$BBL_STATE_DIRECTORY/vars/concourse_secrets")"
+lpass_note_id="$(cat "$BBL_STATE_DIRECTORY/vars/concourse-secrets")"
 
 bosh deploy -d concourse "$manifest" --vars-file <(lpass show "$lpass_note_id" --notes)
