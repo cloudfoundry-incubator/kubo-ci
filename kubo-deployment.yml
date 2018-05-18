@@ -964,7 +964,6 @@ end
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir
     params:
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
@@ -1224,7 +1223,6 @@ end
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir
     params:
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
