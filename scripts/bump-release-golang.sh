@@ -38,7 +38,9 @@ blobstore:
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
     set -x
-    bosh vendor-package golang-"${GO_VERSION}"-linux "$HOME_DIR"/golang-release
+    local GO_VERSION_PARTS
+    semver_arr "${GO_VERSION}" GO_VERSION_PARTS
+    bosh vendor-package golang-"${GO_VERSION_PARTS[0]}.${GO_VERSION_PARTS[1]}"-linux "$HOME_DIR"/golang-release
 
     grep --exclude=spec.lock --exclude-dir=src --exclude-dir=.git --exclude-dir=releases -r -o -l -E 'golang-([0-9]+\.)+[0-9]+' | xargs sed -E -i -e "/golang/s/([0-9]+\.)+[0-9]+/${GO_VERSION}/"
 
