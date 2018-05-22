@@ -12,7 +12,7 @@ check_and_remove_existing_vendor_package() {
   pushd "$HOME_DIR"/modified-release/ > /dev/null
 
   EXISTING_V=$(ls -al packages | grep golang | grep -oE "([0-9]+\.)+[0-9]+")
-  if [ $(compare_semvers $GO_VERSION $EXISTING_V) -le 0 ]; then
+  if [ $(compare_semvers $GO_VERSION $EXISTING_V) -eq 0 ]; then
     echo "Release already at the latest golang vendor package"
     exit 0
   fi
