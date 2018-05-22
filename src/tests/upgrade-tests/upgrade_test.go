@@ -146,7 +146,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 		for {
 			select {
 			case <-doneChannel:
-				fmt.Fprintf(os.Stdout, "\nDone curling endpoint. Successful response received %d out of %d times (%.2f)", successCount, totalCount, float64(successCount)/float64(totalCount))
+				fmt.Fprintf(os.Stdout, "\nDone curling workload endpoint. Successful response received %d out of %d times (%.2f)", successCount, totalCount, float64(successCount)/float64(totalCount))
 				return
 			default:
 				result, err := f(appURL)
@@ -166,9 +166,9 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 
 	masterTotalCount := 0
 	masterSuccessCount := 0
+	masterDoneChannel := make(chan bool)
 	if testconfig.UpgradeTests.IncludeMultiAZ {
 		By("Monitoring master availability")
-		masterDoneChannel := make(chan bool)
 		masterCheck := func() error {
 			defer GinkgoRecover()
 
@@ -192,7 +192,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 			for {
 				select {
 				case <-doneChannel:
-					fmt.Fprintf(os.Stdout, "\nDone checking endpoint. Successful response received %d out of %d times (%.2f)", successCount, totalCount, float64(successCount)/float64(totalCount))
+					fmt.Fprintf(os.Stdout, "\nDone checking Kubernetes master endpoint. Successful response received %d out of %d times (%.2f)", masterSuccessCount, masterTotalCount, float64(masterSuccessCount)/float64(masterTotalCount))
 					return
 				default:
 					err := f()
@@ -216,14 +216,15 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	close(doneChannel)
+	close(masterDoneChannel)
 	Expect(err).NotTo(HaveOccurred())
 
 	By("Reporting the workload availability during the upgrade")
-	Expect(float64(successCount) / float64(totalCount)).To(BeNumerically(">=", requestLossThreshold))
+	Expect(float64(successCount)/float64(totalCount)).To(BeNumerically(">=", requestLossThreshold), "workload was unavaible during the upgrade")
 
 	if testconfig.UpgradeTests.IncludeMultiAZ {
 		By("Reporting the master availability during the upgrade")
-		Expect(float64(masterSuccessCount) / float64(masterTotalCount)).To(BeNumerically(">=", masterRequestLossThreshold))
+		Expect(float64(masterSuccessCount)/float64(masterTotalCount)).To(BeNumerically(">=", masterRequestLossThreshold), "Kubernetes API was unavailable during the upgrade")
 	}
 
 	By("Checking that all workloads are running once again")
