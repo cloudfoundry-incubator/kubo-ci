@@ -45,8 +45,7 @@ var _ = Describe("Upgrade components", func() {
 		k8sRunner.RunKubectlCommand("delete", "namespace", k8sRunner.Namespace())
 	})
 
-	It("upgrades BOSH and CFCR Release", func() {
-		upgradeAndMonitorAvailability("scripts/install-bosh.sh", "bosh", requestLossThreshold)
+	It("upgrades CFCR Release", func() {
 		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release", requestLossThreshold)
 	})
 
