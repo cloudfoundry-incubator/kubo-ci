@@ -4,6 +4,7 @@ state_dir="${HOME}/workspace/kubo-locks/kubo-gcp-lb-lifecycle/terraform/"
 
 mkdir -p "${state_dir}"
 
+terraform init
 for lock in ${HOME}/workspace/kubo-locks/kubo-gcp-lb-lifecycle/claimed/*; do
     base_name=$(basename $lock)
     env_name=${base_name#"gcp-"}

@@ -5,3 +5,4 @@ pkg/
 .vscode/
 creds.yml
 concourse/**/bbl
+terraform/gcp.json
