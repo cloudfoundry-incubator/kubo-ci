@@ -38,11 +38,12 @@ blobstore:
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
     set -x
-    local GO_VERSION_PARTS
+    local GO_VERSION_PARTS PACKAGE_GOLANG_VERSION
     semver_arr "${GO_VERSION}" GO_VERSION_PARTS
-    bosh vendor-package golang-"${GO_VERSION_PARTS[0]}.${GO_VERSION_PARTS[1]}"-linux "$HOME_DIR"/golang-release
+    PACKAGE_GO_VERSION="${GO_VERSION_PARTS[0]}.${GO_VERSION_PARTS[1]}"
+    bosh vendor-package golang-"${PACKAGE_GO_VERSION}"-linux "$HOME_DIR"/golang-release
 
-    grep --exclude=spec.lock --exclude-dir=src --exclude-dir=.git --exclude-dir=releases -r -o -l -E 'golang-([0-9]+\.)+[0-9]+' | xargs sed -E -i -e "/golang/s/([0-9]+\.)+[0-9]+/${GO_VERSION}/"
+    grep --exclude=spec.lock --exclude-dir=src --exclude-dir=.git --exclude-dir=releases -r -o -l -E 'golang-([0-9]+\.)+[0-9]+' | xargs sed -E -i -e "/golang/s/([0-9]+\.)+[0-9]+/${PACKAGE_GO_VERSION}/"
 
     git config --global user.email "cfcr+cibot@pivotal.io"
     git config --global user.name "CFCR CI BOT"
