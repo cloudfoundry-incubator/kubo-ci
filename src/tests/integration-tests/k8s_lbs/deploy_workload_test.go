@@ -102,8 +102,7 @@ var _ = K8SLBDescribe("When deploying a loadbalancer", func() {
 			appURL := fmt.Sprintf("http://%s", loadbalancerAddress)
 			ipAddress := getIPAddressFromEchoserver(appURL)
 
-			updateTrafficPolicy := runner.RunKubectlCommand("patch", "svc/echoserver", "-p", "{\"spec\":{\"externalTrafficPolicy\":\"Local\"}}")
-			Eventually(updateTrafficPolicy).Should(gexec.Exit(0))
+			runner.RunKubectlCommandWithTimeout("patch", "svc/echoserver", "-p", "{\"spec\":{\"externalTrafficPolicy\":\"Local\"}}")
 
 			Eventually(func() string {
 				return getIPAddressFromEchoserver(appURL)
