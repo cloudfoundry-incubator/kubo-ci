@@ -59,7 +59,7 @@ resource "google_compute_backend_service" "default" {
   name        = "${var.prefix}-k8s-master-service"
   port_name   = "kubernetes-master"
   protocol    = "HTTPS"
-  timeout_sec = 300
+  timeout_sec = 60
   enable_cdn  = false
 
   backend {
