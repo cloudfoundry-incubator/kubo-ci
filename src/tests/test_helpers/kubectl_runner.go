@@ -103,7 +103,7 @@ func (runner *KubectlRunner) GetOutputInNamespace(namespace string, kubectlArgs 
 
 func (runner *KubectlRunner) GetOutputBytes(kubectlArgs ...string) []byte {
 	session := runner.RunKubectlCommand(kubectlArgs...)
-	Eventually(session, "20s").Should(gexec.Exit(0))
+	Eventually(session, "60s").Should(gexec.Exit(0))
 	output := session.Out.Contents()
 	return output
 }
