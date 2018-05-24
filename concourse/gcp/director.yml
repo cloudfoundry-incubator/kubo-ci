@@ -6,7 +6,6 @@ network: main-pcf-network
 project_id: cf-pcf-kubo
 subnetwork: concourse
 tags:
-  - "no-ip"
   - internal
 zone: us-east4-a
 
