@@ -19,3 +19,6 @@
 - type: remove
   path: /networks/name=default/subnets/0/az?
 
+- type: replace
+  path: /networks/name=default/subnets/0/cloud_properties/ephemeral_external_ip?
+  value: true
