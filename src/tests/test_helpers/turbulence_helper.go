@@ -71,6 +71,17 @@ func ExpectAllComponentsToBeHealthy(kubectl *KubectlRunner) {
 	}
 }
 
+func AllComponentsAreHealthy(kubectl *KubectlRunner) bool {
+	components := GetComponentStatus(kubectl)
+	Expect(components).ToNot(BeEmpty())
+	for _, component := range components {
+		if component.Conditions[0].Status != "True" {
+			return false
+		}
+	}
+	return true
+}
+
 type Condition struct {
 	ConditionType string `json:"type"`
 	Status        string `json:"status"`

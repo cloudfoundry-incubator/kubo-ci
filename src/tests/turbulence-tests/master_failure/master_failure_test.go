@@ -75,21 +75,8 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 			Expect(countRunningApiServerOnMaster()).To(Equal(0))
 		}
 
-		By("Verifying the master VM has restarted")
-		var startingMasterVm []director.VMInfo
-		getStartingMasterVm := func() []director.VMInfo {
-			startingMasterVm = DeploymentVmsOfType(deployment, MasterVmType, VmStartingState)
-			return startingMasterVm
-		}
-		Eventually(getStartingMasterVm, 600, 5).Should(HaveLen(1))
-
 		By("Waiting for resurrection")
-		if testconfig.TurbulenceTests.IsMultiAZ {
-			Eventually(countRunningApiServerOnMaster, "10m", "20s").Should(Equal(3))
-		} else {
-			Eventually(countRunningApiServerOnMaster, "10m", "20s").Should(Equal(1))
-		}
-		ExpectAllComponentsToBeHealthy(kubectl)
+		Eventually(AllComponentsAreHealthy(kubectl), "600s", "20s").Should(BeTrue())
 
 		By("Checking that all nodes are available")
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
