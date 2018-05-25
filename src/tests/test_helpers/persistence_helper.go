@@ -7,7 +7,6 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -21,16 +20,8 @@ func DeployGuestBook(kubectl *KubectlRunner, timeoutScale float64) {
 	guestBookSpec := PathFromRoot("specs/pv-guestbook.yml")
 	timeout := time.Duration(float64(2*time.Minute) * timeoutScale)
 	Eventually(kubectl.RunKubectlCommand("apply", "-f", guestBookSpec), timeout).Should(gexec.Exit(0))
-	Eventually(func() *gexec.Session {
-		session := kubectl.RunKubectlCommand("rollout", "status", "deployment/frontend", "--watch=false")
-		session.Wait(2 * time.Minute)
-		return session
-	}, timeout, 10*time.Second).Should(gbytes.Say("successfully rolled out"))
-	Eventually(func() *gexec.Session {
-		session := kubectl.RunKubectlCommand("rollout", "status", "deployment/redis-master", "--watch=false")
-		session.Wait(2 * time.Minute)
-		return session
-	}, timeout, 10*time.Second).Should(gbytes.Say("successfully rolled out"))
+	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/frontend", "-w"), timeout).Should(gexec.Exit(0))
+	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/redis-master", "-w"), timeout).Should(gexec.Exit(0))
 }
 
 func PostToGuestBook(address string, testValue string) {
