@@ -76,7 +76,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		}
 
 		By("Waiting for resurrection")
-		Eventually(AllComponentsAreHealthy(kubectl), "600s", "20s").Should(BeTrue())
+		Eventually(func() bool { return AllComponentsAreHealthy(kubectl) }, "600s", "20s").Should(BeTrue())
 
 		By("Checking that all nodes are available")
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())

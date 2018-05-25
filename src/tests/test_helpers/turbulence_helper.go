@@ -72,8 +72,15 @@ func ExpectAllComponentsToBeHealthy(kubectl *KubectlRunner) {
 }
 
 func AllComponentsAreHealthy(kubectl *KubectlRunner) bool {
-	components := GetComponentStatus(kubectl)
-	Expect(components).ToNot(BeEmpty())
+	components, err := GetComponentStatusOrError(kubectl)
+	if err != nil {
+		return false
+	}
+
+	if len(components) == 0 {
+		return false
+	}
+
 	for _, component := range components {
 		if component.Conditions[0].Status != "True" {
 			return false
@@ -123,6 +130,16 @@ func GetComponentStatus(kubectl *KubectlRunner) []ComponentStatus {
 	err := json.Unmarshal(bytes, &response)
 	Expect(err).ToNot(HaveOccurred())
 	return response.Items
+}
+
+func GetComponentStatusOrError(kubectl *KubectlRunner) ([]ComponentStatus, error) {
+	response := ComponentStatusResponse{}
+	bytes, err := kubectl.GetOutputBytesOrError("get", "componentstatus", "-o", "json")
+	if err != nil {
+		return []ComponentStatus{}, err
+	}
+	err = json.Unmarshal(bytes, &response)
+	return response.Items, err
 }
 
 func GetNodeNamesForRunningPods(kubectl *KubectlRunner) []string {

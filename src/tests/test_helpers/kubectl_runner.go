@@ -56,6 +56,10 @@ func (runner KubectlRunner) RunKubectlCommand(args ...string) *gexec.Session {
 	return runner.RunKubectlCommandInNamespace(runner.namespace, args...)
 }
 
+func (runner KubectlRunner) RunKubectlCommandOrError(args ...string) (*gexec.Session, error) {
+	return runner.RunKubectlCommandInNamespaceOrError(runner.namespace, args...)
+}
+
 func (runner KubectlRunner) RunKubectlCommandWithTimeout(args ...string) {
 	Eventually(runner.RunKubectlCommandInNamespace(runner.namespace, args...), "60s").Should(gexec.Exit(0))
 }
@@ -67,6 +71,13 @@ func (runner KubectlRunner) RunKubectlCommandInNamespace(namespace string, args 
 
 	Expect(err).NotTo(HaveOccurred())
 	return session
+}
+
+func (runner KubectlRunner) RunKubectlCommandInNamespaceOrError(namespace string, args ...string) (*gexec.Session, error) {
+	newArgs := append([]string{"--kubeconfig", runner.configPath, "--namespace", namespace}, args...)
+	command := exec.Command("kubectl", newArgs...)
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	return session, err
 }
 
 func (runner KubectlRunner) RunKubectlCommandInNamespaceSilent(namespace string, args ...string) *gexec.Session {
@@ -106,6 +117,16 @@ func (runner *KubectlRunner) GetOutputBytes(kubectlArgs ...string) []byte {
 	Eventually(session, "60s").Should(gexec.Exit(0))
 	output := session.Out.Contents()
 	return output
+}
+
+func (runner *KubectlRunner) GetOutputBytesOrError(kubectlArgs ...string) ([]byte, error) {
+	session := runner.RunKubectlCommand(kubectlArgs...)
+	Eventually(session, "60s").Should(gexec.Exit())
+	if session.ExitCode() != 0 {
+		return []byte{}, fmt.Errorf("kubectl command exitted with non zero exit code: %d", session.ExitCode())
+	}
+	output := session.Out.Contents()
+	return output, nil
 }
 
 func (runner *KubectlRunner) GetOutputBytesInNamespace(namespace string, kubectlArgs ...string) []byte {
