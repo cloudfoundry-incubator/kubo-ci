@@ -60,7 +60,7 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 
 		By("Deploying the persistent application", func() {
 			DeployGuestBook(kubectl, testconfig.TimeoutScale)
-			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
+			appAddress := kubectl.GetAppAddress("svc/frontend")
 
 			PostToGuestBook(appAddress, testValue)
 
@@ -72,7 +72,7 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 		By("Un-deploying and re-deploying the app", func() {
 			UndeployGuestBook(kubectl, testconfig.TimeoutScale)
 			DeployGuestBook(kubectl, testconfig.TimeoutScale)
-			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
+			appAddress := kubectl.GetAppAddress("svc/frontend")
 
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
@@ -81,7 +81,7 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 
 		By("Deleting the node/worker with persistent volume", func() {
 			redisVMIp := VMIpOfRedis(kubectl)
-			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
+			appAddress := kubectl.GetAppAddress("svc/frontend")
 			vmID, err := BoshIdByIp(deployment, redisVMIp)
 			Expect(err).NotTo(HaveOccurred())
 

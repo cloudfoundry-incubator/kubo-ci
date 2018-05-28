@@ -60,7 +60,7 @@ var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 
 			DeployGuestBook(kubectl, testconfig.TimeoutScale)
 
-			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
+			appAddress := kubectl.GetAppAddress("svc/frontend")
 
 			testValue := strconv.Itoa(rand.Int())
 			println(testValue)
@@ -76,7 +76,7 @@ var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 			UndeployGuestBook(kubectl, testconfig.TimeoutScale)
 			DeployGuestBook(kubectl, testconfig.TimeoutScale)
 
-			appAddress = kubectl.GetAppAddress(deployment, "svc/frontend")
+			appAddress = kubectl.GetAppAddress("svc/frontend")
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
 			}, "120s", "2s").Should(ContainSubstring(testValue))
@@ -108,7 +108,7 @@ var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 
 			DeployGuestBook(kubectl, testconfig.TimeoutScale)
 
-			appAddress := kubectl.GetAppAddress(deployment, "svc/frontend")
+			appAddress := kubectl.GetAppAddress("svc/frontend")
 
 			testValue := strconv.Itoa(rand.Int())
 			println(testValue)
@@ -124,7 +124,7 @@ var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 			UndeployGuestBook(kubectl, testconfig.TimeoutScale)
 			DeployGuestBook(kubectl, testconfig.TimeoutScale)
 
-			appAddress = kubectl.GetAppAddress(deployment, "svc/frontend")
+			appAddress = kubectl.GetAppAddress("svc/frontend")
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
 			}, "120s", "2s").Should(ContainSubstring(testValue))

@@ -10,7 +10,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/onsi/gomega/gexec"
 
 	testconfig "tests/config"
@@ -162,16 +161,21 @@ func (runner *KubectlRunner) GetNodePortInNamespace(service string, namespace st
 	return "", errors.New("No nodePort found!")
 }
 
-func (runner *KubectlRunner) GetAppAddress(deployment director.Deployment, service string) string {
-	workerIP := GetWorkerIP(deployment)
+func (runner *KubectlRunner) GetWorkerIP() string {
+	output := runner.GetOutput("get", "nodes", "-o", "jsonpath=\"{.items[0].metadata.labels['spec\\.ip']}\"")
+	return output[0]
+}
+
+func (runner *KubectlRunner) GetAppAddress(service string) string {
+	workerIP := runner.GetWorkerIP()
 	nodePort, err := runner.GetNodePort(service)
 	Expect(err).ToNot(HaveOccurred())
 
 	return fmt.Sprintf("%s:%s", workerIP, nodePort)
 }
 
-func (runner *KubectlRunner) GetAppAddressInNamespace(deployment director.Deployment, service string, namespace string) string {
-	workerIP := GetWorkerIP(deployment)
+func (runner *KubectlRunner) GetAppAddressInNamespace(service string, namespace string) string {
+	workerIP := runner.GetWorkerIP()
 	nodePort, err := runner.GetNodePortInNamespace(service, namespace)
 	Expect(err).ToNot(HaveOccurred())
 

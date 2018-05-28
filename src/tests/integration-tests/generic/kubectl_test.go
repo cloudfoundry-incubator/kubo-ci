@@ -96,7 +96,7 @@ var _ = GenericDescribe("Kubectl", func() {
 			}
 
 			kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
-			appAddress := kubectl.GetAppAddressInNamespace(deployment, "svc/kubernetes-dashboard", "kube-system")
+			appAddress := kubectl.GetAppAddressInNamespace("svc/kubernetes-dashboard", "kube-system")
 			appUrl := fmt.Sprintf("https://%s", appAddress)
 
 			Eventually(func() int {
