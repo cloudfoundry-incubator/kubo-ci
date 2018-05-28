@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -17,16 +16,10 @@ import (
 
 var _ = GenericDescribe("Kubectl", func() {
 	var (
-		deployment director.Deployment
-		kubectl    *KubectlRunner
+		kubectl *KubectlRunner
 	)
 
 	BeforeEach(func() {
-		var err error
-		director := NewDirector(testconfig.Bosh)
-		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
-		Expect(err).NotTo(HaveOccurred())
-
 		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 		kubectl.RunKubectlCommand(
 			"create", "namespace", kubectl.Namespace()).Wait("60s")

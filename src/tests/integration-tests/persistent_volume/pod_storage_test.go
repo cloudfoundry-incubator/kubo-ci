@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"strconv"
 
-	"github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -17,16 +16,10 @@ import (
 var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 
 	var (
-		deployment director.Deployment
-		kubectl    *KubectlRunner
+		kubectl *KubectlRunner
 	)
 
 	BeforeEach(func() {
-		var err error
-		director := NewDirector(testconfig.Bosh)
-		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
-		Expect(err).NotTo(HaveOccurred())
-
 		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 		kubectl.CreateNamespace()
 	})
