@@ -35,6 +35,4 @@ for lock in ${HOME}/workspace/kubo-locks/kubo-gcp-lb-lifecycle/claimed/*; do
     ]
 }
 EOF
-    aws route53 change-resource-record-sets --hosted-zone-id "/hostedzone/Z177PA9I54A5L6" \
-        --change-batch "file://${change_tmp_file}"
 done

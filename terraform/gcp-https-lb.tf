@@ -42,23 +42,15 @@ resource "google_compute_instance_group" "default" {
   }
 }
 
-resource "google_compute_target_https_proxy" "default" {
+resource "google_compute_target_tcp_proxy" "default" {
   name             = "${var.prefix}-cfcr-proxy"
-  url_map          = "${google_compute_url_map.default.self_link}"
-  ssl_certificates = ["https://www.googleapis.com/compute/v1/projects/cf-pcf-kubo/global/sslCertificates/kubo-sh-cert"]
+  backend_service  = "${google_compute_backend_service.tcp.self_link}"
 }
 
-resource "google_compute_url_map" "default" {
-  name        = "${var.prefix}-https-lb"
-  description = "a description"
-
-  default_service = "${google_compute_backend_service.default.self_link}"
-}
-
-resource "google_compute_backend_service" "default" {
+resource "google_compute_backend_service" "tcp" {
   name        = "${var.prefix}-k8s-master-service"
   port_name   = "kubernetes-master"
-  protocol    = "HTTPS"
+  protocol    = "TCP"
   timeout_sec = 60
   enable_cdn  = false
 
@@ -74,21 +66,22 @@ resource "google_compute_backend_service" "default" {
     group = "${google_compute_instance_group.default.2.self_link}"
   }
 
-  health_checks = ["${google_compute_https_health_check.default.self_link}"]
+  health_checks = ["${google_compute_health_check.default.self_link}"]
 }
 
-resource "google_compute_https_health_check" "default" {
+resource "google_compute_health_check" "default" {
   name               = "${var.prefix}-k8s-master"
-  request_path       = "/healthz"
-  port               = 8443
+  tcp_health_check {
+    port = 8443
+  }
   check_interval_sec = 2
   timeout_sec        = 2
 }
 
-resource "google_compute_global_forwarding_rule" "cf-https" {
+resource "google_compute_global_forwarding_rule" "cf-tcp" {
   name       = "${var.prefix}-cfcr-lb-https"
   ip_address = "${google_compute_global_address.static_address.address}"
-  target     = "${google_compute_target_https_proxy.default.self_link}"
+  target     = "${google_compute_target_tcp_proxy.default.self_link}"
   port_range = "443"
 }
 
