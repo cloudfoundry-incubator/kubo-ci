@@ -6,3 +6,4 @@ pkg/
 creds.yml
 concourse/**/bbl
 terraform/gcp.json
+terraform/.terraform
