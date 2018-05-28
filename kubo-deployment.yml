@@ -12,9 +12,6 @@
   additional_envs = %w(gcp-lb vsphere-lb)
   env_list = iaases + additional_envs
   enable_failure_alert = true
-  k8s_api_port_bumps = {
-    abac: 400,
-  }
 
   upgrade_test_iaases = %w(gcp-lb vsphere-lb)
   multi_master_upgrade_test_iaases = %w(aws-lb gcp-lb)
@@ -40,11 +37,6 @@ groups:
   - run-k8s-turbulence-tests-<%= env %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
-  <% if env == 'gcp' %>
-  - deploy-k8s-with-abac-<%= env %>
-  - run-k8s-integration-tests-on-abac-<%= env %>
-  - destroy-k8s-with-abac-<%= env %>
-  <% end %>
 <% end %>
 <% upgrade_test_iaases.each do |iaas| %>
   - claim-lock-upgrade-<%= iaas %>
@@ -94,11 +86,6 @@ groups:
   - run-k8s-turbulence-tests-<%= env %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
-  <% if env == 'gcp' %>
-  - deploy-k8s-with-abac-<%= env %>
-  - run-k8s-integration-tests-on-abac-<%= env %>
-  - destroy-k8s-with-abac-<%= env %>
-  <% end %>
   <% if upgrade_test_iaases.include? env %>
   - claim-lock-upgrade-<%= env %>
   - install-old-bosh-<%= env %>
@@ -502,155 +489,6 @@ jobs:
     file: git-kubo-ci/tasks/configure-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
 
-<% if env == 'gcp' %>
-- name: deploy-k8s-with-abac-<%= env %>
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
-      version: every
-      trigger: true
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: git-kubo-deployment
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: git-kubo-release
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: kubo-version
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: gcs-bosh-state
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: gcs-bosh-creds
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'install-bosh-<%= env %>' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'install-bosh-<%= env %>' ]
-
-  - task: delay-execution # To avoid the stemcell upload conflicts
-    file: git-kubo-ci/tasks/delay-execution.yml
-    params:
-      DELAY_TIME_SECS: 60
-
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
-    tags: [<%= env %>]
-
-  - task: apply-abac-to-env
-    file: git-kubo-ci/tasks/apply-abac-to-env.yml
-    tags: [<%= env %>]
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
-
-  - task: bump_kubernetes_port
-    file: git-kubo-ci/tasks/bump-kubernetes-port.yml
-    input_mapping: {kubo-lock-pre: kubo-lock-with-abac}
-    tags: [<%= env %>]
-    params:
-      BUMP_AMOUNT: <%= k8s_api_port_bumps[:abac] %>
-
-  - task: deploy
-    tags: [<%= env %>]
-    params:
-      DEPLOYMENT_NAME: ci-service-k8s-with-abac
-      CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
-    input_mapping:
-      gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
-    attempts: 2
-    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-    on_failure: *on_failure_alert
-  - task: smoke-test
-    tags: [<%= env %>]
-    input_mapping:
-      kubo-lock: kubo-lock-<%= env %>
-    params:
-      DEPLOYMENT_NAME: ci-service-k8s-with-abac
-      ERRAND_NAME: smoke-tests
-      INSTANCE: "master/0"
-    file: git-kubo-ci/tasks/run-errand.yml
-    on_failure: *on_failure_alert
-
-- name: run-k8s-integration-tests-on-abac-<%= env %>
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
-      version: every
-      trigger: true
-      passed: [ 'deploy-k8s-with-abac-<%= env %>' ]
-    - get: git-kubo-deployment
-      passed: [ 'deploy-k8s-with-abac-<%= env %>' ]
-    - get: gcs-bosh-state
-      passed: [ 'deploy-k8s-with-abac-<%= env %>' ]
-    - get: gcs-bosh-creds
-      passed: [ 'deploy-k8s-with-abac-<%= env %>' ]
-    - get: kubo-version
-      passed: [ 'deploy-k8s-with-abac-<%= env %>' ]
-    - get: git-kubo-release
-      passed: [ 'deploy-k8s-with-abac-<%= env %>' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'deploy-k8s-with-abac-<%= env %>' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'deploy-k8s-with-abac-<%= env %>' ]
-  - task: apply-abac-to-env
-    file: git-kubo-ci/tasks/apply-abac-to-env.yml
-    tags: [<%= env %>]
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
-  - task: bump_kubernetes_port
-    file: git-kubo-ci/tasks/bump-kubernetes-port.yml
-    input_mapping: {kubo-lock-pre: kubo-lock-with-abac}
-    tags: [<%= env %>]
-    params:
-      BUMP_AMOUNT: <%= k8s_api_port_bumps[:abac] %>
-  - task: integration-tests
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
-    on_failure: *on_failure_alert
-    params:
-      DEPLOYMENT_NAME: ci-service-k8s-with-abac
-      ENABLE_OSS_ONLY_TESTS: true
-      ENABLE_PERSISTENT_VOLUME_TESTS: true
-  - task: pod-to-pod
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/pod-to-pod.yml
-    params:
-      DEPLOYMENT_NAME: ci-service-k8s-with-abac
-    on_failure: *on_failure_alert
-
-- name: destroy-k8s-with-abac-<%= env %>
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
-      version: every
-      trigger: true
-      passed: [ 'run-k8s-integration-tests-on-abac-<%= env %>' ]
-    - get: kubo-version
-      passed: [ 'run-k8s-integration-tests-on-abac-<%= env %>' ]
-    - get: git-kubo-deployment
-      passed: [ 'run-k8s-integration-tests-on-abac-<%= env %>' ]
-    - get: git-kubo-release
-      passed: [ 'run-k8s-integration-tests-on-abac-<%= env %>' ]
-    - get: gcs-bosh-state
-      passed: [ 'run-k8s-integration-tests-on-abac-<%= env %>' ]
-    - get: gcs-bosh-creds
-      passed: [ 'run-k8s-integration-tests-on-abac-<%= env %>' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'run-k8s-integration-tests-on-abac-<%= env %>' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'run-k8s-integration-tests-on-abac-<%= env %>' ]
-  - task: destroy-k8s
-    tags: [<%= env %>]
-    params:
-      DEPLOYMENT_NAME: ci-service-k8s-with-abac
-    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
-    on_failure: *on_failure_alert
-<% end %>
-
 - name: deploy-k8s-<%= env %>
   plan:
   - aggregate:
@@ -866,9 +704,6 @@ jobs:
 
 <%
 destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
-if env == 'gcp'
-  destroy_bosh_passed_reqs << "destroy-k8s-with-abac-#{env}"
-end
 %>
 
 - name: destroy-bosh-<%= env %>
