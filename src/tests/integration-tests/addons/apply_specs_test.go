@@ -11,13 +11,13 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = AddonsDescribe("check apply-specs errand has run correctly", func() {
+var _ = Describe("check apply-specs errand has run correctly", func() {
 	var (
 		kubectl *KubectlRunner
 	)
 
 	BeforeEach(func() {
-		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		kubectl = NewKubectlRunnerWithDefaultConfig()
 	})
 
 	DescribeTable("all deployments have rolled out", func(deploymentName string) {

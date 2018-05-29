@@ -42,6 +42,13 @@ func NewKubectlRunner(pathToKubeConfig string) *KubectlRunner {
 	return runner
 }
 
+func NewKubectlRunnerWithDefaultConfig() *KubectlRunner {
+	return &KubectlRunner{
+		namespace: "test-" + GenerateRandomUUID(),
+		Timeout:   "60s",
+	}
+}
+
 func PathFromRoot(relativePath string) string {
 	_, filename, _, _ := runtime.Caller(0)
 	currentDir := filepath.Dir(filename)
@@ -65,8 +72,11 @@ func (runner KubectlRunner) RunKubectlCommandWithTimeout(args ...string) {
 }
 
 func (runner KubectlRunner) RunKubectlCommandInNamespace(namespace string, args ...string) *gexec.Session {
-	newArgs := append([]string{"--kubeconfig", runner.configPath, "--namespace", namespace}, args...)
-	command := exec.Command("kubectl", newArgs...)
+	argsWithNamespace := append([]string{"--namespace", namespace}, args...)
+	if runner.configPath != "" {
+		argsWithNamespace = append(argsWithNamespace, []string{"--kubeconfig", runner.configPath}...)
+	}
+	command := exec.Command("kubectl", argsWithNamespace...)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 
 	Expect(err).NotTo(HaveOccurred())
