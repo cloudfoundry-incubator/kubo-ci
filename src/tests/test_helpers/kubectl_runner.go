@@ -1,6 +1,7 @@
 package test_helpers
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -115,7 +116,7 @@ func (runner *KubectlRunner) GetOutputBytes(kubectlArgs ...string) []byte {
 	session := runner.RunKubectlCommand(kubectlArgs...)
 	Eventually(session, "60s").Should(gexec.Exit(0))
 	output := session.Out.Contents()
-	return output
+	return bytes.Trim(output, `"`)
 }
 
 func (runner *KubectlRunner) GetOutputBytesOrError(kubectlArgs ...string) ([]byte, error) {
@@ -125,14 +126,14 @@ func (runner *KubectlRunner) GetOutputBytesOrError(kubectlArgs ...string) ([]byt
 		return []byte{}, fmt.Errorf("kubectl command exitted with non zero exit code: %d", session.ExitCode())
 	}
 	output := session.Out.Contents()
-	return output, nil
+	return bytes.Trim(output, `"`), nil
 }
 
 func (runner *KubectlRunner) GetOutputBytesInNamespace(namespace string, kubectlArgs ...string) []byte {
 	session := runner.RunKubectlCommandInNamespace(namespace, kubectlArgs...)
-	Eventually(session, "20s").Should(gexec.Exit(0))
+	Eventually(session, "60s").Should(gexec.Exit(0))
 	output := session.Out.Contents()
-	return output
+	return bytes.Trim(output, `"`)
 }
 
 func (runner *KubectlRunner) GetNodePort(service string) (string, error) {
