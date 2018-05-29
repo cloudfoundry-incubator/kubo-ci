@@ -74,9 +74,9 @@ var _ = K8SLBDescribe("Deploy workload", func() {
 	})
 
 	AfterEach(func() {
-		runner.CleanupServiceWithLB(loadbalancerAddress, nginxLBSpec, testconfig.Iaas, testconfig.AWS)
+		session := runner.RunKubectlCommand("delete", "-f", nginxLBSpec)
+		session.Wait("60s")
 	})
-
 })
 
 var _ = K8SLBDescribe("When deploying a loadbalancer", func() {
@@ -107,13 +107,11 @@ var _ = K8SLBDescribe("When deploying a loadbalancer", func() {
 			Eventually(func() string {
 				return getIPAddressFromEchoserver(appURL)
 			}, "600s", "20s").Should(Not(BeEquivalentTo(ipAddress)))
-
 		})
-
 	})
 
 	AfterEach(func() {
-		runner.CleanupServiceWithLB(loadbalancerAddress, echoserverLBSpec, testconfig.Iaas, testconfig.AWS)
+		session := runner.RunKubectlCommand("delete", "-f", echoserverLBSpec)
+		session.Wait("60s")
 	})
-
 })

@@ -41,8 +41,8 @@ var _ = Describe("Upgrade components", func() {
 
 	AfterEach(func() {
 		test_helpers.DeleteSmorgasbord(k8sRunner, testconfig.Iaas)
-		k8sRunner.CleanupServiceWithLB(loadbalancerAddress, nginxSpec, testconfig.Iaas, testconfig.AWS)
-		k8sRunner.RunKubectlCommand("delete", "namespace", k8sRunner.Namespace())
+		session := k8sRunner.RunKubectlCommand("delete", "-f", "nginxSpec")
+		session.Wait("60s")
 	})
 
 	It("upgrades BOSH and CFCR Release", func() {

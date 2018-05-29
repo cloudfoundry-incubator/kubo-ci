@@ -30,3 +30,8 @@ var _ = BeforeEach(func() {
 	k8sRunner = test_helpers.NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
 	k8sRunner.CreateNamespace()
 })
+
+var _ = AfterEach(func() {
+	k8sRunner = test_helpers.NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+	k8sRunner.RunKubectlCommand("delete", "namespace", k8sRunner.Namespace())
+})
