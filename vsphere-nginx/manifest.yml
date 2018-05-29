@@ -1,0 +1,78 @@
+#
+# Example nginx configuration to act as reverse proxy of an existing
+# service and add basic authentication on it.
+#
+# This example covers:
+# - Generation of an htpasswd file from a login and password
+# - Use of bosh2 variables to feed SSL properties
+#
+---
+name: nginx
+
+releases:
+- name: nginx
+  version: "1.13.12"
+  url: "https://bosh.io/d/github.com/cloudfoundry-community/nginx-release?v=1.13.12"
+  sha1: "bf156c545c45ed4e57563274f91dbd433000d776"
+
+instance_groups:
+- name: nginx
+  instances: 1
+  azs: [ z1 ]
+  vm_type: worker
+  stemcell: ubuntu
+  networks:
+  - name: kubo-network
+  jobs:
+  - name: nginx
+    release: nginx
+    properties:
+      nginx_conf: |
+        user nobody vcap; # group vcap can read /var/vcap/jobs
+        worker_processes  1;
+        error_log /var/vcap/sys/log/nginx/error.log   info;
+        events {
+          worker_connections  1024;
+        }
+        stream {
+          server {
+            listen 2000;
+            proxy_pass airbus_backend;
+          }
+          upstream airbus_backend {
+            server 10.85.96.45:8443;
+            server 10.85.96.46:8443;
+            server 10.85.96.47:8443;
+          }
+
+          server {
+            listen 3000;
+            proxy_pass boeing_backend;
+          }
+          upstream boeing_backend {
+            server 10.85.96.73:8443;
+            server 10.85.96.74:8443;
+            server 10.85.96.75:8443;
+          }
+
+          server {
+            listen 4000;
+            proxy_pass cessna_backend;
+          }
+          upstream cessna_backend {
+            server 10.85.96.101:8443;
+            server 10.85.96.102:8443;
+            server 10.85.96.103:8443;
+          }
+        }
+stemcells:
+- alias: ubuntu
+  os: ubuntu-trusty
+  version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  serial: false
+  canary_watch_time: 1000-60000
+  update_watch_time: 1000-60000
