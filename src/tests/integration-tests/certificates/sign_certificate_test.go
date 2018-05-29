@@ -9,7 +9,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = CertificatesDescribe("Certificate signing requests", func() {
+var _ = Describe("Certificate signing requests", func() {
 
 	var (
 		csrSpec string
@@ -18,7 +18,7 @@ var _ = CertificatesDescribe("Certificate signing requests", func() {
 
 	BeforeEach(func() {
 		csrSpec = PathFromRoot("specs/csr.yml")
-		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		kubectl = NewKubectlRunnerWithDefaultConfig()
 	})
 
 	AfterEach(func() {
