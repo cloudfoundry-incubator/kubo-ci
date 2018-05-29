@@ -116,14 +116,8 @@ generate_test_config() {
   credhub_login $environment
 
   local director_name=$(bosh int "${environment}/director.yml" --path="/director_name")
-  local authorization_mode=$(bosh int "${environment}/director.yml" --path='/authorization_mode')
   local iaas=$(bosh int "$environment/director.yml" --path='/iaas')
   local routing_mode=$(bosh int "$environment/director.yml" --path='/routing_mode')
-
-  local enable_rbac_tests="false"
-  if [[ ${authorization_mode} == "rbac" ]]; then
-    enable_rbac_tests="true"
-  fi
 
   local enable_cloudfoundry_tests="false"
   if [[ ${routing_mode} == "cf" ]]; then
@@ -142,8 +136,9 @@ generate_test_config() {
 	  "integration_tests": {
 	    "include_cloudfoundry": ${enable_cloudfoundry_tests},
 	    "include_k8s_lb": ${enable_iaas_k8s_lb_tests},
-	    "include_persistent_volume": ${enable_persistent_volume_tests},
-	    "include_rbac": ${enable_rbac_tests}
+	    "include_multiaz": ${enable_multi_az_tests},
+	    "include_oss_only": ${enable_oss_only_tests},
+	    "include_persistent_volume": ${enable_persistent_volume_tests}
 	  },
 	  "upgrade_tests": {
 	    "include_multiaz": ${enable_multi_az_tests}
@@ -177,7 +172,6 @@ generate_test_config() {
 	    "apps_domain": "$(bosh int $director_yml --path=/routing_cf_app_domain_name 2>/dev/null)"
 	  },
 	  "kubernetes": {
-	    "authorization_mode": "$(bosh int $director_yml --path=/authorization_mode)",
 	    "master_host": "$(bosh int $director_yml --path=/kubernetes_master_host)",
 	    "master_port": $(bosh int $director_yml --path=/kubernetes_master_port),
 	    "path_to_kube_config": "$HOME/.kube/config",

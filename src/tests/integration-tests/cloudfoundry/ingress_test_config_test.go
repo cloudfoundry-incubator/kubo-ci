@@ -2,7 +2,6 @@ package cloudfoundry_test
 
 import (
 	"strconv"
-	"strings"
 	"tests/config"
 	"tests/test_helpers"
 
@@ -21,14 +20,8 @@ type IngressTestConfig struct {
 	ingressRoles            string
 	rbacIngressSpec         string
 	rbacServiceAccount      string
-	authorizationMode       string
 	runner                  *test_helpers.KubectlRunner
 }
-
-const (
-	abac = "ABAC"
-	rbac = "RBAC"
-)
 
 func InitializeIngressTestConfig(runner *test_helpers.KubectlRunner, testconfig config.Kubernetes) IngressTestConfig {
 	tc := IngressTestConfig{}
@@ -55,29 +48,18 @@ func InitializeIngressTestConfig(runner *test_helpers.KubectlRunner, testconfig 
 	if tc.tlsKubernetesPrivateKey == "" {
 		Fail("Correct Kubernetes TLS Private Key must be set in test config")
 	}
-	tc.authorizationMode = strings.ToUpper(testconfig.AuthorizationMode)
-	if tc.authorizationMode != rbac && tc.authorizationMode != abac {
-		Fail("Correct Kubernetes authorization mode must be set in test config")
-	}
-
 	return tc
 }
 
 func (tc IngressTestConfig) createIngressController() {
-	if tc.authorizationMode == rbac {
-		tc.runner.RunKubectlCommandWithTimeout("create", "serviceaccount", tc.rbacServiceAccount)
-		tc.runner.RunKubectlCommandWithTimeout("apply", "-f", tc.ingressRoles)
-		tc.runner.RunKubectlCommandWithTimeout("create", "clusterrolebinding", "nginx-ingress-clusterrole-binding", "--clusterrole", "nginx-ingress-clusterrole", "--serviceaccount", tc.runner.Namespace()+":"+tc.rbacServiceAccount)
-		tc.runner.RunKubectlCommandWithTimeout("create", "rolebinding", "nginx-ingress-role-binding", "--role", "nginx-ingress-role", "--serviceaccount", tc.runner.Namespace()+":"+tc.rbacServiceAccount)
-		tc.runner.RunKubectlCommandWithTimeout("create", "-f", tc.rbacIngressSpec)
-	} else {
-		Eventually(tc.runner.RunKubectlCommand("create", "-f", tc.ingressSpec), "60s").Should(gexec.Exit(0))
-	}
+	tc.runner.RunKubectlCommandWithTimeout("create", "serviceaccount", tc.rbacServiceAccount)
+	tc.runner.RunKubectlCommandWithTimeout("apply", "-f", tc.ingressRoles)
+	tc.runner.RunKubectlCommandWithTimeout("create", "clusterrolebinding", "nginx-ingress-clusterrole-binding", "--clusterrole", "nginx-ingress-clusterrole", "--serviceaccount", tc.runner.Namespace()+":"+tc.rbacServiceAccount)
+	tc.runner.RunKubectlCommandWithTimeout("create", "rolebinding", "nginx-ingress-role-binding", "--role", "nginx-ingress-role", "--serviceaccount", tc.runner.Namespace()+":"+tc.rbacServiceAccount)
+	tc.runner.RunKubectlCommandWithTimeout("create", "-f", tc.rbacIngressSpec)
 }
 
 func (tc IngressTestConfig) deleteIngressController() {
-	if tc.authorizationMode == rbac {
-		Eventually(tc.runner.RunKubectlCommand("delete", "-f", tc.ingressRoles), "10s").Should(gexec.Exit())
-		Eventually(tc.runner.RunKubectlCommand("delete", "clusterrolebinding", "nginx-ingress-clusterrole-binding"), "10s").Should(gexec.Exit())
-	}
+	Eventually(tc.runner.RunKubectlCommand("delete", "-f", tc.ingressRoles), "10s").Should(gexec.Exit())
+	Eventually(tc.runner.RunKubectlCommand("delete", "clusterrolebinding", "nginx-ingress-clusterrole-binding"), "10s").Should(gexec.Exit())
 }
