@@ -18,7 +18,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = APIExtensionsDescribe("Api Extensions", func() {
+var _ = Describe("Api Extensions", func() {
 	const (
 		defaultNamespace                  = "kube-system"
 		serviceAccountSpecTemplate        = "fixtures/sa.yml"
@@ -60,7 +60,7 @@ var _ = APIExtensionsDescribe("Api Extensions", func() {
 
 	BeforeEach(func() {
 		var err error
-		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		kubectl = NewKubectlRunnerWithDefaultConfig()
 		apiExtensionsNamespace = kubectl.Namespace()
 
 		tmpDir, err = ioutil.TempDir("", "api-extensions")
