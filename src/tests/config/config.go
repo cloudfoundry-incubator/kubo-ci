@@ -59,7 +59,6 @@ type Cf struct {
 
 type IntegrationTests struct {
 	IncludeAPIExtensions    bool `json:"include_api_extensions"`
-	IncludeAddons           bool `json:"include_addons"`
 	IncludeCertificates     bool `json:"include_certificates"`
 	IncludeCloudFoundry     bool `json:"include_cloudfoundry"`
 	IncludeGeneric          bool `json:"include_generic"`

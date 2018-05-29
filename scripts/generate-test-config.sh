@@ -165,7 +165,6 @@ generate_test_config() {
 	{
 	  "iaas": "$(bosh int $director_yml --path=/iaas)",
 	  "integration_tests": {
-	    "include_addons": ${enable_addons_tests},
 	    "include_api_extensions": ${enable_api_extensions_tests},
 	    "include_certificates": ${enable_certificate_tests},
 	    "include_cloudfoundry": ${enable_cloudfoundry_tests},
