@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = OSSOnlyDescribe("Kubectl", func() {
+var _ = Describe("Kubectl", func() {
 	var (
 		runner *test_helpers.KubectlRunner
 	)
 
 	BeforeEach(func() {
-		runner = test_helpers.NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		runner = test_helpers.NewKubectlRunnerWithDefaultConfig()
 		runner.RunKubectlCommand(
 			"create", "namespace", runner.Namespace()).Wait("60s")
 	})

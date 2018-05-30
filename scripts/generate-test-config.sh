@@ -14,7 +14,6 @@ verify_args() {
 	Options:
 		-h                                            show this help text
 		--enable-multi-az-tests                       [env:ENABLE_MULTI_AZ_TESTS]
-		--enable-oss-only-tests                       [env:ENABLE_OSS_ONLY_TESTS]
 		--enable-persistent-volume-tests              [env:ENABLE_PERSISTENT_VOLUME_TESTS]
 
 		--conformance_release_version=<some-value>    [env:CONFORMANCE_RELEASE_VERSION]
@@ -63,7 +62,6 @@ generate_test_config() {
   local environment="$1"
   local deployment="$2"
   local enable_multi_az_tests="${ENABLE_MULTI_AZ_TESTS:-false}"
-  local enable_oss_only_tests="${ENABLE_OSS_ONLY_TESTS:-false}"
   local enable_persistent_volume_tests="${ENABLE_PERSISTENT_VOLUME_TESTS:-false}"
   local conformance_release_version="${CONFORMANCE_RELEASE_VERSION:-dev}"
   local conformance_results_dir="${CONFORMANCE_RESULTS_DIR:-/tmp}"
@@ -80,9 +78,6 @@ generate_test_config() {
     case "$flag" in
       --enable-multi-az-tests)
 	enable_multi_az_tests=true
-	;;
-      --enable-oss-only-tests)
-	enable_oss_only_tests=true
 	;;
       --enable-persistent-volume-tests)
 	enable_persistent_volume_tests=true
@@ -147,7 +142,6 @@ generate_test_config() {
 	  "integration_tests": {
 	    "include_cloudfoundry": ${enable_cloudfoundry_tests},
 	    "include_k8s_lb": ${enable_iaas_k8s_lb_tests},
-	    "include_oss_only": ${enable_oss_only_tests},
 	    "include_persistent_volume": ${enable_persistent_volume_tests},
 	    "include_rbac": ${enable_rbac_tests}
 	  },

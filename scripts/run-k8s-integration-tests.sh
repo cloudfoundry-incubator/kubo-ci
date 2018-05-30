@@ -22,6 +22,10 @@ main() {
     skipped_packages="$skipped_packages,multiaz"
   fi
 
+  if [[ -z "${ENABLE_OSS_ONLY_TESTS+x}" ]]; then
+    skipped_packages="$skipped_packages,oss_only"
+  fi
+
   if [[ "$skipped_packages" != "" ]]; then
     skipped_packages="$(echo $skipped_packages | cut -c 2-)"
   fi
