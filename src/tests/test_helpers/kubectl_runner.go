@@ -74,7 +74,7 @@ func (runner KubectlRunner) RunKubectlCommandWithTimeout(args ...string) {
 func (runner KubectlRunner) RunKubectlCommandInNamespace(namespace string, args ...string) *gexec.Session {
 	argsWithNamespace := append([]string{"--namespace", namespace}, args...)
 	if runner.configPath != "" {
-		argsWithNamespace = append(argsWithNamespace, []string{"--kubeconfig", runner.configPath}...)
+		argsWithNamespace = append([]string{"--kubeconfig", runner.configPath}, argsWithNamespace...)
 	}
 	command := exec.Command("kubectl", argsWithNamespace...)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
