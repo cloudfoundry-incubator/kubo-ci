@@ -16,7 +16,17 @@ main() {
   local tmpfile="$(mktemp)" && echo "CONFIG=${tmpfile}"
   "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" ${KUBO_ENVIRONMENT_DIR} ${DEPLOYMENT_NAME} > "${tmpfile}"
 
-  CONFIG="${tmpfile}" ginkgo -r -progress -v "${ROOT}/git-kubo-ci/src/tests/integration-tests/"
+  skipped_packages=""
+
+  if [[ -z "${ENABLE_MULTI_AZ_TESTS+x}" ]]; then
+    skipped_packages="$skipped_packages,multiaz"
+  fi
+
+  if [[ "$skipped_packages" != "" ]]; then
+    skipped_packages="$(echo $skipped_packages | cut -c 2-)"
+  fi
+
+  CONFIG="${tmpfile}" ginkgo -r -progress -v -skipPackage "${skipped_packages}" "${ROOT}/git-kubo-ci/src/tests/integration-tests/"
 }
 
 main
