@@ -610,10 +610,6 @@ jobs:
     on_failure: *on_failure_alert
     params:
       DEPLOYMENT_NAME: ci-service-k8s-with-abac
-      ENABLE_ADDONS_TESTS: true
-      ENABLE_API_EXTENSIONS_TESTS: true
-      ENABLE_CERTIFICATE_TESTS: true
-      ENABLE_GENERIC_TESTS: true
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
   - task: pod-to-pod
@@ -731,10 +727,6 @@ jobs:
     on_failure: *on_failure_alert
     params:
       DEPLOYMENT_NAME: ci-service
-      ENABLE_ADDONS_TESTS: true
-      ENABLE_API_EXTENSIONS_TESTS: true
-      ENABLE_CERTIFICATE_TESTS: true
-      ENABLE_GENERIC_TESTS: true
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
       <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
@@ -1572,10 +1564,6 @@ end
       kubo-lock: kubo-lock-proxy-vsphere
     params:
       DEPLOYMENT_NAME: ci-service-k8s-with-proxy
-      ENABLE_ADDONS_TESTS: true
-      ENABLE_API_EXTENSIONS_TESTS: true
-      ENABLE_CERTIFICATE_TESTS: true
-      ENABLE_GENERIC_TESTS: true
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
     on_failure: *on_failure_alert
