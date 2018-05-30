@@ -50,10 +50,14 @@ fi
 set +x
 export DEBUG=0
 "$KUBO_DEPLOYMENT_DIR/bin/deploy_k8s" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" "$release_source"
-set -x
-export DEBUG=1
-
-"$KUBO_DEPLOYMENT_DIR/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
+if [[ -f "${ROOT}/git-kubo-deployment/bin/credhub_login" ]]; then
+  "${ROOT}/git-kubo-deployment/bin/credhub_login" "${KUBO_ENVIRONMENT_DIR}"
+  source "${ROOT}/git-kubo-ci/scripts/lib/utils.sh"
+  eval "$(set_variables)"
+  "${KUBO_DEPLOYMENT_DIR}/bin/set_kubeconfig" "${cluster_name}" "${api_url}"
+else
+  "${KUBO_DEPLOYMENT_DIR}/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
+fi
 if [[ -z ${LOCAL_DEV+x} ]] || [[ "$LOCAL_DEV" != "1" ]]; then
   cp ~/.kube/config "${ROOT}/gcs-kubeconfig/config"
 fi
