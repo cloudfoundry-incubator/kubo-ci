@@ -59,7 +59,6 @@ type Cf struct {
 
 type IntegrationTests struct {
 	IncludeCloudFoundry     bool `json:"include_cloudfoundry"`
-	IncludeGeneric          bool `json:"include_generic"`
 	IncludeK8SLB            bool `json:"include_k8s_lb"`
 	IncludeMultiAZ          bool `json:"include_multiaz"`
 	IncludeOSSOnly          bool `json:"include_oss_only"`

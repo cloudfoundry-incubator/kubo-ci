@@ -10,24 +10,19 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = GenericDescribe("MasterTlsCertificate", func() {
+var _ = Describe("MasterTlsCertificate", func() {
 
 	var (
 		kubectl *KubectlRunner
 	)
 
 	BeforeEach(func() {
-		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
-	})
-
-	AfterEach(func() {
-		kubectl.RunKubectlCommandInNamespace("default",
-			"delete", "pods", "test-master-cert-via-curl", "--grace-period=0", "--force", "--ignore-not-found=true").Wait("60s")
+		kubectl = NewKubectlRunnerWithDefaultConfig()
 	})
 
 	DescribeTable("hostnames", func(hostname string) {
 		url := fmt.Sprintf("https://%s", hostname)
-		session := kubectl.RunKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl", "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", url, "--cacert", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+		session := kubectl.RunKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl-"+GenerateRandomUUID(), "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", url, "--cacert", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
 		Eventually(session, "5m").Should(gexec.Exit(0))
 	},
 		Entry("kubernetes", "kubernetes"),

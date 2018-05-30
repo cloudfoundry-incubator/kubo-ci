@@ -166,7 +166,6 @@ generate_test_config() {
 	  "iaas": "$(bosh int $director_yml --path=/iaas)",
 	  "integration_tests": {
 	    "include_cloudfoundry": ${enable_cloudfoundry_tests},
-	    "include_generic": ${enable_generic_tests},
 	    "include_k8s_lb": ${enable_iaas_k8s_lb_tests},
 	    "include_multiaz": ${enable_multi_az_tests},
 	    "include_oss_only": ${enable_oss_only_tests},

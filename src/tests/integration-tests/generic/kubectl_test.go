@@ -14,13 +14,13 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = GenericDescribe("Kubectl", func() {
+var _ = Describe("Kubectl", func() {
 	var (
 		kubectl *KubectlRunner
 	)
 
 	BeforeEach(func() {
-		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		kubectl = NewKubectlRunnerWithDefaultConfig()
 		kubectl.RunKubectlCommand(
 			"create", "namespace", kubectl.Namespace()).Wait("60s")
 	})
