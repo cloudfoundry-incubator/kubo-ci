@@ -3,13 +3,13 @@ name: concourse-worker
 
 releases:
 - name: concourse
-  sha1: 99e134676df72e18c719ccfbd7977bd9449e6fd4
-  url: https://bosh.io/d/github.com/concourse/concourse?v=3.8.0
-  version: 3.8.0
+  sha1: aaa4e4d42adb2293abc79422351ca71ed548f95c
+  url: https://bosh.io/d/github.com/concourse/concourse?v=3.13.0
+  version: 3.13.0
 - name: garden-runc
-  sha1: d5ddb4eaf7c04705cd1c07445b1668556783774f
-  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.9.5
-  version: 1.9.5
+  sha1: 54cbb89cae1be0708aa056185671665d7f4b2a4f
+  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.13.1
+  version: 1.13.1
 
 stemcells:
 - alias: trusty
@@ -25,7 +25,8 @@ instance_groups:
   azs: [z1]
   networks: [{name: ((deployments_network))}]
   jobs:
-  - name: groundcrew
+  - name: worker
+    consumes: {baggageclaim: {from: worker-baggageclaim}}
     release: concourse
     properties:
       tags:
@@ -34,20 +35,23 @@ instance_groups:
       tsa:
         worker_key: ((worker-key))
         host: ci.kubo.sh
-        host_public_key: ((tsa-host-key.public_key))
+        host_public_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC9LqI9kodGwUTKnckFA2zewsgk+MzeABX5q2DNAfJDuWwFDy3iDu4bcLQUgLVbORdttwAQKoxbbK3DqBxiyEvo41MJa/tqhrroMuESx+8mGVtDjmedEfV6vEoq47WGIUwBrYZeS+e46oqdKz2ZrU26Ba7GV0KPpbswEhw/80By0vFzmqLSgil57EIQcOBorvZfIK/QBvxTEJAonxLt562AaYqvJ4I8fpMS2FCrE3/m5K5zBhJCcTqyv7bD/8bg7DLCqtUFLDnZ3ccwxn3e2KRiaWS/ub5ZRIlue/ZqdrFKEWjVmdMl+TyGeH2k4NPUCGJh/t9kBSJNociuQyB3Xihr
       garden:
         forward_address: 127.0.0.1:7777
       baggageclaim:
         forward_address: 127.0.0.1:7788
   - name: baggageclaim
     release: concourse
-    properties: {}
+    provides: {baggageclaim: {as: worker-baggageclaim}}
+    properties:
+      bind_ip: 127.0.0.1
   - name: garden
     release: garden-runc
     properties:
       garden:
+        forward_address: 127.0.0.1:7777
         listen_network: tcp
-        listen_address: 0.0.0.0:7777
+        listen_address: 127.0.0.1:7777
 update:
   canaries: 1
   max_in_flight: 1
