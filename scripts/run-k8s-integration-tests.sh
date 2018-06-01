@@ -26,6 +26,10 @@ main() {
     skipped_packages="$skipped_packages,oss_only"
   fi
 
+  if [[ -z "${ENABLE_PERSISTENT_VOLUME_TESTS+x}" ]]; then
+    skipped_packages="$skipped_packages,persistent_volume"
+  fi
+
   if [[ "$skipped_packages" != "" ]]; then
     skipped_packages="$(echo $skipped_packages | cut -c 2-)"
   fi

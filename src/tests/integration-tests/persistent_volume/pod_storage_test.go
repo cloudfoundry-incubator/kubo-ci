@@ -4,28 +4,39 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
+
+	. "tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "tests/test_helpers"
-
 	"github.com/onsi/gomega/gexec"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var _ = PersistentVolumeDescribe("Guestbook storage", func() {
+var _ = Describe("Guestbook storage", func() {
 
 	var (
 		kubectl *KubectlRunner
+		iaas    string
 	)
 
 	BeforeEach(func() {
-		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		kubectl = NewKubectlRunnerWithDefaultConfig()
 		kubectl.CreateNamespace()
+
+		kubeclient, err := NewKubeClient()
+		Expect(err).NotTo(HaveOccurred())
+		nodes, err := kubeclient.CoreV1().Nodes().List(meta_v1.ListOptions{})
+		Expect(err).NotTo(HaveOccurred())
+		providerID := nodes.Items[0].Spec.ProviderID
+		iaas = strings.Split(providerID, ":")[0]
+		fmt.Printf("iaas = %s", iaas)
 	})
 
 	AfterEach(func() {
-		UndeployGuestBook(kubectl, testconfig.TimeoutScale)
+		UndeployGuestBook(kubectl)
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
 
@@ -36,7 +47,7 @@ var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 		)
 
 		BeforeEach(func() {
-			storageClassSpec = PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
+			storageClassSpec = PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
 			Eventually(kubectl.RunKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 			pvcSpec = PathFromRoot("specs/persistent-volume-claim.yml")
 			Eventually(kubectl.RunKubectlCommand("create", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
@@ -51,12 +62,11 @@ var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 
 			By("Deploying the persistent application the value is persisted")
 
-			DeployGuestBook(kubectl, testconfig.TimeoutScale)
+			DeployGuestBook(kubectl)
 
 			appAddress := kubectl.GetAppAddress("svc/frontend")
 
 			testValue := strconv.Itoa(rand.Int())
-			println(testValue)
 
 			PostToGuestBook(appAddress, testValue)
 
@@ -66,8 +76,8 @@ var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 
 			By("Un-deploying the application and re-deploying the data is still available from the persisted source")
 
-			UndeployGuestBook(kubectl, testconfig.TimeoutScale)
-			DeployGuestBook(kubectl, testconfig.TimeoutScale)
+			UndeployGuestBook(kubectl)
+			DeployGuestBook(kubectl)
 
 			appAddress = kubectl.GetAppAddress("svc/frontend")
 			Eventually(func() string {
@@ -83,8 +93,8 @@ var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 		)
 
 		BeforeEach(func() {
-			if testconfig.Iaas != "gcp" {
-				Skip("Default Storage Class is only supported by gcp.")
+			if iaas != "gce" {
+				Skip("Default Storage Class is only supported by gce.")
 			}
 
 			pvcSpec = PathFromRoot("specs/default-persistent-volume-claim.yml")
@@ -99,7 +109,7 @@ var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 
 			By("Deploying the persistent application the value is persisted")
 
-			DeployGuestBook(kubectl, testconfig.TimeoutScale)
+			DeployGuestBook(kubectl)
 
 			appAddress := kubectl.GetAppAddress("svc/frontend")
 
@@ -114,8 +124,8 @@ var _ = PersistentVolumeDescribe("Guestbook storage", func() {
 
 			By("Un-deploying the application and re-deploying the data is still available from the persisted source")
 
-			UndeployGuestBook(kubectl, testconfig.TimeoutScale)
-			DeployGuestBook(kubectl, testconfig.TimeoutScale)
+			UndeployGuestBook(kubectl)
+			DeployGuestBook(kubectl)
 
 			appAddress = kubectl.GetAppAddress("svc/frontend")
 			Eventually(func() string {

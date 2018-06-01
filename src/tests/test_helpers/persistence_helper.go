@@ -10,15 +10,15 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-func UndeployGuestBook(kubectl *KubectlRunner, timeoutScale float64) {
+func UndeployGuestBook(kubectl *KubectlRunner) {
 	guestBookSpec := PathFromRoot("specs/pv-guestbook.yml")
-	timeout := time.Duration(float64(2*time.Minute) * timeoutScale)
+	timeout := time.Duration(float64(2 * time.Minute))
 	Eventually(kubectl.RunKubectlCommand("delete", "-f", guestBookSpec), timeout).Should(gexec.Exit(0))
 }
 
-func DeployGuestBook(kubectl *KubectlRunner, timeoutScale float64) {
+func DeployGuestBook(kubectl *KubectlRunner) {
 	guestBookSpec := PathFromRoot("specs/pv-guestbook.yml")
-	timeout := time.Duration(float64(2*time.Minute) * timeoutScale)
+	timeout := time.Duration(float64(2 * time.Minute))
 	Eventually(kubectl.RunKubectlCommand("apply", "-f", guestBookSpec), timeout).Should(gexec.Exit(0))
 	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/frontend", "-w"), timeout).Should(gexec.Exit(0))
 	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/redis-master", "-w"), timeout).Should(gexec.Exit(0))
