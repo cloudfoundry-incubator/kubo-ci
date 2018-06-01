@@ -39,7 +39,7 @@ func getIPAddressFromEchoserver(appURL string) string {
 	return re.FindAllStringSubmatch(string(body), -1)[0][0]
 }
 
-var _ = K8SLBDescribe("Deploy workload", func() {
+var _ = Describe("Deploy workload", func() {
 
 	var loadbalancerAddress string
 	It("exposes routes via LBs", func() {
@@ -49,7 +49,7 @@ var _ = K8SLBDescribe("Deploy workload", func() {
 		Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
 		loadbalancerAddress = ""
 		Eventually(func() string {
-			loadbalancerAddress = runner.GetLBAddress("nginx", testconfig.Iaas)
+			loadbalancerAddress = runner.GetLBAddress("nginx", iaas)
 			return loadbalancerAddress
 		}, "240s", "5s").Should(Not(Equal("")))
 
@@ -79,12 +79,12 @@ var _ = K8SLBDescribe("Deploy workload", func() {
 	})
 })
 
-var _ = K8SLBDescribe("When deploying a loadbalancer", func() {
+var _ = Describe("When deploying a loadbalancer", func() {
 	var loadbalancerAddress string
 
 	Context("with externalTrafficPolicy to local", func() {
 		It("shows a different source client IPs", func() {
-			if testconfig.Iaas != "gcp" {
+			if iaas != "gcp" {
 				Skip("Test only valid for GCP")
 			}
 
@@ -95,7 +95,7 @@ var _ = K8SLBDescribe("When deploying a loadbalancer", func() {
 
 			loadbalancerAddress = ""
 			Eventually(func() string {
-				loadbalancerAddress = runner.GetLBAddress("echoserver", testconfig.Iaas)
+				loadbalancerAddress = runner.GetLBAddress("echoserver", iaas)
 				return loadbalancerAddress
 			}, "240s", "5s").Should(Not(Equal("")))
 

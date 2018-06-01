@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
-	"strings"
 
 	. "tests/test_helpers"
 
@@ -12,7 +11,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/onsi/gomega/gexec"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("Guestbook storage", func() {
@@ -26,13 +24,9 @@ var _ = Describe("Guestbook storage", func() {
 		kubectl = NewKubectlRunnerWithDefaultConfig()
 		kubectl.CreateNamespace()
 
-		kubeclient, err := NewKubeClient()
+		var err error
+		iaas, err = IaaS()
 		Expect(err).NotTo(HaveOccurred())
-		nodes, err := kubeclient.CoreV1().Nodes().List(meta_v1.ListOptions{})
-		Expect(err).NotTo(HaveOccurred())
-		providerID := nodes.Items[0].Spec.ProviderID
-		iaas = strings.Split(providerID, ":")[0]
-		fmt.Printf("iaas = %s", iaas)
 	})
 
 	AfterEach(func() {
