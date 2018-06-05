@@ -1,6 +1,6 @@
 private.yml
 bin/
-pkg/
+/pkg/
 *.iml
 .vscode/
 creds.yml
