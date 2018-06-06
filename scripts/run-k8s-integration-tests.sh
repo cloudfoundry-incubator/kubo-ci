@@ -18,19 +18,19 @@ main() {
 
   skipped_packages=""
 
-  if [[ -z "${ENABLE_MULTI_AZ_TESTS+x}" ]]; then
+  if [[ "${ENABLE_MULTI_AZ_TESTS:-false}" == "false" ]]; then
     skipped_packages="$skipped_packages,multiaz"
   fi
 
-  if [[ -z "${ENABLE_OSS_ONLY_TESTS+x}" ]]; then
+  if [[ "${ENABLE_OSS_ONLY_TESTS:-false}" == "false" ]]; then
     skipped_packages="$skipped_packages,oss_only"
   fi
 
-  if [[ -z "${ENABLE_PERSISTENT_VOLUME_TESTS+x}" ]]; then
+  if [[ "${ENABLE_PERSISTENT_VOLUME_TESTS:-false}" == "false" ]]; then
     skipped_packages="$skipped_packages,persistent_volume"
   fi
 
-  if [[ -z "${ENABLE_K8S_LBS_TESTS+x}" ]]; then
+  if [[ "${ENABLE_K8S_LBS_TESTS:-false}" == "false" ]]; then
     skipped_packages="$skipped_packages,k8s_lbs"
   fi
 
