@@ -12,6 +12,7 @@ params:
   ENABLE_MULTI_AZ_TESTS: false
   ENABLE_OSS_ONLY_TESTS: false
   ENABLE_PERSISTENT_VOLUME_TESTS: false
+  ENABLE_K8S_LBS_TESTS: true
 
 inputs:
   - name: git-kubo-ci

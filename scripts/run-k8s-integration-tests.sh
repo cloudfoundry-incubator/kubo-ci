@@ -30,6 +30,10 @@ main() {
     skipped_packages="$skipped_packages,persistent_volume"
   fi
 
+  if [[ -z "${ENABLE_K8S_LBS_TESTS+x}" ]]; then
+    skipped_packages="$skipped_packages,k8s_lbs"
+  fi
+
   if [[ "$skipped_packages" != "" ]]; then
     skipped_packages="$(echo $skipped_packages | cut -c 2-)"
   fi

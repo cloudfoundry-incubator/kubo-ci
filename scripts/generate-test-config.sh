@@ -119,11 +119,6 @@ generate_test_config() {
     enable_cloudfoundry_tests="true"
   fi
 
-  local enable_iaas_k8s_lb_tests="false"
-  if [[ ${routing_mode} == "iaas" ]]; then
-    enable_iaas_k8s_lb_tests="true"
-  fi
-
   set +e # Cant be set since read returns a non-zero when it reaches EOF
   read -r -d '' config <<-EOF
 	{
