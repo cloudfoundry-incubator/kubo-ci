@@ -570,7 +570,7 @@ jobs:
       <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
       ENABLE_MULTI_AZ_TESTS: true
       <% end %>
-      <% if ["vsphere-lb","openstack"].include?(env) %>
+      <% if ["vsphere","vsphere-lb","openstack"].include?(env) %>
       ENABLE_K8S_LBS_TESTS: false
       <% end %>
   - task: pod-to-pod
