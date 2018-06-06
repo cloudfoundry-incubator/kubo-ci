@@ -1,6 +1,7 @@
 package test_helpers
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,5 +34,10 @@ func IaaS() (string, error) {
 	}
 
 	providerID := nodes.Items[0].Spec.ProviderID
-	return strings.Split(providerID, ":")[0], nil
+	iaas := strings.Split(providerID, ":")[0]
+	switch iaas {
+	case "vsphere", "gce", "openstack", "aws":
+		return iaas, nil
+	}
+	return "", fmt.Errorf("'%s' is not a valid iaas", iaas)
 }

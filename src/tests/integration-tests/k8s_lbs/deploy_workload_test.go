@@ -84,8 +84,8 @@ var _ = Describe("When deploying a loadbalancer", func() {
 
 	Context("with externalTrafficPolicy to local", func() {
 		It("shows a different source client IPs", func() {
-			if iaas != "gcp" {
-				Skip("Test only valid for GCP")
+			if iaas != "gce" {
+				Skip("Test only valid for GCE")
 			}
 
 			deployEchoserver := runner.RunKubectlCommand("create", "-f", echoserverLBSpec)
