@@ -167,6 +167,14 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
 
+- name: git-kubo-ci-old
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    branch: master
+    tag_filter: v0\.17\.0
+    private_key: ((git-ssh-key.private_key))
+
 - name: git-kubo-deployment
   type: git
   source:
@@ -570,8 +578,8 @@ jobs:
       <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
       ENABLE_MULTI_AZ_TESTS: true
       <% end %>
-      <% if ["vsphere","vsphere-lb","openstack"].include?(env) %>
-      ENABLE_K8S_LBS_TESTS: false
+      <% if env =~ /^(gcp|aws-lb)/ %>
+      ENABLE_K8S_LBS_TESTS: true
       <% end %>
   - task: pod-to-pod
     tags: [<%= env %>]
@@ -764,6 +772,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   plan:
   - aggregate:
     - get: git-kubo-ci
+      resource: git-kubo-ci-old
     - get: old-kubo-deployment-tarball
     - get: kubo-lock-<%= iaas %>
       version: every
@@ -815,6 +824,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   plan:
   - aggregate:
     - get: git-kubo-ci
+      resource: git-kubo-ci-old
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
@@ -1023,6 +1033,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   plan:
   - aggregate:
     - get: git-kubo-ci
+      resource: git-kubo-ci-old
     - get: old-kubo-deployment-tarball
     - get: kubo-lock-<%= iaas %>
       version: every
@@ -1074,6 +1085,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   plan:
   - aggregate:
     - get: git-kubo-ci
+      resource: git-kubo-ci-old
     - get: kubo-lock-<%= iaas %>
       version: every
       trigger: true
