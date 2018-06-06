@@ -35,7 +35,8 @@ instance_groups:
       tsa:
         worker_key: ((worker-key))
         host: ci.kubo.sh
-        host_public_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC9LqI9kodGwUTKnckFA2zewsgk+MzeABX5q2DNAfJDuWwFDy3iDu4bcLQUgLVbORdttwAQKoxbbK3DqBxiyEvo41MJa/tqhrroMuESx+8mGVtDjmedEfV6vEoq47WGIUwBrYZeS+e46oqdKz2ZrU26Ba7GV0KPpbswEhw/80By0vFzmqLSgil57EIQcOBorvZfIK/QBvxTEJAonxLt562AaYqvJ4I8fpMS2FCrE3/m5K5zBhJCcTqyv7bD/8bg7DLCqtUFLDnZ3ccwxn3e2KRiaWS/ub5ZRIlue/ZqdrFKEWjVmdMl+TyGeH2k4NPUCGJh/t9kBSJNociuQyB3Xihr
+        host_public_key: ((tsa-host-key.public_key))
+        registration_mode: forward
       garden:
         forward_address: 127.0.0.1:7777
       baggageclaim:

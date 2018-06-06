@@ -7,6 +7,7 @@ project_id: cf-pcf-kubo
 subnetwork: concourse
 tags:
   - internal
+  - no-ip
 zone: us-east4-a
 
 iaas: gcp
@@ -14,4 +15,4 @@ iaas: gcp
 concourse_secrets_lpass_note_id: 1124880505947455779 # common concourse secrets
 service_account_lpass_note_id: 7288798803231487450 # deploy bosh input (iaas credentials)
 private_note_id: 1801783889520479013 # Note which has creds.yml as attachment
-private_attachment_id: att-1801783889520479013-9175 # Attachment ID of creds.yml
+private_attachment_id: att-1801783889520479013-3 # Attachment ID of creds.yml

@@ -56,7 +56,6 @@ instance_groups:
       credhub:
         url: https://10.1.0.2:8844
         tls:
-          ca_cert: ((credhub_ca.ca))
           insecure_skip_verify: true
         client_id: director_to_credhub
         client_secret: ((uaa_clients_director_to_credhub))
@@ -87,7 +86,7 @@ instance_groups:
 - azs: [z1, z2, z3]
   instances: 1
   jobs:
-  - name: groundcrew
+  - name: worker
     release: concourse
     consumes:
       baggageclaim: {from: bc-gcp}
@@ -97,6 +96,7 @@ instance_groups:
         - gcp-lb
       tsa:
         worker_key: ((worker-key))
+        host_public_key: ((tsa-host-key.public_key))
   - name: baggageclaim
     release: concourse
     provides:
@@ -118,13 +118,14 @@ instance_groups:
 - azs: [z1, z2, z3]
   instances: 2
   jobs:
-  - name: groundcrew
+  - name: worker
     release: concourse
     consumes:
       baggageclaim: {from: bc}
     properties:
       tsa:
         worker_key: ((worker-key))
+        host_public_key: ((tsa-host-key.public_key))
   - name: baggageclaim
     release: concourse
     provides:
@@ -146,17 +147,17 @@ instance_groups:
 name: kubo-ci
 releases:
 - name: concourse
-  sha1: 99e134676df72e18c719ccfbd7977bd9449e6fd4
-  url: https://bosh.io/d/github.com/concourse/concourse?v=3.8.0
-  version: 3.8.0
+  sha1: aaa4e4d42adb2293abc79422351ca71ed548f95c
+  url: https://bosh.io/d/github.com/concourse/concourse?v=3.13.0
+  version: 3.13.0
 - name: garden-runc
-  sha1: d5ddb4eaf7c04705cd1c07445b1668556783774f
-  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.9.5
-  version: 1.9.5
+  sha1: 54cbb89cae1be0708aa056185671665d7f4b2a4f
+  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.13.1
+  version: 1.13.1
 - name: postgres
-  version: 21
-  sha1: b37916b709fb45ac7de3e195456301cb01a1ae22
-  url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=21
+  version: 28
+  sha1: c1fcec62cb9d2e95e3b191e3c91d238e2b9d23fa
+  url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=28
 stemcells:
 - alias: bosh-google-kvm-ubuntu-trusty-go_agent
   os: ubuntu-trusty
