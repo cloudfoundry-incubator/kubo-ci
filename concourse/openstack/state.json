@@ -1,26 +1,46 @@
 {
     "director_id": "f8d8348d-caa7-48b8-48b7-190b67fc6933",
     "installation_id": "1a6fb631-fc81-4114-7e63-079bc4a151ee",
-    "current_vm_cid": "9947c441-cd4a-401e-91aa-f67cfcead9ad",
-    "current_stemcell_id": "39cbc6eb-16ee-4072-aaee-6ef3ed2ea083",
-    "current_disk_id": "bf5d5b8d-514e-44e3-57cd-77f17cbb0af5",
-    "current_release_ids": [],
-    "current_manifest_sha": "",
+    "current_vm_cid": "7a3d9c8d-f86e-48d0-a592-d0b756fa28be",
+    "current_stemcell_id": "eb165277-d1c0-499c-421e-c9fa842bc680",
+    "current_disk_id": "c2464de0-aa58-4854-79bd-8dd2aecc2a25",
+    "current_release_ids": [
+        "87c88b40-f676-42c0-72c1-ed682bb5718b",
+        "bce876e7-bcc5-44dc-566a-a4439ebed170",
+        "d7ecbcea-4c72-4c78-71fe-d3fdd2cca93b"
+    ],
+    "current_manifest_sha": "f2bb30b9dc67eaee426b95ace035d3dcc9f4fce1581fccd5c256950a4bf9f16537a5ff4f08cae43ac86bea2bd0032005a1ce11d212173fd25188df5e7909c944",
     "disks": [
         {
-            "id": "bf5d5b8d-514e-44e3-57cd-77f17cbb0af5",
-            "cid": "12a3bf42-b901-4a7f-aff6-f2df18ca9fd6",
-            "size": 32768,
+            "id": "c2464de0-aa58-4854-79bd-8dd2aecc2a25",
+            "cid": "ec08f176-1e90-4f21-9062-1cbb37266707",
+            "size": 65536,
             "cloud_properties": {}
         }
     ],
     "stemcells": [
         {
-            "id": "39cbc6eb-16ee-4072-aaee-6ef3ed2ea083",
+            "id": "eb165277-d1c0-499c-421e-c9fa842bc680",
             "name": "bosh-openstack-kvm-ubuntu-trusty-go_agent",
-            "version": "3586.16",
-            "cid": "7d8cf193-096d-4aae-a910-0e601869e07d"
+            "version": "3541.10",
+            "cid": "f1aa7b87-1e2f-4ec3-944c-eab5643f220d"
         }
     ],
-    "releases": []
+    "releases": [
+        {
+            "id": "87c88b40-f676-42c0-72c1-ed682bb5718b",
+            "name": "bosh",
+            "version": "265.2.0"
+        },
+        {
+            "id": "bce876e7-bcc5-44dc-566a-a4439ebed170",
+            "name": "bosh-openstack-cpi",
+            "version": "38"
+        },
+        {
+            "id": "d7ecbcea-4c72-4c78-71fe-d3fdd2cca93b",
+            "name": "os-conf",
+            "version": "18"
+        }
+    ]
 }
