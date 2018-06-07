@@ -471,7 +471,6 @@ jobs:
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'claim-lock-<%= env %>' ]
   - task: install
-    attempts: 2
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
@@ -1266,7 +1265,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'claim-lock-proxy-vsphere' ]
   - task: install
-    attempts: 2
     tags: [vsphere]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
