@@ -96,7 +96,9 @@ var _ = Describe("Guestbook storage", func() {
 		})
 
 		AfterEach(func() {
-			Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
+			if iaas == "gce" {
+				Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
+			}
 		})
 
 		It("should persist with the default storage class", func() {

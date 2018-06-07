@@ -111,7 +111,9 @@ var _ = Describe("When deploying a loadbalancer", func() {
 	})
 
 	AfterEach(func() {
-		session := runner.RunKubectlCommand("delete", "-f", echoserverLBSpec)
-		session.Wait("60s")
+		if iaas == "gce" {
+			session := runner.RunKubectlCommand("delete", "-f", echoserverLBSpec)
+			session.Wait("60s")
+		}
 	})
 })
