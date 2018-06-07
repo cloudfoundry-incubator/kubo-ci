@@ -45,7 +45,7 @@ var _ = Describe("Upgrade components", func() {
 		session.Wait("60s")
 	})
 
-	It("upgrades BOSH and CFCR Release", func() {
+	It("upgrades CFCR Release", func() {
 		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release", requestLossThreshold)
 	})
 
