@@ -35,4 +35,4 @@ spec:
       volumes:
       - name: gaffer-api-secrets-volume
         secret:
-          secretName: api-proxy-tls
+          secretName: api-proxy
