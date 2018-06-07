@@ -1,6 +1,6 @@
 <%
   tested_images=%w(test-runner vsphere-cleaner aws-maintenance kubo-ci)
-  untested_images=%w(ulimit kubectl cf-cleaner git-bosh)
+  untested_images=%w(ulimit kubectl cf-cleaner git-bosh api-proxy)
 %>
 ---
 resources:
@@ -189,3 +189,11 @@ jobs:
        cache: true
        pull_repository: pcfkubo/aws-maintenance
        pull_tag: latest
+
+- name: build-api-proxy
+  plan:
+  - get: git-kubo-ci-api-proxy
+    trigger: true
+  - put: api-proxy-stable
+    params:
+      build: git-kubo-ci-api-proxy/docker-images/api-proxy

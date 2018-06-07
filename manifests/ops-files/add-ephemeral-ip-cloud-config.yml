@@ -1,0 +1,4 @@
+---
+- type: replace
+  path: /networks/name=default/subnets/az=z1/cloud_properties/ephemeral_external_ip?
+  value: true

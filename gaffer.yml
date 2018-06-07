@@ -92,6 +92,7 @@ jobs:
     input_mapping: {kubo-lock: gcs-director.yml}
     params:
       GCP_SERVICE_ACCOUNT: ((gaffer-bosh-service-account))
+      CLOUD_CONFIG_OPS_FILES: git-kubo-ci/manifests/ops-files/add-ephemeral-ip-cloud-config.yml
     on_failure: *on_failure_alert
   - aggregate:
     - put: gcs-bosh-creds
