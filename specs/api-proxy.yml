@@ -31,9 +31,8 @@ spec:
         volumeMounts:
         - mountPath: "/secrets"
           name: gaffer-api-secrets-volume
+          readOnly: true
       volumes:
       - name: gaffer-api-secrets-volume
-        gcePersistentDisk:
-          readOnly: true
-          pdName: gaffer-api-secrets
-          fsType: ext4
+        secret:
+          secretName: api-proxy-tls
