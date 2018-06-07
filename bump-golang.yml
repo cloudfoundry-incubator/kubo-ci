@@ -24,17 +24,6 @@ resources:
     - 'LICENSE'
     - 'NOTICE'
 
-- name: git-kubo-etcd
-  type: git
-  source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-etcd.git
-    branch: master
-    private_key: ((git-ssh-key.private_key))
-    ignore_paths:
-    - '*.md'
-    - 'LICENSE'
-    - 'NOTICE'
-
 - name: git-docker-boshrelease
   type: git
   source:
@@ -150,27 +139,6 @@ jobs:
   - task: check-create-release
     file: git-kubo-ci/tasks/bump/check-create-release.yml
   - put: git-kubo-release
-    params:
-      repository: modified-release
-      rebase: true
-
-- name: bump-kubo-etcd-golang
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: git-kubo-etcd
-    - get: golang-release
-    - get: golang-version
-      trigger: true
-  - task: bump-release-golang
-    file: git-kubo-ci/tasks/bump-release-golang.yml
-    input_mapping: { release: git-kubo-etcd }
-    params:
-      ACCESS_KEY_ID: ((gcs-access-key-id))
-      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
-  - task: check-create-release
-    file: git-kubo-ci/tasks/bump/check-create-release.yml
-  - put: git-kubo-etcd
     params:
       repository: modified-release
       rebase: true
