@@ -927,14 +927,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
       <% end %>
 
-  - aggregate:
-    - put: gcs-bosh-creds
-      params:
-        file: bosh-creds/creds.yml
-    - put: gcs-bosh-state
-      params:
-        file: bosh-state/state.json
-
 - name: destroy-k8s-upgrade-<%= iaas %>
   plan:
   - aggregate:
@@ -957,13 +949,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
     - get: git-kubo-deployment
       passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
-
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
-    tags: ['<%= iaas %>']
-
   - task: destroy-k8s
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
@@ -992,13 +977,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
     - get: git-kubo-deployment
       passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
-
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
-    tags: ['<%= iaas %>']
-
   - task: destroy
     tags: [ '<%= iaas %>' ]
     file: git-kubo-ci/tasks/destroy-bosh.yml
@@ -1189,14 +1167,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       <% end %>
       ENABLE_MULTI_AZ_TESTS: true
 
-  - aggregate:
-    - put: gcs-bosh-creds
-      params:
-        file: bosh-creds/creds.yml
-    - put: gcs-bosh-state
-      params:
-        file: bosh-state/state.json
-
 - name: destroy-k8s-upgrade-multi-master-<%= iaas %>
   plan:
   - aggregate:
@@ -1219,13 +1189,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'upgrade-bosh-and-kubo-multi-master-<%= iaas %>' ]
     - get: git-kubo-deployment
       passed: [ 'upgrade-bosh-and-kubo-multi-master-<%= iaas %>' ]
-
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
-    tags: ['<%= iaas %>']
-
   - task: destroy-k8s
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
@@ -1254,13 +1217,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'destroy-k8s-upgrade-multi-master-<%= iaas %>' ]
     - get: git-kubo-deployment
       passed: [ 'destroy-k8s-upgrade-multi-master-<%= iaas %>' ]
-
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
-    tags: ['<%= iaas %>']
-
   - task: destroy
     tags: [ '<%= iaas %>' ]
     file: git-kubo-ci/tasks/destroy-bosh.yml
