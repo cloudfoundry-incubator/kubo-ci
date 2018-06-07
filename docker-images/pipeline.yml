@@ -1,6 +1,6 @@
 <%
-  tested_images=%w(test-runner vsphere-cleaner curl aws-maintenance kubo-ci)
-  untested_images=%w(ulimit kubectl cf-cleaner tile-maintenance git-bosh)
+  tested_images=%w(test-runner vsphere-cleaner aws-maintenance kubo-ci)
+  untested_images=%w(ulimit kubectl cf-cleaner git-bosh)
 %>
 ---
 resources:
@@ -105,31 +105,6 @@ jobs:
       pull_repository: pcfkubo/vsphere-cleaner
       pull_tag: latest
 
-- name: build-curl
-  plan:
-  - get: git-kubo-ci-curl
-    trigger: true
-  - put: curl-latest
-    params:
-      build: git-kubo-ci-curl/docker-images/curl
-  - task: test-docker-image
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pcfkubo/curl
-          tag: latest
-      inputs:
-      - name: git-kubo-ci-curl
-      run:
-        path: git-kubo-ci-curl/docker-images/curl/run_tests
-  - put: curl-stable
-    params:
-      cache: true
-      pull_repository: pcfkubo/curl
-      pull_tag: latest
-
 - name: build-ulimit
   plan:
   - get: git-kubo-ci-ulimit
@@ -137,15 +112,6 @@ jobs:
   - put: ulimit-stable
     params:
       build: git-kubo-ci-ulimit/docker-images/ulimit
-
-- name: build-tile-maintenance
-  plan:
-  - get: git-kubo-ci-tile-maintenance
-    trigger: true
-  - put: tile-maintenance-stable
-    params:
-      build: git-kubo-ci-tile-maintenance/docker-images/tile-maintenance
-      cache: true
 
 - name: build-test-runner
   plan:
