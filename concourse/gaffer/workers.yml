@@ -3,18 +3,18 @@ name: concourse-worker-gaffer
 
 releases:
 - name: concourse
-  sha1: 99e134676df72e18c719ccfbd7977bd9449e6fd4
-  url: https://bosh.io/d/github.com/concourse/concourse?v=3.8.0
-  version: 3.8.0
+  sha1: aaa4e4d42adb2293abc79422351ca71ed548f95c
+  url: https://bosh.io/d/github.com/concourse/concourse?v=3.13.0
+  version: 3.13.0
 - name: garden-runc
-  sha1: d5ddb4eaf7c04705cd1c07445b1668556783774f
-  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.9.5
-  version: 1.9.5
+  sha1: 54cbb89cae1be0708aa056185671665d7f4b2a4f
+  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.13.1
+  version: 1.13.1
 
 stemcells:
 - alias: trusty
   os: ubuntu-trusty
-  version: '3445.11'
+  version: latest
 
 instance_groups:
 - name: worker
@@ -24,7 +24,7 @@ instance_groups:
   azs: [z1]
   networks: [{name: default}]
   jobs:
-  - name: groundcrew
+  - name: worker
     release: concourse
     properties:
       tags:
@@ -33,6 +33,7 @@ instance_groups:
         host: ci.kubo.sh
         host_public_key: ((tsa-host-key.public_key))
         worker_key: ((worker-key))
+        registration_mode: forward
       garden:
         forward_address: 127.0.0.1:7777
       baggageclaim:
