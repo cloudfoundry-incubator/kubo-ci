@@ -88,7 +88,7 @@ groups:
   - destroy-bosh-<%= env %>
   <% if upgrade_test_iaases.include? env %>
   - claim-lock-upgrade-<%= env %>
-  - install-bosh-<%= env %>
+  - install-bosh-for-upgrade-<%= env %>
   - deploy-old-k8s-<%= env %>
   - upgrade-kubo-<%= env %>
   - destroy-k8s-upgrade-<%= env %>
