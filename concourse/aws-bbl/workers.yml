@@ -21,7 +21,7 @@ instance_groups:
   instances: 1
   vm_type: large
   vm_extensions:
-  - 50GB_ephemeral_disk
+  - 500GB_ephemeral_disk
   stemcell: trusty
   azs: [z1]
   networks: [{name: private}]
