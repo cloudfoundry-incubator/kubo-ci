@@ -3,14 +3,14 @@
   value:
     name: z2
     cloud_properties:
-      zone: us-central1-b
+      zone: us-east1-b
 
 - type: replace
   path: /azs/name=z3?
   value:
     name: z3
     cloud_properties:
-      zone: us-central1-a
+      zone: us-east1-d
 
 - type: replace
   path: /networks/name=default/subnets/0/azs?
