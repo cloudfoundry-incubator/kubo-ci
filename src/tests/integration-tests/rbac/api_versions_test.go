@@ -13,7 +13,7 @@ var _ = RBACDescribe("API Versions", func() {
 	)
 
 	BeforeEach(func() {
-		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		kubectl = NewKubectlRunnerWithDefaultConfig()
 	})
 
 	It("has RBAC enabled", func() {
