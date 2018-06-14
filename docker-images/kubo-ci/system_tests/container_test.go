@@ -39,6 +39,7 @@ var _ = Describe("Docker Image", func() {
 		"haproxy":  []string{"-v"},
 		"semver":   []string{"--help"},
 		"dep":      []string{"version"},
+		"istioctl": []string{"version"},
 	}
 
 	for executable, args := range commands {
