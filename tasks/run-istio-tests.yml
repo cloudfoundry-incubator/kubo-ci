@@ -13,5 +13,6 @@ inputs:
 params:
   DEPLOYMENT_NAME: ci-service
   KUBO_ENVIRONMENT_DIR: "/temporary"
+  ISTIO_REPO: "istio-release/"
 run:
   path: ./git-kubo-ci/scripts/run-istio-tests.sh
