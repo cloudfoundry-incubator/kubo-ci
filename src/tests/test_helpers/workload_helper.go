@@ -3,8 +3,12 @@ package test_helpers
 import (
 	"fmt"
 
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func DeploySmorgasbord(kubectl *KubectlRunner, iaas string) {
@@ -14,14 +18,33 @@ func DeploySmorgasbord(kubectl *KubectlRunner, iaas string) {
 	Eventually(kubectl.RunKubectlCommand("apply", "-f", storageClassSpec), "120s").Should(gexec.Exit(0))
 	Eventually(kubectl.RunKubectlCommand("apply", "-f", smorgasbordSpec), "120s").Should(gexec.Exit(0))
 	Eventually(kubectl.RunKubectlCommand("rollout", "status", "daemonset/fluentd-elasticsearch", "-w"), "900s").Should(gexec.Exit(0))
-	CheckSmorgasbord(kubectl, "5m")
+	WaitForPodsToRun(kubectl, "5m")
 }
 
-func CheckSmorgasbord(kubectl *KubectlRunner, timeout string) {
-	Eventually(func() int {
-		output := kubectl.GetOutput("get", "pods", "--field-selector", "status.phase!=Running,status.phase!=Succeeded")
-		return len(output)
-	}, timeout, "5s").Should(Equal(0))
+func WaitForPodsToRun(kubectl *KubectlRunner, timeout string) {
+	Eventually(func() bool {
+		clientconfig, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+			clientcmd.NewDefaultClientConfigLoadingRules(),
+			&clientcmd.ConfigOverrides{},
+		).ClientConfig()
+		if err != nil {
+			GinkgoWriter.Write([]byte(err.Error()))
+			return false
+		}
+		clientset, err := kubernetes.NewForConfig(clientconfig)
+		if err != nil {
+			GinkgoWriter.Write([]byte(err.Error()))
+			return false
+		}
+		pods, err := clientset.CoreV1().Pods(kubectl.Namespace()).List(v1.ListOptions{
+			FieldSelector: "status.phase!=Running,status.phase!=Succeeded",
+		})
+		if err != nil {
+			GinkgoWriter.Write([]byte(err.Error()))
+			return false
+		}
+		return len(pods.Items) == 0
+	}, timeout, "5s").Should(BeTrue())
 
 }
 

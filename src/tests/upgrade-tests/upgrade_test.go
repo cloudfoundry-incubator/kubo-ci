@@ -228,7 +228,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	}
 
 	By("Checking that all workloads are running once again")
-	test_helpers.CheckSmorgasbord(k8sRunner, "10m")
+	test_helpers.WaitForPodsToRun(k8sRunner, "10m")
 }
 
 func curlURL(appURL string) (int, error) {
