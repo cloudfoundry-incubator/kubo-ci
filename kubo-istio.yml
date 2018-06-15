@@ -156,6 +156,9 @@ jobs:
     - get: gcs-bosh-creds
       passed:
       - deploy-k8s-gcp-lb
+    - get: gcs-bosh-state
+      passed:
+      - deploy-k8s-gcp-lb
   - task: run-istio-tests
     file: git-kubo-ci/tasks/run-istio-tests.yml
     on_failure: &on_failure_alert
@@ -183,6 +186,8 @@ jobs:
       passed: [ run-istio-tests ]
     - get: gcs-bosh-creds
       passed: [ run-istio-tests ]
+    - get: gcs-bosh-state
+      passed: [ run-istio-tests ]
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping: {kubo-lock: kubo-lock}
@@ -203,6 +208,8 @@ jobs:
       resource: kubo-lock-gcp-lb
       passed: [ destroy-k8s ]
     - get: gcs-bosh-creds
+      passed: [ destroy-k8s ]
+    - get: gcs-bosh-state
       passed: [ destroy-k8s ]
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml
