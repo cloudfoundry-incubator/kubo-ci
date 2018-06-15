@@ -110,9 +110,3 @@ RUN git clone https://github.com/fsaintjacques/semver-tool && \
   cd semver-tool && make install
 
 RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-
-# ISTIO
-ENV ISTIO_VERSION=0.8.0
-RUN curl -L https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/istio-${ISTIO_VERSION}-linux.tar.gz | \
-  tar -C /usr/local -xz
-ENV PATH=$PATH:/usr/local/istio-${ISTIO_VERSION}/bin
