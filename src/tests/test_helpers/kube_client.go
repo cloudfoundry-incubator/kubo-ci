@@ -2,8 +2,6 @@ package test_helpers
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,10 +10,10 @@ import (
 )
 
 func NewKubeClient() (k8s.Interface, error) {
-	var kubeconfig string
-	home := os.Getenv("HOME")
-	kubeconfig = filepath.Join(home, ".kube", "config")
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		clientcmd.NewDefaultClientConfigLoadingRules(),
+		&clientcmd.ConfigOverrides{},
+	).ClientConfig()
 	if err != nil {
 		return nil, err
 	}

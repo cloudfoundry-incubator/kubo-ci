@@ -7,8 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 func DeploySmorgasbord(kubectl *KubectlRunner, iaas string) {
@@ -23,15 +21,7 @@ func DeploySmorgasbord(kubectl *KubectlRunner, iaas string) {
 
 func WaitForPodsToRun(kubectl *KubectlRunner, timeout string) {
 	Eventually(func() bool {
-		clientconfig, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-			clientcmd.NewDefaultClientConfigLoadingRules(),
-			&clientcmd.ConfigOverrides{},
-		).ClientConfig()
-		if err != nil {
-			GinkgoWriter.Write([]byte(err.Error()))
-			return false
-		}
-		clientset, err := kubernetes.NewForConfig(clientconfig)
+		clientset, err := NewKubeClient()
 		if err != nil {
 			GinkgoWriter.Write([]byte(err.Error()))
 			return false
@@ -45,7 +35,6 @@ func WaitForPodsToRun(kubectl *KubectlRunner, timeout string) {
 		}
 		return len(pods.Items) == 0
 	}, timeout, "5s").Should(BeTrue())
-
 }
 
 func DeleteSmorgasbord(kubectl *KubectlRunner, iaas string) {
