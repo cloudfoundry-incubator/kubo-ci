@@ -115,11 +115,11 @@ var _ = Describe("Kubectl", func() {
 
 		It("Should not be allowed to perform attach,exec,logs actions", func() {
 			session := kubectl.RunKubectlCommand("--as=system:serviceaccounts:build-robot", "auth", "can-i", "attach", "pod")
-			Eventually(session).Should(gbytes.Say("no"))
+			Eventually(session, "15s").Should(gbytes.Say("no"))
 			session = kubectl.RunKubectlCommand("--as=system:serviceaccounts:build-robot", "auth", "can-i", "logs", "pod")
-			Eventually(session).Should(gbytes.Say("no"))
+			Eventually(session, "15s").Should(gbytes.Say("no"))
 			session = kubectl.RunKubectlCommand("--as=system:serviceaccounts:build-robot", "auth", "can-i", "exec", "pod")
-			Eventually(session).Should(gbytes.Say("no"))
+			Eventually(session, "15s").Should(gbytes.Say("no"))
 		})
 	})
 })
