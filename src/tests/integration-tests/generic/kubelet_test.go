@@ -41,4 +41,16 @@ var _ = Describe("Kubelet", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(401))
 	})
+
+	It("Should fail when unautherized requests are made to kubelet", func() {
+		firstWorkerIP := GetWorkerIP(deployment)
+		endpoint := fmt.Sprintf("https://%s:10250/pods", firstWorkerIP)
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: tr}
+		resp, err := client.Get(endpoint)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(resp.StatusCode).To(Equal(401))
+	})
 })

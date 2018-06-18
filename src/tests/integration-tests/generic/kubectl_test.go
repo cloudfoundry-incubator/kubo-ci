@@ -101,4 +101,25 @@ var _ = Describe("Kubectl", func() {
 		})
 	})
 
+	Context("When unauthorized service account", func() {
+		var serviceAccount string
+
+		BeforeEach(func() {
+			serviceAccount = PathFromRoot("specs/build-robot-service-account.yml")
+			kubectl.RunKubectlCommand("create", "-f", serviceAccount)
+		})
+
+		AfterEach(func() {
+			kubectl.RunKubectlCommand("delete", "-f", serviceAccount)
+		})
+
+		It("Should not be allowed to perform attach,exec,logs actions", func() {
+			session := kubectl.RunKubectlCommand("--as=system:serviceaccounts:build-robot", "auth", "can-i", "attach", "pod")
+			Eventually(session).Should(gbytes.Say("no"))
+			session = kubectl.RunKubectlCommand("--as=system:serviceaccounts:build-robot", "auth", "can-i", "logs", "pod")
+			Eventually(session).Should(gbytes.Say("no"))
+			session = kubectl.RunKubectlCommand("--as=system:serviceaccounts:build-robot", "auth", "can-i", "exec", "pod")
+			Eventually(session).Should(gbytes.Say("no"))
+		})
+	})
 })
