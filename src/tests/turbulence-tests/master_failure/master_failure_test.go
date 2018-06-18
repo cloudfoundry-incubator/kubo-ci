@@ -34,7 +34,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 			Expect(countRunningApiServerOnMaster()).To(Equal(1))
 		}
 
-		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()
 	})
 

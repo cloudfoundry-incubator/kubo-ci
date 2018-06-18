@@ -21,7 +21,7 @@ var (
 )
 
 var _ = BeforeSuite(func() {
-	runner = test_helpers.NewKubectlRunnerWithDefaultConfig()
+	runner = test_helpers.NewKubectlRunner()
 	runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
 
 	var err error

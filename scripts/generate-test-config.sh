@@ -157,7 +157,6 @@ generate_test_config() {
 	  "kubernetes": {
 	    "master_host": "$(bosh int $director_yml --path=/kubernetes_master_host)",
 	    "master_port": $(bosh int $director_yml --path=/kubernetes_master_port),
-	    "path_to_kube_config": "$HOME/.kube/config",
 	    "tls_cert": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/certificate' --json | jq .Blocks[0]),
 	    "tls_private_key": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/private_key' --json | jq .Blocks[0])
 	  },

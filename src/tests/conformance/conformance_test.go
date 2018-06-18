@@ -36,7 +36,7 @@ var _ = Describe("Conformance Tests", func() {
 
 	BeforeEach(func() {
 		conformanceSpec = GetLatestConformanceSpec()
-		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		kubectl = NewKubectlRunner()
 	})
 
 	AfterEach(func() {

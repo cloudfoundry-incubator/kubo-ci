@@ -60,7 +60,7 @@ var _ = Describe("Api Extensions", func() {
 
 	BeforeEach(func() {
 		var err error
-		kubectl = NewKubectlRunnerWithDefaultConfig()
+		kubectl = NewKubectlRunner()
 		apiExtensionsNamespace = kubectl.Namespace()
 
 		tmpDir, err = ioutil.TempDir("", "api-extensions")

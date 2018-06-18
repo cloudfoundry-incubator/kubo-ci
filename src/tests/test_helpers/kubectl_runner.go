@@ -24,20 +24,11 @@ type KubectlRunner struct {
 	Timeout    string
 }
 
-func NewKubectlRunner(pathToKubeConfig string) *KubectlRunner {
-
-	runner := &KubectlRunner{}
-
-	runner.configPath = pathToKubeConfig
-
-	runner.namespace = "test-" + GenerateRandomUUID()
-	runner.Timeout = "60s"
-
-	return runner
-}
-
-func NewKubectlRunnerWithDefaultConfig() *KubectlRunner {
-	return NewKubectlRunner("")
+func NewKubectlRunner() *KubectlRunner {
+	return &KubectlRunner{
+		namespace: "test-" + GenerateRandomUUID(),
+		Timeout:   "60s",
+	}
 }
 
 func PathFromRoot(relativePath string) string {

@@ -20,7 +20,7 @@ var _ = Describe("Kubectl", func() {
 	)
 
 	BeforeEach(func() {
-		kubectl = NewKubectlRunnerWithDefaultConfig()
+		kubectl = NewKubectlRunner()
 		kubectl.RunKubectlCommand(
 			"create", "namespace", kubectl.Namespace()).Wait("60s")
 	})

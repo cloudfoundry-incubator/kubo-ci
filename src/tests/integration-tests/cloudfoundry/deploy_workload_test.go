@@ -28,7 +28,7 @@ var _ = CloudFoundryDescribe("Deploy workload", func() {
 
 		tcpPort = strconv.Itoa(testconfig.Kubernetes.MasterPort + 10)
 
-		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		kubectl = NewKubectlRunner()
 		kubectl.RunKubectlCommand(
 			"create", "namespace", kubectl.Namespace()).Wait("60s")
 

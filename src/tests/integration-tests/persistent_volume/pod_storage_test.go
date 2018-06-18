@@ -21,7 +21,7 @@ var _ = Describe("Guestbook storage", func() {
 	)
 
 	BeforeEach(func() {
-		kubectl = NewKubectlRunnerWithDefaultConfig()
+		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()
 
 		var err error

@@ -28,7 +28,7 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 		Expect(err).NotTo(HaveOccurred())
 		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 
-		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()
 
 		Expect(countRunningWorkers()).To(Equal(3))

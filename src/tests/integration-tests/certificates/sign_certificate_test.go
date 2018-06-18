@@ -18,7 +18,7 @@ var _ = Describe("Certificate signing requests", func() {
 
 	BeforeEach(func() {
 		csrSpec = PathFromRoot("specs/csr.yml")
-		kubectl = NewKubectlRunnerWithDefaultConfig()
+		kubectl = NewKubectlRunner()
 	})
 
 	AfterEach(func() {

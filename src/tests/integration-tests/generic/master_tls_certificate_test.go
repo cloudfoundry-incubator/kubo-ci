@@ -17,7 +17,7 @@ var _ = Describe("MasterTlsCertificate", func() {
 	)
 
 	BeforeEach(func() {
-		kubectl = NewKubectlRunnerWithDefaultConfig()
+		kubectl = NewKubectlRunner()
 	})
 
 	DescribeTable("hostnames", func(hostname string) {

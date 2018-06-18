@@ -17,7 +17,7 @@ var _ = Describe("check apply-specs errand has run correctly", func() {
 	)
 
 	BeforeEach(func() {
-		kubectl = NewKubectlRunnerWithDefaultConfig()
+		kubectl = NewKubectlRunner()
 	})
 
 	DescribeTable("all deployments have rolled out", func(deploymentName string) {

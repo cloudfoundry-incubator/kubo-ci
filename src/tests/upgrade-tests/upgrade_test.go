@@ -172,7 +172,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 		masterCheck := func() error {
 			defer GinkgoRecover()
 
-			k8sMasterRunner := test_helpers.NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+			k8sMasterRunner := test_helpers.NewKubectlRunner()
 			session := k8sMasterRunner.RunKubectlCommandInNamespaceSilent(k8sRunner.Namespace(), "describe", "pod", "nginx")
 			session.Wait("120s")
 			if session.ExitCode() == 0 {

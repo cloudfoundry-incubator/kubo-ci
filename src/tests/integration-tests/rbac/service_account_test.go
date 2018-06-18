@@ -13,7 +13,7 @@ var _ = RBACDescribe("Service Accounts", func() {
 	)
 
 	BeforeEach(func() {
-		kubectl = NewKubectlRunnerWithDefaultConfig()
+		kubectl = NewKubectlRunner()
 	})
 
 	It("Should show kube-dns running with the kube-dns service account", func() {

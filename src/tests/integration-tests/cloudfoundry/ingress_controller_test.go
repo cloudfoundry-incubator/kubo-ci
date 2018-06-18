@@ -22,7 +22,7 @@ var _ = CloudFoundryDescribe("Testing Ingress Controller", func() {
 	)
 
 	BeforeEach(func() {
-		kubectl = NewKubectlRunner(testconfig.Kubernetes.PathToKubeConfig)
+		kubectl = NewKubectlRunner()
 		kubectl.RunKubectlCommand("create", "namespace", kubectl.Namespace()).Wait("60s")
 		ingressConfig = InitializeIngressTestConfig(kubectl, testconfig.Kubernetes)
 
