@@ -30,7 +30,7 @@ var _ = Describe("Kubelet", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	FIt("Should fail when unauthenticated requests are made to kubelet", func() {
+	It("Should fail when unauthenticated requests are made to kubelet", func() {
 		firstWorkerIP := GetWorkerIP(deployment)
 		endpoint := fmt.Sprintf("https://%s:10250/pods", firstWorkerIP)
 		tr := &http.Transport{
