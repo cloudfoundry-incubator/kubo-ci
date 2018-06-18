@@ -29,9 +29,6 @@ func NewKubectlRunner(pathToKubeConfig string) *KubectlRunner {
 	runner := &KubectlRunner{}
 
 	runner.configPath = pathToKubeConfig
-	if runner.configPath == "" {
-		Fail("path to kubeconfig must be specified")
-	}
 
 	runner.namespace = "test-" + GenerateRandomUUID()
 	runner.Timeout = "60s"
@@ -40,10 +37,7 @@ func NewKubectlRunner(pathToKubeConfig string) *KubectlRunner {
 }
 
 func NewKubectlRunnerWithDefaultConfig() *KubectlRunner {
-	return &KubectlRunner{
-		namespace: "test-" + GenerateRandomUUID(),
-		Timeout:   "60s",
-	}
+	return NewKubectlRunner("")
 }
 
 func PathFromRoot(relativePath string) string {
