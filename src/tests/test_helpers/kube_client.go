@@ -39,3 +39,17 @@ func IaaS() (string, error) {
 	}
 	return "", fmt.Errorf("'%s' is not a valid iaas", iaas)
 }
+
+func GetNodeIP() (string, error) {
+	kubeclient, err := NewKubeClient()
+	if err != nil {
+		return "", err
+	}
+
+	nodes, err := kubeclient.CoreV1().Nodes().List(meta_v1.ListOptions{})
+	if err != nil {
+		return "", err
+	}
+	return nodes.Items[0].ObjectMeta.Labels["spec.ip"], nil
+
+}

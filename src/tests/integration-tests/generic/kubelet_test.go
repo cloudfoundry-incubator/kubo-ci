@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/cloudfoundry/bosh-cli/director"
-
-	"tests/config"
 	. "tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
@@ -15,35 +12,9 @@ import (
 )
 
 var _ = Describe("Kubelet", func() {
-
-	var (
-		deployment director.Deployment
-		testconfig *config.Config
-	)
-
-	BeforeEach(func() {
-		var err error
-		testconfig, err = config.InitConfig()
-		Expect(err).NotTo(HaveOccurred())
-		director := NewDirector(testconfig.Bosh)
-		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
-		Expect(err).NotTo(HaveOccurred())
-	})
-
 	It("Should fail when unauthenticated requests are made to kubelet", func() {
-		firstWorkerIP := GetWorkerIP(deployment)
-		endpoint := fmt.Sprintf("https://%s:10250/pods", firstWorkerIP)
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		client := &http.Client{Transport: tr}
-		resp, err := client.Get(endpoint)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(401))
-	})
-
-	It("Should fail when unautherized requests are made to kubelet", func() {
-		firstWorkerIP := GetWorkerIP(deployment)
+		firstWorkerIP, err := GetNodeIP()
+		Expect(err).NotTo(HaveOccurred())
 		endpoint := fmt.Sprintf("https://%s:10250/pods", firstWorkerIP)
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
