@@ -13,19 +13,36 @@ SLACK_ATTACHMENT_TEMPLATE='{
         {"title": "Committer", "short": true, "value": $committer}
     ]
 }'
+SLACK_COMMIT_NOT_FOUND_ATTACHMENT_TEMPLATE='{
+    "color": "#ff0000",
+    "title": $title,
+    "mrkdwn_in": ["fields"],
+    "fields": [
+    ]
+}'
 
 function main() {
   local attachments="[]"
   for repo in ${ROOT}/git-*; do
-    local attachment="$(jq -n \
-      --arg title "$(basename "${repo}") $(get_commit_link "${repo}") - $(get_commit_message "${repo}") ($(get_commit_date "${repo}"))" \
-      --arg author "$(get_author_name "${repo}")" \
-      --arg committer "$(get_committer_name "${repo}")" \
-      "${SLACK_ATTACHMENT_TEMPLATE}")"
+    if [[ -d $repo/.git ]]; then
+      local attachment="$(jq -n \
+        --arg title "$(basename "${repo}") $(get_commit_link "${repo}") - $(get_commit_message "${repo}") ($(get_commit_date "${repo}"))" \
+        --arg author "$(get_author_name "${repo}")" \
+        --arg committer "$(get_committer_name "${repo}")" \
+        "${SLACK_ATTACHMENT_TEMPLATE}")"
 
-    attachments="$(echo "${attachments}" | jq \
-        --argjson attachment "${attachment}" \
-        '. += [$attachment]')"
+      attachments="$(echo "${attachments}" | jq \
+          --argjson attachment "${attachment}" \
+          '. += [$attachment]')"
+    else
+      local attachment="$(jq -n \
+        --arg title "$(basename "${repo}") - Could not find commit information, this is probably from a tarball." \
+        "${SLACK_COMMIT_NOT_FOUND_ATTACHMENT_TEMPLATE}")"
+
+      attachments="$(echo "${attachments}" | jq \
+          --argjson attachment "${attachment}" \
+          '. += [$attachment]')"
+    fi
   done
 
   echo "${attachments}" \

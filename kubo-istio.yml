@@ -6,15 +6,6 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
     uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
-- name: git-kubo-deployment
-  type: git
-  source:
-    branch: master
-    ignore_paths:
-    - LICENSE
-    - NOTICE
-    private_key: ((git-ssh-key.private_key))
-    uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
 - name: kubo-lock-gcp-lb
   type: pool
   source:
@@ -40,6 +31,13 @@ resources:
     bucket: kubo-public
     json_key: ((gcs-json-key))
     versioned_file: kubo-release-latest.tgz
+
+- name: kubo-dev-deployment
+  type: gcs
+  source:
+    bucket: kubo-public
+    json_key: ((gcs-json-key))
+    versioned_file: kubo-deployment-latest.tgz
 
 - name: slackers
   type: git
@@ -81,12 +79,16 @@ jobs:
       passed:
       - claim-lock-gcp-lb
     - get: git-kubo-ci
-    - get: git-kubo-deployment
+    - get: kubo-dev-deployment
     - get: kubo-lock-gcp-lb
       passed:
       - claim-lock-gcp-lb
       trigger: true
       version: every
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-dev-deployment
   - task: install
     file: git-kubo-ci/tasks/install-bosh.yml
     params:
@@ -115,7 +117,7 @@ jobs:
       - install-bosh-gcp-lb
       trigger: true
       version: every
-    - get: git-kubo-deployment
+    - get: kubo-dev-deployment
       passed:
       - install-bosh-gcp-lb
     - get: gcs-bosh-state
@@ -124,6 +126,10 @@ jobs:
     - get: gcs-bosh-creds
       passed:
       - install-bosh-gcp-lb
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-dev-deployment
   - task: deploy
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
@@ -144,7 +150,7 @@ jobs:
       passed:
       - deploy-k8s-gcp-lb
     - get: git-kubo-ci
-    - get: git-kubo-deployment
+    - get: kubo-dev-deployment
       passed:
       - deploy-k8s-gcp-lb
     - get: kubo-lock
@@ -159,6 +165,10 @@ jobs:
     - get: gcs-bosh-state
       passed:
       - deploy-k8s-gcp-lb
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-dev-deployment
   - task: run-istio-tests
     file: git-kubo-ci/tasks/run-istio-tests.yml
     on_failure: &on_failure_alert
@@ -180,7 +190,7 @@ jobs:
       trigger: true
       resource: kubo-lock-gcp-lb
       passed: [ run-istio-tests ]
-    - get: git-kubo-deployment
+    - get: kubo-dev-deployment
       passed: [ run-istio-tests ]
     - get: kubo-dev-release
       passed: [ run-istio-tests ]
@@ -188,6 +198,10 @@ jobs:
       passed: [ run-istio-tests ]
     - get: gcs-bosh-state
       passed: [ run-istio-tests ]
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-dev-deployment
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping: {kubo-lock: kubo-lock}
@@ -198,7 +212,7 @@ jobs:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
-    - get: git-kubo-deployment
+    - get: kubo-dev-deployment
       passed: [ destroy-k8s ]
     - get: kubo-dev-release
       passed: [ destroy-k8s ]
@@ -211,6 +225,10 @@ jobs:
       passed: [ destroy-k8s ]
     - get: gcs-bosh-state
       passed: [ destroy-k8s ]
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-dev-deployment
   - task: destroy
     file: git-kubo-ci/tasks/destroy-bosh.yml
     input_mapping: {kubo-lock: kubo-lock}
