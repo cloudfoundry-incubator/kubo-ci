@@ -13,16 +13,16 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = MasterFailureDescribe("A single master and etcd failure", func() {
+var (
+	deployment                    boshdir.Deployment
+	kubectl                       *KubectlRunner
+	nginxSpec                     = PathFromRoot("specs/nginx.yml")
+	countRunningApiServerOnMaster func() int
+	numberOfMasters               int
+	director                      boshdir.Director
+)
 
-	var (
-		deployment                    boshdir.Deployment
-		kubectl                       *KubectlRunner
-		nginxSpec                     = PathFromRoot("specs/nginx.yml")
-		countRunningApiServerOnMaster func() int
-		numberOfMasters               int
-		director                      boshdir.Director
-	)
+var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 
 	BeforeEach(func() {
 		var err error
@@ -50,12 +50,6 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 	})
 
 	Specify("The cluster is healthy after master is resurrected", func() {
-		By("Deploying a workload on the k8s cluster")
-		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxSpec), "30s", "5s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), "120s").Should(gexec.Exit(0))
-
-		By("Deleting the Master VM")
-		hellRaiser := TurbulenceClient(testconfig.Turbulence)
 		killOneMaster := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
@@ -72,32 +66,14 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 				tasks.KillOptions{},
 			},
 		}
-		incident := hellRaiser.CreateIncident(killOneMaster)
-		incident.Wait()
 
-		Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters - 1))
-
-		By("Waiting for resurrection")
-		Eventually(func() bool { return AllComponentsAreHealthy(kubectl) }, "600s", "20s").Should(BeTrue())
-
-		By("Checking that all nodes are available")
-		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
-
-		By("Checking for the workload on the k8s cluster")
-		session := kubectl.RunKubectlCommand("get", "deployment", "nginx")
-		Eventually(session, "120s").Should(gexec.Exit(0))
+		createTurbulenceIncident(killOneMaster)
 	})
 
 	Specify("The cluster is healthy after master is rebooted and bosh resurrector is off", func() {
 		By("Turning off the resurrector")
 		director.EnableResurrection(false)
 
-		By("Deploying a workload on the k8s cluster")
-		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxSpec), "30s", "5s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), "120s").Should(gexec.Exit(0))
-
-		By("Deleting the Master VM")
-		hellRaiser := TurbulenceClient(testconfig.Turbulence)
 		rebootOneMaster := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
@@ -116,20 +92,8 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 				},
 			},
 		}
-		incident := hellRaiser.CreateIncident(rebootOneMaster)
-		incident.Wait()
 
-		Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters - 1))
-
-		By("Waiting for resurrection")
-		Eventually(func() bool { return AllComponentsAreHealthy(kubectl) }, "600s", "20s").Should(BeTrue())
-
-		By("Checking that all nodes are available")
-		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
-
-		By("Checking for the workload on the k8s cluster")
-		session := kubectl.RunKubectlCommand("get", "deployment", "nginx")
-		Eventually(session, "120s").Should(gexec.Exit(0))
+		createTurbulenceIncident(rebootOneMaster)
 
 		By("Checking that master is back eventually and consistently")
 		Eventually(CountDeploymentVmsOfType(deployment, MasterVmType, VmRunningState)()).Should(Equal(numberOfMasters))
@@ -140,3 +104,26 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		}
 	})
 })
+
+func createTurbulenceIncident(request incident.Request) {
+	By("Deploying a workload on the k8s cluster")
+	Eventually(kubectl.RunKubectlCommand("create", "-f", nginxSpec), "30s", "5s").Should(gexec.Exit(0))
+	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), "120s").Should(gexec.Exit(0))
+
+	By("Creating Turbulence Incident")
+	hellRaiser := TurbulenceClient(testconfig.Turbulence)
+	incident := hellRaiser.CreateIncident(request)
+	incident.Wait()
+
+	Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters - 1))
+
+	By("Waiting for resurrection")
+	Eventually(func() bool { return AllComponentsAreHealthy(kubectl) }, "600s", "20s").Should(BeTrue())
+
+	By("Checking that all nodes are available")
+	Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
+
+	By("Checking for the workload on the k8s cluster")
+	session := kubectl.RunKubectlCommand("get", "deployment", "nginx")
+	Eventually(session, "120s").Should(gexec.Exit(0))
+}
