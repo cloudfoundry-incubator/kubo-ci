@@ -2,8 +2,9 @@ package master_failure_test
 
 import (
 	. "tests/test_helpers"
+	"time"
 
-	"github.com/cloudfoundry/bosh-cli/director"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cppforlife/turbulence/incident"
 	"github.com/cppforlife/turbulence/incident/selector"
 	"github.com/cppforlife/turbulence/tasks"
@@ -15,30 +16,35 @@ import (
 var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 
 	var (
-		deployment                    director.Deployment
+		deployment                    boshdir.Deployment
 		kubectl                       *KubectlRunner
 		nginxSpec                     = PathFromRoot("specs/nginx.yml")
 		countRunningApiServerOnMaster func() int
+		numberOfMasters               int
+		director                      boshdir.Director
 	)
 
 	BeforeEach(func() {
 		var err error
-		director := NewDirector(testconfig.Bosh)
+		director = NewDirector(testconfig.Bosh)
 		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
 		Expect(err).NotTo(HaveOccurred())
 		countRunningApiServerOnMaster = CountProcessesOnVmsOfType(deployment, MasterVmType, "kube-apiserver", VmRunningState)
 
 		if testconfig.TurbulenceTests.IsMultiAZ {
-			Expect(countRunningApiServerOnMaster()).To(Equal(3))
+			numberOfMasters = 3
 		} else {
-			Expect(countRunningApiServerOnMaster()).To(Equal(1))
+			numberOfMasters = 1
 		}
+
+		Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters))
 
 		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()
 	})
 
 	AfterEach(func() {
+		director.EnableResurrection(true)
 		kubectl.RunKubectlCommand("delete", "-f", nginxSpec)
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
@@ -69,11 +75,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		incident := hellRaiser.CreateIncident(killOneMaster)
 		incident.Wait()
 
-		if testconfig.TurbulenceTests.IsMultiAZ {
-			Expect(countRunningApiServerOnMaster()).To(Equal(2))
-		} else {
-			Expect(countRunningApiServerOnMaster()).To(Equal(0))
-		}
+		Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters - 1))
 
 		By("Waiting for resurrection")
 		Eventually(func() bool { return AllComponentsAreHealthy(kubectl) }, "600s", "20s").Should(BeTrue())
@@ -84,5 +86,57 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		By("Checking for the workload on the k8s cluster")
 		session := kubectl.RunKubectlCommand("get", "deployment", "nginx")
 		Eventually(session, "120s").Should(gexec.Exit(0))
+	})
+
+	Specify("The cluster is healthy after master is rebooted and bosh resurrector is off", func() {
+		By("Turning off the resurrector")
+		director.EnableResurrection(false)
+
+		By("Deploying a workload on the k8s cluster")
+		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxSpec), "30s", "5s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), "120s").Should(gexec.Exit(0))
+
+		By("Deleting the Master VM")
+		hellRaiser := TurbulenceClient(testconfig.Turbulence)
+		rebootOneMaster := incident.Request{
+			Selector: selector.Request{
+				Deployment: &selector.NameRequest{
+					Name: testconfig.Bosh.Deployment,
+				},
+				Group: &selector.NameRequest{
+					Name: MasterVmType,
+				},
+				ID: &selector.IDRequest{
+					Limit: selector.MustNewLimitFromString("1"),
+				},
+			},
+			Tasks: tasks.OptionsSlice{
+				tasks.ShutdownOptions{
+					Reboot: true,
+				},
+			},
+		}
+		incident := hellRaiser.CreateIncident(rebootOneMaster)
+		incident.Wait()
+
+		Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters - 1))
+
+		By("Waiting for resurrection")
+		Eventually(func() bool { return AllComponentsAreHealthy(kubectl) }, "600s", "20s").Should(BeTrue())
+
+		By("Checking that all nodes are available")
+		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
+
+		By("Checking for the workload on the k8s cluster")
+		session := kubectl.RunKubectlCommand("get", "deployment", "nginx")
+		Eventually(session, "120s").Should(gexec.Exit(0))
+
+		By("Checking that master is back eventually and consistently")
+		Eventually(CountDeploymentVmsOfType(deployment, MasterVmType, VmRunningState)()).Should(Equal(numberOfMasters))
+
+		for i := 0; i < 30; i++ {
+			Expect(CountDeploymentVmsOfType(deployment, MasterVmType, VmRunningState)()).To(Equal(numberOfMasters))
+			time.Sleep(time.Second)
+		}
 	})
 })
