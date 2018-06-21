@@ -2,7 +2,6 @@ package master_failure_test
 
 import (
 	. "tests/test_helpers"
-	"time"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cppforlife/turbulence/incident"
@@ -96,12 +95,8 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		createTurbulenceIncident(rebootOneMaster)
 
 		By("Checking that master is back eventually and consistently")
-		Eventually(CountDeploymentVmsOfType(deployment, MasterVmType, VmRunningState)()).Should(Equal(numberOfMasters))
-
-		for i := 0; i < 30; i++ {
-			Expect(CountDeploymentVmsOfType(deployment, MasterVmType, VmRunningState)()).To(Equal(numberOfMasters))
-			time.Sleep(time.Second)
-		}
+		Eventually(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVmType, VmRunningState) }, "60s", "2s").Should(HaveLen(numberOfMasters))
+		Consistently(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVmType, VmRunningState) }, "60s", "2s").Should(HaveLen(numberOfMasters))
 	})
 })
 
