@@ -12,17 +12,23 @@ import (
 )
 
 var _ = Describe("Kubelet", func() {
-	It("Should fail when unauthenticated requests are made to kubelet", func() {
-		firstWorkerIP, err := GetNodeIP()
+
+	var (
+		firstWorkerIP string
+		err           error
+		endpoint      string
+	)
+	BeforeEach(func() {
+		firstWorkerIP, err = GetNodeIP()
 		Expect(err).NotTo(HaveOccurred())
-		endpoint := fmt.Sprintf("https://%s:10250/pods", firstWorkerIP)
+		endpoint = fmt.Sprintf("https://%s:10250/pods", firstWorkerIP)
+	})
+
+	It("Should fail when unauthenticated requests are made to kubelet", func() {
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		client := &http.Client{Transport: tr}
-		resp, err := client.Get(endpoint)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(401))
+		invalidRequest(tr, endpoint)
 	})
 
 	It("Should fail when requests are made to kubelet with invalid Bearer Token", func() {
@@ -41,4 +47,23 @@ var _ = Describe("Kubelet", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(401))
 	})
+
+	It("Should fail when requests are made to kubelet with invalid cert", func() {
+		cert, err := tls.LoadX509KeyPair(PathFromRoot("src/tests/integration-tests/fixtures/selfsigned-client.cert"), PathFromRoot("src/tests/integration-tests/fixtures/selfsigned-client.key"))
+		Expect(err).NotTo(HaveOccurred())
+
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{
+				Certificates:       []tls.Certificate{cert},
+				InsecureSkipVerify: true},
+		}
+		invalidRequest(tr, endpoint)
+	})
 })
+
+func invalidRequest(tr *http.Transport, endpoint string) {
+	client := &http.Client{Transport: tr}
+	resp, err := client.Get(endpoint)
+	Expect(err).ToNot(HaveOccurred())
+	Expect(resp.StatusCode).To(Equal(401))
+}
