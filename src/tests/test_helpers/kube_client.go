@@ -6,14 +6,19 @@ import (
 
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8s "k8s.io/client-go/kubernetes"
+	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func NewKubeClient() (k8s.Interface, error) {
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+func ReadKubeConfig() (*restclient.Config, error) {
+	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		clientcmd.NewDefaultClientConfigLoadingRules(),
 		&clientcmd.ConfigOverrides{},
 	).ClientConfig()
+}
+
+func NewKubeClient() (k8s.Interface, error) {
+	config, err := ReadKubeConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -38,6 +43,14 @@ func IaaS() (string, error) {
 		return iaas, nil
 	}
 	return "", fmt.Errorf("'%s' is not a valid iaas", iaas)
+}
+
+func BearerToken() (string, error) {
+	config, err := ReadKubeConfig()
+	if err != nil {
+		return "", err
+	}
+	return config.BearerToken, nil
 }
 
 func GetNodeIP() (string, error) {
