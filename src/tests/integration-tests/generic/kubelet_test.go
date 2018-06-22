@@ -56,6 +56,7 @@ var _ = Describe("Kubelet", func() {
 			sa, err = kubeclient.Core().ServiceAccounts("default").Create(&v1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "robot-beep-bop"}})
 			Expect(err).NotTo(HaveOccurred())
 
+			// Wait for kube-controller-manager to create a token
 			Eventually(func() bool {
 				sa, _ = kubeclient.Core().ServiceAccounts("default").Get("robot-beep-bop", metav1.GetOptions{})
 				return len(sa.Secrets) != 0
