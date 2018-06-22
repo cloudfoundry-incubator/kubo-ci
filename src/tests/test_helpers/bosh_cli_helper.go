@@ -3,6 +3,7 @@ package test_helpers
 import (
 	"fmt"
 
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	testconfig "tests/config"
@@ -13,9 +14,9 @@ import (
 )
 
 const (
-	WorkerVmType   = "worker"
-	MasterVmType   = "master"
-	VmRunningState = "running"
+	WorkerVmType    = "worker"
+	MasterVmType    = "master"
+	VmRunningState  = "running"
 	VmStartingState = "starting"
 )
 
@@ -111,7 +112,7 @@ func buildUAA(testconfig testconfig.Bosh) (boshuaa.UAA, error) {
 }
 
 func buildDirector(uaa boshuaa.UAA, testconfig testconfig.Bosh) (boshdir.Director, error) {
-	logger := boshlog.NewLogger(boshlog.LevelError)
+	logger := boshlog.NewWriterLogger(boshlog.LevelInfo, GinkgoWriter, GinkgoWriter)
 	factory := boshdir.NewFactory(logger)
 
 	config, err := boshdir.NewConfigFromURL(buildDirectorUrl(testconfig))

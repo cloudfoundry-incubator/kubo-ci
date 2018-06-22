@@ -94,8 +94,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 
 		createTurbulenceIncident(rebootOneMaster)
 
-		By("Checking that master is back eventually and consistently")
-		Eventually(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVmType, VmRunningState) }, "60s", "2s").Should(HaveLen(numberOfMasters))
+		By("Checking that master is back consistently")
 		Consistently(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVmType, VmRunningState) }, "60s", "2s").Should(HaveLen(numberOfMasters))
 	})
 })
@@ -115,8 +114,8 @@ func createTurbulenceIncident(request incident.Request) {
 	By("Waiting for resurrection")
 	Eventually(func() bool { return AllComponentsAreHealthy(kubectl) }, "600s", "20s").Should(BeTrue())
 
-	By("Checking that all nodes are available")
-	Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
+	By("Checking that all master jobs are running")
+	Eventually(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVmType, VmRunningState) }, "60s", "2s").Should(HaveLen(numberOfMasters))
 
 	By("Checking for the workload on the k8s cluster")
 	session := kubectl.RunKubectlCommand("get", "deployment", "nginx")
