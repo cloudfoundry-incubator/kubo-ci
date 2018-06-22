@@ -9,6 +9,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 var _ = Describe("Kubelet", func() {
@@ -34,29 +37,47 @@ var _ = Describe("Kubelet", func() {
 	It("Should respond successful with valid Bearer Token", func() {
 		bearerToken, err := BearerToken()
 		Expect(err).ToNot(HaveOccurred())
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		client := &http.Client{Transport: tr}
-		req, err := http.NewRequest("GET", endpoint, nil)
-		Expect(err).ToNot(HaveOccurred())
 
-		req.Header.Add("Authorization", "Bearer "+bearerToken)
-		resp, err := client.Do(req)
+		resp, err := curl(endpoint, bearerToken)
+
 		Expect(err).ToNot(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(200))
 	})
 
-	It("Should fail when requests are made to kubelet with invalid Bearer Token", func() {
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		client := &http.Client{Transport: tr}
-		req, err := http.NewRequest("GET", endpoint, nil)
-		Expect(err).ToNot(HaveOccurred())
+	Context("When using Service Accounts", func() {
+		var kubeclient kubernetes.Interface
+		var sa *v1.ServiceAccount
+		var err error
 
-		req.Header.Add("Authorization", "Bearer IMFAKEBEAR")
-		resp, err := client.Do(req)
+		BeforeEach(func() {
+			kubeclient, err = NewKubeClient()
+			Expect(err).NotTo(HaveOccurred())
+
+			sa, err = kubeclient.Core().ServiceAccounts("default").Create(&v1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "robot-beep-bop"}})
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(func() bool {
+				sa, _ = kubeclient.Core().ServiceAccounts("default").Get("robot-beep-bop", metav1.GetOptions{})
+				return len(sa.Secrets) != 0
+			}).Should(BeTrue())
+		})
+
+		AfterEach(func() {
+			kubeclient.Core().ServiceAccounts("default").Delete("robot-beep-bop", &metav1.DeleteOptions{})
+		})
+
+		It("Should reject unauthorized Service Account curl", func() {
+			secret, err := kubeclient.Core().Secrets("default").Get(sa.Secrets[0].Name, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+
+			resp, err := curl(endpoint, string(secret.Data["token"]))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(403))
+		})
+	})
+
+	It("Should fail when requests are made to kubelet with invalid Bearer Token", func() {
+		resp, err := curl(endpoint, "IMAFAKEBEAR")
 		Expect(err).ToNot(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(401))
 	})
@@ -79,4 +100,16 @@ func invalidRequest(tr *http.Transport, endpoint string) {
 	resp, err := client.Get(endpoint)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(resp.StatusCode).To(Equal(401))
+}
+
+func curl(endpoint, token string) (*http.Response, error) {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	req, err := http.NewRequest("GET", endpoint, nil)
+	Expect(err).ToNot(HaveOccurred())
+
+	req.Header.Add("Authorization", "Bearer "+token)
+	return client.Do(req)
 }
