@@ -33,6 +33,9 @@ func WaitForPodsToRun(kubectl *KubectlRunner, timeout string) {
 			GinkgoWriter.Write([]byte(err.Error()))
 			return false
 		}
+		for _, pod := range pods.Items {
+			fmt.Fprintf(GinkgoWriter, "Pod name:%s, pod status: %s  \n", pod.GetName(), pod.Status.Phase)
+		}
 		return len(pods.Items) == 0
 	}, timeout, "5s").Should(BeTrue())
 }

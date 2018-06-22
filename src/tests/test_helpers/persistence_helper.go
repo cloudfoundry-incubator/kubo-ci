@@ -18,10 +18,9 @@ func UndeployGuestBook(kubectl *KubectlRunner) {
 
 func DeployGuestBook(kubectl *KubectlRunner) {
 	guestBookSpec := PathFromRoot("specs/pv-guestbook.yml")
-	timeout := time.Duration(float64(2 * time.Minute))
+	timeout := "5m"
 	Eventually(kubectl.RunKubectlCommand("apply", "-f", guestBookSpec), timeout).Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/frontend", "-w"), timeout).Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/redis-master", "-w"), timeout).Should(gexec.Exit(0))
+	WaitForPodsToRun(kubectl, timeout)
 }
 
 func PostToGuestBook(address string, testValue string) {

@@ -73,6 +73,7 @@ var _ = Describe("Guestbook storage", func() {
 			UndeployGuestBook(kubectl)
 			DeployGuestBook(kubectl)
 
+			By("Getting the value from application")
 			appAddress = kubectl.GetAppAddress("svc/frontend")
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
