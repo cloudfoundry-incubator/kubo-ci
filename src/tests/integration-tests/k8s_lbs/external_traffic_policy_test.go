@@ -13,31 +13,28 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-func getIPAddressFromEchoserver(appURL string) string {
+func getIPAddressFromEchoserver(appURL string) (string, error) {
 
 	httpClient := http.Client{
 		Timeout: time.Duration(5 * time.Second),
 	}
 
-	var result *http.Response
-	Eventually(func() int {
-		var err error
-		result, err = httpClient.Get(appURL)
-		if err != nil {
-			fmt.Fprintf(GinkgoWriter, "Failed to get response from %s: %v\n", appURL, err)
-			return -1
-		}
-		if result != nil && result.StatusCode != 200 {
-			fmt.Fprintf(GinkgoWriter, "Failed to get response from %s: StatusCode %v\n", appURL, result.StatusCode)
-		}
-		return result.StatusCode
-	}, "60s", "15s").Should(Equal(200))
+	result, err := httpClient.Get(appURL)
+	if err != nil {
+		fmt.Fprintf(GinkgoWriter, "Failed to get response from %s: %v\n", appURL, err)
+		return "", err
+	}
+	if result != nil && result.StatusCode != 200 {
+		return "", fmt.Errorf("Failed to get response from %s: StatusCode %v\n", appURL, result.StatusCode)
+	}
 
 	body, err := ioutil.ReadAll(result.Body)
-	Expect(err).NotTo(HaveOccurred())
+	if err != nil {
+		return "", err
+	}
 	re := regexp.MustCompile("client_address=(.*)")
 
-	return re.FindAllStringSubmatch(string(body), -1)[0][0]
+	return re.FindAllStringSubmatch(string(body), -1)[0][0], nil
 }
 
 var _ = Describe("When deploying a loadbalancer", func() {
@@ -61,15 +58,24 @@ var _ = Describe("When deploying a loadbalancer", func() {
 			}, "240s", "60s").Should(Not(Equal("")))
 
 			appURL := fmt.Sprintf("http://%s", loadbalancerAddress)
-			ipAddress := getIPAddressFromEchoserver(appURL)
+			var ipAddress string
+			Eventually(func() error {
+				var err error
+				ipAddress, err = getIPAddressFromEchoserver(appURL)
+				return err
+			}, "60s", "15s").Should(Succeed())
 			segments := strings.Split(ipAddress, ".")
 
 			runner.RunKubectlCommandWithTimeout("patch", "svc/echoserver", "-p", "{\"spec\":{\"externalTrafficPolicy\":\"Local\"}}")
 			prefix := segments[0] + "." + segments[1] + "."
 
+			loadbalancerAddress = runner.GetLBAddress("echoserver", iaas)
+			appURL = fmt.Sprintf("http://%s", loadbalancerAddress)
+
 			Eventually(func() string {
-				return getIPAddressFromEchoserver(appURL)
-			}, "600s", "60s").Should(Not(HavePrefix(prefix)))
+				newPrefix, _ := getIPAddressFromEchoserver(appURL)
+				return newPrefix
+			}, "600s", "60s").Should(And(Not(BeEmpty()), Not(HavePrefix(prefix))))
 		})
 	})
 
