@@ -24,6 +24,14 @@ resources:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
     branch: master
 
+- name: git-kubo-ci-old
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    branch: master
+    tag_filter: v0\.17\.0
+    private_key: ((git-ssh-key.private_key))
+
 - name: git-kubo-deployment
   type: git
   source:
@@ -259,6 +267,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+      resource: git-kubo-ci-old
     - get: kubo-lock-upgrade-<%= iaas %>
       version: every
       trigger: true
