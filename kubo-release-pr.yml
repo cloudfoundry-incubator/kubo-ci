@@ -235,6 +235,14 @@ jobs:
   - task: install
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
+    params:
+      <% if iaas.include? 'openstack' %>
+      CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
+      <% elsif iaas =~ /^(gcp|vsphere-lb)/ %>
+      CLOUD_CONFIG_OPS_FILE: <%= iaas %>-k8s-cloud-config-multiaz.yml
+      <% elsif iaas.include? 'aws-lb' %>
+      CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
+      <% end %>
     input_mapping:
       kubo-lock: kubo-lock-upgrade-<%= iaas %>
       git-kubo-deployment: unpacked_dir
@@ -461,6 +469,14 @@ jobs:
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+    params:
+      <% if iaas.include? 'openstack' %>
+      CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
+      <% elsif iaas =~ /^(gcp|vsphere-lb)/ %>
+      CLOUD_CONFIG_OPS_FILE: <%= iaas %>-k8s-cloud-config-multiaz.yml
+      <% elsif iaas.include? 'aws-lb' %>
+      CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
+      <% end %>
     on_failure: &on_failure_<%= iaas %>
       aggregate:
       - put: git-kubo-release
