@@ -211,11 +211,10 @@ jobs:
   - put: kubo-lock-upgrade-<%= iaas %>
     params: { acquire: true }
 
-- name: install-old-bosh-<%= iaas %>
+- name: install-bosh-for-upgrade-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: old-kubo-deployment-tarball
     - get: kubo-lock-upgrade-<%= iaas %>
       version: every
       trigger: true
@@ -231,15 +230,6 @@ jobs:
     - get: git-kubo-deployment
       passed: [ 'claim-lock-upgrade-<%= iaas %>' ]
 
-  - task: unpack-tgz
-    file: git-kubo-ci/tasks/unpack-tgz.yml
-    tags: ['<%= iaas %>']
-    input_mapping:
-      source_tarball: old-kubo-deployment-tarball
-    params:
-      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
-
   - task: install
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
@@ -253,7 +243,6 @@ jobs:
       <% end %>
     input_mapping:
       kubo-lock: kubo-lock-upgrade-<%= iaas %>
-      git-kubo-deployment: unpacked_dir
 
   - aggregate:
     - put: gcs-bosh-creds
@@ -271,27 +260,26 @@ jobs:
     - get: kubo-lock-upgrade-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'install-old-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: old-kubo-deployment-tarball
-      passed: [ 'install-old-bosh-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'install-old-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'install-old-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: old-kubo-release-tarball
       params:
         globs:
         - "kubo-release*"
     - get: gcs-kubo-release-tarball
-      passed: [ 'install-old-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball
-      passed: [ 'install-old-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: kubo-version
-      passed: [ 'install-old-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: git-kubo-release
-      passed: [ 'install-old-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: git-kubo-deployment
-      passed: [ 'install-old-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
 
   - task: unpack-tgz
     file: git-kubo-ci/tasks/unpack-tgz.yml
@@ -309,11 +297,17 @@ jobs:
       kubo-lock: kubo-lock-upgrade-<%= iaas %>
       git-kubo-deployment: unpacked_dir
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    params:
+    <% if iaas == 'vsphere-lb' %>
+      DEPLOYMENT_OPS_FILE: add-haproxy-and-multiaz-workers.yml
+    <% else %>
+      DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
+    <% end %>
   - put: gcs-kubeconfig
     params:
       file: gcs-kubeconfig/config
 
-- name: upgrade-bosh-and-kubo-<%= iaas %>
+- name: upgrade-kubo-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
@@ -352,14 +346,17 @@ jobs:
     input_mapping:
       kubo-lock: kubo-lock-upgrade-<%= iaas %>
       gcs-kubo-release-tarball: gcs-kubo-release-tarball
-
-  - aggregate:
-    - put: gcs-bosh-creds
-      params:
-        file: bosh-creds/creds.yml
-    - put: gcs-bosh-state
-      params:
-        file: bosh-state/state.json
+    params:
+      <% if iaas =~ /^(gcp|vsphere-lb|aws-lb)/ %>
+      DEPLOYMENT_OPS_FILE: enable-multiaz-workers-and-masters.yml
+      <% end %>
+      <% if iaas.include? 'openstack' %>
+      CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
+      <% elsif iaas =~ /^(gcp|vsphere-lb)/ %>
+      CLOUD_CONFIG_OPS_FILE: <%= iaas %>-k8s-cloud-config-multiaz.yml
+      <% elsif iaas.include? 'aws-lb' %>
+      CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
+      <% end %>
 
 - name: destroy-k8s-upgrade-<%= iaas %>
   plan:
@@ -368,21 +365,21 @@ jobs:
     - get: kubo-lock-upgrade-<%= iaas %>
       version: every
       trigger: true
-      passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball
-      passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball
-      passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
     - get: gcs-bosh-state
-      passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
     - get: kubo-version
-      passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
     - get: git-kubo-release
-      passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
     - get: git-kubo-deployment
-      passed: [ 'upgrade-bosh-and-kubo-<%= iaas %>' ]
+      passed: [ 'upgrade-kubo-<%= iaas %>' ]
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
