@@ -38,7 +38,7 @@ var _ = Describe("Kubelet", func() {
 		bearerToken, err := BearerToken()
 		Expect(err).ToNot(HaveOccurred())
 
-		resp, err := curl(endpoint, bearerToken)
+		resp, err := CurlInsecureWithToken(endpoint, bearerToken)
 
 		Expect(err).ToNot(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(200))
@@ -71,14 +71,14 @@ var _ = Describe("Kubelet", func() {
 			secret, err := kubeclient.Core().Secrets("default").Get(sa.Secrets[0].Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
-			resp, err := curl(endpoint, string(secret.Data["token"]))
+			resp, err := CurlInsecureWithToken(endpoint, string(secret.Data["token"]))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(403))
 		})
 	})
 
 	It("Should fail when requests are made to kubelet with invalid Bearer Token", func() {
-		resp, err := curl(endpoint, "IMAFAKEBEAR")
+		resp, err := CurlInsecureWithToken(endpoint, "IMAFAKEBEAR")
 		Expect(err).ToNot(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(401))
 	})
@@ -101,16 +101,4 @@ func invalidRequest(tr *http.Transport, endpoint string) {
 	resp, err := client.Get(endpoint)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(resp.StatusCode).To(Equal(401))
-}
-
-func curl(endpoint, token string) (*http.Response, error) {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
-	req, err := http.NewRequest("GET", endpoint, nil)
-	Expect(err).ToNot(HaveOccurred())
-
-	req.Header.Add("Authorization", "Bearer "+token)
-	return client.Do(req)
 }
