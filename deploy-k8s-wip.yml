@@ -1,0 +1,126 @@
+resource_types:
+- name: bosh-deployment
+  type: docker-image
+  source:
+    repository: cloudfoundry/bosh-deployment-resource
+
+resources:
+- name: git-cfcr-deployment
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/kubo-deployment.git
+    branch: master
+
+- name: git-cfcr-release
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/kubo-release.git
+    branch: master
+
+- name: stemcell
+  type: bosh-io-stemcell
+  source:
+    name: ((bosh.stemcell))
+
+- name: cfcr-deployment
+  type: bosh-deployment
+  source:
+    deployment: ((bosh.deployment)) ##NOTE. we need one per deployment
+    target: ((bosh.target))
+    client: ((bosh.client))
+    client_secret: ((bosh.client_secret))
+    ca_cert: ((bosh.ca_cert))
+    # jumpbox_url: ((bosh.jumpbox_url))
+    # jumpbox_ssh_key: ((bosh.jumpbox_ssh_key))
+
+jobs:
+# precompile a dev release -> bucket (without bucket)
+# delete the existing deployment --force delete
+- name: deploy-cfcr
+  serial: true
+  serial_groups: [cfcr-pipeline]
+  plan:
+  - aggregate:
+    - get: git-cfcr-deployment
+      # trigger: true
+    - get: git-cfcr-release
+      # trigger: true
+    - get: stemcell
+  - task: create-release
+    config:
+      caches:
+      - path: git-cfcr-release/blobs
+      inputs:
+      - name: git-cfcr-release
+      outputs:
+      - name: cfcr-release-tarball
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: pcfkubo/kubo-ci}
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          set -exu
+          bosh create-release --dir=git-cfcr-release --tarball=cfcr-release-tarball/cfcr-release.tgz --timestamp-version
+  - put: cfcr-deployment
+    params:
+      manifest: git-cfcr-deployment/manifests/cfcr.yml
+      cleanup: true
+      ops_files:
+      - git-cfcr-deployment/manifests/ops-files/misc/single-master.yml
+      - git-cfcr-deployment/manifests/ops-files/rename.yml
+      stemcells:
+      - stemcell/stemcell.tgz
+      releases:
+      - cfcr-release-tarball/cfcr-release.tgz
+      vars:
+        deployment_name: ((bosh.deployment))
+  - task: apply-addons
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: pcfkubo/kubo-ci}
+      params:
+        BOSH_ENVIRONMENT: ((bosh.target))
+        BOSH_CLIENT: ((bosh.client))
+        BOSH_CLIENT_SECRET: ((bosh.client_secret))
+        BOSH_CA_CERT: ((bosh.ca_cert))
+        BOSH_DEPLOYMENT: ((bosh.deployment))
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          set -exu
+          bosh run-errand apply-specs
+
+- name: run-smoke-tests
+  serial: true
+  serial_groups: [cfcr-pipeline]
+  plan:
+  - get: git-cfcr-deployment
+    trigger: true
+    passed: ['deploy-cfcr']
+  - task: run-smoke-tests-errand
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: pcfkubo/kubo-ci}
+      params:
+        BOSH_ENVIRONMENT: ((bosh.target))
+        BOSH_CLIENT: ((bosh.client))
+        BOSH_CLIENT_SECRET: ((bosh.client_secret))
+        BOSH_CA_CERT: ((bosh.ca_cert))
+        BOSH_DEPLOYMENT: ((bosh.deployment))
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          set -exu
+          bosh run-errand smoke-tests
