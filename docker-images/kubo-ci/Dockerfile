@@ -110,3 +110,8 @@ RUN git clone https://github.com/fsaintjacques/semver-tool && \
   cd semver-tool && make install
 
 RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
+RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz && \
+  tar -xvf helm-v2.9.1-linux-amd64.tar.gz && \
+  mv linux-amd64/helm /usr/bin/local && \
+  rm -rf linux-amd64 helm-v2.9.1-linux-amd64.tar.gz
