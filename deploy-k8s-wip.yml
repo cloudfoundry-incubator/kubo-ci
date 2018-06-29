@@ -36,6 +36,16 @@ resources:
 jobs:
 # precompile a dev release -> bucket (without bucket)
 # delete the existing deployment --force delete
+
+- name: delete-cfcr
+  serial: true
+  serial_groups: [cfcr-pipeline]
+  plan:
+  - put: cfcr-deployment
+    params:
+      delete:
+        enabled: true
+
 - name: deploy-cfcr
   serial: true
   serial_groups: [cfcr-pipeline]
@@ -63,7 +73,7 @@ jobs:
         args:
         - -c
         - |
-          set -exu
+          set -eu
           bosh create-release --dir=git-cfcr-release --tarball=cfcr-release-tarball/cfcr-release.tgz --timestamp-version
   - put: cfcr-deployment
     params:
@@ -96,7 +106,7 @@ jobs:
         - -c
         - |
           set -exu
-          echo ((bosh.jumpbox_ssh_key)) > /tmp/jumpbox.key
+          echo "((bosh.jumpbox_ssh_key))" > /tmp/jumpbox.key
           chmod 600 /tmp/jumpbox.key
           export BOSH_ALL_PROXY="ssh+socks5://((bosh.jumpbox_url))?private-key=/tmp/jumpbox.key"
           bosh run-errand apply-specs
@@ -125,5 +135,8 @@ jobs:
         args:
         - -c
         - |
-          set -exu
+          set -eu
+          echo "((bosh.jumpbox_ssh_key))" > /tmp/jumpbox.key
+          chmod 600 /tmp/jumpbox.key
+          export BOSH_ALL_PROXY="ssh+socks5://((bosh.jumpbox_url))?private-key=/tmp/jumpbox.key"
           bosh run-errand smoke-tests
