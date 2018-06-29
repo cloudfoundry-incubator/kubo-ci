@@ -59,8 +59,8 @@ ENV PATH /usr/local/ruby-install/bin:/usr/local/bin:$PATH
 RUN ruby-install --system ruby 2.4.1
 
 # Credhub
-RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/1.4.0/credhub-linux-1.4.0.tgz \
-  -O credhub-linux-1.4.0.tgz && tar xvf credhub-linux-1.4.0.tgz && mv credhub /usr/bin
+RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/1.7.6/credhub-linux-1.7.6.tgz \
+  -O credhub-linux-1.7.6.tgz && tar xvf credhub-linux-1.7.6.tgz && mv credhub /usr/bin
 
 # kubectl
 RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.10.2/bin/linux/amd64/kubectl -O /usr/bin/kubectl && \
@@ -78,6 +78,7 @@ RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-3.0.1-linux-amd64 
   ln -s /usr/local/bin/bosh /usr/local/bin/bosh-cli
 
 # Openstack CLI
+RUN pip install -U setuptools
 RUN pip install cryptography==2.0.3
 RUN pip install pyOpenSSL==17.3.0
 RUN pip install python-glanceclient==2.8.0
@@ -113,5 +114,5 @@ RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz && \
   tar -xvf helm-v2.9.1-linux-amd64.tar.gz && \
-  mv linux-amd64/helm /usr/bin/local && \
+  mv linux-amd64/helm /usr/bin/helm && \
   rm -rf linux-amd64 helm-v2.9.1-linux-amd64.tar.gz
