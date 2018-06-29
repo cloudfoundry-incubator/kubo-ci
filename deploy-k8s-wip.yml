@@ -30,8 +30,8 @@ resources:
     client: ((bosh.client))
     client_secret: ((bosh.client_secret))
     ca_cert: ((bosh.ca_cert))
-    # jumpbox_url: ((bosh.jumpbox_url))
-    # jumpbox_ssh_key: ((bosh.jumpbox_ssh_key))
+    jumpbox_url: ((bosh.jumpbox_url))
+    jumpbox_ssh_key: ((bosh.jumpbox_ssh_key))
 
 jobs:
 # precompile a dev release -> bucket (without bucket)
@@ -96,6 +96,9 @@ jobs:
         - -c
         - |
           set -exu
+          echo ((bosh.jumpbox_ssh_key)) > /tmp/jumpbox.key
+          chmod 600 /tmp/jumpbox.key
+          export BOSH_ALL_PROXY="ssh+socks5://((bosh.jumpbox_url))?private-key=/tmp/jumpbox.key"
           bosh run-errand apply-specs
 
 - name: run-smoke-tests
