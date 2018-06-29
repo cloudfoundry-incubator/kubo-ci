@@ -23,7 +23,6 @@ var _ = Describe("Docker Image", func() {
 		"go":       []string{"doc", "cmd/vet"},
 		"govc":     []string{"version"},
 		"haproxy":  []string{"-v"},
-		"helm":     []string{},
 		"ipcalc":   []string{},
 		"java":     []string{"-version"},
 		"jq":       []string{"--version"},
