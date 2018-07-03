@@ -171,6 +171,7 @@ jobs:
       gcs-kubo-deployment-pre: kubo-dev-deployment
   - task: run-istio-tests
     file: git-kubo-ci/tasks/run-istio-tests.yml
+    attempts: 2
     on_failure: &on_failure_alert
       do:
       - task: configure-slack-notification
