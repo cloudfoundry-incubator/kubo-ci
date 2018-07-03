@@ -11,4 +11,4 @@ git checkout tags/0.8.0 -b 0.8.0
 ./bin/init_helm.sh
 # increase istio test timeouts. This will hopefully in future
 sed -i -e 's/-timeout 20m/-timeout 60m/g' /root/go/src/istio.io/istio/tests/istio.mk
-make e2e_simple TAG='0.8.0' E2E_ARGS='--installer=helm'
+make e2e_simple TAG='0.8.0' E2E_ARGS='--installer=helm --skip_cleanup'
