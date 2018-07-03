@@ -1,10 +1,16 @@
 resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
 - name: bosh-deployment
   type: docker-image
   source:
     repository: cloudfoundry/bosh-deployment-resource
 
 resources:
+#TODO. add kubo-ci
 - name: git-cfcr-deployment
   type: git
   source:
@@ -25,7 +31,7 @@ resources:
 - name: cfcr-deployment
   type: bosh-deployment
   source:
-    deployment: ((bosh.deployment)) ##NOTE. we need one per deployment
+    deployment: ((bosh.deployment)) ##NOTE. we need one per deployment --> Source config can be changed at runtime
     target: ((bosh.target))
     client: ((bosh.client))
     client_secret: ((bosh.client_secret))
@@ -33,6 +39,12 @@ resources:
     jumpbox_url: ((bosh.jumpbox_url))
     jumpbox_ssh_key: ((bosh.jumpbox_ssh_key))
 
+- name: gcs-kubeconfig
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubeconfig-store
+    versioned_file: ((bosh.target))/((bosh.deployment))/kubeconfig
 jobs:
 # precompile a dev release -> bucket (without bucket)
 # delete the existing deployment --force delete
@@ -88,6 +100,41 @@ jobs:
       - cfcr-release-tarball/cfcr-release.tgz
       vars:
         deployment_name: ((bosh.deployment))
+  - task: create-upload-kubeconfig
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: pcfkubo/kubo-ci}
+      params:
+        CREDHUB_SECRET: ((credhub.client_secret))
+        CREDHUB_CLIENT: credhub-admin
+        CREDHUB_SERVER: ((credhub.server))
+        CREDHUB_CA_CERT: ((credhub.ca_cert))
+      outputs:
+        - name: outfolder
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          set -exu
+          echo "((bosh.jumpbox_ssh_key))" > /tmp/jumpbox.key
+          chmod 600 /tmp/jumpbox.key
+          export CREDHUB_PROXY="ssh+socks5://((bosh.jumpbox_url))?private-key=/tmp/jumpbox.key"
+          bosh int <(credhub get -n ((bosh.name))/((bosh.deployment))/tls-kubernetes --output-json) --path=/value/ca > /tmp/ca
+          admin_password=$(bosh int <(credhub get -n ((bosh.name))/((bosh.deployment))/kubo-admin-password" --output-json) --path=/value)
+          cluster_name=((bosh.name))/((bosh.deployment))
+          user_name="${cluster_name}/cfcr-admin"
+          context_name="${cluster_name}"
+          export KUBECONFIG=outfolder/kubeconfig
+          kubectl config set-cluster "${cluster_name}" --server=((master-url)) --certificate-authority=/tmp/ca --embed-certs=true
+          kubectl config set-credentials "${user_name}" --token="${admin_password}"
+          kubectl config set-context "${context_name}" --cluster="${cluster_name}" --user="${user_name}"
+          kubectl config use-context "${context_name}"
+  - put: gcs-kubeconfig
+    params:
+      file: outfolder/kubeconfig
   - task: apply-addons
     config:
       platform: linux
@@ -140,3 +187,27 @@ jobs:
           chmod 600 /tmp/jumpbox.key
           export BOSH_ALL_PROXY="ssh+socks5://((bosh.jumpbox_url))?private-key=/tmp/jumpbox.key"
           bosh run-errand smoke-tests
+#
+# - name: run-integration-tests
+#   serial: true
+#   serial_groups: [cfcr-pipeline]
+#   plan:
+#   - get: git-kubo-ci
+#   - get: git-cfcr-deployment
+#     trigger: true
+#     passed: ['deploy-cfcr']
+#   - task: run-integration-tests
+#     config:
+#       platform: linux
+#       image_resource:
+#         type: docker-image
+#         source: {repository: pcfkubo/kubo-ci}
+#       run:
+#         path: bash
+#         args:
+#         - -c
+#         - |
+#         #TODO. grub kubeconfig from bucket
+#           cd kubo-ci #TODO. where integration test live
+#           export KUBECONFIG=X #HOW?
+#           ginkgo -skipPackage multi,persistent,cloudfoundry,addons,lbs -r src/tests/integration-tests
