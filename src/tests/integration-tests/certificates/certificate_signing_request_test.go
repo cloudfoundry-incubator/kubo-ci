@@ -31,8 +31,8 @@ var _ = Describe("Certificate Signing Requests", func() {
 	})
 
 	AfterEach(func() {
-		Eventually(kubectl.RunKubectlCommand("delete", "-f", csrSpec), "60s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommand("config", "unset", "users."+csrUsername), "60s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("delete", "-f", csrSpec), "30s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("config", "unset", "users."+csrUsername), "30s").Should(gexec.Exit(0))
 
 		if certFile != "" {
 			os.Remove(certFile)
@@ -41,17 +41,18 @@ var _ = Describe("Certificate Signing Requests", func() {
 
 	Context("When a user creates a CSR within the 'system:master' group", func() {
 		It("should create a client certificate that can talk to Kube API Server", func() {
-			Eventually(kubectl.RunKubectlCommand("apply", "-f", csrSpec), "60s").Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("certificate", "approve", "test-csr"), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("apply", "-f", csrSpec), "30s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("certificate", "approve", "test-csr"), "30s").Should(gexec.Exit(0))
+			Eventually(kubectl.GetOutput("get", "csr", "test-csr", "-o", "jsonpath={.status}"), "30s").ShouldNot(BeEmpty())
 
 			clientCert := kubectl.GetOutput("get", "csr", "test-csr", "-o", "jsonpath={.status.certificate}")
 			decodedCert := decodeCert(clientCert[0])
 			certFile = writeCertToFile(decodedCert)
 
 			Eventually(kubectl.RunKubectlCommand("config", "set-credentials", csrUsername,
-				"--client-certificate", certFile, "--client-key", keyFile), "60s").Should(gexec.Exit(0))
+				"--client-certificate", certFile, "--client-key", keyFile), "30s").Should(gexec.Exit(0))
 
-			Eventually(kubectl.RunKubectlCommand("--user", csrUsername, "get", "nodes"), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("--user", csrUsername, "get", "nodes"), "30s").Should(gexec.Exit(0))
 		})
 	})
 })
