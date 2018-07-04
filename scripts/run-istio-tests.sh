@@ -6,6 +6,7 @@ source "${ROOT}/git-kubo-ci/scripts/lib/utils.sh"
 setup_env "${KUBO_ENVIRONMENT_DIR}"
 
 go get github.com/cfcr/istio || true # go get returns error "no Go files", which is expected
+mkdir -p $GOPATH/src/istio.io
 mv $GOPATH/src/github.com/cfcr/istio $GOPATH/src/istio.io/istio
 cd $GOPATH/src/istio.io/istio
 git checkout 0.8.0
