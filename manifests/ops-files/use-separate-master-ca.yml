@@ -1,0 +1,13 @@
+---
+- type: replace
+  path: /variables/0:before
+  value:
+    name: kubo-master-ca
+    type: certificate
+    options:
+      is_ca: true
+      common_name: kubo-master-ca
+
+- type: replace
+  path: /variables/name=tls-kubernetes/options/ca
+  value: kubo-master-ca
