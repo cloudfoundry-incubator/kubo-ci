@@ -1714,12 +1714,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - put: git-kubo-release
         params:
           repository: git-kubo-release-output
-      # We need to push the tags separately due to
-      # https://github.com/concourse/git-resource/issues/110
-      - put: git-kubo-release
-        params:
-          repository: git-kubo-release-output
-          only_tag: true
+          merge: true
       - put: gh-release-kubo-release
         params:
           name: kubo-release/name
