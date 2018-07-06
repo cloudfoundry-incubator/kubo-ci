@@ -1,6 +1,7 @@
 package generic_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -18,7 +19,6 @@ var _ = Describe("Dashboard Internals", func() {
 	var (
 		k8s     kubernetes.Interface
 		kubectl *KubectlRunner
-		err     error
 	)
 
 	type DashboardIntegrationStatus struct {
@@ -34,6 +34,7 @@ var _ = Describe("Dashboard Internals", func() {
 	}
 
 	BeforeEach(func() {
+		var err error
 		k8s, err = NewKubeClient()
 		Expect(err).ToNot(HaveOccurred())
 
@@ -46,8 +47,8 @@ var _ = Describe("Dashboard Internals", func() {
 	})
 
 	It("dashboard should be able to connect to heapster", func() {
-		var nodeIP string
-		nodeIP, err = GetNodeIP()
+		nodeIP, err := GetNodeIP()
+		Expect(err).NotTo(HaveOccurred())
 
 		svc, err := k8s.Core().Services("kube-system").Get("kubernetes-dashboard", metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
@@ -74,10 +75,11 @@ var _ = Describe("Dashboard Internals", func() {
 		session := kubectl.RunKubectlCommand("run", "influxdb-test", "--image=tutum/curl",
 			"--restart=Never", "-it", "--rm", "--",
 			"curl", "-k", url, "--data-urlencode", "q=SHOW DATABASES")
-		Eventually(session, "30s").Should(gexec.Exit(0))
+		Eventually(session, "60s").Should(gexec.Exit(0))
 
 		influxDBStatus := InfluxDBResults{}
-		err = json.Unmarshal(session.Out.Contents(), &influxDBStatus)
+		output := bytes.Split(session.Out.Contents(), []byte("\n"))[0]
+		err := json.Unmarshal(output, &influxDBStatus)
 		Expect(err).ToNot(HaveOccurred())
 
 		defaultHeapsterDB := []string{"k8s"}
