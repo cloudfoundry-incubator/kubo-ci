@@ -1491,6 +1491,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'claim-lock-two-cas' ]
   - task: install
+    params:
+      CLOUD_CONFIG_OPS_FILE: gcp-k8s-cloud-config-multiaz.yml
+    on_failure: *on_failure_alert
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock-two-cas
