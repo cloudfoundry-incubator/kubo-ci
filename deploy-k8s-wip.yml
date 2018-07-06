@@ -9,13 +9,24 @@ resource_types:
   source:
     repository: cloudfoundry/bosh-deployment-resource
 
+- name: bosh-errand
+  type: docker-image
+  source:
+    repository: cloudfoundry-community/bosh2-errand-resource
+
 resources:
-#TODO. add kubo-ci
 - name: git-cfcr-deployment
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/kubo-deployment.git
     branch: master
+
+- name: git-bosh-environment-lock
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
 
 - name: git-cfcr-release
   type: git
@@ -23,28 +34,35 @@ resources:
     uri: https://github.com/cloudfoundry-incubator/kubo-release.git
     branch: master
 
+- name: git-cfcr-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/kubo-ci.git
+    branch: master
+
 - name: stemcell
   type: bosh-io-stemcell
   source:
-    name: ((bosh.stemcell))
+    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent 
 
 - name: cfcr-deployment
   type: bosh-deployment
-  source:
-    deployment: ((bosh.deployment)) ##NOTE. we need one per deployment --> Source config can be changed at runtime
-    target: ((bosh.target))
-    client: ((bosh.client))
-    client_secret: ((bosh.client_secret))
-    ca_cert: ((bosh.ca_cert))
-    jumpbox_url: ((bosh.jumpbox_url))
-    jumpbox_ssh_key: ((bosh.jumpbox_ssh_key))
+  source: {}
+
+- name: run-apply-addons-errand
+  type: bosh-errand
+  source: {}
+
+- name: run-smoke-tests-errand
+  type: bosh-errand
+  source: {}
 
 - name: gcs-kubeconfig
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubeconfig-store
-    versioned_file: ((bosh.target))/((bosh.deployment))/kubeconfig
+    versioned_file: kubeconfig
 jobs:
 # precompile a dev release -> bucket (without bucket)
 # delete the existing deployment --force delete
@@ -64,6 +82,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-cfcr-deployment
+    - get: git-bosh-environment-lock
       # trigger: true
     - get: git-cfcr-release
       # trigger: true
@@ -72,6 +91,7 @@ jobs:
     config:
       caches:
       - path: git-cfcr-release/blobs
+      - path: git-cfcr-release/dev_releases
       inputs:
       - name: git-cfcr-release
       outputs:
@@ -98,19 +118,17 @@ jobs:
       - stemcell/stemcell.tgz
       releases:
       - cfcr-release-tarball/cfcr-release.tgz
+      source_file: git-bosh-environment-lock/kubo-aws-lb-lifecycle/bbl/source.json
       vars:
-        deployment_name: ((bosh.deployment))
+        deployment_name: ci-service
   - task: create-upload-kubeconfig
     config:
       platform: linux
       image_resource:
         type: docker-image
         source: {repository: pcfkubo/kubo-ci}
-      params:
-        CREDHUB_SECRET: ((credhub.client_secret))
-        CREDHUB_CLIENT: credhub-admin
-        CREDHUB_SERVER: ((credhub.server))
-        CREDHUB_CA_CERT: ((credhub.ca_cert))
+      inputs:
+        - name: git-bosh-environment-lock
       outputs:
         - name: outfolder
       run:
@@ -119,12 +137,14 @@ jobs:
         - -c
         - |
           set -exu
-          echo "((bosh.jumpbox_ssh_key))" > /tmp/jumpbox.key
-          chmod 600 /tmp/jumpbox.key
-          export CREDHUB_PROXY="ssh+socks5://((bosh.jumpbox_url))?private-key=/tmp/jumpbox.key"
-          bosh int <(credhub get -n ((bosh.name))/((bosh.deployment))/tls-kubernetes --output-json) --path=/value/ca > /tmp/ca
-          admin_password=$(bosh int <(credhub get -n ((bosh.name))/((bosh.deployment))/kubo-admin-password" --output-json) --path=/value)
-          cluster_name=((bosh.name))/((bosh.deployment))
+          cd git-bosh-environment-lock/kubo-aws-lb-lifecycle/bbl
+          eval "$(bbl print-env)"
+
+          credhub get -n bosh-bbl-md-kk/cfcr-main/tls-kubernetes --output-json | jq -r .value.ca > /tmp/ca
+          admin_password="$(credhub get -n bosh-bbl-md-kk/cfcr-main/kubo-admin-password --output-json | jq -r .value)"
+          bosh_name="$(bosh env --json | jq -r .Tables[0].Rows[0].name)"
+          deployment_name="$(cat source.json | jq -r .deployment)"
+          cluster_name="$bosh_name/$deployment_name"
           user_name="${cluster_name}/cfcr-admin"
           context_name="${cluster_name}"
           export KUBECONFIG=outfolder/kubeconfig
@@ -135,79 +155,45 @@ jobs:
   - put: gcs-kubeconfig
     params:
       file: outfolder/kubeconfig
-  - task: apply-addons
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: {repository: pcfkubo/kubo-ci}
-      params:
-        BOSH_ENVIRONMENT: ((bosh.target))
-        BOSH_CLIENT: ((bosh.client))
-        BOSH_CLIENT_SECRET: ((bosh.client_secret))
-        BOSH_CA_CERT: ((bosh.ca_cert))
-        BOSH_DEPLOYMENT: ((bosh.deployment))
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          set -exu
-          echo "((bosh.jumpbox_ssh_key))" > /tmp/jumpbox.key
-          chmod 600 /tmp/jumpbox.key
-          export BOSH_ALL_PROXY="ssh+socks5://((bosh.jumpbox_url))?private-key=/tmp/jumpbox.key"
-          bosh run-errand apply-specs
+  - put: run-apply-addons-errand
+    params:
+      name: apply-addons
+      source_file: git-bosh-environment-lock/kubo-aws-lb-lifecycle/bbl/source.json
+  - put: run-smoke-tests-errand
+    params:
+      name: smoke-tests
+      source_file: git-bosh-environment-lock/kubo-aws-lb-lifecycle/bbl/source.json
 
-- name: run-smoke-tests
+- name: run-integration-tests
   serial: true
   serial_groups: [cfcr-pipeline]
   plan:
-  - get: git-cfcr-deployment
-    trigger: true
-    passed: ['deploy-cfcr']
-  - task: run-smoke-tests-errand
+  - aggregate:
+    - get: git-cfcr-deployment
+      passed: ['deploy-cfcr']
+    - get: git-cfcr-release
+      passed: ['deploy-cfcr']
+    - get: gcs-kubeconfig
+      passed: ['deploy-cfcr']
+      trigger: true
+    - get: git-cfcr-ci
+  - task: run-integration-tests
     config:
+      caches:
+      - path: git-cfcr-ci/pkg
       platform: linux
       image_resource:
         type: docker-image
         source: {repository: pcfkubo/kubo-ci}
-      params:
-        BOSH_ENVIRONMENT: ((bosh.target))
-        BOSH_CLIENT: ((bosh.client))
-        BOSH_CLIENT_SECRET: ((bosh.client_secret))
-        BOSH_CA_CERT: ((bosh.ca_cert))
-        BOSH_DEPLOYMENT: ((bosh.deployment))
+      inputs:
+      - name: git-cfcr-ci
+      - name: gcs-kubeconfig
       run:
         path: bash
         args:
         - -c
         - |
-          set -eu
-          echo "((bosh.jumpbox_ssh_key))" > /tmp/jumpbox.key
-          chmod 600 /tmp/jumpbox.key
-          export BOSH_ALL_PROXY="ssh+socks5://((bosh.jumpbox_url))?private-key=/tmp/jumpbox.key"
-          bosh run-errand smoke-tests
-#
-# - name: run-integration-tests
-#   serial: true
-#   serial_groups: [cfcr-pipeline]
-#   plan:
-#   - get: git-kubo-ci
-#   - get: git-cfcr-deployment
-#     trigger: true
-#     passed: ['deploy-cfcr']
-#   - task: run-integration-tests
-#     config:
-#       platform: linux
-#       image_resource:
-#         type: docker-image
-#         source: {repository: pcfkubo/kubo-ci}
-#       run:
-#         path: bash
-#         args:
-#         - -c
-#         - |
-#         #TODO. grub kubeconfig from bucket
-#           cd kubo-ci #TODO. where integration test live
-#           export KUBECONFIG=X #HOW?
-#           ginkgo -skipPackage multi,persistent,cloudfoundry,addons,lbs -r src/tests/integration-tests
+          export KUBECONFIG=$PWD/gcs-kubeconfig/kubeconfig
+          cd git-cfcr-ci
+          export GOPATH=$PWD
+          ginkgo -skipPackage multi,persistent,cloudfoundry,addons,lbs -r src/tests/integration-tests
