@@ -12,13 +12,13 @@ resources:
   source:
     owner: coreos
     repository: etcd
-    version_filter: "< 4.0.0"
+    version_filter: "< 3.4.0"
     access_token: ((github-token-key))
 
-- name: git-kubo-etcd
+- name: git-cfcr-etcd
   type: git
   source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-etcd.git
+    uri: git@github.com:cloudfoundry-incubator/cfcr-etcd-release.git
     branch: master
     private_key: ((git-ssh-key.private_key))
 
@@ -34,7 +34,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: git-kubo-etcd
+    - get: git-cfcr-etcd
     - get: etcd-release
       trigger: true
       params: { globs: ["etcd-*-linux-amd64.tar.gz"] }
@@ -50,13 +50,13 @@ jobs:
         path: git-kubo-ci/scripts/bump-etcd.sh
       inputs:
         - name: git-kubo-ci
-        - name: git-kubo-etcd
+        - name: git-cfcr-etcd
         - name: etcd-release
       outputs:
-        - name: git-kubo-etcd-output
+        - name: git-cfcr-etcd-output
       params:
         ACCESS_KEY_ID: ((gcs-access-key-id))
         SECRET_ACCESS_KEY: ((gcs-secret-access-key))
-  - put: git-kubo-etcd
+  - put: git-cfcr-etcd
     params:
-      repository: git-kubo-etcd-output
+      repository: git-cfcr-etcd-output
