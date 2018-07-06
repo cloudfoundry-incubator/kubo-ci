@@ -108,6 +108,13 @@ groups:
   - destroy-bosh-upgrade-multi-master-<%= env %>
   <% end %>
 <% end %>
+- name: 2-cas
+  jobs:
+  - claim-lock-two-cas
+  - install-bosh-two-cas
+  - deploy-k8s-two-cas
+  - destroy-k8s-two-cas
+  - destroy-bosh-two-cas
 - name: integration
   jobs:
   <% env_list.each do |env| %>
@@ -151,14 +158,6 @@ groups:
     - destroy-k8s-proxy-<%= env %>
     - destroy-bosh-proxy-<%= env %>
   <% end %>
-- name: two-cas
-  jobs:
-  - claim-lock-two-cas
-  - install-bosh-two-cas
-  - deploy-k8s-two-cas
-  - destroy-k8s-two-cas
-  - destroy-bosh-two-cas
-
 resource_types:
 - name: gcs
   type: docker-image
