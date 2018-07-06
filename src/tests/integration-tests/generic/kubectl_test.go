@@ -104,7 +104,7 @@ var _ = Describe("Kubectl", func() {
 
 		BeforeEach(func() {
 			serviceAccount = PathFromRoot("specs/build-robot-service-account.yml")
-			kubectl.RunKubectlCommand("create", "-f", serviceAccount)
+			kubectl.RunKubectlCommandWithTimeout("create", "-f", serviceAccount)
 		})
 
 		AfterEach(func() {
