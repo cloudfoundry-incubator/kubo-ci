@@ -7,9 +7,9 @@ version=$(cat "$PWD/etcd-release/version")
 name="etcd-${tag}-linux-amd64.tar.gz"
 etcd_blob_path="$PWD/etcd-release/${name}"
 
-cp -r git-kubo-etcd/. git-kubo-etcd-output
+cp -r git-cfcr-etcd/. git-cfcr-etcd-output
 
-pushd git-kubo-etcd-output
+pushd git-cfcr-etcd-output
 
 cat <<EOF > "config/private.yml"
 blobstore:
