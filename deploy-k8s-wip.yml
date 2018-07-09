@@ -132,16 +132,6 @@ jobs:
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/configure-bosh.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
-
-- name: generate-var-file
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
-      passed: [ 'install-bosh-<%= env %>' ]
-      trigger: true
-    - get: gcs-bosh-creds
-      passed: [ 'install-bosh-<%= env %>' ]
   - task: generate-ops-file
     config:
       inputs:
@@ -161,23 +151,14 @@ jobs:
         - |
           set -eu
           kubernetes_master_host="$(bosh int kubo-lock/metadata --path=/kubernetes_master_host)"
+          kubernetes_master_port="$(bosh int kubo-lock/metadata --path=/kubernetes_master_port)"
           echo "kubernetes_master_host: ${kubernetes_master_host}" > var-file/vars.yml
+          echo "kubernetes_master_port: ${kubernetes_master_port}" >> var-file/vars.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= env %>
   - put: gcs-var-file
     params:
       file: var-file/vars.yml
-
-
-- name: generate-source-json
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
-      passed: [ 'install-bosh-<%= env %>' ]
-      trigger: true
-    - get: gcs-bosh-creds
-      passed: [ 'install-bosh-<%= env %>' ]
   - task: generate-source-json
     file: git-kubo-ci/tasks/generate-source-json.yml
     input_mapping:
@@ -195,9 +176,9 @@ jobs:
     - get: git-kubo-release
     - get: stemcell
     - get: gcs-source-json
-      passed: [ 'generate-source-json' ]
+      passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-var-file
-      passed: [ 'generate-var-file' ]
+      passed: [ 'install-bosh-<%= env %>' ]
   - task: create-release
     config:
       caches:
@@ -225,6 +206,7 @@ jobs:
       ops_files:
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
+      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       vars_files:
       - gcs-var-file/var.yml
       stemcells:
@@ -251,7 +233,7 @@ jobs:
   serial_groups: [cfcr-pipeline]
   plan:
   - get: gcs-source-json
-    passed: [ 'generate-source-json' ]
+    passed: [ 'install-bosh-<%= env %>' ]
   - put: cfcr-deployment
     params:
       source_file: gcs-source-json/source.json
