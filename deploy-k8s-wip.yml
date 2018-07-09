@@ -15,141 +15,210 @@ resource_types:
     repository: cfcommunity/bosh2-errand-resource
 
 resources:
-- name: git-cfcr-deployment
+- name: git-kubo-deployment
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/kubo-deployment.git
     branch: master
-
-- name: git-bosh-environment-lock
-  type: git
-  source:
-    paths: [ bbl-directors/** ]
-    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-    branch: consolidation
-    private_key: ((git-ssh-key.private_key))
-
-- name: git-cfcr-release
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry-incubator/kubo-release.git
-    branch: master
-
-# - name: git-cfcr-ci
+#
+# - name: git-bosh-environment-lock
 #   type: git
 #   source:
-#     uri: https://github.com/cloudfoundry-incubator/kubo-ci.git
-#     branch: master
+#     paths: [ bbl-directors/** ]
+#     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+#     branch: consolidation
+#     private_key: ((git-ssh-key.private_key))
 #
-- name: stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-google-kvm-ubuntu-trusty-go_agent
-
-- name: cfcr-deployment
-  type: bosh-deployment
-  source:
-    deployment: ci-service
-
-- name: run-apply-addons-errand
-  type: bosh-errand
-  source:
-    deployment: ci-service
-
-- name: run-smoke-tests-errand
-  type: bosh-errand
-  source:
-    deployment: ci-service
-
-# - name: gcs-kubeconfig
-#   type: gcs
+# - name: git-cfcr-release
+#   type: git
 #   source:
-#     json_key: ((gcs-json-key))
-#     bucket: kubeconfig-store
-#     versioned_file: kubeconfig
-jobs:
-- name: delete-cfcr
-  serial: true
-  serial_groups: [cfcr-pipeline]
-  plan:
-  - put: cfcr-deployment
-    params:
-      delete:
-        enabled: true
+#     uri: https://github.com/cloudfoundry-incubator/kubo-release.git
+#     branch: master
 
-- name: deploy-cfcr
-  serial: true
-  serial_groups: [cfcr-pipeline]
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/kubo-ci.git
+    branch: no_deploy_k8s
+#
+# - name: stemcell
+#   type: bosh-io-stemcell
+#   source:
+#     name: bosh-google-kvm-ubuntu-trusty-go_agent
+
+# - name: cfcr-deployment
+#   type: bosh-deployment
+#   source:
+#     deployment: ((deployment-name))
+#
+# - name: run-apply-addons-errand
+#   type: bosh-errand
+#   source:
+#     deployment: ((deployment-name))
+#
+# - name: run-smoke-tests-errand
+#   type: bosh-errand
+#   source:
+#     deployment: ((deployment-name))
+
+<%- env = "gcp-lb" %>
+- name: gcs-bosh-state
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/state.json
+
+- name: gcs-bosh-creds
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/creds.yml
+
+
+- name: kubo-lock-<%= env %>
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+    pool: kubo-<%= env %>
+
+- name: gcs-source-json
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: source.json
+jobs:
+# - name: delete-cfcr
+#   serial: true
+#   serial_groups: [cfcr-pipeline]
+#   plan:
+#   - put: cfcr-deployment
+#     params:
+#       delete:
+#         enabled: true
+
+- name: claim-lock-<%= env %>
+  max_in_flight: 1
+  plan:
+  - put: kubo-lock-<%= env %>
+    params: { acquire: true }
+
+
+- name: install-bosh-<%= env %>
   plan:
   - aggregate:
-    - get: git-cfcr-deployment
-    - get: git-bosh-environment-lock
-      # trigger: true
-    - get: git-cfcr-release
-      # trigger: true
-    - get: stemcell
-  - task: create-release
-    config:
-      caches:
-      - path: git-cfcr-release/blobs
-      - path: git-cfcr-release/dev_releases
-      inputs:
-      - name: git-cfcr-release
-      outputs:
-      - name: cfcr-release-tarball
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: {repository: pcfkubo/kubo-ci}
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          set -eu
-          bosh create-release --dir=git-cfcr-release --tarball=cfcr-release-tarball/cfcr-release.tgz --timestamp-version
-  - put: cfcr-deployment
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'claim-lock-<%= env %>' ]
+  - task: install
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/install-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     params:
-      manifest: git-cfcr-deployment/manifests/cfcr.yml
-      cleanup: true
-      ops_files:
-      - git-cfcr-deployment/manifests/ops-files/misc/single-master.yml
-      - git-cfcr-deployment/manifests/ops-files/rename.yml
-      - git-bosh-environment-lock/bbl-directors/consolidation-gcp/env-specific-op.yml
-      stemcells:
-      - stemcell/stemcell.tgz
-      releases:
-      - cfcr-release-tarball/cfcr-release.tgz
-      source_file: git-bosh-environment-lock/bbl-directors/consolidation-gcp/source.json
-      vars:
-        deployment_name: ci-service
-  - put: run-apply-addons-errand
+      USE_TURBULENCE: 1
+      <% if env.include? 'openstack' %>
+      CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
+      <% elsif env =~ /^(gcp|vsphere-lb)/ %>
+      CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
+      <% elsif env.include? 'aws-lb' %>
+      CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
+      <% end %>
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+  - task: configure-bosh-for-turbulence
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/configure-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+  - task: generate-source-json
+    file: git-kubo-ci/tasks/generate-source-json.yml
+  - put: gcs-source-json
     params:
-      name: apply-addons
-      keep_alive: true
-      source_file: git-bosh-environment-lock/bbl-directors/consolidation-gcp/source.json
-  - put: run-smoke-tests-errand
-    params:
-      name: smoke-tests
-      keep_alive: true
-      source_file: git-bosh-environment-lock/bbl-directors/consolidation-gcp/source.json
+      file: source-json/source.json
 
-# - name: create-upload-kubeconfig
+# - name: deploy-cfcr
 #   serial: true
 #   serial_groups: [cfcr-pipeline]
 #   plan:
 #   - aggregate:
 #     - get: git-cfcr-deployment
 #     - get: git-bosh-environment-lock
+#       # trigger: true
+#     - get: git-cfcr-release
+#       # trigger: true
+#     - get: stemcell
+#   - task: create-release
+#     config:
+#       caches:
+#       - path: git-cfcr-release/blobs
+#       - path: git-cfcr-release/dev_releases
+#       inputs:
+#       - name: git-cfcr-release
+#       outputs:
+#       - name: cfcr-release-tarball
+#       platform: linux
+#       image_resource:
+#         type: docker-image
+#         source: {repository: pcfkubo/kubo-ci}
+#       run:
+#         path: bash
+#         args:
+#         - -c
+#         - |
+#           set -eu
+#           bosh create-release --dir=git-cfcr-release --tarball=cfcr-release-tarball/cfcr-release.tgz --timestamp-version
+#   - put: cfcr-deployment
+#     params:
+#       manifest: git-cfcr-deployment/manifests/cfcr.yml
+#       cleanup: true
+#       ops_files:
+#       - git-cfcr-deployment/manifests/ops-files/misc/single-master.yml
+#       - git-cfcr-deployment/manifests/ops-files/misc/bootstrap.yml
+#      # - git-bosh-environment-lock/bbl-directors/consolidation-gcp/env-specific-op.yml
+#       stemcells:
+#       - stemcell/stemcell.tgz
+#       releases:
+#       - cfcr-release-tarball/cfcr-release.tgz
+#       source_file: git-bosh-environment-lock/bbl-directors/consolidation-gcp/source.json
+#       vars:
+#         deployment_name: ((deployment-name))
+#   - put: run-apply-addons-errand
+#     params:
+#       name: apply-addons
+#       keep_alive: true
+#       source_file: git-bosh-environment-lock/bbl-directors/consolidation-gcp/source.json
+#   - put: run-smoke-tests-errand
+#     params:
+#       name: smoke-tests
+#       keep_alive: true
+#       source_file: git-bosh-environment-lock/bbl-directors/consolidation-gcp/source.json
+#
+# - name: create-upload-kubeconfig
+#   serial: true
+#   serial_groups: [cfcr-pipeline]
+#   plan:
+#   - aggregate:
+#     - get: git-bosh-environment-lock
 #       trigger: true
+#       passed: ['deploy-cfcr']
 #     - task: create-upload-kubeconfig
 #       config:
 #         platform: linux
 #         image_resource:
 #           type: docker-image
 #           source: {repository: pcfkubo/kubo-ci}
-#         inputs:
-#           - name: git-bosh-environment-lock
+#         inputs: []
 #         outputs:
 #           - name: outfolder
 #         run:
@@ -158,24 +227,19 @@ jobs:
 #           - -c
 #           - |
 #             set -exu
-#             cd git-bosh-environment-lock/kubo-aws-lb-lifecycle/bbl
-#             eval "$(bbl print-env)"
-#             credhub get -n bosh-bbl-md-kk/cfcr-main/tls-kubernetes --output-json | jq -r .value.ca > /tmp/ca
-#             admin_password="$(credhub get -n bosh-bbl-md-kk/cfcr-main/kubo-admin-password --output-json | jq -r .value)"
-#             bosh_name="$(bosh env --json | jq -r .Tables[0].Rows[0].name)"
-#             deployment_name="$(cat source.json | jq -r .deployment)"
-#             cluster_name="$bosh_name/$deployment_name"
-#             user_name="${cluster_name}/cfcr-admin"
-#             context_name="${cluster_name}"
+#             admin_password="xyz" #$(credhub get -n bosh-bbl-md-kk/cfcr-main/kubo-admin-password --output-json | jq -r .value)"
+#             master_url="https://something.kubo.sh"
+#             context=((deployment-name))
+#             user_name="${context}/cfcr-admin"
 #             export KUBECONFIG=outfolder/kubeconfig
-#             kubectl config set-cluster "${cluster_name}" --server=((master-url)) --certificate-authority=/tmp/ca --embed-certs=true
+#             kubectl config set-cluster "${context}" --server=${master_url}} # --certificate-authority=/tmp/ca --embed-certs=true
 #             kubectl config set-credentials "${user_name}" --token="${admin_password}"
-#             kubectl config set-context "${context_name}" --cluster="${cluster_name}" --user="${user_name}"
-#             kubectl config use-context "${context_name}"
+#             kubectl config set-context "${context}" --cluster=((deployment-name)) --user="${user_name}"
+#             kubectl config use-context "${context}"
 #     - put: gcs-kubeconfig
 #       params:
 #         file: outfolder/kubeconfig
-# - name: run-integration-tests
+# # - name: run-integration-tests
 #   serial: true
 #   serial_groups: [cfcr-pipeline]
 #   plan:
