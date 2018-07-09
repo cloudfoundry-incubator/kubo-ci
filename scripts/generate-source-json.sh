@@ -3,7 +3,7 @@
 target="https://$(bosh int kubo-lock/metadata --path=/internal_ip):25555"
 client="admin"
 client_secret="$(bosh int gcs-bosh-creds/creds.yml --path=/admin_password)"
-ca_cert="$(bosh int gcs-bosh-creds/creds.yml --path=/director_tls/ca)"
+ca_cert="$(bosh int gcs-bosh-creds/creds.yml --path=/director_ssl/ca)"
 kubernetes_master_host="$(bosh int kubo-lock/metadata --path=/kubernetes_master_host)"
 
 jq -n \
