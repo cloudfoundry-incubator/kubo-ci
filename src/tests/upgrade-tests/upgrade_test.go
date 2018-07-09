@@ -159,7 +159,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 				} else {
 					fmt.Fprintf(os.Stdout, "\nFailed to get 200 StatusCode from %s. Instead received StatusCode %v", appURL, result)
 				}
-				time.Sleep(time.Second)
+				time.Sleep(500 * time.Millisecond)
 			}
 		}
 	}(doneChannel, curlURL)
@@ -202,7 +202,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 					} else {
 						masterSuccessCount++
 					}
-					time.Sleep(time.Second)
+					time.Sleep(500 * time.Millisecond)
 				}
 			}
 		}(masterDoneChannel, masterCheck)
