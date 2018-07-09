@@ -12,7 +12,7 @@ resource_types:
 - name: bosh-errand
   type: docker-image
   source:
-    repository: cloudfoundry-community/bosh2-errand-resource
+    repository: cfcommunity/bosh2-errand-resource
 
 resources:
 - name: git-cfcr-deployment
@@ -24,8 +24,9 @@ resources:
 - name: git-bosh-environment-lock
   type: git
   source:
+    paths: [ bbl-directors/** ]
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-    branch: master
+    branch: consolidation
     private_key: ((git-ssh-key.private_key))
 
 - name: git-cfcr-release
@@ -34,39 +35,39 @@ resources:
     uri: https://github.com/cloudfoundry-incubator/kubo-release.git
     branch: master
 
-- name: git-cfcr-ci
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry-incubator/kubo-ci.git
-    branch: master
-
+# - name: git-cfcr-ci
+#   type: git
+#   source:
+#     uri: https://github.com/cloudfoundry-incubator/kubo-ci.git
+#     branch: master
+#
 - name: stemcell
   type: bosh-io-stemcell
   source:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent 
+    name: bosh-google-kvm-ubuntu-trusty-go_agent
 
 - name: cfcr-deployment
   type: bosh-deployment
-  source: {}
+  source:
+    deployment: ci-service
 
 - name: run-apply-addons-errand
   type: bosh-errand
-  source: {}
+  source:
+    deployment: ci-service
 
 - name: run-smoke-tests-errand
   type: bosh-errand
-  source: {}
-
-- name: gcs-kubeconfig
-  type: gcs
   source:
-    json_key: ((gcs-json-key))
-    bucket: kubeconfig-store
-    versioned_file: kubeconfig
-jobs:
-# precompile a dev release -> bucket (without bucket)
-# delete the existing deployment --force delete
+    deployment: ci-service
 
+# - name: gcs-kubeconfig
+#   type: gcs
+#   source:
+#     json_key: ((gcs-json-key))
+#     bucket: kubeconfig-store
+#     versioned_file: kubeconfig
+jobs:
 - name: delete-cfcr
   serial: true
   serial_groups: [cfcr-pipeline]
@@ -114,86 +115,96 @@ jobs:
       ops_files:
       - git-cfcr-deployment/manifests/ops-files/misc/single-master.yml
       - git-cfcr-deployment/manifests/ops-files/rename.yml
+      - git-bosh-environment-lock/bbl-directors/consolidation-gcp/env-specific-op.yml
       stemcells:
       - stemcell/stemcell.tgz
       releases:
       - cfcr-release-tarball/cfcr-release.tgz
-      source_file: git-bosh-environment-lock/kubo-aws-lb-lifecycle/bbl/source.json
+      source_file: git-bosh-environment-lock/bbl-directors/consolidation-gcp/source.json
       vars:
         deployment_name: ci-service
-  - task: create-upload-kubeconfig
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: {repository: pcfkubo/kubo-ci}
-      inputs:
-        - name: git-bosh-environment-lock
-      outputs:
-        - name: outfolder
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          set -exu
-          cd git-bosh-environment-lock/kubo-aws-lb-lifecycle/bbl
-          eval "$(bbl print-env)"
-
-          credhub get -n bosh-bbl-md-kk/cfcr-main/tls-kubernetes --output-json | jq -r .value.ca > /tmp/ca
-          admin_password="$(credhub get -n bosh-bbl-md-kk/cfcr-main/kubo-admin-password --output-json | jq -r .value)"
-          bosh_name="$(bosh env --json | jq -r .Tables[0].Rows[0].name)"
-          deployment_name="$(cat source.json | jq -r .deployment)"
-          cluster_name="$bosh_name/$deployment_name"
-          user_name="${cluster_name}/cfcr-admin"
-          context_name="${cluster_name}"
-          export KUBECONFIG=outfolder/kubeconfig
-          kubectl config set-cluster "${cluster_name}" --server=((master-url)) --certificate-authority=/tmp/ca --embed-certs=true
-          kubectl config set-credentials "${user_name}" --token="${admin_password}"
-          kubectl config set-context "${context_name}" --cluster="${cluster_name}" --user="${user_name}"
-          kubectl config use-context "${context_name}"
-  - put: gcs-kubeconfig
-    params:
-      file: outfolder/kubeconfig
   - put: run-apply-addons-errand
     params:
       name: apply-addons
-      source_file: git-bosh-environment-lock/kubo-aws-lb-lifecycle/bbl/source.json
+      keep_alive: true
+      source_file: git-bosh-environment-lock/bbl-directors/consolidation-gcp/source.json
   - put: run-smoke-tests-errand
     params:
       name: smoke-tests
-      source_file: git-bosh-environment-lock/kubo-aws-lb-lifecycle/bbl/source.json
+      keep_alive: true
+      source_file: git-bosh-environment-lock/bbl-directors/consolidation-gcp/source.json
 
-- name: run-integration-tests
-  serial: true
-  serial_groups: [cfcr-pipeline]
-  plan:
-  - aggregate:
-    - get: git-cfcr-deployment
-      passed: ['deploy-cfcr']
-    - get: git-cfcr-release
-      passed: ['deploy-cfcr']
-    - get: gcs-kubeconfig
-      passed: ['deploy-cfcr']
-      trigger: true
-    - get: git-cfcr-ci
-  - task: run-integration-tests
-    config:
-      caches:
-      - path: git-cfcr-ci/pkg
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: {repository: pcfkubo/kubo-ci}
-      inputs:
-      - name: git-cfcr-ci
-      - name: gcs-kubeconfig
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          export KUBECONFIG=$PWD/gcs-kubeconfig/kubeconfig
-          cd git-cfcr-ci
-          export GOPATH=$PWD
-          ginkgo -skipPackage multi,persistent,cloudfoundry,addons,lbs -r src/tests/integration-tests
+# - name: create-upload-kubeconfig
+#   serial: true
+#   serial_groups: [cfcr-pipeline]
+#   plan:
+#   - aggregate:
+#     - get: git-cfcr-deployment
+#     - get: git-bosh-environment-lock
+#       trigger: true
+#     - task: create-upload-kubeconfig
+#       config:
+#         platform: linux
+#         image_resource:
+#           type: docker-image
+#           source: {repository: pcfkubo/kubo-ci}
+#         inputs:
+#           - name: git-bosh-environment-lock
+#         outputs:
+#           - name: outfolder
+#         run:
+#           path: bash
+#           args:
+#           - -c
+#           - |
+#             set -exu
+#             cd git-bosh-environment-lock/kubo-aws-lb-lifecycle/bbl
+#             eval "$(bbl print-env)"
+#             credhub get -n bosh-bbl-md-kk/cfcr-main/tls-kubernetes --output-json | jq -r .value.ca > /tmp/ca
+#             admin_password="$(credhub get -n bosh-bbl-md-kk/cfcr-main/kubo-admin-password --output-json | jq -r .value)"
+#             bosh_name="$(bosh env --json | jq -r .Tables[0].Rows[0].name)"
+#             deployment_name="$(cat source.json | jq -r .deployment)"
+#             cluster_name="$bosh_name/$deployment_name"
+#             user_name="${cluster_name}/cfcr-admin"
+#             context_name="${cluster_name}"
+#             export KUBECONFIG=outfolder/kubeconfig
+#             kubectl config set-cluster "${cluster_name}" --server=((master-url)) --certificate-authority=/tmp/ca --embed-certs=true
+#             kubectl config set-credentials "${user_name}" --token="${admin_password}"
+#             kubectl config set-context "${context_name}" --cluster="${cluster_name}" --user="${user_name}"
+#             kubectl config use-context "${context_name}"
+#     - put: gcs-kubeconfig
+#       params:
+#         file: outfolder/kubeconfig
+# - name: run-integration-tests
+#   serial: true
+#   serial_groups: [cfcr-pipeline]
+#   plan:
+#   - aggregate:
+#     - get: git-cfcr-deployment
+#       passed: ['deploy-cfcr']
+#     - get: git-cfcr-release
+#       passed: ['deploy-cfcr']
+#     - get: gcs-kubeconfig
+#       passed: ['deploy-cfcr']
+#       trigger: true
+#     - get: git-cfcr-ci
+#   - task: run-integration-tests
+#     config:
+#       caches:
+#       - path: git-cfcr-ci/pkg
+#       platform: linux
+#       image_resource:
+#         type: docker-image
+#         source: {repository: pcfkubo/kubo-ci}
+#       inputs:
+#       - name: git-cfcr-ci
+#       - name: gcs-kubeconfig
+#       run:
+#         path: bash
+#         args:
+#         - -c
+#         - |
+#           export KUBECONFIG=$PWD/gcs-kubeconfig/kubeconfig
+#           cd git-cfcr-ci
+#           export GOPATH=$PWD
+#           ginkgo -skipPackage multi,persistent,cloudfoundry,addons,lbs -r src/tests/integration-tests
