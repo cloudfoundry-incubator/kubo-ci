@@ -823,12 +823,23 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'claim-lock-upgrade-<%= iaas %>' ]
     - get: git-kubo-deployment
       passed: [ 'claim-lock-upgrade-<%= iaas %>' ]
+    - get: old-kubo-deployment-tarball
+
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= iaas %>']
+    input_mapping:
+      source_tarball: old-kubo-deployment-tarball
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
 
   - task: install
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
+      git-kubo-deployment: unpacked_dir
     params:
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
@@ -1067,6 +1078,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock-<%= iaas %>
+      git-kubo-deployment: unpacked_dir
     params:
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
