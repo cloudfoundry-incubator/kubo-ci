@@ -1872,7 +1872,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
       kubo-lock: kubo-lock-<%= env %>
-    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
+    file: git-kubo-ci/tasks/deploy-k8s-instance-change-cidrs.yml
     params:
       DISABLE_DENY_ESCALATING_EXEC: 1
       WITH_PRIVILEGED_CONTAINERS: 1
