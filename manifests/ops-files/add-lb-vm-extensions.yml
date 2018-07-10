@@ -1,0 +1,21 @@
+- type: replace
+  path: /instance_groups/name=master/vm_extensions?
+  value:
+  - cfcr-master-cloud-properties
+
+- type: replace
+  path: /instance_groups/name=worker/vm_extensions?
+  value:
+  - cfcr-worker-cloud-properties
+
+# - type: replace
+#   path: /variables/name=tls-kubernetes/options/alternative_names/-
+#   value:  cfcr-consolidation.kubo.sh
+#
+# - type: replace
+#   path: /instance_groups/name=master/jobs/name=cloud-provider/properties/cloud-provider/gce/project-id
+#   value: ((gcp_project_id))
+#
+# - type: replace
+#   path: /instance_groups/name=worker/jobs/name=cloud-provider/properties/cloud-provider/gce/project-id
+#   value: ((gcp_project_id))

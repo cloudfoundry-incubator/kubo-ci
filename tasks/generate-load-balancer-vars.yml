@@ -1,0 +1,25 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: pcfkubo/kubo-ci}
+
+inputs:
+- name: git-kubo-ci
+- name: kubo-lock
+- name: gcs-bosh-creds
+
+outputs:
+- name: load-balancer-vars
+
+run:
+  path: bash
+  args:
+  - -c
+  - |
+    set -eu
+    kubernetes_master_host="$(bosh int kubo-lock/metadata --path=/kubernetes_master_host)"
+    kubernetes_master_port="$(bosh int kubo-lock/metadata --path=/kubernetes_master_port)"
+    echo "kubernetes_master_host: ${kubernetes_master_host}" > load-balancers-vars/vars.yml
+    echo "kubernetes_master_port: ${kubernetes_master_port}" >> load-balancer-vars/vars.yml
+
