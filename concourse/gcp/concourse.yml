@@ -38,11 +38,7 @@ instance_groups:
             teams: [ cfcr, CFCR Core ]
           - organization: pivotal-cf
             teams: [ vmware-kubo, pks-releng  ]
-          - user: johnsonj
-          - user: mkjelland
-          - user: evandbrown
-          - user: erjohnso
-          - user: drnic
+          - user: lamlouis
       external_url: https://ci.kubo.sh
       tls_cert: ((atc-certificate.certificate))((atc-certificate.ca))
       tls_key: ((atc-certificate.private_key))
