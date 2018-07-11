@@ -79,13 +79,13 @@ var _ = Describe("Api Extensions", func() {
 	})
 
 	AfterEach(func() {
-		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", serviceAccountSpec)).Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommandInNamespace(defaultNamespace, "delete", "-f", authDelegatorSpec)).Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommandInNamespace(defaultNamespace, "delete", "-f", authReaderSpec)).Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", replicationControllerSpec)).Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", serviceSpec)).Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", apiServiceSpec)).Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommand("delete", "namespace", apiExtensionsNamespace)).Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", serviceAccountSpec), "5s", "1s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommandInNamespace(defaultNamespace, "delete", "-f", authDelegatorSpec), "5s", "1s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommandInNamespace(defaultNamespace, "delete", "-f", authReaderSpec), "5s", "1s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", replicationControllerSpec), "5s", "1s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", serviceSpec), "5s", "1s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", apiServiceSpec), "5s", "1s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("delete", "namespace", apiExtensionsNamespace), "5s", "1s").Should(gexec.Exit(0))
 		Expect(os.RemoveAll(tmpDir)).To(Succeed())
 	})
 
