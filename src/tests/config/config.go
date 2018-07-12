@@ -68,10 +68,13 @@ type UpgradeTests struct {
 }
 
 type Kubernetes struct {
-	MasterHost    string `json:"master_host"`
-	MasterPort    int    `json:"master_port"`
-	TLSCert       string `json:"tls_cert"`
-	TLSPrivateKey string `json:"tls_private_key"`
+	MasterHost          string `json:"master_host"`
+	MasterPort          int    `json:"master_port"`
+	TLSCert             string `json:"tls_cert"`
+	TLSPrivateKey       string `json:"tls_private_key"`
+	KubernetesServiceIP string `json:"kubernetes_service_ip"`
+	ClusterIPRange      string `json:"cluster_ip_range"`
+	KubeDNSIP           string `json:"kube_dns_ip"`
 }
 
 type CFCR struct {
