@@ -45,7 +45,7 @@ release_source="local"
 DEPLOYMENT_OPS_FILE=${DEPLOYMENT_OPS_FILE:-""}
 if [[ -f "${KUBO_DEPLOYMENT_DIR}/manifests/ops-files/${DEPLOYMENT_OPS_FILE}" ]]; then
   cp "${KUBO_DEPLOYMENT_DIR}/manifests/ops-files/${DEPLOYMENT_OPS_FILE}" "${KUBO_ENVIRONMENT_DIR}/${DEPLOYMENT_NAME}.yml"
-  cp "${KUBO_DEPLOYMENT_DIR}/manifests/ops-files/example-vars-files/new-cidrs.yml" "${KUBO_ENVIRONMENT_DIR}/${DEPLOYMENT_NAME}-vars.yml"
+  cp "${ROOT}/${DEPLOYMENT_VARS_FILE}" "${KUBO_ENVIRONMENT_DIR}/${DEPLOYMENT_NAME}-vars.yml"
 fi
 
 set +x

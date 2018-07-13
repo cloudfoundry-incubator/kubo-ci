@@ -1876,6 +1876,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       DISABLE_DENY_ESCALATING_EXEC: 1
       WITH_PRIVILEGED_CONTAINERS: 1
       DEPLOYMENT_OPS_FILE: change-cidrs.yml
+      DEPLOYMENT_VARS_FILE: git-kubo-ci/manifests/vars-files/new-cidrs.yml
     on_failure: *on_failure_alert
   - task: smoke-test
     tags: [<%= env %>]
@@ -1921,6 +1922,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       ENABLE_PERSISTENT_VOLUME_TESTS: true
       ENABLE_MULTI_AZ_TESTS: false
       ENABLE_K8S_LBS_TESTS: true
+      ENABLE_CIDR_TESTS: true
+      CIDR_VARS_FILE: git-kubo-ci/manifests/vars-files/new-cidrs.yml
   - task: pod-to-pod
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml

@@ -24,6 +24,7 @@ verify_args() {
 		--enable-turbulence-persistence-failure-tests [env:ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS]
 		--enable-turbulence-worker-drain-tests        [env:ENABLE_TURBULENCE_WORKER_DRAIN_TESTS]
 		--enable-turbulence-worker-failure-tests      [env:ENABLE_TURBULENCE_WORKER_FAILURE_TESTS]
+		--cidr-vars-file=<some-path>                  [env:CIDR_VARS_FILE]
 	EOF
   set -e
 
@@ -68,6 +69,7 @@ generate_test_config() {
   local enable_turbulence_worker_failure_tests="${ENABLE_TURBULENCE_WORKER_FAILURE_TESTS:-false}"
   local enable_turbulence_master_failure_tests="${ENABLE_TURBULENCE_MASTER_FAILURE_TESTS:-false}"
   local enable_turbulence_persistence_failure_tests="${ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS:-false}"
+  local cidr_vars_file="${CIDR_VARS_FILE:-git-kubo-ci/manifests/vars-files/default-cidrs.yml}"
 
   shift 2
   for arg in "$@"; do
@@ -97,6 +99,9 @@ generate_test_config() {
 	;;
       --enable-turbulence-persistence-failure-tests)
         enable_turbulence_persistence_failure_tests=true
+	;;
+      --cidr-vars-file)
+	cidr_vars_file="${value}"
 	;;
       *)
         echo "$flag is not a valid flag"
@@ -158,7 +163,10 @@ generate_test_config() {
 	    "master_host": "$(bosh int $director_yml --path=/kubernetes_master_host)",
 	    "master_port": $(bosh int $director_yml --path=/kubernetes_master_port),
 	    "tls_cert": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/certificate' --json | jq .Blocks[0]),
-	    "tls_private_key": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/private_key' --json | jq .Blocks[0])
+	    "tls_private_key": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/private_key' --json | jq .Blocks[0]),
+	    "cluster_ip_range": "$(bosh int ${ROOT}/${cidr_vars_file} --path=/service_cluster_cidr)",
+	    "kubernetes_service_ip": "$(bosh int ${ROOT}/${cidr_vars_file} --path=/first_ip_of_service_cluster_cidr)",
+	    "kube_dns_ip": "$(bosh int ${ROOT}/${cidr_vars_file} --path=/kubedns_service_ip)"
 	  },
 	  "timeout_scale": $(bosh int $director_yml --path=/timeout_scale 2>/dev/null || echo 1),
 	  "cfcr": {

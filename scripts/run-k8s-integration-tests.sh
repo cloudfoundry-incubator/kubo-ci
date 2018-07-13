@@ -34,6 +34,10 @@ main() {
     skipped_packages="$skipped_packages,k8s_lbs"
   fi
 
+  if [[ "${ENABLE_CIDR_TESTS:-false}" == "false" ]]; then
+    skipped_packages="$skipped_packages,cidrs"
+  fi
+
   if [[ "$skipped_packages" != "" ]]; then
     skipped_packages="$(echo $skipped_packages | cut -c 2-)"
   fi
