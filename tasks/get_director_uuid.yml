@@ -1,0 +1,21 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+inputs:
+- name: gcs-source-json
+outputs:
+- name: director_uuid
+run:
+  path: bash
+  args:
+  - -c
+  - |
+    set -euo pipefail
+    export BOSH_ENVIRONMENT="$(jq -r .target gcs-source-json/source.json)"
+    export BOSH_CLIENT="$(jq -r .client gcs-source-json/source.json)"
+    export BOSH_CLIENT_SECRET="$(jq -r .client_secret gcs-source-json/source.json)"
+    export BOSH_CA_CERT="$(jq -r .ca_cert gcs-source-json/source.json)"
+    mkdir -p director_uuid
+    echo "director_uuid: \"$(bosh environment --json | jq -r .Tables[0].Rows[0].uuid)\"" > director_uuid/var.yml
