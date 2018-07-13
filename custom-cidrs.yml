@@ -1,0 +1,293 @@
+<%
+  iaases = %w(gcp vsphere aws-lb openstack)
+  stemcell_types = {
+    'gcp' => 'google-kvm',
+    'gcp-lb' => 'google-kvm',
+    'vsphere' => 'vsphere-esxi',
+    'vsphere-lb' => 'vsphere-esxi',
+    'aws' => 'aws-xen-hvm',
+    'aws-lb' => 'aws-xen-hvm',
+    'openstack' => 'openstack-kvm'
+  }
+  additional_envs = %w(gcp-lb vsphere-lb)
+  env_list = %w(gcp-lb)
+
+  upgrade_test_iaases = %w(gcp-lb vsphere-lb)
+  multi_master_upgrade_test_iaases = %w(aws-lb gcp-lb)
+  iaases_for_new_bosh_stemcell = upgrade_test_iaases | multi_master_upgrade_test_iaases
+  conformance_test_iaases = iaases
+  proxy_iaases = %w(vsphere)
+  change_cidr_iaases = %w(gcp-lb)
+%>
+---
+groups:
+- name: all
+  jobs:
+<% change_cidr_iaases.each do |env| %>
+  - claim-lock-<%= env %>
+  - install-bosh-change-cidrs-<%= env %>
+  - deploy-k8s-change-cidrs-<%= env %>
+  - run-k8s-integration-tests-change-cidrs-<%= env %>
+  - destroy-k8s-change-cidrs-<%= env %>
+  - destroy-bosh-change-cidrs-<%= env %>
+<% end %>
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    branch: wip-refactor-deploy-k8s
+    private_key: ((git-ssh-key.private_key))
+
+- name: kubo-dev-release
+  type: gcs
+  source:
+    bucket: kubo-public
+    json_key: ((gcs-json-key))
+    versioned_file: kubo-release-latest.tgz
+
+- name: kubo-dev-deployment
+  type: gcs
+  source:
+    bucket: kubo-public
+    json_key: ((gcs-json-key))
+    versioned_file: kubo-deployment-latest.tgz
+
+<% env_list.each do |env| %>
+- name: kubo-lock-<%= env %>
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+    pool: kubo-<%= env %>
+<% end %>
+
+- name: gcs-bosh-state
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/state.json
+
+- name: gcs-bosh-creds
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/creds.yml
+
+- name: slackers
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-home.git
+    private_key: ((git-ssh-key.private_key))
+    paths:
+    - 'slackers'
+
+- name: slack-alert
+  type: slack-notification
+  source:
+    url: ((build-alert-slack-url))
+
+jobs:
+
+<% change_cidr_iaases.each do |env| %>
+- name: claim-lock-<%= env %>
+  max_in_flight: 1
+  plan:
+  - get: kubo-dev-release
+    trigger: true
+  - put: kubo-lock-<%= env %>
+    params: { acquire: true }
+
+- name: install-bosh-change-cidrs-<%= env %>
+  plan:
+  - aggregate:
+    - get: kubo-dev-release
+      passed:
+      - claim-lock-<%= env %>
+    - get: git-kubo-ci
+    - get: kubo-dev-deployment
+    - get: kubo-lock-<%= env %>
+      passed:
+      - claim-lock-<%= env %>
+      trigger: true
+      version: every
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-dev-deployment
+  - task: install
+    file: git-kubo-ci/tasks/install-bosh.yml
+    params:
+      CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
+      USE_TURBULENCE: 1
+    input_mapping:
+      kubo-lock: kubo-lock-<%= env %>
+    tags:
+    - <%= env %>
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+
+- name: deploy-k8s-change-cidrs-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: kubo-dev-release
+      passed: [ 'install-bosh-change-cidrs-<%= env %>' ]
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'install-bosh-change-cidrs-<%= env %>' ]
+    - get: kubo-dev-deployment
+      passed: [ 'install-bosh-change-cidrs-<%= env %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'install-bosh-change-cidrs-<%= env %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'install-bosh-change-cidrs-<%= env %>' ]
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-dev-deployment
+  - task: deploy
+    tags: [<%= env %>]
+    input_mapping:
+      gcs-kubo-release-tarball: kubo-dev-release
+      kubo-lock: kubo-lock-<%= env %>
+    file: git-kubo-ci/tasks/deploy-k8s-instance-change-cidrs.yml
+    params:
+      DISABLE_DENY_ESCALATING_EXEC: 1
+      WITH_PRIVILEGED_CONTAINERS: 1
+      DEPLOYMENT_OPS_FILE: change-cidrs.yml
+      DEPLOYMENT_VARS_FILE: git-kubo-ci/manifests/vars-files/new-cidrs.yml
+    on_failure: &on_failure_alert
+      do:
+      - task: configure-slack-notification
+        file: git-kubo-ci/tasks/configure-slack-notification-without-git-release.yml
+      - put: slack-alert
+        params:
+          attachments_file: slack-notification/attachments
+          text: |
+            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+  - task: smoke-test
+    tags: [<%= env %>]
+    input_mapping:
+      kubo-lock: kubo-lock-<%= env %>
+    params:
+      ERRAND_NAME: smoke-tests
+      INSTANCE: "master/0"
+    file: git-kubo-ci/tasks/run-errand.yml
+
+- name: run-k8s-integration-tests-change-cidrs-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'deploy-k8s-change-cidrs-<%= env %>' ]
+    - get: kubo-dev-deployment
+      passed: [ 'deploy-k8s-change-cidrs-<%= env %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'deploy-k8s-change-cidrs-<%= env %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'deploy-k8s-change-cidrs-<%= env %>' ]
+    - get: kubo-dev-release
+      passed: [ 'deploy-k8s-change-cidrs-<%= env %>' ]
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-dev-deployment
+  - task: integration-tests
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    params:
+      DEPLOYMENT_NAME: ci-service
+      ENABLE_OSS_ONLY_TESTS: true
+      ENABLE_PERSISTENT_VOLUME_TESTS: true
+      ENABLE_MULTI_AZ_TESTS: false
+      ENABLE_K8S_LBS_TESTS: true
+      ENABLE_CIDR_TESTS: true
+      CIDR_VARS_FILE: git-kubo-ci/manifests/vars-files/new-cidrs.yml
+    on_failure: &on_failure_alert
+      do:
+      - task: configure-slack-notification
+        file: git-kubo-ci/tasks/configure-slack-notification-without-git-release.yml
+      - put: slack-alert
+        params:
+          attachments_file: slack-notification/attachments
+          text: |
+            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
+- name: destroy-k8s-change-cidrs-<%= env %>
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'run-k8s-integration-tests-change-cidrs-<%= env %>' ]
+    - get: kubo-dev-deployment
+      passed: [ 'run-k8s-integration-tests-change-cidrs-<%= env %>' ]
+    - get: kubo-dev-release
+      passed: [ 'run-k8s-integration-tests-change-cidrs-<%= env %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'run-k8s-integration-tests-change-cidrs-<%= env %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'run-k8s-integration-tests-change-cidrs-<%= env %>' ]
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-dev-deployment
+  - task: destroy-k8s
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+
+- name: destroy-bosh-change-cidrs-<%= env %>
+  plan:
+  - aggregate:
+    - get: kubo-dev-deployment
+      passed: [ 'destroy-k8s-change-cidrs-<%= env %>' ]
+    - get: kubo-dev-release
+      passed: [ 'destroy-k8s-change-cidrs-<%= env %>' ]
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'destroy-k8s-change-cidrs-<%= env %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'destroy-k8s-change-cidrs-<%= env %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'destroy-k8s-change-cidrs-<%= env %>' ]
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-dev-deployment
+  - task: destroy
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/destroy-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+  - put: kubo-lock-<%= env %>
+    params: { release: kubo-lock-<%= env %> }
+<% end %>

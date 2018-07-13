@@ -175,7 +175,7 @@ jobs:
     on_failure: &on_failure_alert
       do:
       - task: configure-slack-notification
-        file: git-kubo-ci/tasks/configure-slack-notification-istio.yml
+        file: git-kubo-ci/tasks/configure-slack-notification-without-git-release.yml
       - put: slack-alert
         params:
           attachments_file: slack-notification/attachments

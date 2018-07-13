@@ -41,11 +41,12 @@ cp "$tarball_name" "${ROOT}/kubo-release.tgz"
 "$KUBO_DEPLOYMENT_DIR/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
 
 release_source="local"
-
-DEPLOYMENT_OPS_FILE=${DEPLOYMENT_OPS_FILE:-""}
-if [[ -f "${KUBO_CI_DIR}/manifests/ops-files/${DEPLOYMENT_OPS_FILE}" ]]; then
-  cp "${KUBO_CI_DIR}/manifests/ops-files/${DEPLOYMENT_OPS_FILE}" "${KUBO_ENVIRONMENT_DIR}/${DEPLOYMENT_NAME}.yml"
-fi
+DEPLOYMENT_OPS_FILES=${DEPLOYMENT_OPS_FILES:-""}
+for ops_file in $DEPLOYMENT_OPS_FILES; do
+  if [[ -f "${KUBO_CI_DIR}/manifests/ops-files/${ops_file}" ]]; then
+    cat "${KUBO_CI_DIR}/manifests/ops-files/${ops_file}" >> "${KUBO_ENVIRONMENT_DIR}/${DEPLOYMENT_NAME}.yml"
+  fi
+done
 
 set +x
 export DEBUG=0
