@@ -166,7 +166,8 @@ generate_test_config() {
 	    "tls_private_key": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/private_key' --json | jq .Blocks[0]),
 	    "cluster_ip_range": "$(bosh int ${ROOT}/${cidr_vars_file} --path=/service_cluster_cidr)",
 	    "kubernetes_service_ip": "$(bosh int ${ROOT}/${cidr_vars_file} --path=/first_ip_of_service_cluster_cidr)",
-	    "kube_dns_ip": "$(bosh int ${ROOT}/${cidr_vars_file} --path=/kubedns_service_ip)"
+	    "kube_dns_ip": "$(bosh int ${ROOT}/${cidr_vars_file} --path=/kubedns_service_ip)",
+	    "pod_ip_range": "$(bosh int ${ROOT}/${cidr_vars_file} --path=/pod_network_cidr)"
 	  },
 	  "timeout_scale": $(bosh int $director_yml --path=/timeout_scale 2>/dev/null || echo 1),
 	  "cfcr": {
