@@ -75,6 +75,7 @@ type Kubernetes struct {
 	KubernetesServiceIP string `json:"kubernetes_service_ip"`
 	ClusterIPRange      string `json:"cluster_ip_range"`
 	KubeDNSIP           string `json:"kube_dns_ip"`
+	PodIPRange          string `json:"pod_ip_range"`
 }
 
 type CFCR struct {

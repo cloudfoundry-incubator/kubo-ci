@@ -51,12 +51,13 @@ var _ = Describe("Custom CIDRs", func() {
 		})
 
 		It("creates service in the specified CIDR", func() {
+			svcName := "test-svc-cidr-" + GenerateRandomUUID()
 			svcSpec := v1.Service{
-				ObjectMeta: meta_v1.ObjectMeta{Name: "foo"},
+				ObjectMeta: meta_v1.ObjectMeta{Name: svcName},
 				Spec:       v1.ServiceSpec{Ports: []v1.ServicePort{{Protocol: v1.ProtocolTCP, Port: 80}}},
 			}
 			svc, err := svcController.Create(&svcSpec)
-			defer svcController.Delete("foo", &meta_v1.DeleteOptions{})
+			defer svcController.Delete(svcName, &meta_v1.DeleteOptions{})
 
 			Expect(err).NotTo(HaveOccurred())
 			_, subnet, _ := net.ParseCIDR(testconfig.Kubernetes.ClusterIPRange)
@@ -68,6 +69,35 @@ var _ = Describe("Custom CIDRs", func() {
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(service.Spec.ClusterIP).To(Equal(testconfig.Kubernetes.KubeDNSIP))
+		})
+	})
+
+	Context("Pods", func() {
+		It("creates pod in the specified CIDR", func() {
+			podName := "test-pod-cidr-" + GenerateRandomUUID()
+			podSpec := v1.Pod{
+				ObjectMeta: meta_v1.ObjectMeta{Name: podName},
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{{
+						Name:  "nginx",
+						Image: "nginx",
+						Ports: []v1.ContainerPort{{ContainerPort: 80}},
+					}},
+				},
+			}
+
+			pod, err := k8s.CoreV1().Pods(testNamespace).Create(&podSpec)
+
+			defer k8s.CoreV1().Pods(testNamespace).Delete(podName, &meta_v1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+
+			_, subnet, _ := net.ParseCIDR(testconfig.Kubernetes.PodIPRange)
+			Eventually(func() bool {
+				pod, err = k8s.CoreV1().Pods(testNamespace).Get(podName, meta_v1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+
+				return subnet.Contains(net.ParseIP(pod.Status.PodIP))
+			}, "1m", "5s").Should(BeTrue())
 		})
 	})
 })
