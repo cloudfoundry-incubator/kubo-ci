@@ -268,6 +268,7 @@ jobs:
 - name: destroy-bosh-change-cidrs-<%= env %>
   plan:
   - aggregate:
+    - get: git-kubo-ci
     - get: kubo-dev-deployment
       passed: [ 'destroy-k8s-change-cidrs-<%= env %>' ]
     - get: kubo-dev-release
