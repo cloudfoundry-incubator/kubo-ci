@@ -1,22 +1,40 @@
-FROM golang:1.10.3-alpine3.8
-MAINTAINER pcf-kubo@pivotal.io
+FROM golang:1.10.3 as builder
+MAINTAINER cfcr@pivotal.io
 
-RUN apk add --update \
-  git \
-  bash \
-  curl
+RUN apt-get update \
+			&& apt-get install -y --no-install-recommends \
+			rsync \
+			&& rm -rf /var/lib/apt/lists/*
 
-ENV K8S_VERSION="v1.10.5"
+ENV KUBE_VERSION="v1.10.5"
 
-RUN go get -d k8s.io/kubernetes/test/... && \
-  go get k8s.io/test-infra/kubetest
+RUN git clone --depth 50 --branch $KUBE_VERSION \
+    https://github.com/kubernetes/kubernetes.git /go/src/k8s.io/kubernetes
 
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl && \
-  chmod +x ./kubectl && \
-  mv ./kubectl /usr/local/bin/kubectl
+ADD https://storage.googleapis.com/kubernetes-release/release/$KUBE_VERSION/bin/linux/amd64/kubectl /usr/bin/kubectl
+RUN chmod +x /usr/bin/kubectl
 
 ENV KUBECTL_PATH=/usr/local/bin/kubectl
 ENV KUBERNETES_CONFORMANCE_TEST=y
 
 WORKDIR $GOPATH/src/k8s.io/kubernetes
-RUN git checkout tags/${K8S_VERSION}
+
+RUN make ginkgo
+RUN make WHAT='test/e2e/e2e.test'
+
+FROM ubuntu:16.04
+MAINTAINER cfcr@pivotal.io
+
+RUN apt-get update \
+&& apt-get install -y --no-install-recommends \
+ca-certificates \
+vim \
+&& rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /go/src/k8s.io/kubernetes/_output/bin/e2e.test /e2e.test
+COPY --from=builder /go/src/k8s.io/kubernetes/_output/bin/ginkgo /usr/bin/ginkgo
+COPY --from=builder /usr/bin/kubectl /usr/bin/kubectl
+
+ENV KUBECTL_PATH /usr/bin/kubectl
+ENV KUBECONFIG /kubeconfig
+
