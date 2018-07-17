@@ -48,7 +48,7 @@ resources:
   type: git
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
-    branch: wip-refactor-deploy-k8s
+    branch: master
     private_key: ((git-ssh-key.private_key))
 
 - name: kubo-dev-release
