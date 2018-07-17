@@ -547,7 +547,7 @@ jobs:
       DISABLE_DENY_ESCALATING_EXEC: 1
       WITH_PRIVILEGED_CONTAINERS: 1
     <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
-      DEPLOYMENT_OPS_FILE: enable-multiaz-workers-and-masters.yml
+      DEPLOYMENT_OPS_FILES: enable-multiaz-workers-and-masters.yml
     <% end %>
     on_failure: *on_failure_alert
   - task: smoke-test
@@ -884,9 +884,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
     <% if iaas == 'vsphere-lb' %>
-      DEPLOYMENT_OPS_FILE: add-haproxy-and-multiaz-workers.yml
+      DEPLOYMENT_OPS_FILES: add-haproxy-and-multiaz-workers.yml
     <% else %>
-      DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
+      DEPLOYMENT_OPS_FILES: enable-multiaz-workers.yml
     <% end %>
   - put: gcs-kubeconfig
     params:
@@ -933,7 +933,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
       <% if iaas =~ /^(gcp|vsphere-lb|aws-lb)/ %>
-      DEPLOYMENT_OPS_FILE: enable-multiaz-workers-and-masters.yml
+      DEPLOYMENT_OPS_FILES: enable-multiaz-workers-and-masters.yml
       <% end %>
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
@@ -1122,7 +1122,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       git-kubo-deployment: unpacked_dir
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
-      DEPLOYMENT_OPS_FILE: enable-multiaz-workers-and-masters.yml
+      DEPLOYMENT_OPS_FILES: enable-multiaz-workers-and-masters.yml
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
       <% elsif iaas =~ /^(gcp|vsphere-lb)/ %>
@@ -1549,7 +1549,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
       DEPLOYMENT_NAME: ci-service-two-cas
-      DEPLOYMENT_OPS_FILE: use-separate-master-ca.yml
+      DEPLOYMENT_OPS_FILES: use-separate-master-ca.yml
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
       kubo-lock: kubo-lock-two-cas
