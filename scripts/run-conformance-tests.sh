@@ -11,9 +11,6 @@ generate_config() {
   KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
   DEPLOYMENT_NAME="${DEPLOYMENT_NAME:="ci-service"}"
 
-  export GOPATH="${ROOT}/git-kubo-ci"
-  export CONFORMANCE_RELEASE_VERSION="$(cat kubo-version/version)"
-  export CONFORMANCE_RESULTS_DIR="${ROOT}/${CONFORMANCE_RESULTS_DIR}"
   source "${ROOT}/git-kubo-ci/scripts/lib/utils.sh"
   setup_env "${KUBO_ENVIRONMENT_DIR}"
 
