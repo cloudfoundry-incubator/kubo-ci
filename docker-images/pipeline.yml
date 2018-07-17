@@ -1,6 +1,6 @@
 <%
   tested_images=%w(test-runner vsphere-cleaner aws-maintenance kubo-ci)
-  untested_images=%w(ulimit kubectl cf-cleaner git-bosh api-proxy)
+  untested_images=%w(ulimit kubectl cf-cleaner git-bosh api-proxy conformance)
 %>
 ---
 resources:
@@ -197,3 +197,11 @@ jobs:
   - put: api-proxy-stable
     params:
       build: git-kubo-ci-api-proxy/docker-images/api-proxy
+
+- name: build-conformance
+  plan:
+  - get: git-kubo-ci-conformance
+    trigger: true
+  - put: conformance-stable
+    params:
+      build: git-kubo-ci-conformance/docker-images/conformance
