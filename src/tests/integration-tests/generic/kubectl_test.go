@@ -42,11 +42,15 @@ var _ = Describe("Kubectl", func() {
 	})
 
 	It("Should be able to run kubectl top nodes successfully", func() {
-		Eventually(kubectl.RunKubectlCommand("top", "nodes", "--heapster-scheme=https"), "60s").Should(gexec.Exit(0))
+		Eventually(func() *gexec.Session {
+			return kubectl.RunKubectlCommand("top", "nodes", "--heapster-scheme=https")
+		}, "30s").Should(gexec.Exit(0))
 	})
 
 	It("Should be able to run kubectl top pods successfully", func() {
-		Eventually(kubectl.RunKubectlCommand("top", "pods", "--heapster-scheme=https"), "30s").Should(gexec.Exit(0))
+		Eventually(func() *gexec.Session {
+			return kubectl.RunKubectlCommand("top", "pods", "--heapster-scheme=https", "-n", "kube-system")
+		}, "30s").Should(gexec.Exit(0))
 	})
 
 	Context("Dashboard", func() {
