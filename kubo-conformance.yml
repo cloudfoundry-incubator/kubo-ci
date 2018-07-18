@@ -25,6 +25,14 @@ resources:
     bucket: kubo-pipeline-store
     json_key: ((gcs-json-key))
     versioned_file: bosh/state.json
+
+- name: gcs-kubeconfig
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: k8s/config
+
 - name: kubo-dev-release
   type: gcs
   source:
@@ -122,13 +130,14 @@ jobs:
       kubo-lock: kubo-lock-gcp-lb
     tags:
     - gcp-lb
+  - put: gcs-kubeconfig
+    params:
+      file: gcs-kubeconfig/config
 - name: run-k8s-conformance-tests
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-lock-gcp-lb
-      version: every
-      trigger: true
       passed: [ 'deploy-k8s-gcp-lb' ]
     - get: gcs-bosh-state
       passed: [ 'deploy-k8s-gcp-lb' ]
@@ -138,6 +147,10 @@ jobs:
       passed: [ 'deploy-k8s-gcp-lb' ]
     - get: kubo-dev-release
       passed: [ 'deploy-k8s-gcp-lb' ]
+    - get: gcs-kubeconfig
+      passed: [ 'deploy-k8s-gcp-lb' ]
+      version: every
+      trigger: true
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
@@ -146,7 +159,6 @@ jobs:
     file: git-kubo-ci/tasks/run-conformance-tests.yml
     tags:
     - gcp-lb
-    input_mapping: {kubo-lock: kubo-lock-gcp-lb}
 - name: destroy-k8s
   plan:
   - aggregate:
