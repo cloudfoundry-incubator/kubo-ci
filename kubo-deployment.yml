@@ -1064,7 +1064,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       kubo-lock: kubo-lock-<%= iaas %>
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
-      <% if iaas =~ /^(gcp|vsphere-lb|aws-lb)/ %>
+      <% if iaas =~ /^(gcp|vsphere-lb|aws-lb)/ && iaas =~ /multi/ %>
       DEPLOYMENT_OPS_FILES: enable-multiaz-workers-and-masters.yml
       <% end %>
       <% if iaas.include? 'openstack' %>
