@@ -1661,7 +1661,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - task: destroy
     tags: [vsphere]
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-proxy-vsphere}
     on_failure: *on_failure_alert
   - put: kubo-lock
     resource: kubo-lock-proxy-vsphere
