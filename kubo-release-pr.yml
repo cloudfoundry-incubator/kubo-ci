@@ -299,9 +299,9 @@ jobs:
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
     <% if iaas == 'vsphere-lb' %>
-      DEPLOYMENT_OPS_FILE: add-haproxy-and-multiaz-workers.yml
+      DEPLOYMENT_OPS_FILES: add-haproxy-and-multiaz-workers.yml
     <% else %>
-      DEPLOYMENT_OPS_FILE: enable-multiaz-workers.yml
+      DEPLOYMENT_OPS_FILES: enable-multiaz-workers.yml
     <% end %>
   - put: gcs-kubeconfig
     params:
@@ -347,9 +347,6 @@ jobs:
       kubo-lock: kubo-lock-upgrade-<%= iaas %>
       gcs-kubo-release-tarball: gcs-kubo-release-tarball
     params:
-      <% if iaas =~ /^(gcp|vsphere-lb|aws-lb)/ %>
-      DEPLOYMENT_OPS_FILE: enable-multiaz-workers-and-masters.yml
-      <% end %>
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
       <% elsif iaas =~ /^(gcp|vsphere-lb)/ %>

@@ -133,7 +133,7 @@ jobs:
   - task: deploy
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
-      DEPLOYMENT_OPS_FILE: enable-multiaz-workers-and-masters.yml
+      DEPLOYMENT_OPS_FILES: enable-multiaz-workers-and-masters.yml
       DISABLE_DENY_ESCALATING_EXEC: 1
       WITH_PRIVILEGED_CONTAINERS: 1
     input_mapping:

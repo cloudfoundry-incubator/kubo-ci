@@ -209,7 +209,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	}
 
 	By(fmt.Sprintf("Running %s upgrade", component))
-	os.Setenv("DEPLOYMENT_OPS_FILE", "enable-multiaz-workers-and-masters.yml")
+	os.Setenv("DEPLOYMENT_OPS_FILES", "enable-multiaz-workers-and-masters.yml")
 	script := test_helpers.PathFromRoot(pathToScript)
 	cmd := exec.Command(script)
 	cmd.Stdout = os.Stdout
