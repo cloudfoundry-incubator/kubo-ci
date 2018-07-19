@@ -1015,11 +1015,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       git-kubo-deployment: unpacked_dir
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
-    <% if iaas == 'vsphere-lb' %>
+      <% if iaas == 'vsphere-lb' %>
       DEPLOYMENT_OPS_FILES: add-haproxy-and-multiaz-workers.yml
-    <% else %>
+      <% else %>
       DEPLOYMENT_OPS_FILES: enable-multiaz-workers.yml
-    <% end %>
+      <% end %>
   - put: gcs-kubeconfig
     params:
       file: gcs-kubeconfig/config
@@ -1064,8 +1064,10 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       kubo-lock: kubo-lock-<%= iaas %>
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
-      <% if iaas =~ /^(gcp|vsphere-lb|aws-lb)/ && iaas =~ /multi/ %>
-      DEPLOYMENT_OPS_FILES: enable-multiaz-workers-and-masters.yml
+      <% if iaas == 'vsphere-lb' %>
+      DEPLOYMENT_OPS_FILES: add-haproxy-and-multiaz-workers.yml
+      <% else %>
+      DEPLOYMENT_OPS_FILES: enable-multiaz-workers.yml
       <% end %>
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
@@ -1332,6 +1334,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       kubo-lock: kubo-lock-<%= iaas %>
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
+      <% if iaas != 'vsphere-lb' %>
+      DEPLOYMENT_OPS_FILES: enable-multiaz-workers-and-masters.yml
+      <% end %>
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
       <% elsif iaas =~ /^(gcp|vsphere-lb)/ %>
