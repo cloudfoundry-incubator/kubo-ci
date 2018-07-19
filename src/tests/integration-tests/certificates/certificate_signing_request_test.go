@@ -1,9 +1,11 @@
 package certificates_test
 
 import (
-	"encoding/base64"
 	"io/ioutil"
 	"os"
+
+	"k8s.io/api/certificates/v1beta1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -42,12 +44,31 @@ var _ = Describe("Certificate Signing Requests", func() {
 	Context("When a user creates a CSR within the 'system:master' group", func() {
 		It("should create a client certificate that can talk to Kube API Server", func() {
 			Eventually(kubectl.RunKubectlCommand("apply", "-f", csrSpec), "30s").Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("certificate", "approve", "test-csr"), "30s").Should(gexec.Exit(0))
-			Eventually(kubectl.GetOutput("get", "csr", "test-csr", "-o", "jsonpath={.status}"), "30s").ShouldNot(BeEmpty())
 
-			clientCert := kubectl.GetOutput("get", "csr", "test-csr", "-o", "jsonpath={.status.certificate}")
-			decodedCert := decodeCert(clientCert[0])
-			certFile = writeCertToFile(decodedCert)
+			k8s, err := NewKubeClient()
+			Expect(err).NotTo(HaveOccurred())
+
+			CSRClient := k8s.CertificatesV1beta1().CertificateSigningRequests()
+			pendingCSR, err := CSRClient.Get("test-csr", v1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+
+			pendingCSR.Status.Conditions = append(pendingCSR.Status.Conditions, v1beta1.CertificateSigningRequestCondition{
+				Type:    v1beta1.CertificateApproved,
+				Reason:  "because I said so",
+				Message: "just do it",
+			})
+
+			_, err = CSRClient.UpdateApproval(pendingCSR)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(func() []byte {
+				clientCert, err := CSRClient.Get("test-csr", v1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				return clientCert.Status.Certificate
+			}, "30s").ShouldNot(BeEmpty())
+
+			clientCert, err := CSRClient.Get("test-csr", v1.GetOptions{})
+			certFile := writeCertToFile(clientCert.Status.Certificate)
 
 			Eventually(kubectl.RunKubectlCommand("config", "set-credentials", csrUsername,
 				"--client-certificate", certFile, "--client-key", keyFile), "30s").Should(gexec.Exit(0))
@@ -56,13 +77,6 @@ var _ = Describe("Certificate Signing Requests", func() {
 		})
 	})
 })
-
-func decodeCert(cert string) []byte {
-	decodedCert, err := base64.StdEncoding.DecodeString(cert)
-	Expect(err).NotTo(HaveOccurred())
-
-	return decodedCert
-}
 
 func writeCertToFile(cert []byte) string {
 	tmpFile, err := ioutil.TempFile("/tmp", "client-cert")
