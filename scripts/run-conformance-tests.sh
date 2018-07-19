@@ -6,8 +6,8 @@ set -eu
 set -o pipefail
 
 run_conformance_test() {
-  ginkgo -p -progress -focus  "\[Conformance\]" -skip "\[Serial\]" /e2e.test
-  ginkgo -focus="\[Serial\].*\[Conformance\]" /e2e.test
+  ginkgo --flakeAttempts=2 --nodes=8 -p -progress -focus  "\[Conformance\]" -skip "\[Serial\]" /e2e.test
+  ginkgo --flakeAttempts=2 -focus="\[Serial\].*\[Conformance\]" /e2e.test
 }
 
 main() {
