@@ -5,6 +5,7 @@ MAINTAINER pcf-kubo@pivotal.io
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   curl \
   gcc \
+  jq \
   git-core \
   make \
   python-pip \
@@ -39,7 +40,7 @@ RUN wget -O /cf-cli_amd64.deb https://cli.run.pivotal.io/stable?release=debian64
 
 RUN wget -q -O - https://raw.githubusercontent.com/starkandwayne/homebrew-cf/master/public.key | apt-key add - && \
 echo "deb http://apt.starkandwayne.com stable main" | tee /etc/apt/sources.list.d/starkandwayne.list &&\
-apt-get update && apt-get install om jq
+apt-get update && apt-get install om
 
 # Google SDK
 ENV GCLOUD_VERSION=144.0.0
@@ -72,11 +73,10 @@ RUN wget -O /usr/local/bin/direnv https://github.com/direnv/direnv/releases/down
   chmod +x /usr/local/bin/direnv
 
 # BOSH CLI
-RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-3.0.1-linux-amd64 -O bosh && \
-  echo ccc893bab8b219e9e4a628ed044ebca6c6de9ca0 bosh > bosh-shasum && \
+RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-5.0.1-linux-amd64 -O bosh && \
+  echo f1f1ee58a7eb872568c85db19a17b697990a7452 bosh > bosh-shasum && \
   sha1sum -cw --status bosh-shasum && \
-  install bosh /usr/local/bin && \
-  ln -s /usr/local/bin/bosh /usr/local/bin/bosh-cli
+  install bosh /usr/local/bin
 
 # Openstack CLI
 RUN pip install -U setuptools
