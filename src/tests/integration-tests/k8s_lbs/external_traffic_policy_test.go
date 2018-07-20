@@ -63,7 +63,7 @@ var _ = Describe("When deploying a loadbalancer", func() {
 				var err error
 				ipAddress, err = getIPAddressFromEchoserver(appURL)
 				return err
-			}, "60s", "15s").Should(Succeed())
+			}, "90s", "15s").Should(Succeed())
 			segments := strings.Split(ipAddress, ".")
 
 			runner.RunKubectlCommandWithTimeout("patch", "svc/echoserver", "-p", "{\"spec\":{\"externalTrafficPolicy\":\"Local\"}}")
@@ -73,7 +73,10 @@ var _ = Describe("When deploying a loadbalancer", func() {
 			appURL = fmt.Sprintf("http://%s", loadbalancerAddress)
 
 			Eventually(func() string {
-				newPrefix, _ := getIPAddressFromEchoserver(appURL)
+				newPrefix, err := getIPAddressFromEchoserver(appURL)
+				if err != nil {
+					GinkgoWriter.Write([]byte(err.Error()))
+				}
 				return newPrefix
 			}, "600s", "60s").Should(And(Not(BeEmpty()), Not(HavePrefix(prefix))))
 		})
