@@ -15,7 +15,7 @@ pr_kubo_ci() {
 
   if [ $existing_k8s_version == $version ]; then
       echo "Kubernetes version already up-to-date."
-      exit 0
+      return
   else
     sed -i "s/ENV KUBE_VERSION=.*/ENV KUBE_VERSION=\"v${version}\"/g" "$docker_file"
     generate_pull_request "k8s_in_conformance" $tag
@@ -37,7 +37,7 @@ pr_kubo_release() {
 
   if [ $existing_k8s_version == $version ]; then
       echo "Kubernetes version already up-to-date."
-      exit 0
+      return
   else
       ./scripts/download_k8s_binaries $version
       pushd packages/kubernetes
