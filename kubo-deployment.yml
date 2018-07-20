@@ -897,14 +897,16 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'package-kubo-deployment-tarball' ]
-  - put: kubo-lock-<%= iaas %>
+  - put: kubo-lock
+    resource: kubo-lock-<%= iaas %>
     params: { acquire: true }
 
 - name: install-bosh-for-upgrade-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= iaas %>
       version: every
       trigger: true
       passed: [ 'claim-lock-upgrade-<%= iaas %>' ]
@@ -968,68 +970,113 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
 - name: deploy-old-k8s-<%= iaas %>
   plan:
   - aggregate:
+    - get: slackers
     - get: git-kubo-ci
-      resource: git-kubo-ci-old
-    - get: kubo-lock-<%= iaas %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= iaas %>
       version: every
       trigger: true
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
-    - get: old-kubo-deployment-tarball
+    - get: git-kubo-deployment
+      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
+    - get: git-kubo-release
+      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
+    - get: kubo-version
+      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: gcs-bosh-state
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: gcs-bosh-creds
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
-    - get: old-kubo-release-tarball
-      params:
-        globs:
-        - "kubo-release*"
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
-    - get: kubo-version
-      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
-    - get: git-kubo-release
-      passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
-    - get: git-kubo-deployment
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: gcs-source-json
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
-    - get: stemcell-<%= iaas %>
-
-  - task: unpack-tgz
-    file: git-kubo-ci/tasks/unpack-tgz.yml
+    - get: stemcell
+      resource: stemcell-<%= iaas %>
+  <% if iaas =~ /^vsphere/ %>
+  - task: get_director_uuid
     tags: ['<%= iaas %>']
-    input_mapping:
-      source_tarball: old-kubo-deployment-tarball
+    file: git-kubo-ci/tasks/get_director_uuid.yml
+  <% end %>
+  - put: cfcr-deployment
     params:
-      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
-
-  - task: deploy
-    tags: [<%= iaas %>]
-    input_mapping:
-      gcs-kubo-release-tarball: old-kubo-release-tarball
-      kubo-lock: kubo-lock-<%= iaas %>
-      git-kubo-deployment: unpacked_dir
-    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-    params:
-      <% if iaas == 'vsphere-lb' %>
-      DEPLOYMENT_OPS_FILES: add-haproxy-and-multiaz-workers.yml
-      <% else %>
-      DEPLOYMENT_OPS_FILES: enable-multiaz-workers.yml
+      manifest: git-kubo-deployment/manifests/cfcr.yml
+      cleanup: true
+      no_redact: true
+      ops_files:
+      - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
+      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
+      - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
+      - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
+      - git-kubo-deployment/manifests/ops-files/addons-spec.yml
+      <% if iaas =~ /^(gcp|vsphere)$/ %>
+      - git-kubo-deployment/manifests/ops-files/cf-routing.yml
       <% end %>
+      <% if iaas =~ /^gcp/ %>
+      - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      <% end %>
+      <% if iaas =~ /^aws/ %>
+      - git-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
+      <% end %>
+      <% if iaas =~ /^openstack/ %>
+      - git-kubo-deployment/manifests/ops-files/iaas/openstack/cloud-provider.yml
+      <% end %>
+      <% if iaas =~ /^vsphere/ %>
+      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+      <% end %>
+      <% if iaas =~ /^(vsphere-lb)/ %>
+      - git-kubo-ci/manifests/ops-files/enable-multiaz-workers-and-masters.yml
+      <% else %>
+      - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
+      <% end %>
+      var_files:
+        addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
+      vars_files:
+      - gcs-load-balancer-vars/load-balancer-vars.yml
+      - kubo-lock/metadata
+      <% if iaas =~ /^vsphere/ %>
+      - director_uuid/var.yml
+      <% end %>
+      stemcells:
+      - stemcell/stemcell.tgz
+      releases:
+      - gcs-kubo-release-tarball-untested/*.tgz
+      source_file: gcs-source-json/source.json
+      vars:
+        deployment_name: ci-service
+        worker_count: 3
+    tags: [<%= iaas %>]
+    on_failure: *on_failure_alert
+  - put: run-apply-addons-errand
+    params:
+      name: apply-addons
+      keep_alive: true
+      source_file: gcs-source-json/source.json
+    tags: [<%= iaas %>]
+    on_failure: *on_failure_alert
+  - put: run-smoke-tests-errand
+    params:
+      name: smoke-tests
+      keep_alive: true
+      source_file: gcs-source-json/source.json
+    tags: [<%= iaas %>]
+    on_failure: *on_failure_alert
   - put: gcs-kubeconfig
     params:
       file: gcs-kubeconfig/config
+
 
 - name: upgrade-kubo-<%= iaas %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= iaas %>
       version: every
       trigger: true
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
@@ -1082,7 +1129,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= iaas %>
       version: every
       trigger: true
       passed: [ 'upgrade-kubo-<%= iaas %>' ]
@@ -1114,7 +1162,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
-    - get: kubo-lock-<%= iaas %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= iaas %>
       version: every
       trigger: true
       passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
@@ -1131,10 +1180,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - task: destroy
     tags: [ '<%= iaas %>' ]
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>
 
-  - put: kubo-lock-<%= iaas %>
+  - put: kubo-lock
+    resource: kubo-lock-<%= iaas %>
     params:
       release: kubo-lock-<%= iaas %>
 <% end %>
@@ -1194,7 +1242,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>
       git-kubo-deployment: unpacked_dir
     params:
       <% if iaas.include? 'openstack' %>
