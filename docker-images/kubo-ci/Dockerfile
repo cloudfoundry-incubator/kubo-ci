@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 MAINTAINER pcf-kubo@pivotal.io
 
 # Packages
@@ -15,6 +15,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   ipcalc \
   zip \
   sshuttle \
+  vim \
   haproxy
 
 WORKDIR /tmp/docker-build
@@ -90,13 +91,6 @@ RUN pip install awscli
 # GOVC CLI
 RUN wget -O - -o /dev/null https://github.com/vmware/govmomi/releases/download/v0.17.1/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc && \
   chmod +x /usr/local/bin/govc
-
-ADD https://java-buildpack.cloudfoundry.org/openjdk-jdk/trusty/x86_64/openjdk-1.8.0_141.tar.gz /tmp/current-jdk
-
-RUN mkdir -p /usr/local/java && tar xvf /tmp/current-jdk --directory /usr/local/java
-
-ENV JAVA_HOME=/usr/local/java
-ENV PATH=$PATH:/usr/local/java/bin
 
 COPY Gemfile .
 COPY Gemfile.lock .
