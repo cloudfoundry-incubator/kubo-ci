@@ -134,6 +134,7 @@ groups:
   jobs:
   <% upgrade_test_iaases.each do |env| %>
   - claim-lock-upgrade-<%= env %>
+  - install-bosh-for-upgrade-<%= env %>
   - deploy-old-k8s-<%= env %>
   - upgrade-kubo-<%= env %>
   - destroy-k8s-upgrade-<%= env %>
