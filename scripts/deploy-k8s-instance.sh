@@ -42,6 +42,7 @@ cp "$tarball_name" "${ROOT}/kubo-release.tgz"
 
 release_source="local"
 DEPLOYMENT_OPS_FILES=${DEPLOYMENT_OPS_FILES:-""}
+echo > "${KUBO_ENVIRONMENT_DIR}/${DEPLOYMENT_NAME}.yml"
 for ops_file in $DEPLOYMENT_OPS_FILES; do
   if [[ -f "${KUBO_CI_DIR}/manifests/ops-files/${ops_file}" ]]; then
     cat "${KUBO_CI_DIR}/manifests/ops-files/${ops_file}" >> "${KUBO_ENVIRONMENT_DIR}/${DEPLOYMENT_NAME}.yml"
