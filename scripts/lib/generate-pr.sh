@@ -8,6 +8,7 @@ create_pr_payload() {
 generate_pull_request() {
   local component=$1
   local tag=$2
+  local repo=$3
 
   mkdir -p ~/.ssh
   cat > ~/.ssh/config <<EOF
@@ -36,5 +37,5 @@ EOF
   # create a PR here
   token=${CFCR_USER_TOKEN}
   payload=$(create_pr_payload $component $tag $branch_name)
-  curl -u cfcr:${CFCR_USER_TOKEN} -H "Content-Type: application/json" -X POST -d "$payload" https://api.github.com/repos/cloudfoundry-incubator/kubo-release/pulls
+  curl -u cfcr:${CFCR_USER_TOKEN} -H "Content-Type: application/json" -X POST -d "$payload" https://api.github.com/repos/cloudfoundry-incubator/${repo}/pulls
 }

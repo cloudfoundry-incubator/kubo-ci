@@ -17,7 +17,7 @@ pr_kubo_ci() {
       echo "Kubernetes version already up-to-date."
   else
       sed -i "s/ENV KUBE_VERSION=.*/ENV KUBE_VERSION=\"v${version}\"/g" "$docker_file"
-      generate_pull_request "k8s_in_conformance" $tag
+      generate_pull_request "k8s_in_conformance" $tag "kubo-ci"
   fi
 
   popd
@@ -50,7 +50,7 @@ blobstore:
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
       bosh upload-blobs
-      generate_pull_request "kubernetes" $tag
+      generate_pull_request "kubernetes" $tag "kubo-release"
   fi
 
   popd
