@@ -935,7 +935,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
-      kubo-lock: kubo-lock-<%= iaas %>
       git-kubo-deployment: unpacked_dir
     params:
       <% if iaas.include? 'openstack' %>
@@ -955,10 +954,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
         file: bosh-state/state.json
   - task: generate-load-balancer-vars
     file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
   - task: generate-source-json
     file: git-kubo-ci/tasks/generate-source-json.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
   - aggregate:
     - put: gcs-load-balancer-vars
       params:
