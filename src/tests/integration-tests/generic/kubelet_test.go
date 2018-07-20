@@ -34,7 +34,7 @@ var _ = Describe("Kubelet", func() {
 		invalidRequest(tr, endpoint)
 	})
 
-	It("Should respond successful with valid Bearer Token", func() {
+	XIt("Should respond successful with valid Bearer Token", func() {
 		bearerToken, err := BearerToken()
 		Expect(err).ToNot(HaveOccurred())
 
