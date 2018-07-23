@@ -16,11 +16,12 @@ import (
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	yaml "gopkg.in/yaml.v2"
 )
 
-var loadbalancerAddress, nginxSpec string
+var loadbalancerAddress, nginxSpec, configMapAndSecretsSpec string
 var requestLossThreshold, masterRequestLossThreshold float64
 
 var _ = Describe("Upgrade components", func() {
@@ -37,21 +38,47 @@ var _ = Describe("Upgrade components", func() {
 		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
 
 		test_helpers.DeploySmorgasbord(k8sRunner, testconfig.Iaas)
+
+		configMapAndSecretsSpec = test_helpers.PathFromRoot("specs/configmap-and-secrets.yml")
+		Eventually(k8sRunner.RunKubectlCommand("create", "-f", configMapAndSecretsSpec), "10s").Should(gexec.Exit(0))
+
+		args := []string{"rollout", "status", "deployment/test-deployment"}
+		Eventually(k8sRunner.RunKubectlCommand(args...), "60s").Should(gexec.Exit(0))
 	})
 
 	AfterEach(func() {
 		test_helpers.DeleteSmorgasbord(k8sRunner, testconfig.Iaas)
-		session := k8sRunner.RunKubectlCommand("delete", "-f", nginxSpec)
-		session.Wait("60s")
+
+		Eventually(k8sRunner.RunKubectlCommand(
+			"delete", "-f", nginxSpec), "60s").Should(gexec.Exit())
+
+		Eventually(k8sRunner.RunKubectlCommand(
+			"delete", "-f", configMapAndSecretsSpec), "60s").Should(gexec.Exit())
 	})
 
-	It("upgrades CFCR Release", func() {
+	XIt("upgrades CFCR Release", func() {
 		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release", requestLossThreshold)
 	})
 
 	It("upgrades stemcell", func() {
+		args := []string{"get", "pods", "-n", k8sRunner.Namespace(), "-l", "name=test-configmap-secrets",
+			"-o", "jsonpath={.items[0].metadata.name}"}
+		session := k8sRunner.RunKubectlCommand(args...)
+
+		Eventually(session, "15s").Should(gexec.Exit(0))
+		podName := string(session.Out.Contents())
+
+		execArgs := []string{"exec", podName, "--", "cat", "/tmp/configmap/cartoons.json"}
+		execSession := k8sRunner.RunKubectlCommand(execArgs...)
+		Eventually(execSession, "60s").Should(gexec.Exit(0))
+		Expect(execSession.Out).To(gbytes.Say("{\"sponge\": \"bob\"}"))
+
 		applyUpdateStemcellVersionOps(filepath.Join(testconfig.CFCR.DeploymentPath, "manifests", "cfcr.yml"), testconfig.CFCR.UpgradeToStemcellVersion)
 		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "stemcell", requestLossThreshold)
+
+		execSession = k8sRunner.RunKubectlCommand(execArgs...)
+		Eventually(execSession, "60s").Should(gexec.Exit(0))
+		Expect(execSession.Out).To(gbytes.Say("{\"sponge\": \"bob\"}"))
 	})
 })
 
