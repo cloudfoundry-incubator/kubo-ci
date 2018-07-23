@@ -7,7 +7,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   gcc \
   jq \
   git-core \
-  netcat \
+  netcat-openbsd  \
   make \
   python-pip \
   python-dev \

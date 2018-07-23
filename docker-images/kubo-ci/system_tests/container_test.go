@@ -6,6 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	. "github.com/onsi/gomega/gexec"
 )
 
@@ -34,7 +35,7 @@ var _ = Describe("Docker Image", func() {
 		"semver":  []string{"--help"},
 		"spruce":  []string{"--version"},
 		"vegeta":  []string{"-version"},
-		"which":   []string{"nc", "sshuttle"},
+		"which":   []string{"sshuttle"},
 		"zip":     []string{"--version"},
 	}
 
@@ -50,4 +51,13 @@ var _ = Describe("Docker Image", func() {
 			Eventually(session, "5s").Should(Exit(0))
 		})
 	}
+
+	It("has an OpenBSD netcat", func() {
+		command := exec.Command("nc", "-h")
+		session, err := Start(command, GinkgoWriter, GinkgoWriter)
+
+		Expect(err).ToNot(HaveOccurred())
+		Eventually(session.Err).Should(gbytes.Say("OpenBSD"))
+		Eventually(session, "5s").Should(Exit(0))
+	})
 })
