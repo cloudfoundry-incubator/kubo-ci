@@ -34,7 +34,7 @@ var _ = Describe("Docker Image", func() {
 		"semver":  []string{"--help"},
 		"spruce":  []string{"--version"},
 		"vegeta":  []string{"-version"},
-		"which":   []string{"sshuttle"},
+		"which":   []string{"nc", "sshuttle"},
 		"zip":     []string{"--version"},
 	}
 
