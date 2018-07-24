@@ -45,7 +45,7 @@ main() {
     skipped_packages="$(echo $skipped_packages | cut -c 2-)"
   fi
 
-  CONFIG="${tmpfile}" ginkgo -r -progress -v -skipPackage "${skipped_packages}" "${ROOT}/git-kubo-ci/src/tests/integration-tests/"
+  CONFIG="${tmpfile}" ginkgo -r -progress -skipPackage "${skipped_packages}" "${ROOT}/git-kubo-ci/src/tests/integration-tests/"
 }
 
 main

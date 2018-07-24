@@ -17,7 +17,7 @@ main() {
   local tmpfile="$(mktemp)" && echo "CONFIG=${tmpfile}"
   "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" ${KUBO_ENVIRONMENT_DIR} ${DEPLOYMENT_NAME} > "${tmpfile}"
 
-  CONFIG="${tmpfile}" ginkgo -r -progress -v "${ROOT}/git-kubo-ci/src/tests/upgrade-tests/"
+  CONFIG="${tmpfile}" ginkgo -r -progress "${ROOT}/git-kubo-ci/src/tests/upgrade-tests/"
 }
 
 main
