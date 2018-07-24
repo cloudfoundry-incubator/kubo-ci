@@ -1166,9 +1166,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - task: destroy
     tags: [ '<%= iaas %>' ]
     file: git-kubo-ci/tasks/destroy-bosh.yml
-
-  - put: kubo-lock
-    resource: kubo-lock-<%= iaas %>
+  - put: kubo-lock-<%= iaas %>
     params:
       release: kubo-lock-<%= iaas %>
 <% end %>
