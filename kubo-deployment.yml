@@ -13,8 +13,8 @@
   env_list = iaases + additional_envs
   enable_failure_alert = true
 
-  upgrade_test_iaases = %w(gcp-lb vsphere-lb)
-  multi_master_upgrade_test_iaases = %w(aws-lb gcp-lb)
+  upgrade_test_iaases = %w(gcp-lb)
+  multi_master_upgrade_test_iaases = %w(aws-lb gcp-lb vsphere-lb)
   iaases_for_new_bosh_stemcell = upgrade_test_iaases | multi_master_upgrade_test_iaases
   conformance_test_iaases = iaases
   proxy_iaases = %w(vsphere)
@@ -1002,27 +1002,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
-      <% if iaas =~ /^(gcp|vsphere)$/ %>
-      - git-kubo-deployment/manifests/ops-files/cf-routing.yml
-      <% end %>
-      <% if iaas =~ /^gcp/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
-      <% end %>
-      <% if iaas =~ /^aws/ %>
-      - git-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
-      - git-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
-      <% end %>
-      <% if iaas =~ /^openstack/ %>
-      - git-kubo-deployment/manifests/ops-files/iaas/openstack/cloud-provider.yml
-      <% end %>
-      <% if iaas =~ /^vsphere/ %>
-      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
-      <% end %>
-      <% if iaas =~ /^(vsphere-lb)/ %>
-      - git-kubo-ci/manifests/ops-files/enable-multiaz-workers-and-masters.yml
-      <% else %>
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
-      <% end %>
       var_files:
         addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
       vars_files:
@@ -1313,6 +1294,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
       <% end %>
+      <% if iaas =~ /^vsphere/ %>
+      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+      <% end %>
       var_files:
         addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
       vars_files:
@@ -1373,12 +1357,12 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
-      <% if iaas != 'vsphere-lb' %>
+      <% if iaas == 'vsphere-lb' %>
+      DEPLOYMENT_OPS_FILES: add-haproxy-and-multiaz-workers.yml
+      <% else %>
       DEPLOYMENT_OPS_FILES: enable-multiaz-workers-and-masters.yml
       <% end %>
-      <% if iaas.include? 'openstack' %>
-      CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
-      <% elsif iaas =~ /^(gcp|vsphere-lb)/ %>
+      <% if iaas =~ /^(gcp|vsphere-lb)/ %>
       CLOUD_CONFIG_OPS_FILE: <%= iaas %>-k8s-cloud-config-multiaz.yml
       <% elsif iaas.include? 'aws-lb' %>
       CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
