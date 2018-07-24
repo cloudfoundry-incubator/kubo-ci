@@ -162,6 +162,7 @@ resources:
 jobs:
 - name: deploy-turbulence-api-server
   serial: true
+  serial_groups: ["deploy_etcd"]
   plan:
   - aggregate:
     - get: turbulence-release
