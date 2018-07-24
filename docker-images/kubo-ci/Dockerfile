@@ -16,7 +16,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   wget \
   ipcalc \
   zip \
-  sshuttle \
   vim \
   haproxy
 
@@ -88,6 +87,9 @@ RUN pip install python-openstackclient==3.13.0
 
 # AWS CLI
 RUN pip install awscli
+
+# sshuttle
+RUN pip install sshuttle
 
 # GOVC CLI
 RUN wget -O - -o /dev/null https://github.com/vmware/govmomi/releases/download/v0.17.1/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc && \
