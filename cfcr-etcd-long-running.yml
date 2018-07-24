@@ -173,7 +173,7 @@ jobs:
       trigger: true
   - put: turbulence-deployment
     params:
-      manifest: git-etcd-acceptance/manifests/turbulence/etcd-acceptance-turbulence.yml
+      manifest: git-kubo-ci/manifests/turbulence/etcd-acceptance-turbulence.yml
       vars:
         turbulence_api_ip: 10.100.0.10
         director_ip: 10.100.0.6
