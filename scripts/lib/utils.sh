@@ -23,11 +23,7 @@ setup_env() {
 
   "${ROOT}/git-kubo-deployment/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
   "${ROOT}/git-kubo-deployment/bin/credhub_login" "${KUBO_ENVIRONMENT_DIR}"
-  if [[ -f "${ROOT}/git-kubo-deployment/bin/credhub_login" ]]; then
-    eval "$(set_variables)"
-    "${ROOT}/git-kubo-deployment/bin/set_kubeconfig" "${cluster_name}" "${api_url}"
-  else
-    "${ROOT}/git-kubo-deployment/bin/set_kubeconfig" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}"
-  fi
+  eval "$(set_variables)"
+  "${ROOT}/git-kubo-deployment/bin/set_kubeconfig" "${cluster_name}" "${api_url}"
 }
 

@@ -10,11 +10,14 @@ KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
 export GOPATH="${ROOT}/git-kubo-ci"
 
 main() {
+  local tmpfile
+
+  # shellcheck source=lib/utils.sh
   source "${ROOT}/git-kubo-ci/scripts/lib/utils.sh"
   setup_env "${KUBO_ENVIRONMENT_DIR}"
 
-  local tmpfile="$(mktemp)" && echo "CONFIG=${tmpfile}"
-  "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" ${KUBO_ENVIRONMENT_DIR} ${DEPLOYMENT_NAME} > "${tmpfile}"
+  tmpfile="$(mktemp)" && echo "CONFIG=${tmpfile}"
+  "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
 
   skipped_packages=""
 
