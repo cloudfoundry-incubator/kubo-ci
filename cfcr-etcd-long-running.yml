@@ -131,7 +131,7 @@ resources:
     uri: https://github.com/pivotal-cf-experimental/kubo-ci
     branch: master
 
-- name: git-kubo-etcd
+- name: git-cfcr-etcd
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/cfcr-etcd-release.git
@@ -173,7 +173,7 @@ jobs:
       trigger: true
   - put: turbulence-deployment
     params:
-      manifest: git-turbulence-release/manifests/example.yml
+      manifest: git-etcd-acceptance/manifests/turbulence/etcd-acceptance-turbulence.yml
       vars:
         turbulence_api_ip: 10.100.0.10
         director_ip: 10.100.0.6
@@ -191,7 +191,7 @@ jobs:
   serial_groups: ["etcd-acceptance", "deploy_etcd"]
   plan:
   - aggregate:
-    - get: git-kubo-etcd
+    - get: git-cfcr-etcd
       trigger: true
     - get: git-kubo-ci
     - get: gcp-stemcell
@@ -204,15 +204,15 @@ jobs:
   - task: create-etcd-release
     file: git-kubo-ci/tasks/etcd/create-release.yml
     input_mapping:
-      release-dir: git-kubo-etcd
+      release-dir: git-cfcr-etcd
     output_mapping:
       release: etcd-release
   - put: long-running-etcd-deployment
     params:
-      manifest: git-kubo-etcd/manifests/etcd.yml
+      manifest: git-cfcr-etcd/manifests/etcd.yml
       ops_files:
       - "git-kubo-ci/turbulence-agent.yml"
-      - "git-kubo-etcd/manifests/ops-files/share-links.yml"
+      - "git-cfcr-etcd/manifests/ops-files/share-links.yml"
       stemcells:
       - "gcp-stemcell/*.tgz"
       releases:
@@ -225,7 +225,7 @@ jobs:
   serial_groups: ["etcd-acceptance-network-partition", "deploy_etcd"]
   plan:
   - aggregate:
-    - get: git-kubo-etcd
+    - get: git-cfcr-etcd
       trigger: true
     - get: git-kubo-ci
     - get: gcp-stemcell
@@ -238,16 +238,16 @@ jobs:
   - task: create-etcd-release
     file: git-kubo-ci/tasks/etcd/create-release.yml
     input_mapping:
-      release-dir: git-kubo-etcd
+      release-dir: git-cfcr-etcd
     output_mapping:
       release: etcd-release
   - put: network-partition-etcd-deployment
     params:
-      manifest: git-kubo-etcd/manifests/etcd.yml
+      manifest: git-cfcr-etcd/manifests/etcd.yml
       ops_files:
       - "git-kubo-ci/turbulence-agent.yml"
-      - "git-kubo-etcd/manifests/ops-files/share-links.yml"
-      - "git-kubo-etcd/manifests/ops-files/rename-network-and-deployment.yml"
+      - "git-cfcr-etcd/manifests/ops-files/share-links.yml"
+      - "git-cfcr-etcd/manifests/ops-files/rename-network-and-deployment.yml"
       vars:
         network-name: default
         deployment-name: etcd-network-partition
@@ -263,7 +263,7 @@ jobs:
   serial_groups: ["etcd-acceptance-total-network-partition", "deploy_etcd"]
   plan:
   - aggregate:
-    - get: git-kubo-etcd
+    - get: git-cfcr-etcd
       trigger: true
     - get: git-kubo-ci
     - get: gcp-stemcell
@@ -276,16 +276,16 @@ jobs:
   - task: create-etcd-release
     file: git-kubo-ci/tasks/etcd/create-release.yml
     input_mapping:
-      release-dir: git-kubo-etcd
+      release-dir: git-cfcr-etcd
     output_mapping:
       release: etcd-release
   - put: total-network-partition-etcd-deployment
     params:
-      manifest: git-kubo-etcd/manifests/etcd.yml
+      manifest: git-cfcr-etcd/manifests/etcd.yml
       ops_files:
       - "git-kubo-ci/turbulence-agent.yml"
-      - "git-kubo-etcd/manifests/ops-files/share-links.yml"
-      - "git-kubo-etcd/manifests/ops-files/rename-network-and-deployment.yml"
+      - "git-cfcr-etcd/manifests/ops-files/share-links.yml"
+      - "git-cfcr-etcd/manifests/ops-files/rename-network-and-deployment.yml"
       vars:
         network-name: default
         deployment-name: etcd-total-network-partition
@@ -303,7 +303,7 @@ jobs:
   - aggregate:
     - get: 60m
       trigger: true
-    - get: git-kubo-etcd
+    - get: git-cfcr-etcd
       trigger: true
       passed: [deploy-long-running-etcd-cluster]
     - get: git-etcd-acceptance
@@ -347,7 +347,7 @@ jobs:
   - aggregate:
     - get: 60m
       trigger: true
-    - get: git-kubo-etcd
+    - get: git-cfcr-etcd
       trigger: true
       passed: [deploy-network-partition-etcd-cluster]
     - get: git-etcd-acceptance
@@ -403,7 +403,7 @@ jobs:
   - aggregate:
     - get: 60m
       trigger: true
-    - get: git-kubo-etcd
+    - get: git-cfcr-etcd
       trigger: true
       passed: [deploy-total-network-partition-etcd-cluster]
     - get: git-etcd-acceptance
