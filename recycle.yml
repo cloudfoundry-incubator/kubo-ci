@@ -1,5 +1,5 @@
 <%
-  pools = %w(aws-lb gcp gcp-lb gcp-turbulence openstack openstack-lb vsphere vsphere-lb vsphere-proxy)
+  pools = %w(aws-lb gcp gcp-lb gcp-turbulence openstack openstack-cf-route-deprecated vsphere vsphere-lb vsphere-proxy)
 %>
 
 resource_types:
