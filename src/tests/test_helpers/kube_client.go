@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	uuid "github.com/satori/go.uuid"
+	corev1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8s "k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth" // load oidc auth
@@ -65,5 +67,12 @@ func GetNodeIP() (string, error) {
 		return "", err
 	}
 	return nodes.Items[0].ObjectMeta.Labels["spec.ip"], nil
+}
 
+func CreateTestNamespace(k8s k8s.Interface, prefix string) (*corev1.Namespace, error) {
+	name := prefix + "-" + uuid.NewV4().String()
+	labels := make(map[string]string)
+	labels["test"] = prefix
+	namespaceObject := corev1.Namespace{ObjectMeta: meta_v1.ObjectMeta{Name: name, Labels: labels}}
+	return k8s.CoreV1().Namespaces().Create(&namespaceObject)
 }
