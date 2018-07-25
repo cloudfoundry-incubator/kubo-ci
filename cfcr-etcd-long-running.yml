@@ -143,21 +143,10 @@ resources:
     uri: https://github.com/cfcr/etcd-acceptance-release
     branch: master
 
-- name: git-turbulence-release
-  type: git
-  source:
-    uri: https://github.com/cppforlife/turbulence-release
-    branch: master
-
 - name: gcp-stemcell
   type: bosh-io-stemcell
   source:
     name: bosh-google-kvm-ubuntu-xenial-go_agent
-
-- name: turbulence-release
-  type: bosh-io-release
-  source:
-    repository: cppforlife/turbulence-release
 
 jobs:
 - name: deploy-turbulence-api-server
@@ -165,12 +154,9 @@ jobs:
   serial_groups: ["deploy_etcd"]
   plan:
   - aggregate:
-    - get: turbulence-release
-      trigger: true
     - get: gcp-stemcell
       trigger: true
-    - get: git-turbulence-release
-      trigger: true
+    - get: git-kubo-ci
   - put: turbulence-deployment
     params:
       manifest: git-kubo-ci/manifests/turbulence/etcd-acceptance-turbulence.yml
@@ -182,8 +168,6 @@ jobs:
         director_ssl.ca: ((long-running-etcd-bosh-ca-cert.certificate))
       stemcells:
       - "gcp-stemcell/*.tgz"
-      releases:
-      - "turbulence-release/*.tgz"
       cleanup: true
 
 - name: deploy-long-running-etcd-cluster
@@ -198,9 +182,6 @@ jobs:
       trigger: true
     - get: bosh-dns-release
       trigger: true
-    - get: turbulence-release
-      trigger: true
-      passed: ["deploy-turbulence-api-server"]
   - task: create-etcd-release
     file: git-kubo-ci/tasks/etcd/create-release.yml
     input_mapping:
@@ -217,7 +198,6 @@ jobs:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-release/*.tgz"
-      - "turbulence-release/*.tgz"
       cleanup: true
 
 - name: deploy-network-partition-etcd-cluster
@@ -232,9 +212,6 @@ jobs:
       trigger: true
     - get: bosh-dns-release
       trigger: true
-    - get: turbulence-release
-      trigger: true
-      passed: ["deploy-turbulence-api-server"]
   - task: create-etcd-release
     file: git-kubo-ci/tasks/etcd/create-release.yml
     input_mapping:
@@ -255,7 +232,6 @@ jobs:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-release/*.tgz"
-      - "turbulence-release/*.tgz"
       cleanup: true
 
 - name: deploy-total-network-partition-etcd-cluster
@@ -270,9 +246,6 @@ jobs:
       trigger: true
     - get: bosh-dns-release
       trigger: true
-    - get: turbulence-release
-      trigger: true
-      passed: ["deploy-turbulence-api-server"]
   - task: create-etcd-release
     file: git-kubo-ci/tasks/etcd/create-release.yml
     input_mapping:
@@ -293,7 +266,6 @@ jobs:
       - "gcp-stemcell/*.tgz"
       releases:
       - "etcd-release/*.tgz"
-      - "turbulence-release/*.tgz"
       cleanup: true
 
 - name: deploy-and-run-etcd-acceptance-long-running
