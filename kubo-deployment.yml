@@ -986,11 +986,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: stemcell
       resource: stemcell-<%= iaas %>
-  <% if iaas =~ /^vsphere/ %>
-  - task: get_director_uuid
-    tags: ['<%= iaas %>']
-    file: git-kubo-ci/tasks/get_director_uuid.yml
-  <% end %>
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -1009,9 +1004,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
-      <% if iaas =~ /^vsphere/ %>
-      - director_uuid/var.yml
-      <% end %>
       stemcells:
       - stemcell/stemcell.tgz
       releases:
@@ -1275,6 +1267,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
       COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
+  <% if iaas =~ /^vsphere/ %>
+  - task: get_director_uuid
+    tags: ['<%= iaas %>']
+    file: git-kubo-ci/tasks/get_director_uuid.yml
+  <% end %>
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -1302,6 +1299,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
+      <% if iaas =~ /^vsphere/ %>
+      - director_uuid/var.yml
+      <% end %>
       stemcells:
       - stemcell/stemcell.tgz
       releases:
