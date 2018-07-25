@@ -138,6 +138,15 @@ var _ = Describe("BackupAndRestore", func() {
 			Expect(ok).To(BeTrue())
 			Expect(statusErr.ErrStatus.Code).To(Equal(int32(404)))
 		})
+
+		By("Waiting for system workloads", func() {
+			expectedDeployments := []string{"kube-dns", "heapster", "kubernetes-dashboard", "monitoring-influxdb"}
+			systemDeploymentApi := k8s.AppsV1().Deployments("kube-system")
+			for _, deployment := range expectedDeployments {
+				err = WaitForDeployment(systemDeploymentApi, "kube-system", deployment)
+				Expect(err).NotTo(HaveOccurred())
+			}
+		})
 	})
 
 })
