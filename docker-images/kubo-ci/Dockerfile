@@ -7,7 +7,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   gcc \
   jq \
   git-core \
-  netcat-openbsd  \
+  netcat-openbsd  \ # required for bosh
   make \
   python-pip \
   python-dev \
@@ -17,7 +17,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   ipcalc \
   zip \
   vim \
-  haproxy
+  haproxy \
+  iptables # required for sshuttle
 
 WORKDIR /tmp/docker-build
 
