@@ -27,9 +27,6 @@ groups:
   - run-unit-tests
   - build-kubo-release
   - package-kubo-deployment-tarball
-<% bbr_test_iaases.each do |env| %>
-  - run-k8s-bbr-tests-<%= env %>
-<% end %>
 <% iaases.each do |iaas| %>
   - run-k8s-conformance-tests-<%= iaas %>
 <% end %>
@@ -41,6 +38,14 @@ groups:
   - run-k8s-turbulence-tests-<%= env %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
+<% end %>
+<% bbr_test_iaases.each do |env| %>
+  - claim-lock-bbr-<%= env %>
+  - install-bosh-bbr-<%= env %>
+  - deploy-k8s-bbr-<%= env %>
+  - run-k8s-bbr-tests-<%= env %>
+  - destroy-k8s-bbr-<%= env %>
+  - destroy-bosh-bbr-<%= env %>
 <% end %>
 <% upgrade_test_iaases.each do |iaas| %>
   - claim-lock-upgrade-<%= iaas %>
@@ -90,7 +95,12 @@ groups:
   - deploy-k8s-<%= env %>
   - run-k8s-integration-tests-<%= env %>
   <% if bbr_test_iaases.include? env %>
+  - claim-lock-bbr-<%= env %>
+  - install-bosh-bbr-<%= env %>
+  - deploy-k8s-bbr-<%= env %>
   - run-k8s-bbr-tests-<%= env %>
+  - destroy-k8s-bbr-<%= env %>
+  - destroy-bosh-bbr-<%= env %>
   <% end %>
   <% if conformance_test_iaases.include? env %>
   - run-k8s-conformance-tests-<%= env %>
@@ -164,6 +174,16 @@ groups:
     - run-k8s-integration-tests-proxy-<%= env %>
     - destroy-k8s-proxy-<%= env %>
     - destroy-bosh-proxy-<%= env %>
+  <% end %>
+- name: bbr
+  jobs:
+  <% bbr_test_iaases.each do |env| %>
+    - claim-lock-bbr-<%= env %>
+    - install-bosh-bbr-<%= env %>
+    - deploy-k8s-bbr-<%= env %>
+    - run-k8s-bbr-tests-<%= env %>
+    - destroy-k8s-bbr-<%= env %>
+    - destroy-bosh-bbr-<%= env %>
   <% end %>
 resource_types:
 - name: gcs
@@ -730,57 +750,6 @@ jobs:
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
 
-<% if bbr_test_iaases.include?(env) %>
-- name: run-k8s-bbr-tests-<%= env %>
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
-      version: every
-      trigger: true
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
-    - get: gcs-source-json
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
-    - get: gcs-kubeconfig
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
-    - get: git-kubo-deployment
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
-    - get: gcs-bosh-state
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
-    - get: gcs-bosh-creds
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
-    - get: kubo-version
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
-    - get: git-kubo-release
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
-    - get: bbr-cli
-  - task: bbr-tests
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/run-k8s-bbr-tests.yml
-    on_failure: *on_failure_alert
-    input_mapping: { kubo-lock: kubo-lock-<%= env %> }
-    params:
-      DEPLOYMENT_NAME: ci-service
-      ENABLE_OSS_ONLY_TESTS: true
-      ENABLE_PERSISTENT_VOLUME_TESTS: true
-      <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
-      ENABLE_MULTI_AZ_TESTS: true
-      <% end %>
-      <% if env =~ /^(gcp|aws-lb)/ %>
-      ENABLE_K8S_LBS_TESTS: true
-      <% end %>
-  - task: pod-to-pod
-    tags: [<%= env %>]
-    input_mapping: { kubo-lock: kubo-lock-<%= env %> }
-    file: git-kubo-ci/tasks/pod-to-pod.yml
-    on_failure: *on_failure_alert
-<% end %>
-
 <% if iaases.include?(env) %>
 - name: run-k8s-conformance-tests-<%= env %>
   plan:
@@ -823,11 +792,7 @@ jobs:
 <% end %>
 
 <%
-  if bbr_test_iaases.include?(env)
-    turbulence_passed_reqs = ["run-k8s-bbr-tests-#{env}"]
-  else
-    turbulence_passed_reqs = ["run-k8s-integration-tests-#{env}"]
-  end
+  turbulence_passed_reqs = ["run-k8s-integration-tests-#{env}"]
   if iaases.include? env
     turbulence_passed_reqs << "run-k8s-conformance-tests-#{env}"
   end
@@ -1977,10 +1942,277 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     params:
       release: kubo-lock-two-cas
 
+<% bbr_test_iaases.each do |env| %>
+- name: claim-lock-bbr-<%= env %>
+  max_in_flight: 1
+  plan:
+  - aggregate:
+    - get: kubo-version
+      passed: [ 'package-kubo-deployment-tarball' ]
+      trigger: true
+    - get: git-kubo-release
+      passed: [ 'package-kubo-deployment-tarball' ]
+    - get: git-kubo-deployment
+      passed: [ 'package-kubo-deployment-tarball' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'package-kubo-deployment-tarball' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'package-kubo-deployment-tarball' ]
+  - put: kubo-lock-<%= env %>
+    params: { acquire: true }
+
+- name: install-bosh-bbr-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed: [ 'claim-lock-bbr-<%= env %>' ]
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'claim-lock-bbr-<%= env %>' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'claim-lock-bbr-<%= env %>' ]
+    - get: git-kubo-release
+      passed: [ 'claim-lock-bbr-<%= env %>' ]
+    - get: kubo-version
+      passed: [ 'claim-lock-bbr-<%= env %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'claim-lock-bbr-<%= env %>' ]
+  - task: install
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/install-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    params:
+      CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
+    on_failure: *on_failure_alert
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+  - task: generate-load-balancer-vars
+    file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+  - task: generate-source-json
+    file: git-kubo-ci/tasks/generate-source-json.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+  - aggregate:
+    - put: gcs-load-balancer-vars
+      params:
+        file: load-balancer-vars/vars.yml
+    - put: gcs-source-json
+      params:
+        file: source-json/source.json
+
+- name: deploy-k8s-bbr-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: git-kubo-ci
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: git-kubo-deployment
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: git-kubo-release
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: kubo-version
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: gcs-source-json
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: gcs-load-balancer-vars
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: stemcell
+      resource: stemcell-<%= env %>
+  - put: cfcr-deployment
+    params:
+      manifest: git-kubo-deployment/manifests/cfcr.yml
+      cleanup: true
+      no_redact: true
+      ops_files:
+      - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
+      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
+      - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
+      - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
+      - git-kubo-deployment/manifests/ops-files/addons-spec.yml
+      - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - git-kubo-ci/manifests/ops-files/enable-multiaz-workers-and-masters.yml
+      - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
+      var_files:
+        addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
+      vars_files:
+      - gcs-load-balancer-vars/load-balancer-vars.yml
+      - kubo-lock/metadata
+      stemcells:
+      - stemcell/stemcell.tgz
+      releases:
+      - gcs-kubo-release-tarball-untested/*.tgz
+      source_file: gcs-source-json/source.json
+      vars:
+        deployment_name: ci-service
+        worker_count: 3
+    tags: [<%= env %>]
+    on_failure: *on_failure_alert
+  - task: update-kubeconfig
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/update-kubeconfig.yml
+  - put: run-apply-addons-errand
+    params:
+      name: apply-addons
+      keep_alive: true
+      source_file: gcs-source-json/source.json
+    tags: [<%= env %>]
+    on_failure: *on_failure_alert
+  - put: run-smoke-tests-errand
+    params:
+      name: smoke-tests
+      keep_alive: true
+      source_file: gcs-source-json/source.json
+    tags: [<%= env %>]
+    on_failure: *on_failure_alert
+  - aggregate:
+    - put: gcs-kubeconfig
+      params:
+        file: kubeconfig/config
+
+- name: run-k8s-bbr-tests-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'deploy-k8s-bbr-<%= env %>' ]
+    - get: gcs-source-json
+      passed: [ 'deploy-k8s-bbr-<%= env %>' ]
+    - get: gcs-kubeconfig
+      passed: [ 'deploy-k8s-bbr-<%= env %>' ]
+    - get: git-kubo-deployment
+      passed: [ 'deploy-k8s-bbr-<%= env %>' ]
+    - get: gcs-bosh-state
+      passed: [ 'deploy-k8s-bbr-<%= env %>' ]
+    - get: gcs-bosh-creds
+      passed: [ 'deploy-k8s-bbr-<%= env %>' ]
+    - get: kubo-version
+      passed: [ 'deploy-k8s-bbr-<%= env %>' ]
+    - get: git-kubo-release
+      passed: [ 'deploy-k8s-bbr-<%= env %>' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'deploy-k8s-bbr-<%= env %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'deploy-k8s-bbr-<%= env %>' ]
+    - get: bbr-cli
+  - task: bbr-tests
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/run-k8s-bbr-tests.yml
+    on_failure: *on_failure_alert
+    input_mapping: { kubo-lock: kubo-lock-<%= env %> }
+    params:
+      DEPLOYMENT_NAME: ci-service
+      ENABLE_OSS_ONLY_TESTS: true
+      ENABLE_PERSISTENT_VOLUME_TESTS: true
+      <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
+      ENABLE_MULTI_AZ_TESTS: true
+      <% end %>
+      <% if env =~ /^(gcp|aws-lb)/ %>
+      ENABLE_K8S_LBS_TESTS: true
+      <% end %>
+  - task: pod-to-pod
+    tags: [<%= env %>]
+    input_mapping: { kubo-lock: kubo-lock-<%= env %> }
+    file: git-kubo-ci/tasks/pod-to-pod.yml
+    on_failure: *on_failure_alert
+
+<%
+  destroy_k8s_bbr_passed_reqs = ["run-k8s-bbr-tests-#{env}"]
+%>
+
+- name: destroy-k8s-bbr-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: <%= destroy_k8s_bbr_passed_reqs %>
+    - get: kubo-version
+      passed: <%= destroy_k8s_bbr_passed_reqs %>
+    - get: git-kubo-deployment
+      passed: <%= destroy_k8s_bbr_passed_reqs %>
+    - get: git-kubo-release
+      passed: <%= destroy_k8s_bbr_passed_reqs %>
+    - get: gcs-bosh-state
+      passed: <%= destroy_k8s_bbr_passed_reqs %>
+    - get: gcs-bosh-creds
+      passed: <%= destroy_k8s_bbr_passed_reqs %>
+    - get: gcs-kubo-release-tarball-untested
+      passed: <%= destroy_k8s_bbr_passed_reqs %>
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: <%= destroy_k8s_bbr_passed_reqs %>
+  - task: destroy-k8s
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure_alert
+
+<%
+destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
+%>
+
+- name: destroy-bosh-bbr-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed: <%= destroy_bosh_bbr_passed_reqs %>
+    - get: git-kubo-release
+      passed: <%= destroy_bosh_bbr_passed_reqs %>
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: <%= destroy_bosh_bbr_passed_reqs %>
+    - get: kubo-version
+      passed: <%= destroy_bosh_bbr_passed_reqs %>
+    - get: gcs-bosh-state
+      passed: <%= destroy_bosh_bbr_passed_reqs %>
+    - get: gcs-bosh-creds
+      passed: <%= destroy_bosh_bbr_passed_reqs %>
+    - get: gcs-kubo-release-tarball-untested
+      passed: <%= destroy_bosh_bbr_passed_reqs %>
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: <%= destroy_bosh_bbr_passed_reqs %>
+  - task: destroy
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/destroy-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure_alert
+  - put: kubo-lock-<%= env %>
+    params: { release: kubo-lock-<%= env %> }
+<% end %>
+
 <%
   passed_requirements = env_list.map {|env| "destroy-bosh-#{env}" unless env == 'openstack'}.compact
   passed_requirements += upgrade_test_iaases.map {|iaas| "destroy-bosh-upgrade-#{iaas}" unless iaas == 'openstack'}.compact
   passed_requirements += proxy_iaases.map {|iaas| "destroy-bosh-proxy-#{iaas}"}.compact
+  passed_requirements += bbr_test_iaases.map {|iaas| "destroy-bosh-bbr-#{iaas}"}.compact
 %>
 
 - name: upload-kubo-deployment
