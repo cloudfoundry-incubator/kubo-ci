@@ -14,3 +14,4 @@ inputs:
   - name: git-kubo-ci
   - name: gcs-source-json
   - name: gcs-kubeconfig
+  - name: bbr-cli

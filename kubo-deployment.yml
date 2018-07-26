@@ -424,6 +424,12 @@ resources:
     project_id: "2093412"
     tracker_url: https://www.pivotaltracker.com
 
+- name: bbr-cli
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: bosh-backup-and-restore
+
 jobs:
 - name: run-unit-tests
   plan:
@@ -765,6 +771,7 @@ jobs:
       passed: [ 'run-k8s-integration-tests-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'run-k8s-integration-tests-<%= env %>' ]
+    - get: bbr-cli
   - task: bbr-tests
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-k8s-bbr-tests.yml
