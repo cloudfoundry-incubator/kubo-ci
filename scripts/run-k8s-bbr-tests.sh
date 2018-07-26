@@ -13,10 +13,10 @@ main() {
     tar xvf bbr-*.tar
   popd
 
-  BOSH_ENVIRONMENT="$(jq '.target' "${ROOT}/gcs-source-json/source.json")"
-  BOSH_CLIENT="$(jq '.client' "${ROOT}/gcs-source-json/source.json")"
-  BOSH_CLIENT_SECRET="$(jq '.client_secret' "${ROOT}/gcs-source-json/source.json")"
-  BOSH_CA_CERT="$(jq '.ca_cert' "${ROOT}/gcs-source-json/source.json")"
+  BOSH_ENVIRONMENT="$(jq -r '.target' "${ROOT}/gcs-source-json/source.json")"
+  BOSH_CLIENT="$(jq -r '.client' "${ROOT}/gcs-source-json/source.json")"
+  BOSH_CLIENT_SECRET="$(jq -r '.client_secret' "${ROOT}/gcs-source-json/source.json")"
+  BOSH_CA_CERT="$(jq -r '.ca_cert' "${ROOT}/gcs-source-json/source.json")"
   BOSH_DEPLOYMENT="$DEPLOYMENT_NAME"
   KUBECONFIG="${ROOT}/gcs-kubeconfig/config"
   PATH="$PATH:${ROOT}/bbr-cli/releases/"
