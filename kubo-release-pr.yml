@@ -1,8 +1,10 @@
 <%
-  iaas_list = %w(gcp vsphere gcp-lb aws-lb)
+  iaas_list = %w(vsphere-lb gcp-lb aws-lb)
   upgrade_iaas_list = %w(gcp-lb)
   stemcell_types = {
-    'gcp-lb' => 'google-kvm'
+    'gcp-lb' => 'google-kvm',
+    'vsphere-lb' => 'vsphere-esxi',
+    'aws-lb' => 'aws-xen-hvm'
   }
 %>
 ---
@@ -16,6 +18,17 @@ resource_types:
   type: docker-image
   source:
     repository: frodenas/gcs-resource
+
+- name: bosh-deployment
+  type: docker-image
+  source:
+    repository: cloudfoundry/bosh-deployment-resource
+    tag: v2.11.1-rc.4
+
+- name: bosh-errand
+  type: docker-image
+  source:
+    repository: cfcommunity/bosh2-errand-resource
 
 resources:
 - name: git-kubo-ci
@@ -55,6 +68,13 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
     pool: kubo-<%= iaas %>
+<% end %>
+
+<% iaas_list.each do |env| %>
+- name: trusty-stemcell-<%= env %>
+  type: bosh-io-stemcell
+  source:
+    name: bosh-<%= stemcell_types[env] %>-ubuntu-trusty-go_agent
 <% end %>
 
 <% upgrade_iaas_list.each do |iaas| %>
@@ -132,6 +152,35 @@ resources:
     bucket: kubo-pipeline-store
     region_name: us-east1
     endpoint: storage.googleapis.com
+
+- name: cfcr-deployment
+  type: bosh-deployment
+  source:
+    deployment: ci-service
+
+- name: run-apply-addons-errand
+  type: bosh-errand
+  source:
+    deployment: ci-service
+
+- name: run-smoke-tests-errand
+  type: bosh-errand
+  source:
+    deployment: ci-service
+
+- name: gcs-source-json
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: source.json
+
+- name: gcs-load-balancer-vars
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: load-balancer-vars.yml
 
 jobs:
 - name: run-unit-tests
@@ -495,8 +544,6 @@ jobs:
             ENV_FILE: kubo-lock/metadata
         - put: kubo-lock-<%= iaas %>
           params: { release: kubo-lock-<%= iaas %> }
-
-
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -504,6 +551,19 @@ jobs:
     - put: gcs-bosh-state
       params:
         file: bosh-state/state.json
+  - task: generate-load-balancer-vars
+    file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+  - task: generate-source-json
+    file: git-kubo-ci/tasks/generate-source-json.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
+  - aggregate:
+    - put: gcs-load-balancer-vars
+      params:
+        file: load-balancer-vars/vars.yml
+    - put: gcs-source-json
+      params:
+        file: source-json/source.json
 
 - name: deploy-k8s-<%= iaas %>
   plan:
@@ -523,15 +583,77 @@ jobs:
       passed: [ 'install-bosh-<%= iaas %>' ]
     - get: gcs-kubo-release-tarball
       passed: [ 'install-bosh-<%= iaas %>' ]
+    - get: gcs-source-json
+      passed: [ 'install-bosh-<%= iaas %>' ]
+    - get: gcs-load-balancer-vars
+      passed: [ 'install-bosh-<%= iaas %>' ]
+    - get: stemcell
+      resource: trusty-stemcell-<%= iaas %>
   - put: git-kubo-release
     params:
       path: git-kubo-release
       status: pending
-  - task: deploy
+  <% if iaas =~ /^vsphere/ %>
+  - task: get_director_uuid
+    tags: ['<%= iaas %>']
+    file: git-kubo-ci/tasks/get_director_uuid.yml
+  <% end %>
+  - put: cfcr-deployment
+    params:
+      manifest: git-kubo-deployment/manifests/cfcr.yml
+      cleanup: true
+      no_redact: true
+      ops_files:
+      - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
+      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
+      - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
+      - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
+      - git-kubo-deployment/manifests/ops-files/addons-spec.yml
+      - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
+      <% if iaas =~ /^gcp/ %>
+      - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      <% end %>
+      <% if iaas =~ /^aws/ %>
+      - git-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
+      <% end %>
+      <% if iaas =~ /^vsphere/ %>
+      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+      <% end %>
+      - git-kubo-ci/manifests/ops-files/enable-multiaz-workers-and-masters.yml
+      var_files:
+        addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
+      vars_files:
+      - gcs-load-balancer-vars/load-balancer-vars.yml
+      - kubo-lock-<%= iaas %>/metadata
+      <% if iaas =~ /^vsphere/ %>
+      - director_uuid/var.yml
+      <% end %>
+      stemcells:
+      - stemcell/stemcell.tgz
+      releases:
+      - gcs-kubo-release-tarball-untested/*.tgz
+      source_file: gcs-source-json/source.json
+      vars:
+        deployment_name: ci-service
+        worker_count: 3
     tags: [<%= iaas %>]
-    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
     on_failure: *on_failure_<%= iaas %>
+  - put: run-apply-addons-errand
+    params:
+      source_file: gcs-source-json/source.json
+      name: apply-addons
+      keep_alive: true
+    tags: [<%= iaas %>]
+    on_failure: *on_failure_<%= iaas %>
+  - put: run-smoke-tests-errand
+    params:
+      name: smoke-tests
+      keep_alive: true
+      source_file: gcs-source-json/source.json
+    tags: [<%= iaas %>]
+    on_failure: *on_failure_<%= iaas %>
+
 
 - name: run-k8s-integration-tests-<%= iaas %>
   plan:
