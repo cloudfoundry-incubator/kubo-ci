@@ -371,14 +371,7 @@ resources:
 <% end %>
 
 <% env_list.each do |env| %>
-- name: xenial-stemcell-<%= env %>
-  type: bosh-io-stemcell
-  source:
-    name: bosh-<%= stemcell_types[env] %>-ubuntu-xenial-go_agent
-<% end %>
-
-<% iaases_for_new_bosh_stemcell.each do |env| %>
-- name: trusty-stemcell-<%= env %>
+- name: stemcell-<%= env %>
   type: bosh-io-stemcell
   source:
     name: bosh-<%= stemcell_types[env] %>-ubuntu-trusty-go_agent
@@ -616,7 +609,7 @@ jobs:
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-<%= env %>' ]
     - get: stemcell
-      resource: xenial-stemcell-<%= env %>
+      resource: stemcell-<%= env %>
   <% if env =~ /^vsphere/ %>
   - task: get_director_uuid
     tags: ['<%= env %>']
@@ -633,7 +626,6 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
-      - git-kubo-deployment/manifests/ops-files/use-xenial-stemcell.yml
       <% if env =~ /^(gcp|vsphere)$/ %>
       - git-kubo-deployment/manifests/ops-files/cf-routing.yml
       <% end %>
@@ -1072,7 +1064,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: stemcell
-      resource: trusty-stemcell-<%= iaas %>
+      resource: stemcell-<%= iaas %>
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -1345,7 +1337,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-multi-master-<%= iaas %>' ]
     - get: stemcell
-      resource: trusty-stemcell-<%= iaas %>
+      resource: stemcell-<%= iaas %>
   - task: unpack-tgz
     file: git-kubo-ci/tasks/unpack-tgz.yml
     tags: ['<%= iaas %>']
@@ -1608,7 +1600,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-proxy-vsphere' ]
     - get: stemcell
-      resource: xenial-stemcell-vsphere
+      resource: stemcell-vsphere
 
   - task: get_director_uuid
     tags: [vsphere]
@@ -1876,7 +1868,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-two-cas' ]
     - get: stemcell
-      resource: xenial-stemcell-gcp
+      resource: stemcell-gcp
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
