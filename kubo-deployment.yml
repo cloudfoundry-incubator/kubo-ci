@@ -468,15 +468,9 @@ jobs:
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
     on_failure: *on_failure_alert
-  - task: export-release
-    file: git-kubo-ci/tasks/export-release.yml
-    privileged: true
-    input_mapping:
-      kubo-ci: git-kubo-ci
-      release: kubo-release
   - put: gcs-kubo-release-tarball-untested
     params:
-      file: compiled-release/kubo-*.tgz
+      file: kubo-release/kubo-release-*.tgz
   - put: kubo-version
     params:
       pre: dev
