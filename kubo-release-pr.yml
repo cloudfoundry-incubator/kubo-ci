@@ -238,7 +238,6 @@ jobs:
       passed: [ 'build-kubo-release' ]
   - task: build-kubo-deployment-tarball
     file: git-kubo-ci/tasks/build-kubo-deployment-tarball.yml
-    input_mapping: {gcs-kubo-release-tarball-untested: gcs-kubo-release-tarball}
   - put: gcs-kubo-deployment-tarball
     params:
       file: kubo-deployment-tarball/kubo-deployment*.tgz
