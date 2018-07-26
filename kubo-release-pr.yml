@@ -632,7 +632,7 @@ jobs:
       stemcells:
       - stemcell/stemcell.tgz
       releases:
-      - gcs-kubo-release-tarball-untested/*.tgz
+      - gcs-kubo-release-tarball/*.tgz
       source_file: gcs-source-json/source.json
       vars:
         deployment_name: ci-service
