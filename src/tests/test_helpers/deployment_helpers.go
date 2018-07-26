@@ -47,7 +47,7 @@ func WaitForDeployment(deploymentAPI tappsv1.DeploymentInterface, namespace stri
 			if deployment.Status.AvailableReplicas == deployment.Status.UpdatedReplicas {
 				return true, nil
 			}
-			fmt.Printf("Expected %d to be equal to %d\n", deployment.Status.AvailableReplicas, deployment.Status.UpdatedReplicas)
+			fmt.Fprintf(GinkgoWriter, "Expected %d to be equal to %d\n", deployment.Status.AvailableReplicas, deployment.Status.UpdatedReplicas)
 		}
 
 		return false, nil
