@@ -396,6 +396,7 @@ jobs:
       kubo-lock: kubo-lock-upgrade-<%= iaas %>
       gcs-kubo-release-tarball: gcs-kubo-release-tarball
     params:
+      DEPLOYMENT_OPS_FILES: enable-multiaz-workers.yml
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
       <% elsif iaas =~ /^(gcp|vsphere-lb)/ %>
