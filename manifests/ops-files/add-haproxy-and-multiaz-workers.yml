@@ -6,7 +6,7 @@
     instances: 1
     networks:
     - name: default
-    stemcell: default
+    stemcell: trusty
     vm_type: minimal
     azs:
     - z1
