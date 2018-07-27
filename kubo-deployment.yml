@@ -659,6 +659,7 @@ jobs:
       <% end %>
       <% if !(env =~ /^(gcp|vsphere-lb|aws-lb)/) %>
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
+      - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
       <% end %>
       var_files:
         addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
