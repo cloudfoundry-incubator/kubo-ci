@@ -1,0 +1,17 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+
+inputs:
+- name: git-kubo-ci
+- name: kubo-lock
+- name: gcs-bosh-creds
+
+run:
+  path: git-kubo-ci/scripts/upload-stemcell.sh
+
+params:
+  IAAS:
