@@ -4,6 +4,11 @@ set -eu
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../" && pwd)
 KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
+
+if [ ${IAAS} == "gcp" ]; then
+  IAAS="google"
+fi
+
 mkdir -p "${KUBO_ENVIRONMENT_DIR}"
 cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 cp "${ROOT}/kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
