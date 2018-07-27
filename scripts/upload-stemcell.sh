@@ -2,7 +2,7 @@
 
 set -eu
 
-ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../" && pwd)
 KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
 mkdir -p "${KUBO_ENVIRONMENT_DIR}"
 cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"

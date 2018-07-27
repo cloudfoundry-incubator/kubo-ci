@@ -6,9 +6,10 @@ image_resource:
     repository: pcfkubo/kubo-ci
 
 inputs:
-- name: git-kubo-ci
-- name: kubo-lock
 - name: gcs-bosh-creds
+- name: git-kubo-ci
+- name: git-kubo-deployment
+- name: kubo-lock
 
 run:
   path: git-kubo-ci/scripts/upload-stemcell.sh
