@@ -13,7 +13,7 @@ resources:
     owner: kubernetes
     repository: kubernetes
     # only patches get updated
-    version_filter: "< 1.11.0"
+    version_filter: "< 1.12.0"
     access_token: ((github-token-key))
 
 - name: heapster-release
