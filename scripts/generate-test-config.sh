@@ -165,7 +165,7 @@ generate_test_config() {
 	  },
 	  "timeout_scale": $(bosh int $director_yml --path=/timeout_scale 2>/dev/null || echo 1),
 	  "cfcr": {
-	    "deployment_path": "${ROOT}/git-kubo-deployment",
+	    "deployment_path": "${ROOT}/git-kubo-deployment"
 	  }
 	}
 	EOF
