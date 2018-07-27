@@ -19,7 +19,7 @@ inputs:
 - name: source_tarball
 outputs:
 - name: unpacked_dir
-  
+
 params:
   SOURCE_TARBALL_REGEX: replace-me
   COLLAPSE_DIR: replace-me

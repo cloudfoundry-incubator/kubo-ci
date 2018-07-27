@@ -488,9 +488,15 @@ jobs:
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
     on_failure: *on_failure_alert
+  - task: export-release
+    file: git-kubo-ci/tasks/export-release.yml
+    privileged: true
+    input_mapping:
+      kubo-ci: git-kubo-ci
+      release: kubo-release
   - put: gcs-kubo-release-tarball-untested
     params:
-      file: kubo-release/kubo-release-*.tgz
+      file: compiled-release/kubo-*.tgz
   - put: kubo-version
     params:
       pre: dev
@@ -958,6 +964,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     tags: ['<%= iaas %>']
     input_mapping:
       source_tarball: old-kubo-deployment-tarball
+    output_mapping:
+      unpacked_dir: unpacked-old-kubo-deployment
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
       COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
@@ -966,7 +974,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
-      git-kubo-deployment: unpacked_dir
+      git-kubo-deployment: unpacked-old-kubo-deployment
     params:
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
@@ -1000,6 +1008,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
+    - get: old-kubo-deployment-tarball
+    - get: old-kubo-release-tarball
+      params:
+        globs:
+        - "kubo-release*"
     - get: kubo-lock
       resource: kubo-lock-<%= iaas %>
       version: every
@@ -1025,19 +1038,63 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: stemcell
       resource: stemcell-<%= iaas %>
+  - task: unpack-tgz
+    file: git-kubo-ci/tasks/unpack-tgz.yml
+    tags: ['<%= iaas %>']
+    input_mapping:
+      source_tarball: old-kubo-deployment-tarball
+    output_mapping:
+      unpacked_dir: unpacked-old-kubo-deployment
+    params:
+      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
+  - task: upload-old-stemcell
+    tags: ['<%= iaas %>']
+    input_mapping:
+      git-kubo-deployment: unpacked-old-kubo-deployment
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      inputs:
+      - name: git-kubo-deployment
+      - name: git-kubo-ci
+      - name: gcs-bosh-state
+      - name: gcs-bosh-creds
+      - name: kubo-lock
+      run:
+        path: /bin/bash
+        args:
+        - -ex
+        - -c
+        - |
+          #ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+          ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+          KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
+          mkdir -p "${KUBO_ENVIRONMENT_DIR}"
+          cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+          cp "${ROOT}/kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
+
+          BOSH_ENV="${KUBO_ENVIRONMENT_DIR}" source "${ROOT}/git-kubo-deployment/bin/set_bosh_environment"
+          stemcell_version="$(bosh int --path=/stemcells/0/version $ROOT/git-kubo-deployment/manifests/cfcr.yml)"
+          stemcell_line="$(bosh int --path=/stemcells/0/os $ROOT/git-kubo-deployment/manifests/cfcr.yml)"
+          bosh upload-stemcell "https://boshstemcells.com/gcp/$stemcell_line/$stemcell_version"
   - put: cfcr-deployment
     params:
-      manifest: git-kubo-deployment/manifests/cfcr.yml
+      manifest: unpacked-old-kubo-deployment/manifests/cfcr.yml
       cleanup: true
       no_redact: true
       ops_files:
-      - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
-      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
-      - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
-      - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
-      - git-kubo-deployment/manifests/ops-files/addons-spec.yml
-      - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
-      - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
+      - git-kubo-ci/manifests/ops-files/add-api-server-endpoint.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/vm-types.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/addons-spec.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/misc/single-master.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
       var_files:
         addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
       vars_files:
@@ -1046,11 +1103,12 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       stemcells:
       - stemcell/stemcell.tgz
       releases:
-      - gcs-kubo-release-tarball-untested/*.tgz
+      - old-kubo-release-tarball/*.tgz
       source_file: gcs-source-json/source.json
       vars:
         deployment_name: ci-service
-        worker_count: 3
+        master_vm_type: master
+        worker_vm_type: worker
     tags: [<%= iaas %>]
     on_failure: *on_failure_alert
   - task: update-kubeconfig
@@ -1099,6 +1157,10 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     - get: gcs-kubeconfig
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+    - get: gcs-load-balancer-vars
+      passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+    - get: gcs-source-json
+      passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     - get: new-bosh-stemcell
       resource: new-bosh-stemcell-<%= iaas %>
   - task: unpack-kubo-deployment
@@ -1106,24 +1168,40 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     input_mapping:
       gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
     tags: ['<%= iaas %>']
+  - task: get_director_uuid
+    tags: ['<%= iaas %>']
+    file: git-kubo-ci/tasks/get_director_uuid.yml
+  - task: create-bosh-upgrade-deployment
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      inputs:
+      - name: git-kubo-deployment
+      - name: git-kubo-ci
+      - name: gcs-load-balancer-vars
+      outputs:
+      - name: bosh-command
+      params:
+        ADDONS_SPEC: "git-kubo-ci/specs/guestbook.yml"
+        DEPLOYMENT_NAME: ci-service
+        CFCR_MANIFEST_PATH: git-kubo-deployment/manifests/cfcr.yml
+        BOSH_DEPLOY_COMMAND: "bosh-command/bosh-deploy.sh"
+        IAAS: <%= iaas %>
+      run:
+        path: git-kubo-ci/scripts/create-bosh-upgrade-deployment.rb
   - task: upgrade
     tags: ['<%= iaas %>']
     file: git-kubo-ci/tasks/run-k8s-upgrade-tests.yml
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
-      <% if iaas == 'vsphere-lb' %>
-      DEPLOYMENT_OPS_FILES: add-haproxy-and-multiaz-workers.yml
-      <% else %>
-      DEPLOYMENT_OPS_FILES: enable-multiaz-workers.yml
-      <% end %>
-      <% if iaas.include? 'openstack' %>
-      CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
-      <% elsif iaas =~ /^(gcp|vsphere-lb)/ %>
-      CLOUD_CONFIG_OPS_FILE: <%= iaas %>-k8s-cloud-config-multiaz.yml
-      <% elsif iaas.include? 'aws-lb' %>
-      CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
-      <% end %>
+      BOSH_DEPLOY_COMMAND: "bosh-command/bosh-deploy.sh"
+      DEPLOYMENT_NAME: ci-service
+      KUBO_RELEASE_TARBALL: gcs-kubo-release-tarball-untested
 
 - name: destroy-k8s-upgrade-<%= iaas %>
   plan:
@@ -1229,6 +1307,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     tags: ['<%= iaas %>']
     input_mapping:
       source_tarball: old-kubo-deployment-tarball
+    output_mapping:
+      unpacked_dir: unpacked-old-kubo-deployment
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
       COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
@@ -1236,7 +1316,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
-      git-kubo-deployment: unpacked_dir
+      git-kubo-deployment: unpacked-old-kubo-deployment
     params:
       <% if iaas =~ /^(gcp|vsphere-lb)/ %>
       CLOUD_CONFIG_OPS_FILE: <%= iaas %>-k8s-cloud-config-multiaz.yml
@@ -1303,35 +1383,68 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     tags: ['<%= iaas %>']
     input_mapping:
       source_tarball: old-kubo-deployment-tarball
+    output_mapping:
+      unpacked_dir: unpacked-old-kubo-deployment
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
       COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
-  <% if iaas =~ /^vsphere/ %>
   - task: get_director_uuid
     tags: ['<%= iaas %>']
     file: git-kubo-ci/tasks/get_director_uuid.yml
-  <% end %>
+  - task: upload-old-stemcell
+    tags: ['<%= iaas %>']
+    input_mapping:
+      git-kubo-deployment: unpacked-old-kubo-deployment
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      inputs:
+      - name: git-kubo-deployment
+      - name: git-kubo-ci
+      - name: gcs-bosh-state
+      - name: gcs-bosh-creds
+      - name: kubo-lock
+      run:
+        path: /bin/bash
+        args:
+        - -ex
+        - -c
+        - |
+          ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+          KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
+          mkdir -p "${KUBO_ENVIRONMENT_DIR}"
+          cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
+          cp "${ROOT}/kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
+
+          BOSH_ENV="${KUBO_ENVIRONMENT_DIR}" source "${ROOT}/git-kubo-deployment/bin/set_bosh_environment"
+          stemcell_version="$(bosh int --path=/stemcells/0/version $ROOT/git-kubo-deployment/manifests/cfcr.yml)"
+          stemcell_line="$(bosh int --path=/stemcells/0/os $ROOT/git-kubo-deployment/manifests/cfcr.yml)"
+          bosh upload-stemcell "https://boshstemcells.com/gcp/$stemcell_line/$stemcell_version"
   - put: cfcr-deployment
     params:
-      manifest: git-kubo-deployment/manifests/cfcr.yml
+      manifest: unpacked-old-kubo-deployment/manifests/cfcr.yml
       cleanup: true
       no_redact: true
       ops_files:
-      - git-kubo-ci/manifests/ops-files/enable-multiaz-workers-and-masters.yml
-      - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
-      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
-      - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
-      - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
-      - git-kubo-deployment/manifests/ops-files/addons-spec.yml
+      - git-kubo-ci/manifests/ops-files/add-api-server-endpoint.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/vm-types.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/addons-spec.yml
       <% if iaas =~ /^gcp/ %>
-      - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       <% end %>
       <% if iaas =~ /^aws/ %>
-      - git-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
-      - git-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
       <% end %>
       <% if iaas =~ /^vsphere/ %>
-      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+      - git-kubo-ci/manifests/ops-files/add-haproxy-and-multiaz-workers.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
       <% end %>
       var_files:
         addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
@@ -1344,13 +1457,14 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       stemcells:
       - stemcell/stemcell.tgz
       releases:
-      - gcs-kubo-release-tarball-untested/*.tgz
+      - old-kubo-release-tarball/*.tgz
       source_file: gcs-source-json/source.json
       vars:
         deployment_name: ci-service
-        worker_count: 3
+        worker_vm_type: worker
+        master_vm_type: master
     tags: [<%= iaas %>]
-    # on_failure: *on_failure_alert
+    on_failure: *on_failure_alert
   - task: update-kubeconfig
     tags: ['<%= iaas %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
@@ -1383,6 +1497,10 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-multi-master-<%= iaas %>' ]
     - get: gcs-kubeconfig
       passed: [ 'deploy-old-k8s-multi-master-<%= iaas %>' ]
+    - get: gcs-source-json
+      passed: [ 'deploy-old-k8s-multi-master-<%= iaas %>' ]
+    - get: gcs-load-balancer-vars
+      passed: [ 'deploy-old-k8s-multi-master-<%= iaas %>' ]
     - get: new-bosh-stemcell
       resource: new-bosh-stemcell-<%= iaas %>
   - task: unpack-kubo-deployment
@@ -1390,23 +1508,41 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     input_mapping:
       gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
     tags: ['<%= iaas %>']
+  - task: create-bosh-upgrade-deployment
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      inputs:
+      - name: git-kubo-deployment
+      - name: git-kubo-ci
+      - name: gcs-load-balancer-vars
+      outputs:
+      - name: bosh-command
+      params:
+        ADDONS_SPEC: "git-kubo-ci/specs/guestbook.yml"
+        DEPLOYMENT_NAME: ci-service
+        CFCR_MANIFEST_PATH: git-kubo-deployment/manifests/cfcr.yml
+        BOSH_DEPLOY_COMMAND: "bosh-command/bosh-deploy.sh"
+        IAAS: <%= iaas %>
+      run:
+        path: git-kubo-ci/scripts/create-bosh-upgrade-deployment.rb
+  - task: get_director_uuid
+    tags: ['<%= iaas %>']
+    file: git-kubo-ci/tasks/get_director_uuid.yml
   - task: upgrade
     tags: ['<%= iaas %>']
     file: git-kubo-ci/tasks/run-k8s-upgrade-tests.yml
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
-      <% if iaas == 'vsphere-lb' %>
-      DEPLOYMENT_OPS_FILES: add-haproxy-and-multiaz-workers.yml
-      <% else %>
-      DEPLOYMENT_OPS_FILES: enable-multiaz-workers-and-masters.yml
-      <% end %>
-      <% if iaas =~ /^(gcp|vsphere-lb)/ %>
-      CLOUD_CONFIG_OPS_FILE: <%= iaas %>-k8s-cloud-config-multiaz.yml
-      <% elsif iaas.include? 'aws-lb' %>
-      CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
-      <% end %>
       ENABLE_MULTI_AZ_TESTS: true
+      BOSH_DEPLOY_COMMAND: "bosh-command/bosh-deploy.sh"
+      DEPLOYMENT_NAME: ci-service
+      KUBO_RELEASE_TARBALL: gcs-kubo-release-tarball-untested
 
 - name: destroy-k8s-upgrade-multi-master-<%= iaas %>
   plan:
@@ -1771,7 +1907,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - task: install
     params:
       CLOUD_CONFIG_OPS_FILE: gcp-k8s-cloud-config-multiaz.yml
-    on_failure: *on_failure_alert
     file: git-kubo-ci/tasks/install-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock-two-cas

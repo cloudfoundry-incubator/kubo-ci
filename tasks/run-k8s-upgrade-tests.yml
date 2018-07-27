@@ -7,7 +7,7 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/run-k8s-upgrade-tests.sh
 params:
-  CLOUD_CONFIG_OPS_FILE:
+  DEPLOYMENT_NAME:
 
 inputs:
 - name: git-kubo-ci
@@ -17,8 +17,6 @@ inputs:
 - name: gcs-bosh-creds
 - name: gcs-kubo-release-tarball
 - name: gcs-kubeconfig
-- name: new-bosh-stemcell
-
-outputs:
-- name: bosh-state
-- name: bosh-creds
+- name: bosh-command
+- name: gcs-load-balancer-vars
+- name: director_uuid

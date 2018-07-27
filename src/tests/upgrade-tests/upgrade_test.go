@@ -6,18 +6,15 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 
 	"time"
 
 	"os/exec"
 	"tests/test_helpers"
 
-	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	yaml "gopkg.in/yaml.v2"
 )
 
 var loadbalancerAddress, nginxSpec string
@@ -49,32 +46,7 @@ var _ = Describe("Upgrade components", func() {
 		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release", requestLossThreshold)
 	})
 
-	It("upgrades stemcell", func() {
-		applyUpdateStemcellVersionOps(filepath.Join(testconfig.CFCR.DeploymentPath, "manifests", "cfcr.yml"), testconfig.CFCR.UpgradeToStemcellVersion)
-		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "stemcell", requestLossThreshold)
-	})
 })
-
-func applyUpdateStemcellVersionOps(manifestPath, stemcellVersion string) {
-	manifestContents, err := ioutil.ReadFile(manifestPath)
-	Expect(err).NotTo(HaveOccurred())
-
-	var oldManifest interface{}
-	err = yaml.Unmarshal(manifestContents, &oldManifest)
-	Expect(err).NotTo(HaveOccurred())
-
-	newManifest, err := patch.ReplaceOp{
-		Path:  patch.MustNewPointerFromString("/stemcells/0/version"),
-		Value: stemcellVersion,
-	}.Apply(oldManifest)
-	Expect(err).NotTo(HaveOccurred())
-
-	newManifestContents, err := yaml.Marshal(newManifest)
-	Expect(err).NotTo(HaveOccurred())
-
-	err = ioutil.WriteFile(manifestPath, newManifestContents, os.ModePerm)
-	Expect(err).NotTo(HaveOccurred())
-}
 
 func getvSphereLoadBalancer() *exec.Cmd {
 	director := test_helpers.NewDirector(testconfig.Bosh)

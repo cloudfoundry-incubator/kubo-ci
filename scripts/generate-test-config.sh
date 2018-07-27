@@ -18,8 +18,6 @@ verify_args() {
 		--conformance_release_version=<some-value>    [env:CONFORMANCE_RELEASE_VERSION]
 		--conformance_results_dir=<some-value>        [env:CONFORMANCE_RESULTS_DIR]
 
-		--new-bosh-stemcell-version=<some-value>      [env:NEW_BOSH_STEMCELL_VERSION]
-
 		--enable-turbulence-master-failure-tests      [env:ENABLE_TURBULENCE_MASTER_FAILURE_TESTS]
 		--enable-turbulence-persistence-failure-tests [env:ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS]
 		--enable-turbulence-worker-drain-tests        [env:ENABLE_TURBULENCE_WORKER_DRAIN_TESTS]
@@ -64,7 +62,6 @@ generate_test_config() {
   local enable_multi_az_tests="${ENABLE_MULTI_AZ_TESTS:-false}"
   local conformance_release_version="${CONFORMANCE_RELEASE_VERSION:-dev}"
   local conformance_results_dir="${CONFORMANCE_RESULTS_DIR:-/tmp}"
-  local new_bosh_stemcell_version="${NEW_BOSH_STEMCELL_VERSION:-""}"
   local enable_turbulence_worker_drain_tests="${ENABLE_TURBULENCE_WORKER_DRAIN_TESTS:-false}"
   local enable_turbulence_worker_failure_tests="${ENABLE_TURBULENCE_WORKER_FAILURE_TESTS:-false}"
   local enable_turbulence_master_failure_tests="${ENABLE_TURBULENCE_MASTER_FAILURE_TESTS:-false}"
@@ -84,9 +81,6 @@ generate_test_config() {
 	;;
       --conformance_results_dir)
 	conformance_results_dir="${value}"
-	;;
-      --new-bosh-stemcell-version)
-	new_bosh_stemcell_version="${value}"
 	;;
       --enable-turbulence-worker-drain-tests)
         enable_turbulence_worker_drain_tests=true
@@ -172,7 +166,6 @@ generate_test_config() {
 	  "timeout_scale": $(bosh int $director_yml --path=/timeout_scale 2>/dev/null || echo 1),
 	  "cfcr": {
 	    "deployment_path": "${ROOT}/git-kubo-deployment",
-	    "upgrade_to_stemcell_version": "${new_bosh_stemcell_version}"
 	  }
 	}
 	EOF
