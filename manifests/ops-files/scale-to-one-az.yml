@@ -1,0 +1,12 @@
+---
+- type: replace
+  path: /instance_groups/name=master/azs
+  value: [z1]
+
+- type: replace
+  path: /instance_groups/name=worker/azs
+  value: [z1]
+
+- type: replace
+  path: /instance_groups/name=apply-addons/azs
+  value: [z1]

@@ -1666,6 +1666,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-deployment/manifests/ops-files/add-proxy.yml
       - git-kubo-deployment/manifests/ops-files/cf-routing.yml
+      - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
       var_files:
         addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
       vars_files:
