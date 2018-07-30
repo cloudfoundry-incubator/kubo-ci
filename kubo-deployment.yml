@@ -1383,7 +1383,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
       <% end %>
       <% if iaas =~ /^vsphere/ %>
-      - git-kubo-ci/manifests/ops-files/enable-multiaz-masters.yml
       - git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
       <% end %>
@@ -1468,6 +1467,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
         DEPLOYMENT_NAME: ci-service
         CFCR_MANIFEST_PATH: git-kubo-deployment/manifests/cfcr.yml
         BOSH_DEPLOY_COMMAND: "bosh-command/bosh-deploy.sh"
+        ENABLE_MULTI_AZ_TESTS: true
         IAAS: <%= iaas %>
       run:
         path: git-kubo-ci/scripts/create-bosh-upgrade-deployment.rb
