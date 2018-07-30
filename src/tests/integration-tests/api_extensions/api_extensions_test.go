@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
 
 	. "tests/test_helpers"
 
@@ -20,7 +19,7 @@ import (
 
 var _ = Describe("Api Extensions", func() {
 	const (
-		defaultNamespace                  = "kube-system"
+		systemNamespace                   = "kube-system"
 		serviceAccountSpecTemplate        = "fixtures/sa.yml"
 		authDelegatorSpecTemplate         = "fixtures/auth-delegator.yml"
 		authReaderSpecTemplate            = "fixtures/auth-reader.yml"
@@ -79,46 +78,34 @@ var _ = Describe("Api Extensions", func() {
 	})
 
 	AfterEach(func() {
-		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", serviceAccountSpec), "5s", "1s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommandInNamespace(defaultNamespace, "delete", "-f", authDelegatorSpec), "5s", "1s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommandInNamespace(defaultNamespace, "delete", "-f", authReaderSpec), "5s", "1s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", replicationControllerSpec), "5s", "1s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", serviceSpec), "5s", "1s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", apiServiceSpec), "5s", "1s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommand("delete", "namespace", apiExtensionsNamespace), "5s", "1s").Should(gexec.Exit(0))
+		kubectl.RunKubectlCommandWithTimeout("delete", "-f", serviceAccountSpec)
+		Eventually(kubectl.RunKubectlCommandInNamespace(systemNamespace, "delete", "-f", authDelegatorSpec), "5s", "1s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommandInNamespace(systemNamespace, "delete", "-f", authReaderSpec), "5s", "1s").Should(gexec.Exit(0))
+		kubectl.RunKubectlCommandWithTimeout("delete", "-f", replicationControllerSpec)
+		kubectl.RunKubectlCommandWithTimeout("delete", "-f", serviceSpec)
+		kubectl.RunKubectlCommandWithTimeout("delete", "-f", apiServiceSpec)
+		kubectl.RunKubectlCommandWithTimeout("delete", "namespace", apiExtensionsNamespace)
 		Expect(os.RemoveAll(tmpDir)).To(Succeed())
 	})
 
 	It("successfully deploys an api service", func() {
 		By("creating the associated service account")
-		session = kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "create", "-f", serviceAccountSpec)
-		Eventually(session).Should(gexec.Exit(0))
+		kubectl.RunKubectlCommandWithTimeout("create", "-f", serviceAccountSpec)
 
 		By("creating the rolebindings for authentication delegation")
-		session = kubectl.RunKubectlCommandInNamespace(defaultNamespace, "create", "-f", authDelegatorSpec)
+		session := kubectl.RunKubectlCommandInNamespace(systemNamespace, "create", "-f", authDelegatorSpec)
 		Eventually(session).Should(gexec.Exit(0))
-		session = kubectl.RunKubectlCommandInNamespace(defaultNamespace, "create", "-f", authReaderSpec)
+		session = kubectl.RunKubectlCommandInNamespace(systemNamespace, "create", "-f", authReaderSpec)
 		Eventually(session).Should(gexec.Exit(0))
 
 		By("creating the service and replication and replication controller")
-		session = kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "create", "-f", replicationControllerSpec)
-		Eventually(session).Should(gexec.Exit(0))
-		session = kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "create", "-f", serviceSpec)
-		Eventually(session).Should(gexec.Exit(0))
+		kubectl.RunKubectlCommandWithTimeout("create", "-f", replicationControllerSpec)
+		kubectl.RunKubectlCommandWithTimeout("create", "-f", serviceSpec)
 
 		By("creating the api service extension")
-		session = kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "create", "-f", apiServiceSpec)
-		Eventually(session).Should(gexec.Exit(0))
+		kubectl.RunKubectlCommandWithTimeout("create", "-f", apiServiceSpec)
 
-		session = kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "get", "pods")
-		Eventually(session, "120s").Should(gexec.Exit(0))
-		re := regexp.MustCompile(fmt.Sprintf(`(%s-server-\w+)`, apiExtensionsNamespace))
-		matches := re.FindStringSubmatch(string(session.Out.Contents()))
-		podName := matches[1]
-		Eventually(func() string {
-			podStatus := kubectl.GetPodStatus(apiExtensionsNamespace, podName)
-			return podStatus
-		}, "120s", "2s").Should(Equal("Running"))
+		WaitForPodsToRun(kubectl, "120s")
 
 		By("verifying the api extension has been registered to the cluster")
 		var apiServiceResp struct {
