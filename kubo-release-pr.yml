@@ -347,9 +347,6 @@ jobs:
       git-kubo-deployment: unpacked_dir
     file: git-kubo-ci/tasks/deploy-k8s-instance.yml
     params:
-    <% if iaas == 'vsphere-lb' %>
-      DEPLOYMENT_OPS_FILES: add-haproxy-and-multiaz-workers.yml
-    <% else %>
       DEPLOYMENT_OPS_FILES: enable-multiaz-workers.yml
     <% end %>
   - put: gcs-kubeconfig

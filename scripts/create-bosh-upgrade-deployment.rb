@@ -18,7 +18,8 @@ if ENV['IAAS'] =~ /^gcp/
 end
 
 if ENV['IAAS'] =~ /^vsphere/
-  ops_files << '-o git-kubo-ci/manifests/ops-files/add-haproxy-and-multiaz-workers.yml '
+  ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-masters.yml '
+  ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
   ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml '
   vars_files << '-l director_uuid/var.yml\ '
 end
