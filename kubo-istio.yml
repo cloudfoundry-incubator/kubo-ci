@@ -251,10 +251,10 @@ jobs:
       gcs-kubo-deployment-pre: kubo-dev-deployment
   - task: run-istio-tests
     file: git-kubo-ci/tasks/run-istio-tests.yml
-    on_failure:
+    on_failure: &on_failure
       do:
       - task: configure-slack-notification
-        file: git-kubo-ci/tasks/configure-slack-notification.yml
+        file: git-kubo-ci/tasks/configure-slack-notification-without-git-release.yml
       - put: slack-alert
         params:
           attachments_file: slack-notification/attachments
@@ -292,15 +292,7 @@ jobs:
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping:
       kubo-lock: kubo-lock
-    on_failure:
-      do:
-      - task: configure-slack-notification
-        file: git-kubo-ci/tasks/configure-slack-notification-istio.yml
-      - put: slack-alert
-        params:
-          attachments_file: slack-notification/attachments
-          text: |
-            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+    on_failure: *on_failure
 - name: destroy-bosh
   plan:
   - aggregate:
@@ -332,15 +324,7 @@ jobs:
     file: git-kubo-ci/tasks/destroy-bosh.yml
     input_mapping:
       kubo-lock: kubo-lock
-    on_failure:
-      do:
-      - task: configure-slack-notification
-        file: git-kubo-ci/tasks/configure-slack-notification-istio.yml
-      - put: slack-alert
-        params:
-          attachments_file: slack-notification/attachments
-          text: |
-            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+    on_failure: *on_failure
   - put: kubo-lock
     resource: kubo-lock-gcp-lb
     params:
