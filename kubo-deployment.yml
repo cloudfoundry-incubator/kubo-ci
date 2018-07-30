@@ -1224,7 +1224,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     file: git-kubo-ci/tasks/destroy-bosh.yml
   - put: kubo-lock-<%= iaas %>
     params:
-      release: kubo-lock-<%= iaas %>
+      release: kubo-lock
 <% end %>
 
 <% multi_master_upgrade_test_iaases.each do |iaas| %>
