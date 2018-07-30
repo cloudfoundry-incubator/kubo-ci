@@ -1138,27 +1138,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     tags: ['<%= iaas %>']
     file: git-kubo-ci/tasks/get_director_uuid.yml
   - task: create-bosh-upgrade-deployment
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pcfkubo/kubo-ci
-          tag: stable
-      inputs:
-      - name: git-kubo-deployment
-      - name: git-kubo-ci
-      - name: gcs-load-balancer-vars
-      outputs:
-      - name: bosh-command
-      params:
-        ADDONS_SPEC: "git-kubo-ci/specs/guestbook.yml"
-        DEPLOYMENT_NAME: ci-service
-        CFCR_MANIFEST_PATH: git-kubo-deployment/manifests/cfcr.yml
-        BOSH_DEPLOY_COMMAND: "bosh-command/bosh-deploy.sh"
-        IAAS: <%= iaas %>
-      run:
-        path: git-kubo-ci/scripts/create-bosh-upgrade-deployment.rb
+    params:
+      IAAS: <%= iaas %>
+    file: git-kubo-ci/tasks/create-bosh-deploy-command.yml
   - task: upgrade
     tags: ['<%= iaas %>']
     file: git-kubo-ci/tasks/run-k8s-upgrade-tests.yml
@@ -1449,28 +1431,10 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
     tags: ['<%= iaas %>']
   - task: create-bosh-upgrade-deployment
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pcfkubo/kubo-ci
-          tag: stable
-      inputs:
-      - name: git-kubo-deployment
-      - name: git-kubo-ci
-      - name: gcs-load-balancer-vars
-      outputs:
-      - name: bosh-command
-      params:
-        ADDONS_SPEC: "git-kubo-ci/specs/guestbook.yml"
-        DEPLOYMENT_NAME: ci-service
-        CFCR_MANIFEST_PATH: git-kubo-deployment/manifests/cfcr.yml
-        BOSH_DEPLOY_COMMAND: "bosh-command/bosh-deploy.sh"
-        ENABLE_MULTI_AZ_TESTS: true
-        IAAS: <%= iaas %>
-      run:
-        path: git-kubo-ci/scripts/create-bosh-upgrade-deployment.rb
+    params:
+      ENABLE_MULTI_AZ_TESTS: true
+      IAAS: <%= iaas %>
+    file: git-kubo-ci/tasks/create-bosh-deploy-command.yml
   - task: get_director_uuid
     tags: ['<%= iaas %>']
     file: git-kubo-ci/tasks/get_director_uuid.yml
