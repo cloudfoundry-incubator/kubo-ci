@@ -1901,7 +1901,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - gcs-kubo-release-tarball-untested/*.tgz
       source_file: gcs-source-json/source.json
       vars:
-        deployment_name: ci-service
+        deployment_name: ci-service-two-cas
         worker_count: 3
     tags: [ gcp ]
     on_failure: *on_failure_alert
