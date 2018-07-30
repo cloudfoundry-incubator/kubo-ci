@@ -1,5 +1,5 @@
 <%
-  iaases = %w(gcp vsphere aws-lb openstack)
+  iaases = %w(aws-lb openstack gcp-lb vsphere-lb)
   stemcell_types = {
     'gcp' => 'google-kvm',
     'gcp-lb' => 'google-kvm',
@@ -9,7 +9,7 @@
     'aws-lb' => 'aws-xen-hvm',
     'openstack' => 'openstack-kvm'
   }
-  additional_envs = %w(gcp-lb vsphere-lb)
+  additional_envs = %w()
   env_list = iaases + additional_envs
   enable_failure_alert = true
 
@@ -1601,7 +1601,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-proxy-vsphere' ]
     - get: stemcell
-      resource: stemcell-vsphere
+      resource: stemcell-vsphere-lb
 
   - task: get_director_uuid
     tags: [vsphere]
@@ -1869,7 +1869,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-two-cas' ]
     - get: stemcell
-      resource: stemcell-gcp
+      resource: stemcell-gcp-lb
 
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
