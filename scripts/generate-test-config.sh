@@ -15,9 +15,6 @@ verify_args() {
 		-h                                            show this help text
 		--enable-multi-az-tests                       [env:ENABLE_MULTI_AZ_TESTS]
 
-		--conformance_release_version=<some-value>    [env:CONFORMANCE_RELEASE_VERSION]
-		--conformance_results_dir=<some-value>        [env:CONFORMANCE_RESULTS_DIR]
-
 		--enable-turbulence-master-failure-tests      [env:ENABLE_TURBULENCE_MASTER_FAILURE_TESTS]
 		--enable-turbulence-persistence-failure-tests [env:ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS]
 		--enable-turbulence-worker-drain-tests        [env:ENABLE_TURBULENCE_WORKER_DRAIN_TESTS]
@@ -60,8 +57,6 @@ generate_test_config() {
   local environment="$1"
   local deployment="$2"
   local enable_multi_az_tests="${ENABLE_MULTI_AZ_TESTS:-false}"
-  local conformance_release_version="${CONFORMANCE_RELEASE_VERSION:-dev}"
-  local conformance_results_dir="${CONFORMANCE_RESULTS_DIR:-/tmp}"
   local enable_turbulence_worker_drain_tests="${ENABLE_TURBULENCE_WORKER_DRAIN_TESTS:-false}"
   local enable_turbulence_worker_failure_tests="${ENABLE_TURBULENCE_WORKER_FAILURE_TESTS:-false}"
   local enable_turbulence_master_failure_tests="${ENABLE_TURBULENCE_MASTER_FAILURE_TESTS:-false}"
@@ -75,12 +70,6 @@ generate_test_config() {
     case "$flag" in
       --enable-multi-az-tests)
 	enable_multi_az_tests=true
-	;;
-      --conformance_release_version)
-	conformance_release_version="${value}"
-	;;
-      --conformance_results_dir)
-	conformance_results_dir="${value}"
 	;;
       --enable-turbulence-worker-drain-tests)
         enable_turbulence_worker_drain_tests=true
@@ -125,10 +114,6 @@ generate_test_config() {
 	  "upgrade_tests": {
 	    "include_multiaz": ${enable_multi_az_tests}
 	  },
-	  "conformance": {
-	    "results_dir": "${conformance_results_dir}",
-	    "release_version": "${conformance_release_version}"
-	  },
 	  "bosh": {
 	     "environment": "$(bosh int $director_yml --path=/internal_ip)",
 	     "ca_cert": $(bosh int $creds_yml --path=/default_ca/ca --json | jq .Blocks[0]),
@@ -149,9 +134,6 @@ generate_test_config() {
 	    "include_master_failure": ${enable_turbulence_master_failure_tests},
 	    "include_persistence_failure": ${enable_turbulence_persistence_failure_tests},
 	    "is_multiaz": ${enable_multi_az_tests}
-	  },
-	  "cf": {
-	    "apps_domain": "$(bosh int $director_yml --path=/routing_cf_app_domain_name 2>/dev/null)"
 	  },
 	  "kubernetes": {
 	    "master_host": "$(bosh int $director_yml --path=/kubernetes_master_host)",

@@ -14,12 +14,10 @@ type Config struct {
 	Bosh             Bosh             `json:"bosh"`
 	Turbulence       Turbulence       `json:"turbulence"`
 	TurbulenceTests  TurbulenceTests  `json:"turbulence_tests"`
-	Cf               Cf               `json:"cf"`
 	Kubernetes       Kubernetes       `json:"kubernetes"`
 	CFCR             CFCR             `json:"cfcr"`
 	IntegrationTests IntegrationTests `json:"integration_tests"`
 	UpgradeTests     UpgradeTests     `json:"upgrade_tests"`
-	Conformance      Conformance      `json:"conformance"`
 }
 
 type AWS struct {
@@ -53,10 +51,6 @@ type TurbulenceTests struct {
 	IsMultiAZ                 bool `json:"is_multiaz"`
 }
 
-type Cf struct {
-	AppsDomain string `json:"apps_domain"`
-}
-
 type IntegrationTests struct {
 	IncludeCloudFoundry     bool `json:"include_cloudfoundry"`
 	IncludeK8SLB            bool `json:"include_k8s_lb"`
@@ -83,12 +77,6 @@ type CFCR struct {
 	UpgradeToStemcellVersion string `json:"upgrade_to_stemcell_version"`
 }
 
-type Conformance struct {
-	ResultsDir              string `json:"results_dir"`
-	ReleaseVersion          string `json:"release_version"`
-	SonobuoyCreationTimeout int    `json:"sonobuoy_creation_timeout"`
-}
-
 func InitConfig() (*Config, error) {
 	var config Config
 	var configPath = os.Getenv("CONFIG")
@@ -110,14 +98,6 @@ func InitConfig() (*Config, error) {
 	// Do not allow zero for timeout scale as it would fail all the time.
 	if config.TimeoutScale == 0 {
 		config.TimeoutScale = 1
-	}
-
-	if config.Conformance.SonobuoyCreationTimeout < 0 {
-		return nil, errors.New("sonobuoy_create_timeout must be a positive integer")
-	}
-
-	if config.Conformance.SonobuoyCreationTimeout == 0 {
-		config.Conformance.SonobuoyCreationTimeout = 60
 	}
 
 	return &config, nil
