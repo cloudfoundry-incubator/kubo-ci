@@ -1352,8 +1352,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       <% if iaas =~ /^vsphere/ %>
       - director_uuid/var.yml
       <% end %>
-      stemcells:
-      - stemcell/stemcell.tgz
       releases:
       - old-kubo-release-tarball/*.tgz
       source_file: gcs-source-json/source.json
