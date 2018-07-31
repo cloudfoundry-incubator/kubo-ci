@@ -759,6 +759,8 @@ jobs:
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: kubo-version
       passed: [ 'deploy-k8s-<%= env %>' ]
+    - get: gcs-kubeconfig
+      passed: [ 'deploy-k8s-<%= env %>' ]
   - task: conformance-tests
     file: git-kubo-ci/tasks/run-conformance-tests.yml
     tags:
