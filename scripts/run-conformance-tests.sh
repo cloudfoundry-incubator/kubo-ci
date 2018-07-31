@@ -11,7 +11,7 @@ run_conformance_test() {
 }
 
 main() {
-  cp gcs-kubeconfig/config $KUBECONFIG
+  export KUBECONFIG=$PWD/gcs-kubeconfig/config
 
   run_conformance_test
 }

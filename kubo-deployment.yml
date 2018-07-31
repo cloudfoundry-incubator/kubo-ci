@@ -397,13 +397,6 @@ resources:
     name: bosh-<%= stemcell_types[env] %>-ubuntu-trusty-go_agent
 <% end %>
 
-- name: conformance-results
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: conformance-results
-    regexp: conformance-results-[a-z]+-(.*).tar.gz
-
 - name: kubo-version
   type: semver
   source:
@@ -749,7 +742,7 @@ jobs:
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
 
-<% if iaases.include?(env) %>
+<% if conformance_test_iaases.include?(env) %>
 - name: run-k8s-conformance-tests-<%= env %>
   plan:
   - aggregate:
@@ -773,20 +766,10 @@ jobs:
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: kubo-version
       passed: [ 'deploy-k8s-<%= env %>' ]
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
   - task: conformance-tests
-    file: git-kubo-ci/tasks/run-k8s-conformance-tests.yml
-    tags: ['<%= env %>']
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
-    params:
-      CONFORMANCE_RESULTS_DIR: conformance-results
-    ensure:
-      put: conformance-results
-      params:
-        file: conformance-results/conformance-results-*.tar.gz
+    file: git-kubo-ci/tasks/run-conformance-tests.yml
+    tags:
+    - <%= env %>
     on_failure: *on_failure_alert
 <% end %>
 
