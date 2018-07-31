@@ -18,8 +18,8 @@ params:
   DEPLOYMENT_NAME: ci-service
   CFCR_MANIFEST_PATH: git-kubo-deployment/manifests/cfcr.yml
   BOSH_DEPLOY_COMMAND: "bosh-command/bosh-deploy.sh"
-  ENABLE_MULTI_AZ_TESTS: ~
-  IAAS: ~
+  ENABLE_MULTI_AZ_TESTS:
+  IAAS:
 
 run:
   path: git-kubo-ci/scripts/create-bosh-upgrade-deployment.rb
