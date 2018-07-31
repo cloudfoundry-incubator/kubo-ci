@@ -944,8 +944,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - task: install
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
-    input_mapping:
-      git-kubo-deployment: unpacked-old-kubo-deployment
     params:
       <% if iaas.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
@@ -1239,8 +1237,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - task: install
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
-    input_mapping:
-      git-kubo-deployment: unpacked-old-kubo-deployment
     params:
       <% if iaas =~ /^(gcp|vsphere-lb)/ %>
       CLOUD_CONFIG_OPS_FILE: <%= iaas %>-k8s-cloud-config-multiaz.yml
