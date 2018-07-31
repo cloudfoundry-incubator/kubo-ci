@@ -64,10 +64,10 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 		Eventually(countRunningWorkers, 600, 20).Should(Equal(2))
 
 		By("Waiting for K8s node to go away")
-		Eventually(func() []string { return GetReadyNodes(GetNodes(kubectl)) }, "240s", "5s").Should(HaveLen(2))
+		Eventually(GetReadyNodes, "240s", "5s").Should(HaveLen(2))
 
 		By("Verifying that the Worker VM has joined the K8s cluster")
-		Eventually(func() []string { return GetReadyNodes(GetNodes(kubectl)) }, "600s", "20s").Should(HaveLen(3))
+		Eventually(GetReadyNodes, "240s", "5s").Should(HaveLen(3))
 
 		By("Deploying nginx on 3 nodes")
 		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxDaemonSetSpec), "30s", "5s").Should(gexec.Exit(0))

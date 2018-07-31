@@ -29,12 +29,7 @@ func NewKubeClient() (k8s.Interface, error) {
 }
 
 func IaaS() (string, error) {
-	kubeclient, err := NewKubeClient()
-	if err != nil {
-		return "", err
-	}
-
-	nodes, err := kubeclient.CoreV1().Nodes().List(meta_v1.ListOptions{})
+	nodes, err := GetNodes()
 	if err != nil {
 		return "", err
 	}
@@ -57,16 +52,39 @@ func BearerToken() (string, error) {
 }
 
 func GetNodeIP() (string, error) {
-	kubeclient, err := NewKubeClient()
-	if err != nil {
-		return "", err
-	}
-
-	nodes, err := kubeclient.CoreV1().Nodes().List(meta_v1.ListOptions{})
+	nodes, err := GetNodes()
 	if err != nil {
 		return "", err
 	}
 	return nodes.Items[0].ObjectMeta.Labels["spec.ip"], nil
+}
+
+func GetNodes() (*corev1.NodeList, error) {
+	kubeclient, err := NewKubeClient()
+	if err != nil {
+		return nil, err
+	}
+
+	return kubeclient.CoreV1().Nodes().List(meta_v1.ListOptions{})
+}
+
+func GetReadyNodes() ([]string, error) {
+	nodes, err := GetNodes()
+	if err != nil {
+		return nil, err
+	}
+	readyNodes := []string{}
+
+	for _, n := range nodes.Items {
+		for _, condition := range n.Status.Conditions {
+			if condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue {
+				readyNodes = append(readyNodes, n.Name)
+				break
+			}
+		}
+	}
+
+	return readyNodes, nil
 }
 
 func CreateTestNamespace(k8s k8s.Interface, prefix string) (*corev1.Namespace, error) {

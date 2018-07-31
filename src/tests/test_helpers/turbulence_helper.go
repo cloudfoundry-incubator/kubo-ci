@@ -32,8 +32,8 @@ func AllBoshWorkersHaveJoinedK8s(deployment director.Deployment, kubectl *Kubect
 		return DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 	}, "600s", "30s").Should(HaveLen(3))
 
-	Eventually(func() []Node { return GetNodes(kubectl) }, "240s", "5s").Should(HaveLen(3))
-	Eventually(func() []string { return GetReadyNodes(GetNodes(kubectl)) }, "240s", "5s").Should(HaveLen(3))
+	Eventually(func() []Node { return GetNodesBroken(kubectl) }, "240s", "5s").Should(HaveLen(3))
+	Eventually(func() []string { return GetReadyNodesBroken(GetNodesBroken(kubectl)) }, "240s", "5s").Should(HaveLen(3))
 	return true
 }
 
@@ -50,7 +50,7 @@ func BoshIdByIp(deployment director.Deployment, externalIp string) (string, erro
 	return "", errors.New(fmt.Sprintf("Can't find vm id with ip %s", externalIp))
 }
 
-func GetReadyNodes(nodes []Node) []string {
+func GetReadyNodesBroken(nodes []Node) []string {
 	readyNodes := []string{}
 	for _, node := range nodes {
 		for _, condition := range node.Status.Conditions {
@@ -115,7 +115,7 @@ type ComponentStatusResponse struct {
 	Items []ComponentStatus `json:"items"`
 }
 
-func GetNodes(kubectl *KubectlRunner) []Node {
+func GetNodesBroken(kubectl *KubectlRunner) []Node {
 	nodes := NodesArray{}
 	bytes := kubectl.GetOutputBytes("get", "nodes", "-o", "json")
 	err := json.Unmarshal(bytes, &nodes)
