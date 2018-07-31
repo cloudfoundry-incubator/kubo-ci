@@ -1860,6 +1860,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-ci/manifests/ops-files/use-separate-master-ca.yml
+      - git-kubo-deployment/manifests/ops-files/rename.yml
       var_files:
         addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
       vars_files:
@@ -1871,7 +1872,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - gcs-kubo-release-tarball-untested/*.tgz
       source_file: gcs-source-json/source.json
       vars:
-        deployment_name: ci-service-two-cas
+        deployment_name: ci-service
         worker_count: 3
     tags: [ gcp ]
     on_failure: *on_failure_alert
@@ -1915,7 +1916,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     params:
-      DEPLOYMENT_NAME: ci-service-two-cas
+      DEPLOYMENT_NAME: ci-service
     input_mapping:
       kubo-lock: kubo-lock-two-cas
     tags: [ gcp ]
