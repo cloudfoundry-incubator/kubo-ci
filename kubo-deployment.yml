@@ -383,13 +383,6 @@ resources:
     pre_release: true
     access_token: ((github-kubo-gitbot-access-token))
 
-<% iaases_for_new_bosh_stemcell.each do |env| %>
-- name: new-bosh-stemcell-<%= env %>
-  type: bosh-io-stemcell
-  source:
-    name: bosh-<%= stemcell_types[env] %>-ubuntu-trusty-go_agent
-<% end %>
-
 <% env_list.each do |env| %>
 - name: stemcell-<%= env %>
   type: bosh-io-stemcell
@@ -1049,8 +1042,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
-      stemcells:
-      - stemcell/stemcell.tgz
       releases:
       - old-kubo-release-tarball/*.tgz
       source_file: gcs-source-json/source.json
@@ -1110,8 +1101,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     - get: gcs-source-json
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
-    - get: new-bosh-stemcell
-      resource: new-bosh-stemcell-<%= iaas %>
+    - get: stemcell
+      resource: stemcell-<%= iaas %>
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
@@ -1406,8 +1397,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-multi-master-<%= iaas %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'deploy-old-k8s-multi-master-<%= iaas %>' ]
-    - get: new-bosh-stemcell
-      resource: new-bosh-stemcell-<%= iaas %>
+    - get: stemcell
+      resource: stemcell-<%= iaas %>
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:

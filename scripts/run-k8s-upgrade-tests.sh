@@ -14,6 +14,12 @@ main() {
   setup_env "${KUBO_ENVIRONMENT_DIR}"
 
   BOSH_ENV="${KUBO_ENVIRONMENT_DIR}" source "${ROOT}/git-kubo-deployment/bin/set_bosh_environment"
+
+  release_tarball=$(find ${ROOT}/gcs-kubo-release-tarball/ -name "*kubo-*.tgz" | head -n1)
+
+  bosh upload-release "$release_tarball"
+  bosh upload-stemcell "${ROOT}/stemcell/stemcell.tgz"
+
   local tmpfile="$(mktemp)" && echo "CONFIG=${tmpfile}"
   "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" ${KUBO_ENVIRONMENT_DIR} ${DEPLOYMENT_NAME} > "${tmpfile}"
 
