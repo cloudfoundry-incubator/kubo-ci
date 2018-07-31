@@ -10,6 +10,17 @@ resource_types:
     repository: cfcommunity/slack-notification-resource
     tag: latest
 
+- name: bosh-deployment
+  type: docker-image
+  source:
+    repository: cloudfoundry/bosh-deployment-resource
+    tag: v2.11.1-rc.4
+
+- name: bosh-errand
+  type: docker-image
+  source:
+    repository: cfcommunity/bosh2-errand-resource
+
 resources:
 - name: gaffer-spec
   type: git
@@ -17,6 +28,11 @@ resources:
     uri: https://github.com/cloudfoundry-incubator/kubo-ci
     branch: master
     paths: [ gaffer/gaffer.yml ]
+
+- name: stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-google-kvm-ubuntu-trusty-go_agent
 
 - name: git-kubo-ci
   type: git
@@ -59,10 +75,46 @@ resources:
     bucket: kubo-public
     versioned_file: kubo-deployment-latest.tgz
 
+- name: gcs-source-json
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: source.json
+
+- name: gcs-load-balancer-vars
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: load-balancer-vars.yml
+
+- name: cfcr-deployment
+  type: bosh-deployment
+  source:
+    deployment: ci-service
+
 - name: slack-alert
   type: slack-notification
   source:
     url: ((build-alert-slack-url))
+
+- name: gcs-kubeconfig
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: k8s/config
+
+- name: run-apply-addons-errand
+  type: bosh-errand
+  source:
+    deployment: gaffer
+
+- name: run-smoke-tests-errand
+  type: bosh-errand
+  source:
+    deployment: gaffer
 
 jobs:
 - name: deploy-bosh
@@ -101,6 +153,19 @@ jobs:
     - put: gcs-bosh-state
       params:
         file: bosh-state/state.json
+  - task: generate-load-balancer-vars
+    file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
+    input_mapping: {kubo-lock: gcs-director.yml}
+  - task: generate-source-json
+    file: git-kubo-ci/tasks/generate-source-json.yml
+    input_mapping: {kubo-lock: gcs-director.yml}
+  - aggregate:
+    - put: gcs-load-balancer-vars
+      params:
+        file: load-balancer-vars/vars.yml
+    - put: gcs-source-json
+      params:
+        file: source-json/source.json
 
 - name: deploy-k8s
   plan:
@@ -115,17 +180,40 @@ jobs:
       passed: [ deploy-bosh ]
     - get: gcs-director.yml
       passed: [ deploy-bosh ]
+    - get: gcs-source-json
+      passed: [ deploy-bosh ]
+    - get: gcs-load-balancer-vars
+      passed: [ deploy-bosh ]
+    - get: stemcell
+      resource: stemcell
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
       gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball
     on_failure: *on_failure_alert
-  - task: deploy
-    tags: [ gaffer ]
-    file: git-kubo-ci/tasks/deploy-k8s-instance.yml
-    input_mapping: {kubo-lock: gcs-director.yml}
+  - put: cfcr-deployment
     params:
-      DEPLOYMENT_NAME: gaffer
+      cleanup: true
+      manifest: git-kubo-deployment/manifests/cfcr.yml
+      ops_files:
+      - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
+      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
+      - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
+      - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
+      releases:
+      - gcs-kubo-release-tarball/*.tgz
+      source_file: gcs-source-json/source.json
+      stemcells:
+      - stemcell/stemcell.tgz
+      vars:
+        deployment_name: gaffer
+        worker_count: 3
+      vars_files:
+      - gcs-load-balancer-vars/load-balancer-vars.yml
+      - gcs-director.yml/metadata
+    tags: [gaffer]
     on_failure: *on_failure_alert
     on_success:
       do:
@@ -133,26 +221,47 @@ jobs:
         params:
           text: |
             Updating gaffer succeeded. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+  - task: update-kubeconfig
+    tags: [gaffer]
+    file: git-kubo-ci/tasks/update-kubeconfig.yml
+    input_mapping: {kubo-lock: gcs-director.yml}
+  - put: run-apply-addons-errand
+    params:
+      name: apply-addons
+      keep_alive: true
+      source_file: gcs-source-json/source.json
+    tags: [gaffer]
+    on_failure: *on_failure_alert
+  - put: run-smoke-tests-errand
+    params:
+      name: smoke-tests
+      keep_alive: true
+      source_file: gcs-source-json/source.json
+    tags: [gaffer]
+    on_failure: *on_failure_alert
+  - aggregate:
+    - put: gcs-kubeconfig
+      params:
+        file: kubeconfig/config
 
 - name: deploy-gaffer
   plan:
   - get: git-kubo-ci
     resource: gaffer-spec
     trigger: true
-  - task: set-kubeconfig
-    params:
-      kubeconfig: ((kubeconfig))
+  - get: gcs-kubeconfig
+    passed: [ "deploy-k8s" ]
+  - task: upgrade-gaffer
     config:
       platform: linux
       inputs:
       - name: git-kubo-ci
-      params:
-        kubeconfig:
+      - name: gcs-kubeconfig
       run:
         path: sh
         args:
           - -ec
-          - echo "$kubeconfig" > kubeconfig && kubectl apply --kubeconfig kubeconfig -f git-kubo-ci/gaffer/gaffer.yml
+          - KUBECONFIG="$PWD/gcs-kubeconfig/config" kubectl apply --kubeconfig kubeconfig -f git-kubo-ci/gaffer/gaffer.yml
       image_resource:
         type: docker-image
         source:
