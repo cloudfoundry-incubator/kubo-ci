@@ -387,7 +387,7 @@ resources:
 - name: stemcell-<%= env %>
   type: bosh-io-stemcell
   source:
-    name: bosh-<%= stemcell_types[env] %>-ubuntu-trusty-go_agent
+    name: bosh-<%= stemcell_types[env] %>-ubuntu-xenial-go_agent
 <% end %>
 
 - name: kubo-version
