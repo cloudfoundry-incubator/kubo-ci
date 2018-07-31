@@ -2149,11 +2149,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       <% if env =~ /^(gcp|aws-lb)/ %>
       ENABLE_K8S_LBS_TESTS: true
       <% end %>
-  - task: pod-to-pod
-    tags: [<%= env %>]
-    input_mapping: { kubo-lock: kubo-lock-<%= env %> }
-    file: git-kubo-ci/tasks/pod-to-pod.yml
-    on_failure: *on_failure_alert
 
 <%
   destroy_k8s_bbr_passed_reqs = ["run-k8s-bbr-tests-#{env}"]
