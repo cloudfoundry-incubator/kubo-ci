@@ -92,7 +92,7 @@ resources:
 - name: cfcr-deployment
   type: bosh-deployment
   source:
-    deployment: ci-service
+    deployment: gaffer
 
 - name: slack-alert
   type: slack-notification
