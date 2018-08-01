@@ -16,6 +16,8 @@ instance_groups:
   instances: 1
   networks:
   - name: default
+    static_ips:
+    - ((proxy_static_ip))
   azs: [z1]
   jobs:
   - name: tinyproxy

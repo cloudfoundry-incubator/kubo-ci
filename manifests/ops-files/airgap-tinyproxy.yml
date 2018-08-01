@@ -1,3 +1,0 @@
-- type: replace
-  path: /instance_groups/name=tinyproxy/networks/name=default/static_ips?
-  value: [((proxy_static_ip))]
