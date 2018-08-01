@@ -48,10 +48,23 @@ func IaaS() (string, error) {
 
 func BearerToken() (string, error) {
 	config, err := ReadKubeConfig()
+
 	if err != nil {
 		return "", err
 	}
-	return config.BearerToken, nil
+
+	token := ""
+
+	if config.AuthProvider != nil && config.AuthProvider.Name == "oidc" {
+		token = config.AuthProvider.Config["id-token"]
+	} else {
+		token = config.BearerToken
+	}
+
+	if token == "" {
+		return "", fmt.Errorf("Token is empty")
+	}
+	return token, nil
 }
 
 func GetNodeIP() (string, error) {
