@@ -7,8 +7,8 @@ releases:
   sha1: 30797314c230eaf5ca13982993c159ad0efeef88
 
 stemcells:
-- alias: trusty
-  os: ubuntu-trusty
+- alias: default
+  os: ubuntu-xenial
   version: latest
 
 instance_groups:
@@ -24,7 +24,7 @@ instance_groups:
     release: tinyproxy
     properties: {}
 
-  stemcell: trusty
+  stemcell: default
   vm_type: minimal
 
 update:
