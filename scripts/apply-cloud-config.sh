@@ -11,7 +11,7 @@ usage() {
 target_bosh_director() {
   export BOSH_ENVIRONMENT=$(bosh int $source_json --path '/target')
   export BOSH_CLIENT=$(bosh int $source_json --path '/client')
-  export BOSH_CLIENT_SECRET=$(bosh int $source_json --path '/client')
+  export BOSH_CLIENT_SECRET=$(bosh int $source_json --path '/client_secret')
   export BOSH_CA_CERT=$(bosh int $source_json --path '/ca_cert')
 }
 
