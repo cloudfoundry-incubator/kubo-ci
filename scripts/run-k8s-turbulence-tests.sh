@@ -16,7 +16,7 @@ main() {
   local tmpfile="$(mktemp)" && echo "CONFIG=${tmpfile}"
   "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
 
-  CONFIG="${tmpfile}" ginkgo -progress -skip "The cluster is healthy after master is rebooted" -r "${ROOT}/git-kubo-ci/src/tests/turbulence-tests/"
+  CONFIG="${tmpfile}" ginkgo -progress -r "${ROOT}/git-kubo-ci/src/tests/turbulence-tests/"
 }
 
 main
