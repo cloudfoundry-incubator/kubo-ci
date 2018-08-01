@@ -2,6 +2,7 @@ package workload_test
 
 import (
 	"tests/config"
+	. "tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,6 +24,9 @@ var _ = BeforeSuite(func() {
 	var err error
 	testconfig, err = config.InitConfig()
 	Expect(err).NotTo(HaveOccurred())
+	director := NewDirector(testconfig.Bosh)
+	director.EnableResurrection(true)
+
 })
 
 func WorkerFailureDescribe(description string, callback func()) bool {
