@@ -263,6 +263,11 @@ resources:
     bucket: kubo-pipeline-store
     versioned_file: load-balancer-vars.yml
 
+- name: tinyproxy-deployment
+  type: bosh-deployment
+  source:
+    deployment: tinyproxy
+
 - name: cfcr-deployment
   type: bosh-deployment
   source:
@@ -428,6 +433,7 @@ resources:
   source:
     owner: cloudfoundry-incubator
     repository: bosh-backup-and-restore
+    access_token: ((github-kubo-gitbot-access-token))
 
 jobs:
 - name: run-unit-tests
@@ -924,18 +930,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'claim-lock-upgrade-<%= iaas %>' ]
     - get: git-kubo-deployment
       passed: [ 'claim-lock-upgrade-<%= iaas %>' ]
-    - get: old-kubo-deployment-tarball
-
-  - task: unpack-tgz
-    file: git-kubo-ci/tasks/unpack-tgz.yml
-    tags: ['<%= iaas %>']
-    input_mapping:
-      source_tarball: old-kubo-deployment-tarball
-    output_mapping:
-      unpacked_dir: unpacked-old-kubo-deployment
-    params:
-      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
 
   - task: install
     tags: [<%= iaas %>]
@@ -1204,7 +1198,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: git-kubo-ci
     - get: git-kubo-ci-new
       resource: git-kubo-ci
-    - get: old-kubo-deployment-tarball
     - get: kubo-lock
       resource: kubo-lock-<%= iaas %>
       version: every
@@ -1220,16 +1213,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'claim-lock-upgrade-multi-master-<%= iaas %>' ]
     - get: git-kubo-deployment
       passed: [ 'claim-lock-upgrade-multi-master-<%= iaas %>' ]
-  - task: unpack-tgz
-    file: git-kubo-ci/tasks/unpack-tgz.yml
-    tags: ['<%= iaas %>']
-    input_mapping:
-      source_tarball: old-kubo-deployment-tarball
-    output_mapping:
-      unpacked_dir: unpacked-old-kubo-deployment
-    params:
-      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
   - task: install
     tags: [<%= iaas %>]
     file: git-kubo-ci/tasks/install-bosh.yml
@@ -1573,15 +1556,21 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     tags: [vsphere]
     file: git-kubo-ci/tasks/get_director_uuid.yml
 
-  - task: deploy-tinyproxy
-    file: git-kubo-ci/tasks/deploy-tinyproxy.yml
+  - task: apply-cloud-config
+    file: git-kubo-ci/tasks/apply-cloud-config.yml
     tags: [vsphere]
     params:
-      IAAS: "vsphere"
       PROXY_STATIC_IP: 10.74.42.132
-  - task: apply-runtime-config
-    file: git-kubo-ci/tasks/apply-runtime-config.yml
+
+  - put: tinyproxy-deployment
     tags: [vsphere]
+    params:
+      manifest: git-kubo-ci/manifests/tinyproxy/manifest.yml
+      source_file: gcs-source-json/source.json
+      stemcells:
+      - stemcell/stemcell.tgz
+      vars:
+        proxy_static_ip: 10.74.42.132
 
   - put: cfcr-deployment
     params:
