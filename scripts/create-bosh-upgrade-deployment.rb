@@ -20,7 +20,7 @@ end
 if ENV['IAAS'] =~ /^vsphere/
   ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
   ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml '
-  vars_files << '-l director_uuid/var.yml\ '
+  vars_files << '-l director_uuid/var.yml '
 end
 
 if ENV['IAAS'] =~ /^aws/
@@ -28,7 +28,14 @@ if ENV['IAAS'] =~ /^aws/
   ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml '
 end
 
-cmd = "bosh -n -d #{ENV['DEPLOYMENT_NAME']} deploy #{ENV['CFCR_MANIFEST_PATH']} #{ops_files} #{vars_files} #{vars} #{var_file} --no-redact"
+cmd = ['bosh --no-redact -n -d',
+       ENV['DEPLOYMENT_NAME'],
+       'deploy',
+       ENV['CFCR_MANIFEST_PATH'],
+       ops_files,
+       vars_files,
+       vars,
+       var_file].join(' ')
 puts "command: #{cmd}"
 File.write(ENV['BOSH_DEPLOY_COMMAND'], "#!/usr/bin/env bash\n" + cmd)
 system("chmod +x #{ENV['BOSH_DEPLOY_COMMAND']}")
