@@ -180,8 +180,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	}
 
 	By(fmt.Sprintf("Running %s upgrade", component))
-	script := test_helpers.PathFromRoot(pathToScript)
-	cmd := exec.Command(script)
+	cmd := exec.Command(pathToScript)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
