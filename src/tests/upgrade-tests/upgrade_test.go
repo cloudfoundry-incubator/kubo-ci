@@ -6,10 +6,9 @@ import (
 	"net"
 	"net/http"
 	"os"
-
+	"os/exec"
 	"time"
 
-	"os/exec"
 	"tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
@@ -43,7 +42,7 @@ var _ = Describe("Upgrade components", func() {
 	})
 
 	It("upgrades CFCR Release", func() {
-		upgradeAndMonitorAvailability("scripts/deploy-k8s-instance.sh", "cfcr-release", requestLossThreshold)
+		upgradeAndMonitorAvailability(os.Getenv("BOSH_DEPLOY_COMMAND"), "cfcr-release", requestLossThreshold)
 	})
 
 })
