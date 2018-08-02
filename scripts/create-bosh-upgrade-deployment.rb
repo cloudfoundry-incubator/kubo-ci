@@ -28,9 +28,10 @@ if ENV['IAAS'] =~ /^aws/
   ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml '
 end
 
-cmd = ['bosh --no-redact -n -d',
+cmd = ['bosh -n -d',
        ENV['DEPLOYMENT_NAME'],
        'deploy',
+       '--no-redact',
        ENV['CFCR_MANIFEST_PATH'],
        ops_files,
        vars_files,
