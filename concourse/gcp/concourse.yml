@@ -26,21 +26,21 @@ instance_groups:
   jobs:
   - name: atc
     properties:
-      basic_auth_username: kuboadmin
-      basic_auth_password: ((kubo_admin_password))
       token_signing_key: ((token-signing-key))
-      allow_self_signed_certificates: true
+      main_team:
+        auth:
+          github:
+            teams:
+            - pivotal-cf-experimental:pcf-kubo
+            - cloudfoundry-incubator:cfcr
+            - "cloudfoundry-incubator:CFCR Core"
+            - pivotal-cf:vmware-kubo
+            - pivotal-cf:pks-releng
+            users:
+            - lamlouis
       github_auth:
         client_id: ((github-client-id))
         client_secret: ((github-client-secret))
-        authorize:
-          - organization: pivotal-cf-experimental
-            teams: [ pcf-kubo ]
-          - organization: cloudfoundry-incubator
-            teams: [ cfcr, CFCR Core ]
-          - organization: pivotal-cf
-            teams: [ vmware-kubo, pks-releng  ]
-          - user: lamlouis
       external_url: https://ci.kubo.sh
       tls_cert: ((atc-certificate.certificate))((atc-certificate.ca))
       tls_key: ((atc-certificate.private_key))
@@ -145,17 +145,17 @@ instance_groups:
 name: kubo-ci
 releases:
 - name: concourse
-  sha1: aaa4e4d42adb2293abc79422351ca71ed548f95c
-  url: https://bosh.io/d/github.com/concourse/concourse?v=3.13.0
-  version: 3.13.0
+  sha1: 6224188701f71c64a4b51fed47a64f7cecbaeed2
+  url: https://bosh.io/d/github.com/concourse/concourse?v=4.0.0
+  version: 4.0.0
 - name: garden-runc
-  sha1: 54cbb89cae1be0708aa056185671665d7f4b2a4f
-  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.13.1
-  version: 1.13.1
+  sha1: 1a8805090ae4089dacc28f97996d00012c4c6e93
+  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.16.0
+  version: 1.16.0
 - name: postgres
-  version: 28
-  sha1: c1fcec62cb9d2e95e3b191e3c91d238e2b9d23fa
-  url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=28
+  version: 29
+  sha1: 24d2e2887a45258b71bc40577c0f406180e47701
+  url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=29
 stemcells:
 - alias: bosh-google-kvm-ubuntu-trusty-go_agent
   os: ubuntu-trusty
