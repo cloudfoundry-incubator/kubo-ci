@@ -112,7 +112,3 @@ jobs:
   - put: git-kubo-release
     params:
       repository: git-kubo-release-output
-  - put: git-kubo-ci
-    params:
-      repository: git-kubo-ci-output
-
