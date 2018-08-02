@@ -26,6 +26,8 @@ instance_groups:
   jobs:
   - name: atc
     properties:
+      basic_auth_username: kuboadmin
+      basic_auth_password: ((kubo_admin_password))
       token_signing_key: ((token-signing-key))
       allow_self_signed_certificates: true
       github_auth:
@@ -167,6 +169,8 @@ update:
   update_watch_time: 30000-300000
 
 variables:
+- name: kubo_admin_password
+  type: password
 - name: postgresql-password
   type: password
 - name: token-signing-key
