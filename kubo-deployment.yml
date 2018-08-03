@@ -137,6 +137,9 @@ groups:
   <% env_list.each do |env| %>
   - run-k8s-integration-tests-<%= env %>
   <% end %>
+  <% proxy_iaases.each do |env| %>
+  - run-k8s-integration-tests-proxy-<%= env %>
+  <% end %>
 - name: conformance
   jobs:
   <% conformance_test_iaases.each do |env| %>
