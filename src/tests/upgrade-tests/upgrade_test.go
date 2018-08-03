@@ -25,9 +25,9 @@ var _ = Describe("Upgrade components", func() {
 		if testconfig.Iaas == "vsphere" {
 			nginxSpec = test_helpers.PathFromRoot("specs/nginx-specified-nodeport.yml")
 		}
-		requestLossThreshold = 0.99
+		requestLossThreshold = 0.95
 
-		masterRequestLossThreshold = 0.99
+		masterRequestLossThreshold = 0.95
 
 		deployNginx := k8sRunner.RunKubectlCommand("create", "-f", nginxSpec)
 		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
