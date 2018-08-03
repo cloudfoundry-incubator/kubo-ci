@@ -34,7 +34,7 @@ export BOSH_ENVIRONMENT="${BOSH_ENVIRONMENT}"
 EOF
 
   if [ -z "$(bosh stemcells | grep trusty)" ]; then
-    local stemcell_version=3468.11
+    local stemcell_version=3586.27
     local iaas_extension=
     case ${IAAS} in
     vsphere)
