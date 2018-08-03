@@ -18,7 +18,7 @@ stemcells:
 
 instance_groups:
 - name: worker
-  instances: 1
+  instances: 2
   # replace with a VM type from your BOSH Director's cloud config
   vm_type: worker
   stemcell: trusty
