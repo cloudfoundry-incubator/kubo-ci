@@ -107,8 +107,9 @@ func createTurbulenceIncident(request incident.Request) {
 	By("Creating Turbulence Incident")
 	hellRaiser := TurbulenceClient(testconfig.Turbulence)
 	incident := hellRaiser.CreateIncident(request)
-	Eventually(countRunningApiServerOnMaster, "300s", "20s").Should(Equal(numberOfMasters - 1))
 	incident.Wait()
+
+	Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters - 1))
 
 	By("Waiting for resurrection")
 	Eventually(func() bool { return AllComponentsAreHealthy(kubectl) }, "600s", "20s").Should(BeTrue())
