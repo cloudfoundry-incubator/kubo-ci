@@ -18,6 +18,6 @@ addons:
           advertised_host: ""
           username: turbulence
           password: ((turbulence_api_password))
-          agent_listen_port: 8080
+          agent_listen_port: 8081
           cert:
             ca: ((turbulence_api_ssl.ca))
