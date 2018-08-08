@@ -66,7 +66,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 			},
 		}
 
-		createTurbulenceIncident(killOneMaster)
+		createTurbulenceIncident(killOneMaster, true, "Killing master")
 	})
 
 	Specify("The cluster is healthy after master is rebooted and bosh resurrector is off", func() {
@@ -92,14 +92,14 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 			},
 		}
 
-		createTurbulenceIncident(rebootOneMaster)
+		createTurbulenceIncident(rebootOneMaster, false, "Rebooting master")
 
 		By("Checking that master is back consistently")
 		Consistently(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVmType, VmRunningState) }, "60s", "2s").Should(HaveLen(numberOfMasters))
 	})
 })
 
-func createTurbulenceIncident(request incident.Request) {
+func createTurbulenceIncident(request incident.Request, waitForIncident bool, msg string) {
 	By("Deploying a workload on the k8s cluster")
 	Eventually(kubectl.RunKubectlCommand("create", "-f", nginxSpec), "30s", "5s").Should(gexec.Exit(0))
 	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), "120s").Should(gexec.Exit(0))
@@ -107,9 +107,11 @@ func createTurbulenceIncident(request incident.Request) {
 	By("Creating Turbulence Incident")
 	hellRaiser := TurbulenceClient(testconfig.Turbulence)
 	incident := hellRaiser.CreateIncident(request)
-	incident.Wait()
+	if waitForIncident {
+		incident.Wait()
+	}
 
-	Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters - 1))
+	Eventually(countRunningApiServerOnMaster, "10m", "2s").Should(Equal(numberOfMasters-1), msg+" FAILED")
 
 	By("Waiting for resurrection")
 	Eventually(func() bool { return AllComponentsAreHealthy(kubectl) }, "600s", "20s").Should(BeTrue())
