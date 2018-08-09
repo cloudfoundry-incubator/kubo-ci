@@ -48,6 +48,7 @@ var _ = Describe("Guestbook storage", func() {
 		})
 
 		AfterEach(func() {
+			UndeployGuestBook(kubectl)
 			Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
 			Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 		})
