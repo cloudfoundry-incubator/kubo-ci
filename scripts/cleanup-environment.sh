@@ -17,7 +17,7 @@ login_gcp() {
 
 delete_gcloud_vms() {
   subnetwork=$(bosh int "${ENV_FILE}" --path='/subnetwork')
-  subnetLink=$(gcloud compute networks subnets list "$subnetwork" --format=json | bosh int - --path=/0/selfLink)
+  subnetLink=$(gcloud compute networks subnets list --filter name="$subnetwork" --format=json | bosh int - --path=/0/selfLink)
   vms=$(gcloud  compute instances list --filter="networkInterfaces.subnetwork=$subnetLink" --format="table(name,zone)" | tail -n +2 )
 
   IFS=$'\n'
