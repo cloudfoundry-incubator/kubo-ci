@@ -15,6 +15,7 @@ var _ = Describe("Docker Image", func() {
 	commands := map[string][]string{
 		"aws":     []string{"--version"},
 		"bosh":    []string{"-v"},
+		"bundle":  []string{"-v"},
 		"cf":      []string{"version"},
 		"credhub": []string{"--version"},
 		"dep":     []string{"version"},
@@ -28,9 +29,7 @@ var _ = Describe("Docker Image", func() {
 		"kubectl": []string{"help"},
 		"make":    []string{"-v"},
 		"om":      []string{"--version"},
-		"pry":     []string{"--version"},
 		"rake":    []string{"--version"},
-		"rspec":   []string{"--version"},
 		"ruby":    []string{"-v"},
 		"semver":  []string{"--help"},
 		"spruce":  []string{"--version"},

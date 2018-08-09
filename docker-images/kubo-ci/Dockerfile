@@ -44,13 +44,13 @@ echo "deb http://apt.starkandwayne.com stable main" | tee /etc/apt/sources.list.
 apt-get update && apt-get install om
 
 # Google SDK
-ENV GCLOUD_VERSION=144.0.0
-ENV GCLOUD_SHA1SUM=4ef237d6d2696b353a5a1ef927462ef3833d261f
+ENV GCLOUD_VERSION=211.0.0
+ENV GCLOUD_SHA1SUM=53becbf0a512bc1f928921a116c9a397cbf172621849e1d85dd2f906933b2241
 
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz \
     -O gcloud_${GCLOUD_VERSION}_linux_amd64.tar.gz && \
     echo "${GCLOUD_SHA1SUM}  gcloud_${GCLOUD_VERSION}_linux_amd64.tar.gz" > gcloud_${GCLOUD_VERSION}_SHA1SUM && \
-    sha1sum -cw --status gcloud_${GCLOUD_VERSION}_SHA1SUM && \
+    shasum -a 256 -cw --status gcloud_${GCLOUD_VERSION}_SHA1SUM && \
     tar xvf gcloud_${GCLOUD_VERSION}_linux_amd64.tar.gz && \
     mv google-cloud-sdk / && cd /google-cloud-sdk  && ./install.sh
 
@@ -59,23 +59,20 @@ ENV PATH=$PATH:/google-cloud-sdk/bin
 # Ruby required for bosh-cli create-env
 RUN git clone https://github.com/postmodern/ruby-install.git /usr/local/ruby-install
 ENV PATH /usr/local/ruby-install/bin:/usr/local/bin:$PATH
-RUN ruby-install --system ruby 2.4.1
+RUN ruby-install --system ruby 2.5.1
 
 # Credhub
-RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/1.7.6/credhub-linux-1.7.6.tgz \
-  -O credhub-linux-1.7.6.tgz && tar xvf credhub-linux-1.7.6.tgz && mv credhub /usr/bin
+RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/1.7.7/credhub-linux-1.7.7.tgz \
+  -O credhub-linux-1.7.7.tgz && tar xvf credhub-linux-1.7.7.tgz && mv credhub /usr/bin
 
 # kubectl
-RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.10.5/bin/linux/amd64/kubectl -O /usr/bin/kubectl && \
-  chmod +x /usr/bin/kubectl
-
-# Direnv
-RUN wget -O /usr/local/bin/direnv https://github.com/direnv/direnv/releases/download/v2.12.2/direnv.linux-amd64 && \
-  chmod +x /usr/local/bin/direnv
+ENV KUBE_VERSION="v1.11.2"
+ADD https://storage.googleapis.com/kubernetes-release/release/$KUBE_VERSION/bin/linux/amd64/kubectl /usr/bin/kubectl
+RUN chmod +x /usr/bin/kubectl
 
 # BOSH CLI
-RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-5.0.1-linux-amd64 -O bosh && \
-  echo f1f1ee58a7eb872568c85db19a17b697990a7452 bosh > bosh-shasum && \
+RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-5.1.1-linux-amd64 -O bosh && \
+  echo eccaaf1f5d9e0399271403c6966108443367ac80 bosh > bosh-shasum && \
   sha1sum -cw --status bosh-shasum && \
   install bosh /usr/local/bin
 
@@ -96,10 +93,7 @@ RUN pip install sshuttle
 RUN wget -O - -o /dev/null https://github.com/vmware/govmomi/releases/download/v0.17.1/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc && \
   chmod +x /usr/local/bin/govc
 
-COPY Gemfile .
-COPY Gemfile.lock .
 RUN gem install bundler --no-ri --no-rdoc
-RUN bundle install
 
 ARG SPRUCE_VERSION=v1.16.2
 RUN wget https://github.com/geofffranks/spruce/releases/download/${SPRUCE_VERSION}/spruce-linux-amd64 -O /usr/bin/spruce && \
