@@ -1,10 +1,13 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: default-http-backend
   labels:
     k8s-app: default-http-backend
 spec:
+  selector:
+    matchLabels:
+      k8s-app: default-http-backend
   replicas: 1
   template:
     metadata:
@@ -46,13 +49,16 @@ spec:
     k8s-app: default-http-backend
 
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-ingress-controller
   labels:
     k8s-app: nginx-ingress-controller
 spec:
+  selector:
+    matchLabels:
+      k8s-app: nginx-ingress-controller
   replicas: 3
   template:
     metadata:
@@ -123,11 +129,14 @@ spec:
     app: simple-http-server
 
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: simple-http-server
 spec:
+  selector:
+    matchLabels:
+        app: simple-http-server
   replicas: 3
   template:
     metadata:

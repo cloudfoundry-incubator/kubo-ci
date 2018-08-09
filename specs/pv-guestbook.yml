@@ -15,11 +15,15 @@ spec:
     tier: backend
     role: master
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis-master
 spec:
+  selector:
+    matchLabels:
+      app: redis
+      role: master
   replicas: 1
   template:
     metadata:
@@ -78,11 +82,14 @@ spec:
     app: guestbook
     tier: frontend
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
 spec:
+  selector:
+    matchLabels:
+      app: guestbook
   replicas: 3
   template:
     metadata:

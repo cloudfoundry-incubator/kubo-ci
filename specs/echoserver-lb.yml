@@ -12,11 +12,14 @@ spec:
     app: echoserver
   type: LoadBalancer
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: echoserver
 spec:
+  selector:
+    matchLabels:
+        app: echoserver
   replicas: 3
   template:
     metadata:

@@ -12,11 +12,14 @@ spec:
   type: LoadBalancer
 
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-proxy
 spec:
+  selector:
+    matchLabels:
+        app: api-proxy
   replicas: 3
   template:
     metadata:
