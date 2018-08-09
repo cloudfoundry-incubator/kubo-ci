@@ -318,13 +318,13 @@ jobs:
     - get: git-kubo-ci
     - get: kubo-lock
       resource: kubo-lock-upgrade-<%= iaas %>
-      version: every
-      trigger: true
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: gcs-bosh-state
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
     - get: gcs-bosh-creds
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
+      version: every
+      trigger: true
     - get: old-kubo-release-tarball
       passed: [ 'install-bosh-for-upgrade-<%= iaas %>' ]
       params:
@@ -430,8 +430,6 @@ jobs:
     - get: git-kubo-ci
     - get: kubo-lock
       resource: kubo-lock-upgrade-<%= iaas %>
-      version: every
-      trigger: true
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     - get: gcs-bosh-state
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
@@ -445,6 +443,8 @@ jobs:
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     - get: gcs-kubeconfig
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
+      version: every
+      trigger: true
     - get: git-kubo-release
       passed: [ 'deploy-old-k8s-<%= iaas %>' ]
     - get: gcs-source-json
@@ -484,8 +484,6 @@ jobs:
     - get: git-kubo-ci
     - get: kubo-lock
       resource: kubo-lock-upgrade-<%= iaas %>
-      version: every
-      trigger: true
       passed: [ 'upgrade-kubo-<%= iaas %>' ]
     - get: gcs-pr-deployment-tarball
       passed: [ 'upgrade-kubo-<%= iaas %>' ]
@@ -497,6 +495,8 @@ jobs:
       passed: [ 'upgrade-kubo-<%= iaas %>' ]
     - get: gcs-bosh-creds
       passed: [ 'upgrade-kubo-<%= iaas %>' ]
+      version: every
+      trigger: true
     - get: kubo-version
       passed: [ 'upgrade-kubo-<%= iaas %>' ]
   - task: unpack-kubo-deployment
@@ -522,13 +522,13 @@ jobs:
       passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
     - get: kubo-lock
       resource: kubo-lock-upgrade-<%= iaas %>
-      version: every
-      trigger: true
       passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
     - get: gcs-bosh-state
       passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
     - get: gcs-bosh-creds
       passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
+      version: every
+      trigger: true
     - get: kubo-version
       passed: [ 'destroy-k8s-upgrade-<%= iaas %>' ]
   - task: unpack-kubo-deployment
