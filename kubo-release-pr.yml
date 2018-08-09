@@ -541,7 +541,8 @@ jobs:
   - task: destroy
     tags: [ '<%= iaas %>' ]
     file: git-kubo-ci/tasks/destroy-bosh.yml
-  - put: kubo-lock-<%= iaas %>
+  - put: kubo-lock
+    resource: kubo-lock-upgrade-<%= iaas %>
     params:
       release: kubo-lock-upgrade-<%= iaas %>
 <% end %>
