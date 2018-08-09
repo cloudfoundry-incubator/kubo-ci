@@ -2205,6 +2205,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
   passed_requirements += upgrade_test_iaases.map {|iaas| "destroy-bosh-upgrade-#{iaas}" unless iaas == 'openstack'}.compact
   passed_requirements += proxy_iaases.map {|iaas| "destroy-bosh-proxy-#{iaas}"}.compact
   passed_requirements += bbr_test_iaases.map {|iaas| "destroy-bosh-bbr-#{iaas}"}.compact
+  passed_requirements += multi_master_upgrade_test_iaases.map {|iaas| "destroy-bosh-upgrade-multi-master-#{iaas}" }.compact
 %>
 
 - name: upload-kubo-deployment
