@@ -34,7 +34,17 @@ func WaitForPodsToRun(kubectl *KubectlRunner, timeout string) {
 			return false
 		}
 		for _, pod := range pods.Items {
-			fmt.Fprintf(GinkgoWriter, "Pod name:%s, pod status: %s  \n", pod.GetName(), pod.Status.Phase)
+			fmt.Fprintf(GinkgoWriter, "Pod name:%s, pod status: %s, Events:\n", pod.Name, pod.Status.Phase)
+			events, err := clientset.CoreV1().Events(kubectl.Namespace()).List(v1.ListOptions{
+				FieldSelector: fmt.Sprintf("involvedObject.kind=Pod,involvedObject.name=%s", pod.Name),
+			})
+			if err != nil {
+				fmt.Fprintf(GinkgoWriter, "\tFailed to list events for pod: %s\n\terr: %s\n", pod.Name, err.Error())
+			} else {
+				for _, event := range events.Items {
+					fmt.Fprintf(GinkgoWriter, "\t%s: %s\n", event.Reason, event.Message)
+				}
+			}
 		}
 		return len(pods.Items) == 0
 	}, timeout, "5s").Should(BeTrue())
