@@ -1,0 +1,38 @@
+---
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
+- name: git-kubo-deployment
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
+    branch: wip-157810178
+    private_key: ((git-ssh-key.private_key))
+
+- name: boshdns-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry/bosh-dns-release
+
+jobs:
+- name: bump-boshdns-release
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+    - get: boshdns-release
+      trigger: true
+  - task: bump-boshrelease
+    file: git-kubo-ci/tasks/bump-boshrelease.yml
+    input_mapping:
+      boshrelease: boshdns-release
+    params:
+      RELEASE_NAME: bosh-dns
+  - put: git-kubo-deployment
+    params:
+      repository: git-kubo-deployment-output
