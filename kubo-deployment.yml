@@ -203,13 +203,15 @@ resource_types:
 - name: bosh-deployment
   type: docker-image
   source:
-    repository: cloudfoundry/bosh-deployment-resource
-    tag: v2.11.1-rc.4
+    repository: pcfkubo/bosh-deployment-resource
+    tag: v2.12.1-dev
 
 - name: bosh-errand
   type: docker-image
   source:
-    repository: cfcommunity/bosh2-errand-resource
+    repository: pcfkubo/bosh2-errand-resource
+    tag: v0.1.3-dev
+
 resources:
 - name: git-kubo-ci
   type: git
@@ -270,21 +272,25 @@ resources:
   type: bosh-deployment
   source:
     deployment: tinyproxy
+    skip_check: true
 
 - name: cfcr-deployment
   type: bosh-deployment
   source:
     deployment: ci-service
+    skip_check: true
 
 - name: run-apply-addons-errand
   type: bosh-errand
   source:
     deployment: ci-service
+    skip_check: true
 
 - name: run-smoke-tests-errand
   type: bosh-errand
   source:
     deployment: ci-service
+    skip_check: true
 
 <% env_list.each do |env| %>
 - name: kubo-lock-<%= env %>
@@ -654,7 +660,7 @@ jobs:
       - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
       <% end %>
       var_files:
-        addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
+        addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
@@ -1031,7 +1037,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - unpacked-old-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
       var_files:
-        addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
+        addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
@@ -1321,7 +1327,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
       <% end %>
       var_files:
-        addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
+        addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
@@ -1590,7 +1596,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/cf-routing.yml
       - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
       var_files:
-        addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
+        addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
@@ -1848,7 +1854,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-ci/manifests/ops-files/use-separate-master-ca.yml
       - git-kubo-deployment/manifests/ops-files/rename.yml
       var_files:
-        addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
+        addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
@@ -2051,7 +2057,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       var_files:
-        addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
+        addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
