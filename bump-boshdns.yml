@@ -11,7 +11,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
-    branch: wip-157810178
+    branch: master
     private_key: ((git-ssh-key.private_key))
 
 - name: boshdns-release
