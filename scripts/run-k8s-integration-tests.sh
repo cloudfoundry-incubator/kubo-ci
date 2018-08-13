@@ -4,20 +4,15 @@ set -eu -o pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
-DEPLOYMENT_NAME="${DEPLOYMENT_NAME:="ci-service"}"
-KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
-
 export GOPATH="${ROOT}/git-kubo-ci"
 
 main() {
-  local tmpfile
-
-  # shellcheck source=lib/utils.sh
-  source "${ROOT}/git-kubo-ci/scripts/lib/utils.sh"
-  setup_env "${KUBO_ENVIRONMENT_DIR}"
-
-  tmpfile="$(mktemp)" && echo "CONFIG=${tmpfile}"
-  "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
+  if [[ ! -e gcs-kubeconfig/config ]]; then
+    echo "Did not find kubeconfig at gcs-kubeconfig/config!"
+    exit 1
+  fi
+  mkdir -p ~/.kube
+  cp gcs-kubeconfig/config ~/.kube/config
 
   skipped_packages=""
 
@@ -45,7 +40,7 @@ main() {
     skipped_packages="$(echo $skipped_packages | cut -c 2-)"
   fi
 
-  CONFIG="${tmpfile}" ginkgo -keepGoing -r -progress -skipPackage "${skipped_packages}" "${ROOT}/git-kubo-ci/src/tests/integration-tests/"
+  ginkgo -keepGoing -r -progress -skipPackage "${skipped_packages}" "${ROOT}/git-kubo-ci/src/tests/integration-tests/"
 }
 
 main

@@ -1,25 +1,33 @@
 package cidrs_test
 
 import (
+	"io/ioutil"
 	"net"
-	"tests/config"
 	. "tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	yaml "gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	client_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
+type CIDRConfig struct {
+	ClusterIPRange      string `yaml:"service_cluster_cidr"`
+	KubeDNSIP           string `yaml:"kubedns_service_ip"`
+	KubernetesServiceIP string `yaml:"first_ip_of_service_cluster_cidr"`
+	PodIPRange          string `yaml:"pod_network_cidr"`
+}
+
 var _ = Describe("Custom CIDRs", func() {
 	var (
 		k8s           kubernetes.Interface
-		testconfig    *config.Config
 		testNamespace string
 		err           error
 		svcController client_v1.ServiceInterface
+		cidrConfig    CIDRConfig
 	)
 
 	BeforeEach(func() {
@@ -34,8 +42,11 @@ var _ = Describe("Custom CIDRs", func() {
 
 		svcController = k8s.CoreV1().Services(testNamespace)
 
-		testconfig, err = config.InitConfig()
-		Expect(err).NotTo(HaveOccurred())
+		cidrVarsFile := MustHaveEnv("CIDR_VARS_FILE")
+		b, err := ioutil.ReadFile(cidrVarsFile)
+		Expect(err).ToNot(HaveOccurred())
+		err = yaml.Unmarshal(b, &cidrConfig)
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	AfterEach(func() {
@@ -47,7 +58,7 @@ var _ = Describe("Custom CIDRs", func() {
 			service, err := k8s.CoreV1().Services("default").Get("kubernetes", meta_v1.GetOptions{})
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(service.Spec.ClusterIP).To(Equal(testconfig.Kubernetes.KubernetesServiceIP))
+			Expect(service.Spec.ClusterIP).To(Equal(cidrConfig.KubernetesServiceIP))
 		})
 
 		It("creates service in the specified CIDR", func() {
@@ -60,7 +71,7 @@ var _ = Describe("Custom CIDRs", func() {
 			defer svcController.Delete(svcName, &meta_v1.DeleteOptions{})
 
 			Expect(err).NotTo(HaveOccurred())
-			_, subnet, _ := net.ParseCIDR(testconfig.Kubernetes.ClusterIPRange)
+			_, subnet, _ := net.ParseCIDR(cidrConfig.ClusterIPRange)
 			Expect(subnet.Contains(net.ParseIP(svc.Spec.ClusterIP))).To(BeTrue())
 		})
 
@@ -68,7 +79,7 @@ var _ = Describe("Custom CIDRs", func() {
 			service, err := k8s.CoreV1().Services("kube-system").Get("kube-dns", meta_v1.GetOptions{})
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(service.Spec.ClusterIP).To(Equal(testconfig.Kubernetes.KubeDNSIP))
+			Expect(service.Spec.ClusterIP).To(Equal(cidrConfig.KubeDNSIP))
 		})
 	})
 
@@ -91,7 +102,7 @@ var _ = Describe("Custom CIDRs", func() {
 			defer k8s.CoreV1().Pods(testNamespace).Delete(podName, &meta_v1.DeleteOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, subnet, _ := net.ParseCIDR(testconfig.Kubernetes.PodIPRange)
+			_, subnet, _ := net.ParseCIDR(cidrConfig.PodIPRange)
 			Eventually(func() bool {
 				pod, err = k8s.CoreV1().Pods(testNamespace).Get(podName, meta_v1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
