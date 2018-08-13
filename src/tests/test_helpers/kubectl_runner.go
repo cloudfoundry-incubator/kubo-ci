@@ -209,7 +209,7 @@ func (runner *KubectlRunner) GetLBAddress(service, iaas string) string {
 		return ""
 	}
 
-	fmt.Printf("Output %#v", output)
+	fmt.Fprintf(GinkgoWriter, "Output %#v\n", output)
 	if len(output) != 0 {
 		loadBalancerAddress = output[0]
 	}

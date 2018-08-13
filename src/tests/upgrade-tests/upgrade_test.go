@@ -99,7 +99,11 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 
 		By("Waiting until LB address resolves")
 		Eventually(func() ([]string, error) {
-			return net.LookupHost(loadbalancerAddress)
+			hosts, err := net.LookupHost(loadbalancerAddress)
+			if err == nil {
+				fmt.Fprintf(GinkgoWriter, "Found hosts: %#v\n", hosts)
+			}
+			return hosts, err
 		}, "5m", "5s").ShouldNot(HaveLen(0))
 	}
 
@@ -109,7 +113,9 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	totalCount := 0
 	successCount := 0
 	Eventually(func() (int, error) {
-		return curlURL(appURL)
+		status, err := curlURL(appURL)
+		fmt.Fprintf(GinkgoWriter, "Status: %d, err %#v\n", status, err)
+		return status, err
 	}, "5m", "5s").Should(Equal(200))
 
 	go func(doneChannel chan bool, f func(string) (int, error)) {
