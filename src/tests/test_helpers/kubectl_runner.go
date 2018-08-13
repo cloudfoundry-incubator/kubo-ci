@@ -195,6 +195,21 @@ func (runner *KubectlRunner) GetPodStatus(namespace string, podName string) stri
 	return podStatus
 }
 
+func (runner *KubectlRunner) GetPodStatusBySelector(namespace string, selector string) string {
+	var session *gexec.Session
+	Eventually(func() string {
+		session = runner.RunKubectlCommandInNamespace(namespace, "describe", "pod", "-l", selector)
+		Eventually(session, "10s").Should(gexec.Exit(0))
+
+		return string(session.Out.Contents())
+	}, "120s").ShouldNot(BeEmpty())
+
+	re := regexp.MustCompile(`Status:\s+(\w+)`)
+	matches := re.FindStringSubmatch(string(session.Out.Contents()))
+	podStatus := matches[1]
+	return podStatus
+}
+
 func (runner *KubectlRunner) GetLBAddress(service, iaas string) string {
 	output := []string{}
 	loadBalancerAddress := ""
