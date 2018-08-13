@@ -1569,16 +1569,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     params:
       PROXY_STATIC_IP: 10.74.42.132
 
-  - put: tinyproxy-deployment
-    tags: [vsphere]
-    params:
-      manifest: git-kubo-ci/manifests/tinyproxy/manifest.yml
-      source_file: gcs-source-json/source.json
-      stemcells:
-      - stemcell/stemcell.tgz
-      vars:
-        proxy_static_ip: 10.74.42.132
-
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -1628,6 +1618,17 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       source_file: gcs-source-json/source.json
     tags: [vsphere]
     on_failure: *on_failure_alert
+  - put: tinyproxy-deployment
+    tags: [vsphere]
+    params:
+      manifest: git-kubo-ci/manifests/tinyproxy/manifest.yml
+      source_file: gcs-source-json/source.json
+      stemcells:
+      - stemcell/stemcell.tgz
+      vars:
+        proxy_static_ip: 10.74.42.132
+    on_failure: *on_failure_alert
+
 
 - name: run-k8s-integration-tests-proxy-vsphere
   plan:
