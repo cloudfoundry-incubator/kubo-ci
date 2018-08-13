@@ -43,7 +43,7 @@ var _ = Describe("Custom CIDRs", func() {
 		svcController = k8s.CoreV1().Services(testNamespace)
 
 		cidrVarsFile := MustHaveEnv("CIDR_VARS_FILE")
-		b, err := ioutil.ReadFile(cidrVarsFile)
+		b, err := ioutil.ReadFile(PathFromRoot(cidrVarsFile))
 		Expect(err).ToNot(HaveOccurred())
 		err = yaml.Unmarshal(b, &cidrConfig)
 		Expect(err).ToNot(HaveOccurred())

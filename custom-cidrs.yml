@@ -306,7 +306,7 @@ jobs:
       ENABLE_MULTI_AZ_TESTS: false
       ENABLE_K8S_LBS_TESTS: true
       ENABLE_CIDR_TESTS: true
-      CIDR_VARS_FILE: git-kubo-ci/manifests/vars-files/new-cidrs.yml
+      CIDR_VARS_FILE: manifests/vars-files/new-cidrs.yml
     on_failure: &on_failure_alert
       do:
       - task: configure-slack-notification

@@ -32,6 +32,10 @@ func NewKubectlRunner() *KubectlRunner {
 }
 
 func PathFromRoot(relativePath string) string {
+	if filepath.IsAbs(relativePath) {
+		return relativePath
+	}
+
 	_, filename, _, _ := runtime.Caller(0)
 	currentDir := filepath.Dir(filename)
 	return filepath.Join(currentDir, "..", "..", "..", relativePath)
