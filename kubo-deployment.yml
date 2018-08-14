@@ -642,6 +642,7 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
+      - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       <% if env =~ /^gcp/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       <% end %>
@@ -1028,6 +1029,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       no_redact: true
       ops_files:
       - git-kubo-ci/manifests/ops-files/add-api-server-endpoint.yml
+      - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/vm-types.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/addons-spec.yml
@@ -1309,6 +1311,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       no_redact: true
       ops_files:
       - git-kubo-ci/manifests/ops-files/add-api-server-endpoint.yml
+      - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/vm-types.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
@@ -1583,6 +1586,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/add-proxy.yml
       - git-kubo-deployment/manifests/ops-files/cf-routing.yml
       - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
+      - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
@@ -1861,6 +1865,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-ci/manifests/ops-files/use-separate-master-ca.yml
+      - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - git-kubo-deployment/manifests/ops-files/rename.yml
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"

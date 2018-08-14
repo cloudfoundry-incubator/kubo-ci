@@ -10,7 +10,6 @@ import (
 )
 
 var _ = Describe("Horizontal Pod Autoscaling", func() {
-
 	It("scales the pods accordingly", func() {
 		runHPAPod()
 		createHPA()
@@ -35,7 +34,7 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 			Eventually(session, "10s").Should(gexec.Exit(0))
 			replicas, _ := strconv.Atoi(string(session.Out.Contents()))
 			return replicas
-		}, "400s").Should(BeNumerically("==", 1))
+		}, "180s").Should(BeNumerically("==", 1))
 	})
 })
 
@@ -49,7 +48,7 @@ func runHPAPod() {
 }
 
 func createHPA() {
-	session := runner.RunKubectlCommand("autoscale", "deployment/php-apache", "--cpu-percent=25", "--min=1", "--max=10")
+	session := runner.RunKubectlCommand("autoscale", "deployment/php-apache", "--cpu-percent=25", "--min=1", "--max=2")
 	Eventually(session, "10s").Should(gexec.Exit(0))
 }
 

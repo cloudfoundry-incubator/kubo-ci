@@ -368,6 +368,7 @@ jobs:
       no_redact: true
       ops_files:
       - git-kubo-ci/manifests/ops-files/add-api-server-endpoint.yml
+      - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/vm-types.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/addons-spec.yml
@@ -677,6 +678,7 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
+      - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       <% if iaas =~ /^gcp/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       <% end %>
