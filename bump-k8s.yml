@@ -56,9 +56,9 @@ groups:
   jobs:
   - bump-k8s
 
-- name: bump-specs
+- name: bump-metrics-addons
   jobs:
-  - bump-dashboard-heapster-components
+  - bump-metrics-addons
 
 jobs:
 - name: bump-k8s
@@ -89,7 +89,7 @@ jobs:
         GIT_SSH_KEY: |
           ((git-ssh-key.private_key))
 
-- name: bump-dashboard-heapster-components
+- name: bump-metrics-addons
   plan:
   - aggregate:
     - get: heapster-release
