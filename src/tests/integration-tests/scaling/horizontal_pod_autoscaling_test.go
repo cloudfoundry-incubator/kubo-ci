@@ -35,7 +35,7 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 			Eventually(session, "10s").Should(gexec.Exit(0))
 			replicas, _ := strconv.Atoi(string(session.Out.Contents()))
 			return replicas
-		}, "300s").Should(BeNumerically("==", 1))
+		}, "400s").Should(BeNumerically("==", 1))
 	})
 })
 
