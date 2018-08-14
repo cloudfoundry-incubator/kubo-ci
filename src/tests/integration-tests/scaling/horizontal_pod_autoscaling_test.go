@@ -22,7 +22,7 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 			Eventually(session, "10s").Should(gexec.Exit(0))
 			replicas, _ := strconv.Atoi(string(session.Out.Contents()))
 			return replicas
-		}, "180s").Should(BeNumerically(">", 1))
+		}, "210s").Should(BeNumerically(">", 1))
 
 		By("decreasing the number of pods when the CPU load decreases")
 
@@ -34,7 +34,7 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 			Eventually(session, "10s").Should(gexec.Exit(0))
 			replicas, _ := strconv.Atoi(string(session.Out.Contents()))
 			return replicas
-		}, "180s").Should(BeNumerically("==", 1))
+		}, "210s").Should(BeNumerically("==", 1))
 	})
 })
 
