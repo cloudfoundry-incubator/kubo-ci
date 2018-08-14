@@ -19,6 +19,11 @@ resources:
   source:
     repository: cloudfoundry/bosh-dns-release
 
+- name: bpm-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/bpm-release
+
 jobs:
 - name: bump-boshdns-release
   plan:
@@ -33,6 +38,23 @@ jobs:
       boshrelease: boshdns-release
     params:
       RELEASE_NAME: bosh-dns
+  - put: git-kubo-deployment
+    params:
+      repository: git-kubo-deployment-output
+
+- name: bump-bpm-release
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+    - get: bpm-release
+      trigger: true
+  - task: bump-boshrelease
+    file: git-kubo-ci/tasks/bump-boshrelease.yml
+    input_mapping:
+      boshrelease: bpm-release
+    params:
+      RELEASE_NAME: bpm
   - put: git-kubo-deployment
     params:
       repository: git-kubo-deployment-output
