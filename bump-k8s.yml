@@ -23,19 +23,18 @@ resources:
     repository: heapster
     access_token: ((github-token-key))
 
-# Influxdb does not cut new releases, nor does it post images with every release
-# which is the case with heapster n k8s-dashboard
-# - name: influxdb-release
-#   type: github-release
-#   source:
-#     owner: influxdata
-#     repository: influxdb
-
 - name: kubernetes-dashboard-release
   type: github-release
   source:
     owner: kubernetes
     repository: dashboard
+    access_token: ((github-token-key))
+
+- name: metrics-server-release
+  type: github-release
+  source:
+    owner: kubernetes-incubator
+    repository: metrics-server
     access_token: ((github-token-key))
 
 - name: git-kubo-ci
@@ -95,8 +94,6 @@ jobs:
   - aggregate:
     - get: heapster-release
       trigger: true
-    # - get: influxdb-release
-    #   trigger: true
     - get: kubernetes-dashboard-release
       trigger: true
     - get: git-kubo-ci

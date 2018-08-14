@@ -16,7 +16,7 @@ inputs:
 - name: git-kubo-ci
 - name: git-kubo-release
 - name: heapster-release
-# - name: influxdb-release
+- name: metrics-server-release
 - name: kubernetes-dashboard-release
 - name: spec-to-update
 
