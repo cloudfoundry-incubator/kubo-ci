@@ -13,6 +13,7 @@ inputs:
 - name: git-kubo-release
 - name: heapster-release
 - name: kubernetes-dashboard-release
+- name: metrics-server-release
 
 outputs:
 - name: spec-to-update
