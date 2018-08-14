@@ -96,6 +96,8 @@ jobs:
       trigger: true
     - get: kubernetes-dashboard-release
       trigger: true
+    - get: metrics-server-release
+      trigger: true
     - get: git-kubo-ci
     - get: git-kubo-release
   - task: compare-specs
