@@ -3,9 +3,9 @@ name: concourse-worker
 
 releases:
 - name: concourse
-  sha1: 6224188701f71c64a4b51fed47a64f7cecbaeed2
-  url: https://bosh.io/d/github.com/concourse/concourse?v=4.0.0
-  version: 4.0.0
+  sha1: 739ff95802f9db73b89c76b14679410c624df64a
+  url: https://s3.amazonaws.com/concourse-release-candidates/concourse-4.0.1-rc.6.tgz
+  version: 4.0.1-rc.6
 - name: garden-runc
   sha1: 1a8805090ae4089dacc28f97996d00012c4c6e93
   url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.16.0
