@@ -35,7 +35,9 @@ func CountProcessesOnVmsOfType(deployment boshdir.Deployment, jobName, processNa
 func DeploymentVmsOfType(deployment boshdir.Deployment, jobName, processState string) []boshdir.VMInfo {
 	vms, err := deployment.VMInfos()
 	Expect(err).NotTo(HaveOccurred())
+	fmt.Fprintf(GinkgoWriter, "Bosh vms for deployment %s: \n", deployment.Name())
 	return VmsMatchingPredicate(vms, func(vmInfo boshdir.VMInfo) bool {
+		fmt.Fprintf(GinkgoWriter, "  %s - %s\n", vmInfo.JobName, vmInfo.ProcessState)
 		return vmInfo.JobName == jobName && vmInfo.ProcessState == processState
 	})
 }
