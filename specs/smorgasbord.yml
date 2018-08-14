@@ -18,7 +18,7 @@ spec:
         effect: NoSchedule
       containers:
       - name: fluentd-elasticsearch
-        image: gcr.io/google-containers/fluentd-elasticsearch:1.20
+        image: gcr.io/google-containers/fluentd-elasticsearch:v2.2.0
         resources:
           limits:
             memory: 200Mi
@@ -64,7 +64,7 @@ spec:
     spec:
       containers:
       - name: php-redis
-        image: gcr.io/google_samples/gb-frontend:v3
+        image: gcr.io/google_samples/gb-frontend:v5
         resources:
           requests:
             cpu: 100m
@@ -111,7 +111,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: k8s.gcr.io/nginx-slim:0.8
+        image: k8s.gcr.io/nginx-slim:0.27
         ports:
         - containerPort: 80
           name: web

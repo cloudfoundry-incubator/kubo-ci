@@ -13,11 +13,14 @@ spec:
   selector:
     app: pv-ex
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: web
 spec:
+  selector:
+    matchLabels:
+      app: pv-ex
   serviceName: "pv-ex-svc"
   replicas: 3
   template:
