@@ -1,5 +1,5 @@
 <%
-  iaas_list = %w(vsphere-lb gcp-lb aws-lb)
+  env_list = %w(vsphere-lb gcp-lb aws-lb)
   stemcell_types = {
     'gcp' => 'google-kvm',
     'gcp-lb' => 'google-kvm',
@@ -34,7 +34,7 @@ resource_types:
     repository: cfcommunity/bosh2-errand-resource
 
 resources:
-<% iaas_list.each do |env| %>
+<% env_list.each do |env| %>
 - name: stemcell-<%= env %>
   type: bosh-io-stemcell
   source:
@@ -56,14 +56,14 @@ resources:
     private_key: ((git-ssh-key.private_key))
     access_token: ((github-token-key))
 
-<% iaas_list.each do |iaas| %>
-- name: kubo-lock-<%= iaas %>
+<% env_list.each do |env| %>
+- name: kubo-lock-<%= env %>
   type: pool
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key.private_key))
-    pool: kubo-<%= iaas %>
+    pool: kubo-<%= env %>
 <% end %>
 
 - name: gcs-bosh-state
@@ -141,8 +141,8 @@ jobs:
         path: git-kubo-deployment
         status: failure
 
-<% iaas_list.each do |iaas| %>
-- name: claim-lock-<%= iaas %>
+<% env_list.each do |env| %>
+- name: claim-lock-<%= env %>
   plan:
   - aggregate:
     - get: git-kubo-deployment
@@ -153,48 +153,48 @@ jobs:
     params:
       path: git-kubo-deployment
       status: pending
-  - put: kubo-lock-<%= iaas %>
+  - put: kubo-lock-<%= env %>
     params: { acquire: true }
 
-- name: install-bosh-<%= iaas %>
+- name: install-bosh-<%= env %>
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-deployment
-      passed: [ 'claim-lock-<%= iaas %>' ]
+      passed: [ 'claim-lock-<%= env %>' ]
     - get: kubo-lock
-      resource: kubo-lock-<%= iaas %>
+      resource: kubo-lock-<%= env %>
       version: every
       trigger: true
-      passed: [ 'claim-lock-<%= iaas %>' ]
+      passed: [ 'claim-lock-<%= env %>' ]
   - put: git-kubo-deployment
     params:
       path: git-kubo-deployment
       status: pending
   - task: install
-    tags: [<%= iaas %>]
+    tags: [<%= env %>]
     file: git-kubo-ci/tasks/install-bosh.yml
     params:
-      <% if iaas.include? 'openstack' %>
+      <% if env.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
-      <% elsif iaas =~ /^(gcp|vsphere-lb)/ %>
-      CLOUD_CONFIG_OPS_FILE: <%= iaas %>-k8s-cloud-config-multiaz.yml
-      <% elsif iaas.include? 'aws-lb' %>
+      <% elsif env =~ /^(gcp|vsphere-lb)/ %>
+      CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
+      <% elsif env.include? 'aws-lb' %>
       CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
       <% end %>
-    on_failure: &on_failure_<%= iaas %>
+    on_failure: &on_failure_<%= env %>
       aggregate:
       - put: git-kubo-deployment
         params:
           path: git-kubo-deployment
           status: failure
       - do:
-        - task: cleanup-<%= iaas %>
-          tags: [<%= iaas %>]
-          file: git-kubo-ci/tasks/cleanup-<%= iaas.split('-').first %>-environment.yml
+        - task: cleanup-<%= env %>
+          tags: [<%= env %>]
+          file: git-kubo-ci/tasks/cleanup-<%= env.split('-').first %>-environment.yml
           params:
             ENV_FILE: kubo-lock/metadata
-        - put: kubo-lock-<%= iaas %>
+        - put: kubo-lock-<%= env %>
           params: { release: kubo-lock }
   - aggregate:
     - put: gcs-bosh-creds
@@ -215,31 +215,31 @@ jobs:
       params:
         file: source-json/source.json
 
-- name: deploy-k8s-<%= iaas %>
+- name: deploy-k8s-<%= env %>
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-lock
-      resource: kubo-lock-<%= iaas %>
+      resource: kubo-lock-<%= env %>
       version: every
       trigger: true
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-<%= env %>' ]
     - get: git-kubo-deployment
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-kubo-release-tarball
     - get: gcs-bosh-state
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-source-json
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-load-balancer-vars
-      passed: [ 'install-bosh-<%= iaas %>' ]
+      passed: [ 'install-bosh-<%= env %>' ]
     - get: stemcell
-      resource: stemcell-<%= iaas %>
-  <% if iaas =~ /^vsphere/ %>
+      resource: stemcell-<%= env %>
+  <% if env =~ /^vsphere/ %>
   - task: get_director_uuid
-    tags: ['<%= iaas %>']
+    tags: ['<%= env %>']
     file: git-kubo-ci/tasks/get_director_uuid.yml
   <% end %>
   - put: git-kubo-deployment
@@ -258,17 +258,17 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
-      <% if iaas =~ /^gcp/ %>
+      <% if env =~ /^gcp/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       <% end %>
-      <% if iaas =~ /^aws/ %>
+      <% if env =~ /^aws/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
       <% end %>
-      <% if iaas =~ /^openstack/ %>
+      <% if env =~ /^openstack/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/openstack/cloud-provider.yml
       <% end %>
-      <% if iaas =~ /^vsphere/ %>
+      <% if env =~ /^vsphere/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
       <% end %>
       var_files:
@@ -276,7 +276,7 @@ jobs:
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
-      <% if iaas =~ /^vsphere/ %>
+      <% if env =~ /^vsphere/ %>
       - director_uuid/var.yml
       <% end %>
       stemcells:
@@ -287,52 +287,54 @@ jobs:
       vars:
         deployment_name: ci-service
         worker_count: 3
-    tags: [<%= iaas %>]
-    on_failure: *on_failure_<%= iaas %>
+    tags: [<%= env %>]
+    on_failure: *on_failure_<%= env %>
   - task: update-kubeconfig
-    tags: ['<%= iaas %>']
+    tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
   - put: run-apply-addons-errand
     params:
       name: apply-addons
       keep_alive: true
       source_file: gcs-source-json/source.json
-    tags: [<%= iaas %>]
-    on_failure: *on_failure_<%= iaas %>
+    tags: [<%= env %>]
+    on_failure: *on_failure_<%= env %>
   - put: run-smoke-tests-errand
     params:
       name: smoke-tests
       keep_alive: true
       source_file: gcs-source-json/source.json
-    tags: [<%= iaas %>]
-    on_failure: *on_failure_<%= iaas %>
+    tags: [<%= env %>]
+    on_failure: *on_failure_<%= env %>
   - put: gcs-kubeconfig
     params:
       file: kubeconfig/config
 
-- name: run-k8s-integration-tests-<%= iaas %>
+- name: run-k8s-integration-tests-<%= env %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
+    - get: kubo-lock-<%= env %>
       version: every
       trigger: true
-      passed: [ 'deploy-k8s-<%= iaas %>' ]
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: git-kubo-deployment
-      passed: [ 'deploy-k8s-<%= iaas %>' ]
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-bosh-state
-      passed: [ 'deploy-k8s-<%= iaas %>' ]
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'deploy-k8s-<%= iaas %>' ]
+      passed: [ 'deploy-k8s-<%= env %>' ]
+    - get: gcs-kubeconfig
+      passed: [ 'deploy-k8s-<%= env %>' ]
   - put: git-kubo-deployment
     params:
       path: git-kubo-deployment
       status: pending
   - task: integration-tests
-    tags: [<%= iaas %>]
+    tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure: *on_failure_<%= iaas %>
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure_<%= env %>
     params:
       DEPLOYMENT_NAME: ci-service
       ENABLE_ADDONS_TESTS: true
@@ -342,66 +344,66 @@ jobs:
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
   - task: pod-to-pod
-    tags: [<%= iaas %>]
+    tags: [<%= env %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure: *on_failure_<%= iaas %>
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure_<%= env %>
 
-- name: destroy-k8s-<%= iaas %>
+- name: destroy-k8s-<%= env %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-<%= iaas %>
+    - get: kubo-lock-<%= env %>
       version: every
       trigger: true
-      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
     - get: git-kubo-deployment
-      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
     - get: gcs-bosh-state
-      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'run-k8s-integration-tests-<%= iaas %>' ]
+      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
   - put: git-kubo-deployment
     params:
       path: git-kubo-deployment
       status: pending
   - task: destroy-k8s
-    tags: [<%= iaas %>]
+    tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure: *on_failure_<%= iaas %>
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure_<%= env %>
 
-- name: destroy-bosh-<%= iaas %>
+- name: destroy-bosh-<%= env %>
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-deployment
-      passed: [ 'destroy-k8s-<%= iaas %>' ]
-    - get: kubo-lock-<%= iaas %>
+      passed: [ 'destroy-k8s-<%= env %>' ]
+    - get: kubo-lock-<%= env %>
       version: every
       trigger: true
-      passed: [ 'destroy-k8s-<%= iaas %>' ]
+      passed: [ 'destroy-k8s-<%= env %>' ]
     - get: gcs-bosh-state
-      passed: [ 'destroy-k8s-<%= iaas %>' ]
+      passed: [ 'destroy-k8s-<%= env %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'destroy-k8s-<%= iaas %>' ]
+      passed: [ 'destroy-k8s-<%= env %>' ]
   - put: git-kubo-deployment
     params:
       path: git-kubo-deployment
       status: pending
   - task: destroy
-    tags: [<%= iaas %>]
+    tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= iaas %>}
-    on_failure: *on_failure_<%= iaas %>
-  - put: kubo-lock-<%= iaas %>
-    params: { release: kubo-lock-<%= iaas %> }
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure_<%= env %>
+  - put: kubo-lock-<%= env %>
+    params: { release: kubo-lock-<%= env %> }
 <% end %>
 
 - name: success-notification
   plan:
   - get: git-kubo-deployment
-    passed: <%= iaas_list.collect { |iaas| "destroy-bosh-#{iaas}" } %>
+    passed: <%= env_list.collect { |env| "destroy-bosh-#{env}" } %>
     trigger: true
   - get: git-kubo-ci
   - put: git-kubo-deployment

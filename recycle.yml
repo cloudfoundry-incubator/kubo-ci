@@ -43,7 +43,7 @@ resources:
 
 jobs:
 <% pools.each do |pool| %>
-<% iaas = pool.gsub(/-.*/, '') %>
+<% env = pool.gsub(/-.*/, '') %>
 - name: claim-lock-<%= pool %>
   plan:
   - get: kubo-lock-<%= pool %>-lifecycle-trigger
@@ -60,10 +60,10 @@ jobs:
       passed: [ 'claim-lock-<%= pool %>' ]
     - get: git-kubo-ci
   - task: cleanup-<%= pool %>
-    file: git-kubo-ci/tasks/cleanup-<%= iaas %>-environment.yml
+    file: git-kubo-ci/tasks/cleanup-<%= env %>-environment.yml
     params: { ENV_FILE: 'kubo-lock/metadata' }
     tags:
-    - <%= iaas %>
+    - <%= env %>
     input_mapping:
       kubo-lock: kubo-lock-<%= pool %>-lifecycle
   - put: kubo-lock-<%= pool %>
