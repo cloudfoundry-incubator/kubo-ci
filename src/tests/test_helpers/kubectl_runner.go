@@ -188,8 +188,8 @@ func (runner *KubectlRunner) GetPodStatus(namespace string, podName string) stri
 	return podStatus
 }
 
-func (runner *KubectlRunner) GetPodNameBySelector(namespace string, selector string) string {
-	session := runner.RunKubectlCommandInNamespace(namespace, "get", "pod", "-l", selector, "-o", "jsonpath={.items[0].metadata.name}")
+func (runner *KubectlRunner) GetResourceNameBySelector(namespace, resource, selector string) string {
+	session := runner.RunKubectlCommandInNamespace(namespace, "get", resource, "-l", selector, "-o", "jsonpath={.items[0].metadata.name}")
 	Eventually(session, "10s").Should(gexec.Exit(0))
 
 	return string(session.Out.Contents())

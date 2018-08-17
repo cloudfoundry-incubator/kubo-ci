@@ -140,9 +140,12 @@ var _ = Describe("BackupAndRestore", func() {
 		})
 
 		By("Waiting for system workloads", func() {
-			expectedDeployments := []string{"kube-dns", "heapster", "kubernetes-dashboard", "monitoring-influxdb"}
+			expectedSelector := []string{"kube-dns", "heapster", "kubernetes-dashboard", "influxdb"}
+			runner := NewKubectlRunner()
+
 			systemDeploymentApi := k8s.AppsV1().Deployments("kube-system")
-			for _, deployment := range expectedDeployments {
+			for _, selector := range expectedSelector {
+				deployment := runner.GetResourceNameBySelector("kube-system", "deployment", "k8s-app="+selector)
 				err = WaitForDeployment(systemDeploymentApi, "kube-system", deployment)
 				Expect(err).NotTo(HaveOccurred())
 			}
