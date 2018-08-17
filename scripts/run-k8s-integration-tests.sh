@@ -5,14 +5,15 @@ set -eu -o pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
 export GOPATH="${ROOT}/git-kubo-ci"
+kubeconfig="gcs-kubeconfig/${KUBECONFIG_FILE}"
 
 main() {
-  if [[ ! -e gcs-kubeconfig/config ]]; then
+  if [[ ! -e "${kubeconfig}" ]]; then
     echo "Did not find kubeconfig at gcs-kubeconfig/config!"
     exit 1
   fi
   mkdir -p ~/.kube
-  cp gcs-kubeconfig/config ~/.kube/config
+  cp ${kubeconfig} ~/.kube/config
 
   skipped_packages=""
 

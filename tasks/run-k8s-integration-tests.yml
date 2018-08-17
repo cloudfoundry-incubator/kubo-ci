@@ -15,6 +15,7 @@ params:
   ENABLE_K8S_LBS_TESTS: true
   ENABLE_CIDR_TESTS: false
   CIDR_VARS_FILE: manifests/vars-files/default-cidrs.yml
+  KUBECONFIG_FILE: config
 
 inputs:
   - name: git-kubo-ci
