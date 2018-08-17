@@ -195,6 +195,13 @@ func (runner *KubectlRunner) GetPodStatus(namespace string, podName string) stri
 	return podStatus
 }
 
+func (runner *KubectlRunner) GetPodNameBySelector(namespace string, selector string) string {
+	session := runner.RunKubectlCommandInNamespace(namespace, "get", "pod", "-l", selector, "-o", "jsonpath={.items[0].metadata.name}")
+	Eventually(session, "10s").Should(gexec.Exit(0))
+
+	return string(session.Out.Contents())
+}
+
 func (runner *KubectlRunner) GetPodStatusBySelector(namespace string, selector string) string {
 	var session *gexec.Session
 	Eventually(func() string {
