@@ -19,6 +19,7 @@
   conformance_test_enves = enves
   proxy_enves = %w(vsphere)
   bbr_test_enves = %w(gcp-lb)
+  coredns_test_envs = %w(gcp-lb)
 %>
 ---
 groups:
@@ -27,8 +28,6 @@ groups:
   - run-unit-tests
   - build-kubo-release
   - package-kubo-deployment-tarball
-  - deploy-k8s-coredns
-  - run-k8s-integration-tests-coredns
 <% enves.each do |env| %>
   - run-k8s-conformance-tests-<%= env %>
 <% end %>
@@ -48,6 +47,14 @@ groups:
   - run-k8s-bbr-tests-<%= env %>
   - destroy-k8s-bbr-<%= env %>
   - destroy-bosh-bbr-<%= env %>
+<% end %>
+<% coredns_test_envs.each do |env| %>
+  - claim-lock-coredns-<%= env %>
+  - install-bosh-coredns-<%= env %>
+  - deploy-k8s-coredns-<%= env %>
+  - run-k8s-integration-tests-coredns-<%= env %>
+  - destroy-k8s-coredns-<%= env %>
+  - destroy-bosh-coredns-<%= env %>
 <% end %>
 <% upgrade_test_enves.each do |env| %>
   - claim-lock-upgrade-<%= env %>
@@ -96,10 +103,6 @@ groups:
   - install-bosh-<%= env %>
   - deploy-k8s-<%= env %>
   - run-k8s-integration-tests-<%= env %>
-  <% if env == 'gcp-lb' %>
-  - deploy-k8s-coredns
-  - run-k8s-integration-tests-coredns
-  <% end %>
   <% if bbr_test_enves.include? env %>
   - claim-lock-bbr-<%= env %>
   - install-bosh-bbr-<%= env %>
@@ -107,6 +110,14 @@ groups:
   - run-k8s-bbr-tests-<%= env %>
   - destroy-k8s-bbr-<%= env %>
   - destroy-bosh-bbr-<%= env %>
+  <% end %>
+  <% if coredns_test_envs.include? env %>
+  - claim-lock-coredns-<%= env %>
+  - install-bosh-coredns-<%= env %>
+  - deploy-k8s-coredns-<%= env %>
+  - run-k8s-integration-tests-coredns-<%= env %>
+  - destroy-k8s-coredns-<%= env %>
+  - destroy-bosh-coredns-<%= env %>
   <% end %>
   <% if conformance_test_enves.include? env %>
   - run-k8s-conformance-tests-<%= env %>
@@ -196,8 +207,14 @@ groups:
   <% end %>
 - name: coredns
   jobs:
-    - deploy-k8s-coredns
-    - run-k8s-integration-tests-coredns
+  <% coredns_test_envs.each do |env| %>
+    - claim-lock-coredns-<%= env %>
+    - install-bosh-coredns-<%= env %>
+    - deploy-k8s-coredns-<%= env %>
+    - run-k8s-integration-tests-coredns-<%= env %>
+    - destroy-k8s-coredns-<%= env %>
+    - destroy-bosh-coredns-<%= env %>
+  <% end %>
 
 resource_types:
 - name: gcs
@@ -291,34 +308,16 @@ resources:
     deployment: ci-service
     skip_check: true
 
-- name: cfcr-deployment-coredns
-  type: bosh-deployment
-  source:
-    deployment: cfcr-coredns
-    skip_check: true
-
 - name: run-apply-addons-errand
   type: bosh-errand
   source:
     deployment: ci-service
     skip_check: true
 
-- name: run-apply-addons-errand-coredns
-  type: bosh-errand
-  source:
-    deployment: cfcr-coredns
-    skip_check: true
-
 - name: run-smoke-tests-errand
   type: bosh-errand
   source:
     deployment: ci-service
-    skip_check: true
-
-- name: run-smoke-tests-errand-coredns
-  type: bosh-errand
-  source:
-    deployment: cfcr-coredns
     skip_check: true
 
 <% env_list.each do |env| %>
@@ -367,13 +366,6 @@ resources:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     versioned_file: k8s/config
-
-- name: gcs-kubeconfig-coredns
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
-    versioned_file: k8s/config-coredns
 
 - name: gcs-kubo-release-tarball-untested
   type: gcs
@@ -868,10 +860,6 @@ jobs:
 
 <%
   destroy_k8s_passed_reqs = ["run-k8s-turbulence-tests-#{env}"]
-
-  if env == 'gcp-lb'
-    destroy_k8s_passed_reqs << 'run-k8s-integration-tests-coredns'
-  end
 %>
 
 - name: destroy-k8s-<%= env %>
@@ -2260,7 +2248,73 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     params: { release: kubo-lock-<%= env %> }
 <% end %>
 
-- name: deploy-k8s-coredns
+<% coredns_test_envs.each do |env| %>
+- name: claim-lock-coredns-<%= env %>
+  max_in_flight: 1
+  plan:
+  - aggregate:
+    - get: kubo-version
+      passed: [ 'package-kubo-deployment-tarball' ]
+      trigger: true
+    - get: git-kubo-release
+      passed: [ 'package-kubo-deployment-tarball' ]
+    - get: git-kubo-deployment
+      passed: [ 'package-kubo-deployment-tarball' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'package-kubo-deployment-tarball' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'package-kubo-deployment-tarball' ]
+  - put: kubo-lock-<%= env %>
+    params: { acquire: true }
+
+- name: install-bosh-coredns-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed: [ 'claim-lock-coredns-<%= env %>' ]
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: [ 'claim-lock-coredns-<%= env %>' ]
+    - get: gcs-kubo-release-tarball-untested
+      passed: [ 'claim-lock-coredns-<%= env %>' ]
+    - get: git-kubo-release
+      passed: [ 'claim-lock-coredns-<%= env %>' ]
+    - get: kubo-version
+      passed: [ 'claim-lock-coredns-<%= env %>' ]
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: [ 'claim-lock-coredns-<%= env %>' ]
+  - task: install
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/install-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    params:
+      CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
+    on_failure: *on_failure_alert
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+  - task: generate-load-balancer-vars
+    file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+  - task: generate-source-json
+    file: git-kubo-ci/tasks/generate-source-json.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+  - aggregate:
+    - put: gcs-load-balancer-vars
+      params:
+        file: load-balancer-vars/vars.yml
+    - put: gcs-source-json
+      params:
+        file: source-json/source.json
+
+- name: deploy-k8s-coredns-<%= env %>
   plan:
   - aggregate:
     - get: slackers
@@ -2269,28 +2323,28 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       resource: kubo-lock-gcp-lb
       version: every
       trigger: true
-      passed: [ 'install-bosh-gcp-lb' ]
+      passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: git-kubo-deployment
-      passed: [ 'install-bosh-gcp-lb' ]
+      passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: git-kubo-release
-      passed: [ 'install-bosh-gcp-lb' ]
+      passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: kubo-version
-      passed: [ 'install-bosh-gcp-lb' ]
+      passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: gcs-bosh-state
-      passed: [ 'install-bosh-gcp-lb' ]
+      passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'install-bosh-gcp-lb' ]
+      passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'install-bosh-gcp-lb' ]
+      passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'install-bosh-gcp-lb' ]
+      passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: gcs-source-json
-      passed: [ 'install-bosh-gcp-lb' ]
+      passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: gcs-load-balancer-vars
-      passed: [ 'install-bosh-gcp-lb' ]
+      passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: stemcell
       resource: stemcell-gcp-lb
-  - put: cfcr-deployment-coredns
+  - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
       cleanup: true
@@ -2316,34 +2370,32 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       - gcs-kubo-release-tarball-untested/*.tgz
       source_file: gcs-source-json/source.json
       vars:
-        deployment_name: cfcr-coredns
+        deployment_name: ci-service
         worker_count: 3
-    tags: ['gcp-lb']
+    tags: ['<%= env %>']
     on_failure: *on_failure_alert
-  - task: update-kubeconfig-coredns
-    tags: ['gcp-lb']
+  - task: update-kubeconfig
+    tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
-    params:
-      DEPLOYMENT_NAME: cfcr-coredns
-  - put: run-apply-addons-errand-coredns
+  - put: run-apply-addons-errand
     params:
       name: apply-addons
       keep_alive: true
       source_file: gcs-source-json/source.json
-    tags: ['gcp-lb']
+    tags: ['<%= env %>']
     on_failure: *on_failure_alert
-  - put: run-smoke-tests-errand-coredns
+  - put: run-smoke-tests-errand
     params:
       name: smoke-tests
       keep_alive: true
       source_file: gcs-source-json/source.json
-    tags: ['gcp-lb']
+    tags: ['<%= env %>']
     on_failure: *on_failure_alert
-  - put: gcs-kubeconfig-coredns
+  - put: gcs-kubeconfig
     params:
       file: kubeconfig/config
 
-- name: run-k8s-integration-tests-coredns
+- name: run-k8s-integration-tests-coredns-<%= env %>
   plan:
   - aggregate:
     - get: slackers
@@ -2351,52 +2403,113 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     - get: kubo-lock-gcp-lb
       version: every
       trigger: true
-      passed: [ 'deploy-k8s-coredns' ]
+      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
     - get: git-kubo-deployment
-      passed: [ 'deploy-k8s-coredns' ]
+      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
     - get: gcs-bosh-state
-      passed: [ 'deploy-k8s-coredns' ]
+      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'deploy-k8s-coredns' ]
+      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
     - get: kubo-version
-      passed: [ 'deploy-k8s-coredns' ]
+      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
     - get: git-kubo-release
-      passed: [ 'deploy-k8s-coredns' ]
+      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'deploy-k8s-coredns' ]
+      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'deploy-k8s-coredns' ]
+      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
     - get: gcs-source-json
-      passed: [ 'deploy-k8s-coredns' ]
-    - get: gcs-kubeconfig-coredns
-      passed: [ 'deploy-k8s-coredns' ]
+      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
+    - get: gcs-kubeconfig
+      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
   - task: integration-tests
-    tags: [gcp-lb]
+    tags: ['<%= env %>']
     file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
     input_mapping:
       kubo-lock: kubo-lock-gcp-lb
-      gcs-kubeconfig: gcs-kubeconfig-coredns
     on_failure: *on_failure_alert
     params:
-      DEPLOYMENT_NAME: cfcr-coredns
-      KUBECONFIG_FILE: config-coredns
+      DEPLOYMENT_NAME: ci-service
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
       ENABLE_MULTI_AZ_TESTS: true
       ENABLE_K8S_LBS_TESTS: true
   - task: pod-to-pod
-    tags: [gcp-lb]
+    tags: ['<%= env %>']
     file: git-kubo-ci/tasks/pod-to-pod.yml
     input_mapping: {kubo-lock: kubo-lock-gcp-lb}
     on_failure: *on_failure_alert
     params:
-      DEPLOYMENT_NAME: cfcr-coredns
+      DEPLOYMENT_NAME: ci-service
+
+- name: destroy-k8s-coredns-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: git-kubo-ci
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+    - get: kubo-version
+      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+    - get: git-kubo-deployment
+      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+    - get: git-kubo-release
+      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+    - get: gcs-bosh-state
+      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+    - get: gcs-bosh-creds
+      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+    - get: gcs-kubo-release-tarball-untested
+      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+  - task: destroy-k8s
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure_alert
+
+- name: destroy-bosh-coredns-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      passed: ['destroy-k8s-coredns-<%= env %>']
+    - get: git-kubo-release
+      passed: ['destroy-k8s-coredns-<%= env %>']
+    - get: kubo-lock-<%= env %>
+      version: every
+      trigger: true
+      passed: ['destroy-k8s-coredns-<%= env %>']
+    - get: kubo-version
+      passed: ['destroy-k8s-coredns-<%= env %>']
+    - get: gcs-bosh-state
+      passed: ['destroy-k8s-coredns-<%= env %>']
+    - get: gcs-bosh-creds
+      passed: ['destroy-k8s-coredns-<%= env %>']
+    - get: gcs-kubo-release-tarball-untested
+      passed: ['destroy-k8s-coredns-<%= env %>']
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: ['destroy-k8s-coredns-<%= env %>']
+  - task: destroy
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/destroy-bosh.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    on_failure: *on_failure_alert
+  - put: kubo-lock-<%= env %>
+    params: { release: kubo-lock-<%= env %> }
+<% end %>
+
 <%
   passed_requirements = env_list.map {|env| "destroy-bosh-#{env}" unless env == 'openstack'}.compact
   passed_requirements += upgrade_test_enves.map {|env| "destroy-bosh-upgrade-#{env}" unless env == 'openstack'}.compact
   passed_requirements += proxy_enves.map {|env| "destroy-bosh-proxy-#{env}"}.compact
   passed_requirements += bbr_test_enves.map {|env| "destroy-bosh-bbr-#{env}"}.compact
   passed_requirements += multi_master_upgrade_test_enves.map {|env| "destroy-bosh-upgrade-multi-master-#{env}" }.compact
+  passed_requirements += coredns_test_envs.map { |env| "destroy-bosh-coredns-#{env}" }.compact
 %>
 
 - name: upload-kubo-deployment
