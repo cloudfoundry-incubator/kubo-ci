@@ -1363,8 +1363,21 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
         master_vm_type: master
     tags: [<%= env %>]
     on_failure: *on_failure_alert
-  - task: update-kubeconfig
+  - put: run-apply-addons-errand
+    params:
+      name: apply-addons
+      keep_alive: true
+      source_file: gcs-source-json/source.json
     tags: ['<%= env %>']
+    on_failure: *on_failure_alert
+  - put: run-smoke-tests-errand
+    params:
+      name: smoke-tests
+      keep_alive: true
+      source_file: gcs-source-json/source.json
+    tags: ['<%= env %>']
+    on_failure: *on_failure_alert
+  - task: update-kubeconfig
     file: git-kubo-ci/tasks/update-kubeconfig.yml
   - put: gcs-kubeconfig
     params:
