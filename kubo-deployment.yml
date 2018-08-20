@@ -836,11 +836,6 @@ jobs:
       passed: <%= turbulence_passed_reqs %>
     - get: kubo-version
       passed: <%= turbulence_passed_reqs %>
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
-    tags: ['<%= env %>']
 
   - task: turbulence-tests
     file: git-kubo-ci/tasks/run-k8s-turbulence-tests.yml
@@ -1130,10 +1125,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-<%= env %>' ]
     - get: stemcell
       resource: stemcell-<%= env %>
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
     tags: ['<%= env %>']
   - task: get_director_uuid
     tags: ['<%= env %>']
@@ -1410,11 +1401,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-multi-master-<%= env %>' ]
     - get: stemcell
       resource: stemcell-<%= env %>
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
-    tags: ['<%= env %>']
   - task: create-bosh-upgrade-deployment
     params:
       ENABLE_MULTI_AZ_TESTS: true
@@ -1874,11 +1860,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: stemcell
       resource: stemcell-gcp-lb
 
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball-untested
-    tags: [ gcp ]
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
