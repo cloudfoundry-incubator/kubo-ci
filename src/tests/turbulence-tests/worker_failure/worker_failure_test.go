@@ -83,7 +83,7 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 			runningWorkerVms = DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 			return runningWorkerVms
 		}
-		Eventually(getRunningWorkerVms).Should(HaveLen(3))
+		Eventually(getRunningWorkerVms, "10s", "1s").Should(HaveLen(3))
 
 		_, err := GetNewVmId(runningWorkerVms, nodeNames)
 		Expect(err).ToNot(HaveOccurred())
