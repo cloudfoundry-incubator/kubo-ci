@@ -1379,9 +1379,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     on_failure: *on_failure_alert
   - task: update-kubeconfig
     file: git-kubo-ci/tasks/update-kubeconfig.yml
+    tags: ['<%= env %>']
   - put: gcs-kubeconfig
     params:
       file: kubeconfig/config
+    tags: ['<%= env %>']
 
 - name: upgrade-kubo-multi-master-<%= env %>
   plan:
