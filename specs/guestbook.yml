@@ -20,6 +20,7 @@ kind: Deployment
 metadata:
   name: redis-master
 spec:
+  progressDeadlineSeconds: 1200
   selector:
     matchLabels:
         app: redis
@@ -63,6 +64,7 @@ kind: Deployment
 metadata:
   name: redis-slave
 spec:
+  progressDeadlineSeconds: 1200
   selector:
     matchLabels:
         app: redis
@@ -108,6 +110,7 @@ kind: Deployment
 metadata:
   name: frontend
 spec:
+  progressDeadlineSeconds: 1200
   selector:
     matchLabels:
         app: guestbook
