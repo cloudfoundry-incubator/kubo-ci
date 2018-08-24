@@ -1,10 +1,11 @@
 <%
-  enves = %w(aws-lb openstack gcp-lb vsphere-lb)
+  enves = %w(aws-lb openstack gcp-lb vsphere-lb vsphere-proxy)
   stemcell_types = {
     'gcp' => 'google-kvm',
     'gcp-lb' => 'google-kvm',
     'vsphere' => 'vsphere-esxi',
     'vsphere-lb' => 'vsphere-esxi',
+    'vsphere-proxy' => 'vsphere-esxi',
     'aws' => 'aws-xen-hvm',
     'aws-lb' => 'aws-xen-hvm',
     'openstack' => 'openstack-kvm'
@@ -13,11 +14,11 @@
   env_list = enves + additional_envs
   enable_failure_alert = true
 
-  upgrade_test_enves = %w(gcp-lb)
+  upgrade_test_enves = %w(gcp-lb vsphere-proxy)
   multi_master_upgrade_test_enves = %w(aws-lb gcp-lb vsphere-lb)
   enves_for_new_bosh_stemcell = upgrade_test_enves | multi_master_upgrade_test_enves
   conformance_test_enves = enves
-  proxy_enves = %w(vsphere)
+  proxy_enves = %w(vsphere-proxy)
   bbr_test_enves = %w(gcp-lb)
   coredns_test_envs = %w(gcp-lb)
 %>
@@ -78,12 +79,18 @@ groups:
   - destroy-k8s-two-cas
   - destroy-bosh-two-cas
 <% proxy_enves.each do |env| %>
-  - claim-lock-proxy-<%= env %>
-  - install-bosh-proxy-<%= env %>
-  - deploy-k8s-proxy-<%= env %>
-  - run-k8s-integration-tests-proxy-<%= env %>
-  - destroy-k8s-proxy-<%= env %>
-  - destroy-bosh-proxy-<%= env %>
+  - claim-lock-<%= env %>
+  - install-bosh-<%= env %>
+  - deploy-k8s-<%= env %>
+  - run-k8s-integration-tests-<%= env %>
+  - destroy-k8s-<%= env %>
+  - destroy-bosh-<%= env %>
+  - claim-lock-upgrade-<%= env %>
+  - install-bosh-for-upgrade-<%= env %>
+  - deploy-old-k8s-<%= env %>
+  - upgrade-kubo-<%= env %>
+  - destroy-k8s-upgrade-<%= env %>
+  - destroy-bosh-upgrade-<%= env %>
 <% end %>
   - upload-kubo-deployment
   - upload-kubo-release
@@ -154,9 +161,6 @@ groups:
   <% env_list.each do |env| %>
   - run-k8s-integration-tests-<%= env %>
   <% end %>
-  <% proxy_enves.each do |env| %>
-  - run-k8s-integration-tests-proxy-<%= env %>
-  <% end %>
 - name: conformance
   jobs:
   <% conformance_test_enves.each do |env| %>
@@ -188,12 +192,12 @@ groups:
 - name: proxy
   jobs:
   <% proxy_enves.each do |env| %>
-    - claim-lock-proxy-<%= env %>
-    - install-bosh-proxy-<%= env %>
-    - deploy-k8s-proxy-<%= env %>
-    - run-k8s-integration-tests-proxy-<%= env %>
-    - destroy-k8s-proxy-<%= env %>
-    - destroy-bosh-proxy-<%= env %>
+    - claim-lock-<%= env %>
+    - install-bosh-<%= env %>
+    - deploy-k8s-<%= env %>
+    - run-k8s-integration-tests-<%= env %>
+    - destroy-k8s-<%= env %>
+    - destroy-bosh-<%= env %>
   <% end %>
 - name: bbr
   jobs:
@@ -329,14 +333,6 @@ resources:
     private_key: ((git-ssh-key.private_key))
     pool: kubo-<%= env %>
 <% end %>
-
-- name: kubo-lock-proxy-vsphere
-  type: pool
-  source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-    branch: master
-    private_key: ((git-ssh-key.private_key))
-    pool: kubo-vsphere-proxy
 
 - name: kubo-lock-two-cas
   type: pool
@@ -658,6 +654,13 @@ jobs:
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/get_director_uuid.yml
   <% end %>
+  <% if env =~ /^vsphere-proxy/ %>
+  - task: apply-cloud-config-for-proxy
+    file: git-kubo-ci/tasks/apply-cloud-config.yml
+    tags: ['<%= env %>']
+    params:
+      PROXY_STATIC_IP: 10.74.42.132
+  <% end %>
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -688,6 +691,10 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
       <% end %>
+      <% if env =~ /^vsphere-proxy/ %>
+      - git-kubo-deployment/manifests/ops-files/add-proxy.yml
+      - git-kubo-deployment/manifests/ops-files/cf-routing.yml
+      <% end %>
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
@@ -704,8 +711,25 @@ jobs:
       vars:
         deployment_name: ci-service
         worker_count: 3
+        <% if env =~ /^vsphere-proxy/ %>
+        http_proxy: 10.74.42.132:8888
+        https_proxy: 10.74.42.132:8888
+        no_proxy: .internal,10.74.42.128/25,10.200.0.0/16,10.100.0.0/16
+        <% end %>
     tags: [<%= env %>]
     on_failure: *on_failure_alert
+  <% if env =~ /^vsphere-proxy/ %>
+  - put: tinyproxy-deployment
+    tags: ['<%= env %>']
+    params:
+      manifest: git-kubo-ci/manifests/tinyproxy/manifest.yml
+      source_file: gcs-source-json/source.json
+      stemcells:
+      - stemcell/stemcell.tgz
+      vars:
+        proxy_static_ip: 10.74.42.132
+    on_failure: *on_failure_alert
+  <% end %>
   - task: update-kubeconfig
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
@@ -885,6 +909,12 @@ jobs:
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
+  <% if env =~ /^vsphere-proxy/ %>
+  - task: destroy-tinyproxy
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/destroy-tinyproxy.yml
+    on_failure: *on_failure_alert
+  <% end %>
 
 <%
 destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
@@ -1045,6 +1075,18 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     file: git-kubo-ci/tasks/upload-stemcell.yml
     params:
       IAAS: <%= env.split('-')[0] %>
+  <% if env =~ /^vsphere/ %>
+  - task: get_director_uuid
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/get_director_uuid.yml
+  <% end %>
+  <% if env =~ /^vsphere-proxy/ %>
+  - task: apply-cloud-config-for-proxy
+    file: git-kubo-ci/tasks/apply-cloud-config.yml
+    tags: ['<%= env %>']
+    params:
+      PROXY_STATIC_IP: 10.74.42.132
+  <% end %>
   - put: cfcr-deployment
     params:
       manifest: unpacked-old-kubo-deployment/manifests/cfcr.yml
@@ -1059,6 +1101,10 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
+      <% if env =~ /^vsphere-proxy/ %>
+      - git-kubo-deployment/manifests/ops-files/add-proxy.yml
+      - git-kubo-deployment/manifests/ops-files/cf-routing.yml
+      <% end %>
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
@@ -1071,8 +1117,25 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
         deployment_name: ci-service
         master_vm_type: master
         worker_vm_type: worker
+        <% if env =~ /^vsphere-proxy/ %>
+        http_proxy: 10.74.42.132:8888
+        https_proxy: 10.74.42.132:8888
+        no_proxy: .internal,10.74.42.128/25,10.200.0.0/16,10.100.0.0/16
+        <% end %>
     tags: [<%= env %>]
     on_failure: *on_failure_alert
+  # <% if env =~ /^vsphere-proxy/ %>
+  # - put: tinyproxy-deployment
+  #   tags: ['<%= env %>']
+  #   params:
+  #     manifest: git-kubo-ci/manifests/tinyproxy/manifest.yml
+  #     source_file: gcs-source-json/source.json
+  #     stemcells:
+  #     - stemcell/stemcell.tgz
+  #     vars:
+  #       proxy_static_ip: 10.74.42.132
+  #   on_failure: *on_failure_alert
+  # <% end %>
   - task: update-kubeconfig
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
@@ -1167,6 +1230,12 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - task: destroy-k8s
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+  <% if env =~ /^vsphere-proxy/ %>
+  - task: destroy-tinyproxy
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/destroy-tinyproxy.yml
+    on_failure: *on_failure_alert
+  <% end %>
 
 - name: destroy-bosh-upgrade-<%= env %>
   plan:
@@ -1493,289 +1562,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     params:
       release: kubo-lock
 <% end %>
-
-- name: claim-lock-proxy-vsphere
-  max_in_flight: 1
-  plan:
-  - aggregate:
-    - get: kubo-version
-      passed: [ 'package-kubo-deployment-tarball' ]
-      trigger: true
-    - get: git-kubo-release
-      passed: [ 'package-kubo-deployment-tarball' ]
-    - get: git-kubo-deployment
-      passed: [ 'package-kubo-deployment-tarball' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'package-kubo-deployment-tarball' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'package-kubo-deployment-tarball' ]
-  - put: kubo-lock
-    resource: kubo-lock-proxy-vsphere
-    params: { acquire: true }
-
-- name: install-bosh-proxy-vsphere
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: git-kubo-deployment
-      passed: [ 'claim-lock-proxy-vsphere' ]
-    - get: kubo-lock
-      resource: kubo-lock-proxy-vsphere
-      version: every
-      trigger: true
-      passed: [ 'claim-lock-proxy-vsphere' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'claim-lock-proxy-vsphere' ]
-    - get: git-kubo-release
-      passed: [ 'claim-lock-proxy-vsphere' ]
-    - get: kubo-version
-      passed: [ 'claim-lock-proxy-vsphere' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'claim-lock-proxy-vsphere' ]
-  - task: install
-    tags: [vsphere]
-    file: git-kubo-ci/tasks/install-bosh.yml
-    params:
-      USE_TURBULENCE: 1
-    on_failure: *on_failure_alert
-  - aggregate:
-    - put: gcs-bosh-creds
-      params:
-        file: bosh-creds/creds.yml
-    - put: gcs-bosh-state
-      params:
-        file: bosh-state/state.json
-  - task: generate-load-balancer-vars
-    file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
-  - task: generate-source-json
-    file: git-kubo-ci/tasks/generate-source-json.yml
-  - aggregate:
-    - put: gcs-load-balancer-vars
-      params:
-        file: load-balancer-vars/vars.yml
-    - put: gcs-source-json
-      params:
-        file: source-json/source.json
-
-- name: deploy-k8s-proxy-vsphere
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: kubo-lock
-      resource: kubo-lock-proxy-vsphere
-      version: every
-      trigger: true
-      passed: [ 'install-bosh-proxy-vsphere' ]
-    - get: git-kubo-deployment
-      passed: [ 'install-bosh-proxy-vsphere' ]
-    - get: git-kubo-release
-      passed: [ 'install-bosh-proxy-vsphere' ]
-    - get: kubo-version
-      passed: [ 'install-bosh-proxy-vsphere' ]
-    - get: gcs-bosh-state
-      passed: [ 'install-bosh-proxy-vsphere' ]
-    - get: gcs-bosh-creds
-      passed: [ 'install-bosh-proxy-vsphere' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'install-bosh-proxy-vsphere' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'install-bosh-proxy-vsphere' ]
-    - get: gcs-source-json
-      passed: [ 'install-bosh-proxy-vsphere' ]
-    - get: gcs-load-balancer-vars
-      passed: [ 'install-bosh-proxy-vsphere' ]
-    - get: stemcell
-      resource: stemcell-vsphere-lb
-
-  - task: get_director_uuid
-    tags: [vsphere]
-    file: git-kubo-ci/tasks/get_director_uuid.yml
-
-  - task: apply-cloud-config
-    file: git-kubo-ci/tasks/apply-cloud-config.yml
-    tags: [vsphere]
-    params:
-      PROXY_STATIC_IP: 10.74.42.132
-
-  - put: cfcr-deployment
-    params:
-      manifest: git-kubo-deployment/manifests/cfcr.yml
-      cleanup: true
-      no_redact: true
-      ops_files:
-      - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
-      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
-      - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
-      - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
-      - git-kubo-deployment/manifests/ops-files/addons-spec.yml
-      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
-      - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
-      - git-kubo-deployment/manifests/ops-files/add-proxy.yml
-      - git-kubo-deployment/manifests/ops-files/cf-routing.yml
-      - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
-      - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
-      var_files:
-        addons-spec: "git-kubo-ci/specs/guestbook.yml"
-      vars_files:
-      - gcs-load-balancer-vars/load-balancer-vars.yml
-      - kubo-lock/metadata
-      - director_uuid/var.yml
-      stemcells:
-      - stemcell/stemcell.tgz
-      releases:
-      - gcs-kubo-release-tarball-untested/*.tgz
-      source_file: gcs-source-json/source.json
-      vars:
-        http_proxy: 10.74.42.132:8888
-        https_proxy: 10.74.42.132:8888
-        no_proxy: .internal,10.74.42.128/25,10.200.0.0/16,10.100.0.0/16
-        deployment_name: ci-service
-        worker_count: 3
-    tags: [vsphere]
-    on_failure: *on_failure_alert
-  - put: run-apply-addons-errand
-    params:
-      name: apply-addons
-      keep_alive: true
-      source_file: gcs-source-json/source.json
-    tags: [vsphere]
-    on_failure: *on_failure_alert
-  - put: run-smoke-tests-errand
-    params:
-      name: smoke-tests
-      keep_alive: true
-      source_file: gcs-source-json/source.json
-    tags: [vsphere]
-    on_failure: *on_failure_alert
-  - put: tinyproxy-deployment
-    tags: [vsphere]
-    params:
-      manifest: git-kubo-ci/manifests/tinyproxy/manifest.yml
-      source_file: gcs-source-json/source.json
-      stemcells:
-      - stemcell/stemcell.tgz
-      vars:
-        proxy_static_ip: 10.74.42.132
-    on_failure: *on_failure_alert
-  - task: update-kubeconfig
-    tags: [vsphere]
-    file: git-kubo-ci/tasks/update-kubeconfig.yml
-  - put: gcs-kubeconfig
-    params:
-      file: kubeconfig/config
-
-
-- name: run-k8s-integration-tests-proxy-vsphere
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: kubo-lock
-      resource: kubo-lock-proxy-vsphere
-      passed: [ 'deploy-k8s-proxy-vsphere' ]
-    - get: gcs-kubeconfig
-      version: every
-      trigger: true
-      passed: [ 'deploy-k8s-proxy-vsphere' ]
-    - get: git-kubo-deployment
-      passed: [ 'deploy-k8s-proxy-vsphere' ]
-    - get: gcs-bosh-state
-      passed: [ 'deploy-k8s-proxy-vsphere' ]
-    - get: gcs-bosh-creds
-      passed: [ 'deploy-k8s-proxy-vsphere' ]
-    - get: kubo-version
-      passed: [ 'deploy-k8s-proxy-vsphere' ]
-    - get: git-kubo-release
-      passed: [ 'deploy-k8s-proxy-vsphere' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'deploy-k8s-proxy-vsphere' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'deploy-k8s-proxy-vsphere' ]
-  - task: integration-tests
-    tags: [vsphere]
-    file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
-    params:
-      DEPLOYMENT_NAME: ci-service
-      ENABLE_OSS_ONLY_TESTS: true
-      ENABLE_PERSISTENT_VOLUME_TESTS: true
-      ENABLE_K8S_LBS_TESTS: false
-      ENABLE_MULTI_AZ_TESTS: false
-    on_failure: *on_failure_alert
-  - task: pod-to-pod
-    tags: [vsphere]
-    file: git-kubo-ci/tasks/pod-to-pod.yml
-    params:
-      DEPLOYMENT_NAME: ci-service
-    on_failure: *on_failure_alert
-
-- name: destroy-k8s-proxy-vsphere
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: kubo-lock
-      resource: kubo-lock-proxy-vsphere
-      version: every
-      trigger: true
-      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
-    - get: kubo-version
-      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
-    - get: git-kubo-deployment
-      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
-    - get: git-kubo-release
-      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
-    - get: gcs-bosh-state
-      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
-    - get: gcs-bosh-creds
-      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'run-k8s-integration-tests-proxy-vsphere' ]
-  - task: destroy-k8s
-    tags: [vsphere]
-    params:
-      DEPLOYMENT_NAME: ci-service
-    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-    on_failure: *on_failure_alert
-  - task: destroy-tinyproxy
-    tags: [vsphere]
-    file: git-kubo-ci/tasks/destroy-tinyproxy.yml
-    on_failure: *on_failure_alert
-
-- name: destroy-bosh-proxy-vsphere
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: git-kubo-deployment
-      passed: [ 'destroy-k8s-proxy-vsphere' ]
-    - get: git-kubo-release
-      passed: [ 'destroy-k8s-proxy-vsphere' ]
-    - get: kubo-lock
-      resource: kubo-lock-proxy-vsphere
-      version: every
-      trigger: true
-      passed: [ 'destroy-k8s-proxy-vsphere' ]
-    - get: kubo-version
-      passed: [ 'destroy-k8s-proxy-vsphere' ]
-    - get: gcs-bosh-state
-      passed: [ 'destroy-k8s-proxy-vsphere' ]
-    - get: gcs-bosh-creds
-      passed: [ 'destroy-k8s-proxy-vsphere' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'destroy-k8s-proxy-vsphere' ]
-    - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'destroy-k8s-proxy-vsphere' ]
-  - task: destroy
-    tags: [vsphere]
-    file: git-kubo-ci/tasks/destroy-bosh.yml
-    on_failure: *on_failure_alert
-  - put: kubo-lock
-    resource: kubo-lock-proxy-vsphere
-    params: { release: kubo-lock }
 
 - name: claim-lock-two-cas
   max_in_flight: 1
@@ -2501,8 +2287,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
 
 <%
   passed_requirements = env_list.map {|env| "destroy-bosh-#{env}" unless env == 'openstack'}.compact
-  passed_requirements += upgrade_test_enves.map {|env| "destroy-bosh-upgrade-#{env}" unless env == 'openstack'}.compact
-  passed_requirements += proxy_enves.map {|env| "destroy-bosh-proxy-#{env}"}.compact
+  passed_requirements += upgrade_test_enves.map {|env| "destroy-bosh-upgrade-#{env}" unless env == 'openstack' || env == 'vsphere-proxy'}.compact
   passed_requirements += bbr_test_enves.map {|env| "destroy-bosh-bbr-#{env}"}.compact
   passed_requirements += multi_master_upgrade_test_enves.map {|env| "destroy-bosh-upgrade-multi-master-#{env}" }.compact
   passed_requirements += coredns_test_envs.map { |env| "destroy-bosh-coredns-#{env}" }.compact
