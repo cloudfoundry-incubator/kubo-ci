@@ -1342,8 +1342,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
       <% end %>
-      <% if env =~ /^vsphere/ %>
       - git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml
+      <% if env =~ /^vsphere/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
       <% end %>
       var_files:
