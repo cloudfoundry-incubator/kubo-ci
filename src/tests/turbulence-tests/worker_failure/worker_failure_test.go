@@ -31,13 +31,13 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()
 
-		Expect(countRunningWorkers()).To(Equal(3))
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 
 	AfterEach(func() {
 		kubectl.RunKubectlCommand("delete", "-f", nginxDaemonSetSpec)
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 
 	Specify("K8s applications are scheduled on the resurrected node", func() {

@@ -29,13 +29,11 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()
 
-		Expect(countRunningWorkers()).To(Equal(3))
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 		DeploySmorgasbord(kubectl, testconfig.Iaas)
 	})
 
 	AfterEach(func() {
-		Expect(countRunningWorkers()).To(Equal(3))
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 
 		DeleteSmorgasbord(kubectl, testconfig.Iaas)

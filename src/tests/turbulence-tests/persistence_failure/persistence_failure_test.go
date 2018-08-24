@@ -36,7 +36,6 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()
 
-		Expect(countRunningWorkers()).To(Equal(3))
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 
 		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
@@ -53,6 +52,7 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
 		Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 
 	Specify("K8s applications with persistence keeps their data when node is destroyed", func() {
