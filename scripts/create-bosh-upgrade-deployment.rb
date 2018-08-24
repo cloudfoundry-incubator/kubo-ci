@@ -10,7 +10,9 @@ vars = "-v deployment_name=#{ENV['DEPLOYMENT_NAME']} -v worker_vm_type=worker -v
 
 var_file = "--var-file=addons-spec=#{ENV['ADDONS_SPEC']}"
 
-unless ENV['ENABLE_MULTI_AZ_TESTS']
+if ENV['ENABLE_MULTI_AZ_TESTS']
+  ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
+else
   ops_files << '-o git-kubo-deployment/manifests/ops-files/misc/single-master.yml '
 end
 
@@ -23,9 +25,6 @@ if ENV['IAAS'] =~ /^vsphere/
   vars_files << '-l director_uuid/var.yml '
 end
 
-if ENV['IAAS'] =~ /^vsphere-lb/
-  ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
-end
 
 if ENV['IAAS'] =~ /^vsphere-proxy/
   ops_files << '-o git-kubo-ci/manifests/ops-files/add-proxy.yml '
