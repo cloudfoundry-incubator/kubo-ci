@@ -30,8 +30,8 @@ instance_groups:
     release: concourse
     properties:
       tags:
-        - vsphere
         - vsphere-lb
+        - vsphere-proxy
       tsa:
         worker_key: ((worker-key))
         host: ci.kubo.sh

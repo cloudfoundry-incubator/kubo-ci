@@ -78,20 +78,6 @@ groups:
   - deploy-k8s-two-cas
   - destroy-k8s-two-cas
   - destroy-bosh-two-cas
-<% proxy_enves.each do |env| %>
-  - claim-lock-<%= env %>
-  - install-bosh-<%= env %>
-  - deploy-k8s-<%= env %>
-  - run-k8s-integration-tests-<%= env %>
-  - destroy-k8s-<%= env %>
-  - destroy-bosh-<%= env %>
-  - claim-lock-upgrade-<%= env %>
-  - install-bosh-for-upgrade-<%= env %>
-  - deploy-old-k8s-<%= env %>
-  - upgrade-kubo-<%= env %>
-  - destroy-k8s-upgrade-<%= env %>
-  - destroy-bosh-upgrade-<%= env %>
-<% end %>
   - upload-kubo-deployment
   - upload-kubo-release
   - success-notification
@@ -196,8 +182,15 @@ groups:
     - install-bosh-<%= env %>
     - deploy-k8s-<%= env %>
     - run-k8s-integration-tests-<%= env %>
+    - run-k8s-turbulence-tests-<%= env %>
     - destroy-k8s-<%= env %>
     - destroy-bosh-<%= env %>
+    - claim-lock-upgrade-<%= env %>
+    - install-bosh-for-upgrade-<%= env %>
+    - deploy-old-k8s-<%= env %>
+    - upgrade-kubo-<%= env %>
+    - destroy-k8s-upgrade-<%= env %>
+    - destroy-bosh-upgrade-<%= env %>
   <% end %>
 - name: bbr
   jobs:
