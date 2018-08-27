@@ -38,7 +38,7 @@ func DeploymentVmsOfType(deployment boshdir.Deployment, jobName, processState st
 	fmt.Fprintf(GinkgoWriter, "Bosh vms for deployment %s: \n", deployment.Name())
 	return VmsMatchingPredicate(vms, func(vmInfo boshdir.VMInfo) bool {
 		fmt.Fprintf(GinkgoWriter, "  %s - %s\n", vmInfo.JobName, vmInfo.ProcessState)
-		return vmInfo.JobName == jobName && vmInfo.ProcessState == processState
+		return vmInfo.JobName == jobName && (processState == "" || vmInfo.ProcessState == processState)
 	})
 }
 

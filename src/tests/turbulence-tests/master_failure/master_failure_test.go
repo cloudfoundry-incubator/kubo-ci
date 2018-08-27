@@ -28,13 +28,8 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		director = NewDirector(testconfig.Bosh)
 		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
 		Expect(err).NotTo(HaveOccurred())
+		numberOfMasters = len(DeploymentVmsOfType(deployment, MasterVmType, ""))
 		countRunningApiServerOnMaster = CountProcessesOnVmsOfType(deployment, MasterVmType, "kube-apiserver", VmRunningState)
-
-		if testconfig.TurbulenceTests.IsMultiAZ {
-			numberOfMasters = 3
-		} else {
-			numberOfMasters = 1
-		}
 
 		Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters))
 
