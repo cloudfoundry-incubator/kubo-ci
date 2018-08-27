@@ -82,7 +82,7 @@ func InitConfig() (*Config, error) {
 	var configPath = os.Getenv("CONFIG")
 
 	if configPath == "" {
-		return nil, errors.New("config path must be defined")
+		return nil, errors.New("config path must be defined using CONFIG variable")
 	}
 
 	configJSON, err := ioutil.ReadFile(configPath)
