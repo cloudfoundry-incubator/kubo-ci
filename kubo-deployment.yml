@@ -1093,12 +1093,25 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - unpacked-old-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/vm-types.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/addons-spec.yml
-      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
-      - unpacked-old-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
+      <% if env =~ /^gcp/ %>
+      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      <% end %>
+      <% if env =~ /^aws/ %>
+      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
+      <% end %>
+      <% if env =~ /^openstack/ %>
+      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/openstack/cloud-provider.yml
+      <% end %>
+      <% if env =~ /^vsphere/ %>
+      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+      <% end %>
+      - unpacked-old-kubo-deployment/manifests/ops-files/misc/single-master.yml
+      - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
       <% if env =~ /^vsphere-proxy/ %>
-      - git-kubo-deployment/manifests/ops-files/add-proxy.yml
-      - git-kubo-deployment/manifests/ops-files/cf-routing.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/add-proxy.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/cf-routing.yml
       <% end %>
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
@@ -1229,6 +1242,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - task: destroy-tinyproxy
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-tinyproxy.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
   <% end %>
 
