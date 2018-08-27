@@ -907,6 +907,7 @@ jobs:
   - task: destroy-tinyproxy
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-tinyproxy.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
   <% end %>
 
