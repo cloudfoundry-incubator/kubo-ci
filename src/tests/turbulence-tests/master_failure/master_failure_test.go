@@ -28,8 +28,8 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		director = NewDirector(testconfig.Bosh)
 		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
 		Expect(err).NotTo(HaveOccurred())
-		numberOfMasters = len(DeploymentVmsOfType(deployment, MasterVmType, ""))
-		countRunningApiServerOnMaster = CountProcessesOnVmsOfType(deployment, MasterVmType, "kube-apiserver", VmRunningState)
+		numberOfMasters = len(DeploymentVmsOfType(deployment, MasterVMType, ""))
+		countRunningApiServerOnMaster = CountProcessesOnVmsOfType(deployment, MasterVMType, "kube-apiserver", VMRunningState)
 
 		Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters))
 
@@ -50,7 +50,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 					Name: testconfig.Bosh.Deployment,
 				},
 				Group: &selector.NameRequest{
-					Name: MasterVmType,
+					Name: MasterVMType,
 				},
 				ID: &selector.IDRequest{
 					Limit: selector.MustNewLimitFromString("1"),
@@ -74,7 +74,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 					Name: testconfig.Bosh.Deployment,
 				},
 				Group: &selector.NameRequest{
-					Name: MasterVmType,
+					Name: MasterVMType,
 				},
 				ID: &selector.IDRequest{
 					Limit: selector.MustNewLimitFromString("1"),
@@ -90,7 +90,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		createTurbulenceIncident(rebootOneMaster, false, "Rebooting master")
 
 		By("Checking that master is back consistently")
-		Consistently(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVmType, VmRunningState) }, "60s", "2s").Should(HaveLen(numberOfMasters))
+		Consistently(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVMType, VMRunningState) }, "60s", "2s").Should(HaveLen(numberOfMasters))
 	})
 })
 
@@ -112,7 +112,7 @@ func createTurbulenceIncident(request incident.Request, waitForIncident bool, ms
 	Eventually(func() bool { return AllComponentsAreHealthy(kubectl) }, "600s", "20s").Should(BeTrue())
 
 	By("Checking that all master jobs are running")
-	Eventually(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVmType, VmRunningState) }, "60s", "2s").Should(HaveLen(numberOfMasters))
+	Eventually(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVMType, VMRunningState) }, "60s", "2s").Should(HaveLen(numberOfMasters))
 
 	By("Checking for the workload on the k8s cluster")
 	session := kubectl.RunKubectlCommand("get", "deployment", "nginx")

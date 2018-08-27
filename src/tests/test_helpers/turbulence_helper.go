@@ -28,9 +28,9 @@ func TurbulenceClient(testconfig testconfig.Turbulence) client.Turbulence {
 }
 
 func AllBoshWorkersHaveJoinedK8s(deployment director.Deployment, kubectl *KubectlRunner) bool {
-	workerCount := len(DeploymentVmsOfType(deployment, WorkerVmType, ""))
+	workerCount := len(DeploymentVmsOfType(deployment, WorkerVMType, ""))
 	Eventually(func() []director.VMInfo {
-		return DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
+		return DeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
 	}, "600s", "30s").Should(HaveLen(workerCount))
 
 	Eventually(GetReadyNodes, "240s", "5s").Should(HaveLen(workerCount))

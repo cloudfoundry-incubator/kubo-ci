@@ -31,7 +31,7 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 		director := NewDirector(testconfig.Bosh)
 		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
 		Expect(err).NotTo(HaveOccurred())
-		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
+		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
 
 		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()

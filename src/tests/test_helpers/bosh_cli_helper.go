@@ -14,10 +14,10 @@ import (
 )
 
 const (
-	WorkerVmType    = "worker"
-	MasterVmType    = "master"
-	VmRunningState  = "running"
-	VmStartingState = "starting"
+	WorkerVMType    = "worker"
+	MasterVMType    = "master"
+	VMRunningState  = "running"
+	VMStartingState = "starting"
 )
 
 func CountDeploymentVmsOfType(deployment boshdir.Deployment, jobName, processState string) func() int {
@@ -43,7 +43,7 @@ func DeploymentVmsOfType(deployment boshdir.Deployment, jobName, processState st
 }
 
 func ProcessesOnVmsOfType(deployment boshdir.Deployment, jobName, processName, processState string) []boshdir.VMInfo {
-	vms := DeploymentVmsOfType(deployment, jobName, VmRunningState)
+	vms := DeploymentVmsOfType(deployment, jobName, VMRunningState)
 	return VmsMatchingPredicate(vms, func(vmInfo boshdir.VMInfo) bool {
 		for _, process := range vmInfo.Processes {
 			if process.Name == processName && process.State == processState {
@@ -65,12 +65,12 @@ func VmsMatchingPredicate(vms []boshdir.VMInfo, f func(boshdir.VMInfo) bool) []b
 }
 
 func GetWorkerIP(deployment boshdir.Deployment) string {
-	vms := DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
+	vms := DeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
 	return vms[0].IPs[0]
 }
 
 func GetMasterIP(deployment boshdir.Deployment) string {
-	vms := DeploymentVmsOfType(deployment, MasterVmType, VmRunningState)
+	vms := DeploymentVmsOfType(deployment, MasterVMType, VMRunningState)
 	return vms[0].IPs[0]
 }
 

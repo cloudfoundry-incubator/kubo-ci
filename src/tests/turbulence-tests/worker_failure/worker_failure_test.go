@@ -26,7 +26,7 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 		director := NewDirector(testconfig.Bosh)
 		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
 		Expect(err).NotTo(HaveOccurred())
-		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
+		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
 
 		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()
@@ -49,7 +49,7 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 					Name: testconfig.Bosh.Deployment,
 				},
 				Group: &selector.NameRequest{
-					Name: WorkerVmType,
+					Name: WorkerVMType,
 				},
 				ID: &selector.IDRequest{
 					Limit: selector.MustNewLimitFromString("1"),
@@ -80,7 +80,7 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 		By("Ensuring a new worker VM has joined the bosh deployment")
 		var runningWorkerVms []director.VMInfo
 		getRunningWorkerVms := func() []director.VMInfo {
-			runningWorkerVms = DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
+			runningWorkerVms = DeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
 			return runningWorkerVms
 		}
 		Eventually(getRunningWorkerVms, "10s", "1s").Should(HaveLen(3))

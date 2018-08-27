@@ -66,7 +66,7 @@ balance roundrobin`)
 	Expect(err).NotTo(HaveOccurred())
 	_, err = tmpfile.Write(content)
 	Expect(err).NotTo(HaveOccurred())
-	vms := test_helpers.DeploymentVmsOfType(deployment, test_helpers.WorkerVmType, test_helpers.VmRunningState)
+	vms := test_helpers.DeploymentVmsOfType(deployment, test_helpers.WorkerVMType, test_helpers.VMRunningState)
 	for i, vm := range vms {
 		_, err = tmpfile.Write([]byte(fmt.Sprintf("\n  server worker%d %s check port 10250", i, vm.IPs[0])))
 		Expect(err).NotTo(HaveOccurred())

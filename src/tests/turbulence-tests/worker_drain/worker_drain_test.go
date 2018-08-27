@@ -14,9 +14,8 @@ import (
 var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 
 	var (
-		deployment          director.Deployment
-		countRunningWorkers func() int
-		kubectl             *KubectlRunner
+		deployment director.Deployment
+		kubectl    *KubectlRunner
 	)
 
 	BeforeEach(func() {
@@ -24,7 +23,6 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 		director := NewDirector(testconfig.Bosh)
 		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
 		Expect(err).NotTo(HaveOccurred())
-		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
 
 		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()
@@ -41,7 +39,7 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 	})
 
 	Specify("Drain doesn't fail with temporary network issues", func() {
-		vmInfos := DeploymentVmsOfType(deployment, WorkerVmType, VmRunningState)
+		vmInfos := DeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
 		blockedWorkerID := vmInfos[0].ID
 
 		hellRaiser := TurbulenceClient(testconfig.Turbulence)
@@ -51,7 +49,7 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 					Name: testconfig.Bosh.Deployment,
 				},
 				Group: &selector.NameRequest{
-					Name: WorkerVmType,
+					Name: WorkerVMType,
 				},
 				ID: &selector.IDRequest{
 					Values: []string{blockedWorkerID},
