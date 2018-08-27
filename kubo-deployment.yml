@@ -1118,6 +1118,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
+      <% if env =~ /^vsphere/ %>
+      - director_uuid/var.yml
+      <% end %>
       releases:
       - old-kubo-release-tarball/*.tgz
       source_file: gcs-source-json/source.json
