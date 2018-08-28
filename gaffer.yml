@@ -201,6 +201,7 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
+      - git-kubo-deployment/manifests/ops-files/add-hostname-to-master-certificate.yml
       - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
       - git-kubo-deployment/manifests/ops-files/rename.yml
       - git-kubo-deployment/manifests/ops-files/vm-types.yml
@@ -214,6 +215,7 @@ jobs:
         worker_vm_type: worker
         master_vm_type: master
         worker_count: 3
+        api-hostname: 35.201.123.45
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - gcs-director.yml/metadata
