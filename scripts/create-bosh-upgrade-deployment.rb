@@ -27,8 +27,8 @@ end
 
 
 if ENV['IAAS'] =~ /^vsphere-proxy/
-  ops_files << '-o git-kubo-ci/manifests/ops-files/add-proxy.yml '
-  ops_files << '-o git-kubo-ci/manifests/ops-files/cf-routing.yml '
+  ops_files << '-o git-kubo-deployment/manifests/ops-files/add-proxy.yml '
+  ops_files << '-o git-kubo-deployment/manifests/ops-files/cf-routing.yml '
   vars << '-v http_proxy=10.74.42.132:8888 -v https_proxy=10.74.42.132:8888 -v no_proxy=.internal,10.74.42.128/25,10.200.0.0/16,10.100.0.0/16 '
 end
 
