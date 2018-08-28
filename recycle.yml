@@ -63,7 +63,7 @@ jobs:
     file: git-kubo-ci/tasks/cleanup-<%= env %>-environment.yml
     params: { ENV_FILE: 'kubo-lock/metadata' }
     tags:
-    - <%= env %>
+    - <%= pool %>
     input_mapping:
       kubo-lock: kubo-lock-<%= pool %>-lifecycle
   - put: kubo-lock-<%= pool %>
