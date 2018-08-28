@@ -695,18 +695,6 @@ jobs:
         <% end %>
     tags: [<%= env %>]
     on_failure: *on_failure_alert
-  <% if env =~ /^vsphere-proxy/ %>
-  - put: tinyproxy-deployment
-    tags: ['<%= env %>']
-    params:
-      manifest: git-kubo-ci/manifests/tinyproxy/manifest.yml
-      source_file: gcs-source-json/source.json
-      stemcells:
-      - stemcell/stemcell.tgz
-      vars:
-        proxy_static_ip: 10.74.42.132
-    on_failure: *on_failure_alert
-  <% end %>
   - task: update-kubeconfig
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
@@ -724,6 +712,18 @@ jobs:
       source_file: gcs-source-json/source.json
     tags: [<%= env %>]
     on_failure: *on_failure_alert
+  <% if env =~ /^vsphere-proxy/ %>
+  - put: tinyproxy-deployment
+    tags: ['<%= env %>']
+    params:
+      manifest: git-kubo-ci/manifests/tinyproxy/manifest.yml
+      source_file: gcs-source-json/source.json
+      stemcells:
+      - stemcell/stemcell.tgz
+      vars:
+        proxy_static_ip: 10.74.42.132
+    on_failure: *on_failure_alert
+  <% end %>
   - put: gcs-kubeconfig
     params:
       file: kubeconfig/config
@@ -1118,18 +1118,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
         <% end %>
     tags: [<%= env %>]
     on_failure: *on_failure_alert
-  # <% if env =~ /^vsphere-proxy/ %>
-  # - put: tinyproxy-deployment
-  #   tags: ['<%= env %>']
-  #   params:
-  #     manifest: git-kubo-ci/manifests/tinyproxy/manifest.yml
-  #     source_file: gcs-source-json/source.json
-  #     stemcells:
-  #     - stemcell/stemcell.tgz
-  #     vars:
-  #       proxy_static_ip: 10.74.42.132
-  #   on_failure: *on_failure_alert
-  # <% end %>
   - task: update-kubeconfig
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
@@ -1189,6 +1177,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - task: create-bosh-upgrade-deployment
     params:
       IAAS: <%= env %>
+      ENABLE_MULTI_AZ_TESTS: false
     file: git-kubo-ci/tasks/create-bosh-deploy-command.yml
   - task: upgrade
     tags: ['<%= env %>']
@@ -1197,6 +1186,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
       DEPLOYMENT_NAME: ci-service
+      <% if env =~ /^vsphere-proxy/ %>
+      INTERNET_ACCESS: false
+      <% end %>
 
 - name: destroy-k8s-upgrade-<%= env %>
   plan:
@@ -1224,13 +1216,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - task: destroy-k8s
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-  <% if env =~ /^vsphere-proxy/ %>
-  - task: destroy-tinyproxy
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/destroy-tinyproxy.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
-    on_failure: *on_failure_alert
-  <% end %>
 
 - name: destroy-bosh-upgrade-<%= env %>
   plan:
