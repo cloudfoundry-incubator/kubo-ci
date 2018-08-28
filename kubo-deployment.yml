@@ -1,5 +1,5 @@
 <%
-  enves = %w(aws-lb openstack gcp-lb vsphere-lb vsphere-proxy)
+  envs = %w(aws-lb openstack gcp-lb vsphere-lb vsphere-proxy)
   stemcell_types = {
     'gcp' => 'google-kvm',
     'gcp-lb' => 'google-kvm',
@@ -11,16 +11,16 @@
     'openstack' => 'openstack-kvm'
   }
   additional_envs = %w()
-  env_list = enves + additional_envs
+  env_list = envs + additional_envs
   enable_failure_alert = true
 
-  upgrade_test_enves = %w(gcp-lb vsphere-proxy)
-  multi_az_enves = %w(aws-lb openstack gcp-lb vsphere-lb)
-  multi_master_upgrade_test_enves = %w(aws-lb gcp-lb vsphere-lb)
-  enves_for_new_bosh_stemcell = upgrade_test_enves | multi_master_upgrade_test_enves
-  conformance_test_enves = enves
-  proxy_enves = %w(vsphere-proxy)
-  bbr_test_enves = %w(gcp-lb)
+  upgrade_test_envs = %w(gcp-lb vsphere-proxy)
+  multi_az_envs = %w(aws-lb openstack gcp-lb vsphere-lb)
+  multi_master_upgrade_test_envs = %w(aws-lb gcp-lb vsphere-lb)
+  envs_for_new_bosh_stemcell = upgrade_test_envs | multi_master_upgrade_test_envs
+  conformance_test_envs = envs
+  proxy_envs = %w(vsphere-proxy)
+  bbr_test_envs = %w(gcp-lb)
   coredns_test_envs = %w(gcp-lb)
 %>
 ---
@@ -30,7 +30,7 @@ groups:
   - run-unit-tests
   - build-kubo-release
   - package-kubo-deployment-tarball
-<% enves.each do |env| %>
+<% envs.each do |env| %>
   - run-k8s-conformance-tests-<%= env %>
 <% end %>
 <% env_list.each do |env| %>
@@ -42,7 +42,7 @@ groups:
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
 <% end %>
-<% bbr_test_enves.each do |env| %>
+<% bbr_test_envs.each do |env| %>
   - claim-lock-bbr-<%= env %>
   - install-bosh-bbr-<%= env %>
   - deploy-k8s-bbr-<%= env %>
@@ -58,7 +58,7 @@ groups:
   - destroy-k8s-coredns-<%= env %>
   - destroy-bosh-coredns-<%= env %>
 <% end %>
-<% upgrade_test_enves.each do |env| %>
+<% upgrade_test_envs.each do |env| %>
   - claim-lock-upgrade-<%= env %>
   - install-bosh-for-upgrade-<%= env %>
   - deploy-old-k8s-<%= env %>
@@ -66,7 +66,7 @@ groups:
   - destroy-k8s-upgrade-<%= env %>
   - destroy-bosh-upgrade-<%= env %>
 <% end %>
-<% multi_master_upgrade_test_enves.each do |env| %>
+<% multi_master_upgrade_test_envs.each do |env| %>
   - claim-lock-upgrade-multi-master-<%= env %>
   - install-bosh-multi-master-<%= env %>
   - deploy-old-k8s-multi-master-<%= env %>
@@ -97,7 +97,7 @@ groups:
   - install-bosh-<%= env %>
   - deploy-k8s-<%= env %>
   - run-k8s-integration-tests-<%= env %>
-  <% if bbr_test_enves.include? env %>
+  <% if bbr_test_envs.include? env %>
   - claim-lock-bbr-<%= env %>
   - install-bosh-bbr-<%= env %>
   - deploy-k8s-bbr-<%= env %>
@@ -113,13 +113,13 @@ groups:
   - destroy-k8s-coredns-<%= env %>
   - destroy-bosh-coredns-<%= env %>
   <% end %>
-  <% if conformance_test_enves.include? env %>
+  <% if conformance_test_envs.include? env %>
   - run-k8s-conformance-tests-<%= env %>
   <% end %>
   - run-k8s-turbulence-tests-<%= env %>
   - destroy-k8s-<%= env %>
   - destroy-bosh-<%= env %>
-  <% if upgrade_test_enves.include? env %>
+  <% if upgrade_test_envs.include? env %>
   - claim-lock-upgrade-<%= env %>
   - install-bosh-for-upgrade-<%= env %>
   - deploy-old-k8s-<%= env %>
@@ -127,7 +127,7 @@ groups:
   - destroy-k8s-upgrade-<%= env %>
   - destroy-bosh-upgrade-<%= env %>
   <% end %>
-  <% if multi_master_upgrade_test_enves.include? env %>
+  <% if multi_master_upgrade_test_envs.include? env %>
   - claim-lock-upgrade-multi-master-<%= env %>
   - install-bosh-multi-master-<%= env %>
   - deploy-old-k8s-multi-master-<%= env %>
@@ -150,7 +150,7 @@ groups:
   <% end %>
 - name: conformance
   jobs:
-  <% conformance_test_enves.each do |env| %>
+  <% conformance_test_envs.each do |env| %>
   - run-k8s-conformance-tests-<%= env %>
   <% end %>
 - name: turbulence
@@ -160,7 +160,7 @@ groups:
   <% end %>
 - name: upgrade
   jobs:
-  <% upgrade_test_enves.each do |env| %>
+  <% upgrade_test_envs.each do |env| %>
   - claim-lock-upgrade-<%= env %>
   - install-bosh-for-upgrade-<%= env %>
   - deploy-old-k8s-<%= env %>
@@ -168,7 +168,7 @@ groups:
   - destroy-k8s-upgrade-<%= env %>
   - destroy-bosh-upgrade-<%= env %>
   <% end %>
-  <% multi_master_upgrade_test_enves.each do |env| %>
+  <% multi_master_upgrade_test_envs.each do |env| %>
   - claim-lock-upgrade-multi-master-<%= env %>
   - install-bosh-multi-master-<%= env %>
   - deploy-old-k8s-multi-master-<%= env %>
@@ -176,26 +176,9 @@ groups:
   - destroy-k8s-upgrade-multi-master-<%= env %>
   - destroy-bosh-upgrade-multi-master-<%= env %>
   <% end %>
-- name: proxy
-  jobs:
-  <% proxy_enves.each do |env| %>
-    - claim-lock-<%= env %>
-    - install-bosh-<%= env %>
-    - deploy-k8s-<%= env %>
-    - run-k8s-integration-tests-<%= env %>
-    - run-k8s-turbulence-tests-<%= env %>
-    - destroy-k8s-<%= env %>
-    - destroy-bosh-<%= env %>
-    - claim-lock-upgrade-<%= env %>
-    - install-bosh-for-upgrade-<%= env %>
-    - deploy-old-k8s-<%= env %>
-    - upgrade-kubo-<%= env %>
-    - destroy-k8s-upgrade-<%= env %>
-    - destroy-bosh-upgrade-<%= env %>
-  <% end %>
 - name: bbr
   jobs:
-  <% bbr_test_enves.each do |env| %>
+  <% bbr_test_envs.each do |env| %>
     - claim-lock-bbr-<%= env %>
     - install-bosh-bbr-<%= env %>
     - deploy-k8s-bbr-<%= env %>
@@ -781,7 +764,7 @@ jobs:
       DEPLOYMENT_NAME: ci-service
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
-      <% if !(multi_az_enves.include?(env)) %>
+      <% if !(multi_az_envs.include?(env)) %>
       ENABLE_MULTI_AZ_TESTS: false
       <% end %>
       ENABLE_K8S_LBS_TESTS: <%= env.match? /^(gcp|aws-lb)/  %>
@@ -791,7 +774,7 @@ jobs:
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
 
-<% if conformance_test_enves.include?(env) %>
+<% if conformance_test_envs.include?(env) %>
 - name: run-k8s-conformance-tests-<%= env %>
   plan:
   - aggregate:
@@ -826,7 +809,7 @@ jobs:
 
 <%
   turbulence_passed_reqs = ["run-k8s-integration-tests-#{env}"]
-  if enves.include? env
+  if envs.include? env
     turbulence_passed_reqs << "run-k8s-conformance-tests-#{env}"
   end
 %>
@@ -864,7 +847,7 @@ jobs:
       ENABLE_TURBULENCE_WORKER_DRAIN_TESTS: true
       ENABLE_TURBULENCE_WORKER_FAILURE_TESTS: true
       ENABLE_TURBULENCE_MASTER_FAILURE_TESTS: true
-      <% if !(multi_az_enves.include?(env)) %>
+      <% if !(multi_az_envs.include?(env)) %>
       ENABLE_MULTI_AZ_TESTS: false
       <% end %>
       <% if env != "openstack" %>
@@ -947,7 +930,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     params: { release: kubo-lock-<%= env %> }
 <% end %>
 
-<% upgrade_test_enves.each do |env| %>
+<% upgrade_test_envs.each do |env| %>
 - name: claim-lock-upgrade-<%= env %>
   max_in_flight: 1
   plan:
@@ -1280,7 +1263,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       release: kubo-lock
 <% end %>
 
-<% multi_master_upgrade_test_enves.each do |env| %>
+<% multi_master_upgrade_test_envs.each do |env| %>
 - name: claim-lock-upgrade-multi-master-<%= env %>
   max_in_flight: 1
   plan:
@@ -1782,7 +1765,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     params:
       release: kubo-lock-two-cas
 
-<% bbr_test_enves.each do |env| %>
+<% bbr_test_envs.each do |env| %>
 - name: claim-lock-bbr-<%= env %>
   max_in_flight: 1
   plan:
@@ -2299,9 +2282,9 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
 
 <%
   passed_requirements = env_list.map {|env| "destroy-bosh-#{env}" unless env == 'openstack'}.compact
-  passed_requirements += upgrade_test_enves.map {|env| "destroy-bosh-upgrade-#{env}" unless env == 'openstack' || env == 'vsphere-proxy'}.compact
-  passed_requirements += bbr_test_enves.map {|env| "destroy-bosh-bbr-#{env}"}.compact
-  passed_requirements += multi_master_upgrade_test_enves.map {|env| "destroy-bosh-upgrade-multi-master-#{env}" }.compact
+  passed_requirements += upgrade_test_envs.map {|env| "destroy-bosh-upgrade-#{env}" unless env == 'openstack' || env == 'vsphere-proxy'}.compact
+  passed_requirements += bbr_test_envs.map {|env| "destroy-bosh-bbr-#{env}"}.compact
+  passed_requirements += multi_master_upgrade_test_envs.map {|env| "destroy-bosh-upgrade-multi-master-#{env}" }.compact
   passed_requirements += coredns_test_envs.map { |env| "destroy-bosh-coredns-#{env}" }.compact
 %>
 
