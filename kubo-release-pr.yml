@@ -469,6 +469,7 @@ jobs:
     params:
       env: <%= env %>
       ENABLE_MULTI_AZ_TESTS: false
+      IAAS: "<%= env %>"
     file: git-kubo-ci/tasks/create-bosh-deploy-command.yml
   - task: upgrade
     tags: ['<%= env %>']

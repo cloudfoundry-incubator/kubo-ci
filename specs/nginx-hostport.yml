@@ -1,0 +1,22 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-hostport
+spec:
+  selector:
+    matchLabels:
+      app: nginx-hostport
+  template:
+    metadata:
+      labels:
+        app: nginx-hostport
+    spec:
+      containers:
+      - image: nginx:1.13-alpine
+        imagePullPolicy: Never
+        name: nginx
+        ports:
+        - containerPort: 80
+          hostPort: 40801
+      restartPolicy: Always
