@@ -361,6 +361,7 @@ jobs:
     file: git-kubo-ci/tasks/upload-stemcell.yml
     params:
       env: <%= env.split('-')[0] %>
+      IAAS: <%= env.split('-')[0] %>
   - put: cfcr-deployment
     params:
       manifest: unpacked-old-kubo-deployment/manifests/cfcr.yml
