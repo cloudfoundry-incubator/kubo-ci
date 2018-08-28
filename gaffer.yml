@@ -267,7 +267,7 @@ jobs:
         path: sh
         args:
           - -ec
-          - KUBECONFIG="$PWD/gcs-kubeconfig/config" kubectl apply --kubeconfig kubeconfig -f git-kubo-ci/gaffer/gaffer.yml
+          - KUBECONFIG="$PWD/gcs-kubeconfig/config" kubectl apply -f git-kubo-ci/gaffer/gaffer.yml
       image_resource:
         type: docker-image
         source:
