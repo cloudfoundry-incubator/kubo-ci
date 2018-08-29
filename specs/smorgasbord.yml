@@ -160,7 +160,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx
+        image: nginx:1.13-alpine
         ports:
         - containerPort: 80
 ---
