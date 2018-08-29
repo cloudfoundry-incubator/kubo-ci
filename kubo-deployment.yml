@@ -14,7 +14,7 @@
   env_list = envs + additional_envs
   enable_failure_alert = true
 
-  upgrade_test_envs = %w(gcp-lb vsphere-proxy)
+  upgrade_test_envs = %w(gcp-lb)
   multi_az_envs = %w(aws-lb openstack gcp-lb vsphere-lb)
   multi_master_upgrade_test_envs = %w(aws-lb gcp-lb vsphere-lb)
   envs_for_new_bosh_stemcell = upgrade_test_envs | multi_master_upgrade_test_envs
@@ -2267,7 +2267,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
 
 <%
   passed_requirements = env_list.map {|env| "destroy-bosh-#{env}" unless env == 'openstack'}.compact
-  passed_requirements += upgrade_test_envs.map {|env| "destroy-bosh-upgrade-#{env}" unless env == 'openstack' || env == 'vsphere-proxy'}.compact
+  passed_requirements += upgrade_test_envs.map {|env| "destroy-bosh-upgrade-#{env}" unless env == 'openstack'}.compact
   passed_requirements += bbr_test_envs.map {|env| "destroy-bosh-bbr-#{env}"}.compact
   passed_requirements += multi_master_upgrade_test_envs.map {|env| "destroy-bosh-upgrade-multi-master-#{env}" }.compact
   passed_requirements += coredns_test_envs.map { |env| "destroy-bosh-coredns-#{env}" }.compact
