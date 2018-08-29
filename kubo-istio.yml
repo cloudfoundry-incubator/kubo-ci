@@ -53,7 +53,7 @@ resources:
     paths:
     - slackers
     private_key: ((git-ssh-key.private_key))
-    uri: git@github.com:pivotal-cf-experimental/kubo-home.git
+    uri: git@github.com:cloudfoundry-incubator/cfcr-home.git
 - name: kubo-dev-deployment
   type: gcs
   source:

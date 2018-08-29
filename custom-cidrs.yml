@@ -97,7 +97,7 @@ resources:
 - name: slackers
   type: git
   source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-home.git
+    uri: git@github.com:cloudfoundry-incubator/cfcr-home.git
     private_key: ((git-ssh-key.private_key))
     paths:
     - 'slackers'
