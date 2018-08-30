@@ -15,10 +15,6 @@ target_bosh_director() {
   export BOSH_CA_CERT=$(bosh int $source_json --path '/ca_cert')
 }
 
-update_runtime_config() {
-  bosh -n update-runtime-config --name=tinyproxy <(echo "$RUNTIME_CONFIG_YML")
-}
-
 source_json="$1"
 
 main() {
