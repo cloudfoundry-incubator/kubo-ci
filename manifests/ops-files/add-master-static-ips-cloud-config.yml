@@ -1,3 +1,3 @@
 - type: replace
   path: /networks/name=default/subnets/0/static?/-
-  value: ((proxy_static_ip))
+  value: ((master_static_ips))

@@ -632,11 +632,11 @@ jobs:
     file: git-kubo-ci/tasks/get_director_uuid.yml
   <% end %>
   <% if env =~ /^vsphere-proxy/ %>
-  - task: apply-cloud-config-for-proxy
-    file: git-kubo-ci/tasks/apply-cloud-config.yml
+  - task: update-cloud-config
+    file: git-kubo-ci/tasks/update-cloud-config.yml
     tags: ['<%= env %>']
     params:
-      PROXY_STATIC_IP: 10.74.42.132
+      OPS: -o "git-kubo-ci/manifests/ops-files/add-master-static-ips-cloud-config.yml" -vars_file=kubo-lock/metadata -o "git-kubo-ci/manifests/ops-files/vsphere-proxy-cloud-config.yml" -v "proxy_static_ip=10.74.42.132"
   <% end %>
   - put: cfcr-deployment
     params:
@@ -671,6 +671,7 @@ jobs:
       <% end %>
       <% if env =~ /^vsphere-proxy/ %>
       - git-kubo-deployment/manifests/ops-files/add-proxy.yml
+      - git-kubo-ci/manifests/ops-files/add-master-static-ips.yml
       <% end %>
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
