@@ -636,7 +636,7 @@ jobs:
     file: git-kubo-ci/tasks/update-cloud-config.yml
     tags: ['<%= env %>']
     params:
-      OPS: -o git-kubo-ci/manifests/ops-files/add-master-static-ips-cloud-config.yml --vars-file=kubo-lock/metadata -o git-kubo-ci/manifests/ops-files/vsphere-proxy-cloud-config.yml -v proxy_static_ip=10.74.42.132
+      OPS: -o git-kubo-ci/manifests/ops-files/add-master-static-ips-cloud-config.yml -o git-kubo-ci/manifests/ops-files/vsphere-proxy-cloud-config.yml --vars-file=kubo-lock/metadata
   <% end %>
   - put: cfcr-deployment
     params:
@@ -689,11 +689,6 @@ jobs:
       vars:
         deployment_name: ci-service
         worker_count: 3
-        <% if env =~ /^vsphere-proxy/ %>
-        http_proxy: 10.74.42.132:8888
-        https_proxy: 10.74.42.132:8888
-        no_proxy: .internal,10.74.42.128/25,10.200.0.0/16,10.100.0.0/16
-        <% end %>
     tags: [<%= env %>]
     on_failure: *on_failure_alert
   - task: update-kubeconfig
@@ -721,8 +716,8 @@ jobs:
       source_file: gcs-source-json/source.json
       stemcells:
       - stemcell/stemcell.tgz
-      vars:
-        proxy_static_ip: 10.74.42.132
+      vars_files:
+      - kubo-lock/metadata
     on_failure: *on_failure_alert
   <% end %>
   - put: gcs-kubeconfig
@@ -1060,11 +1055,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     file: git-kubo-ci/tasks/get_director_uuid.yml
   <% end %>
   <% if env =~ /^vsphere-proxy/ %>
-  - task: apply-cloud-config-for-proxy
-    file: git-kubo-ci/tasks/apply-cloud-config.yml
+  - task: update-cloud-config
+    file: git-kubo-ci/tasks/update-cloud-config.yml
     tags: ['<%= env %>']
     params:
-      PROXY_STATIC_IP: 10.74.42.132
+      OPS: -o git-kubo-ci/manifests/ops-files/add-master-static-ips-cloud-config.yml -o git-kubo-ci/manifests/ops-files/vsphere-proxy-cloud-config.yml --vars-file=kubo-lock/metadata
   <% end %>
   - put: cfcr-deployment
     params:
@@ -1111,11 +1106,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
         deployment_name: ci-service
         master_vm_type: master
         worker_vm_type: worker
-        <% if env =~ /^vsphere-proxy/ %>
-        http_proxy: 10.74.42.132:8888
-        https_proxy: 10.74.42.132:8888
-        no_proxy: .internal,10.74.42.128/25,10.200.0.0/16,10.100.0.0/16
-        <% end %>
     tags: [<%= env %>]
     on_failure: *on_failure_alert
   - task: update-kubeconfig
