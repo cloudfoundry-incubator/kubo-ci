@@ -1,6 +1,7 @@
 package k8s_lbs_test
 
 import (
+	"fmt"
 	"testing"
 	"tests/test_helpers"
 
@@ -17,7 +18,9 @@ var (
 	runner           *test_helpers.KubectlRunner
 	nginxLBSpec      = test_helpers.PathFromRoot("specs/nginx-lb.yml")
 	echoserverLBSpec = test_helpers.PathFromRoot("specs/echoserver-lb.yml")
-	iaas             string
+
+	internalNginxLBSpec string
+	iaas                string
 )
 
 var _ = BeforeSuite(func() {
@@ -27,6 +30,7 @@ var _ = BeforeSuite(func() {
 	var err error
 	iaas, err = test_helpers.IaaS()
 	Expect(err).ToNot(HaveOccurred())
+	internalNginxLBSpec = fmt.Sprintf(test_helpers.PathFromRoot("specs/nginx-internal-lb-%s.yml"), iaas)
 })
 
 var _ = AfterSuite(func() {
