@@ -671,7 +671,6 @@ jobs:
       <% end %>
       <% if env =~ /^vsphere-proxy/ %>
       - git-kubo-deployment/manifests/ops-files/add-proxy.yml
-      - git-kubo-deployment/manifests/ops-files/cf-routing.yml
       <% end %>
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
