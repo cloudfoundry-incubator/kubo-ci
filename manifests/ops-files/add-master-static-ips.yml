@@ -1,3 +1,3 @@
 - type: replace
-  path: /instance_groups/name=master/networks/name=default/subnets?/0/static?/-
+  path: /instance_groups/name=master/networks/name=default/static_ips?/-
   value: ((master_static_ips))
