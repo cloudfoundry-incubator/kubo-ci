@@ -14,7 +14,7 @@
   env_list = envs + additional_envs
   enable_failure_alert = true
 
-  upgrade_test_envs = %w(gcp-lb)
+  upgrade_test_envs = %w(gcp-lb vsphere-proxy)
   multi_az_envs = %w(aws-lb openstack gcp-lb vsphere-lb)
   multi_master_upgrade_test_envs = %w(aws-lb gcp-lb vsphere-lb)
   envs_for_new_bosh_stemcell = upgrade_test_envs | multi_master_upgrade_test_envs
@@ -1076,7 +1076,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/vm-types.yml
-      - unpacked-old-kubo-deployment/manifests/ops-files/addons-spec.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
       <% if env =~ /^gcp/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
@@ -1384,7 +1383,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/vm-types.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
-      - unpacked-old-kubo-deployment/manifests/ops-files/addons-spec.yml
       <% if env =~ /^gcp/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       <% end %>
