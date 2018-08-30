@@ -126,8 +126,13 @@ func (runner *KubectlRunner) GetOutputBytesOrError(kubectlArgs ...string) ([]byt
 }
 
 func (runner *KubectlRunner) GetOutputBytesInNamespace(namespace string, kubectlArgs ...string) []byte {
-	session := runner.RunKubectlCommandInNamespace(namespace, kubectlArgs...)
-	Eventually(session, "60s").Should(gexec.Exit(0))
+	var session *gexec.Session
+	Eventually(func() int {
+		session = runner.RunKubectlCommandInNamespace(namespace, kubectlArgs...)
+		Eventually(session, "60s").Should(gexec.Exit())
+
+		return session.ExitCode()
+	}, "60s", "30s").Should(Equal(0))
 	output := session.Out.Contents()
 	return bytes.Trim(output, `"`)
 }
@@ -189,10 +194,7 @@ func (runner *KubectlRunner) GetPodStatus(namespace string, podName string) stri
 }
 
 func (runner *KubectlRunner) GetResourceNameBySelector(namespace, resource, selector string) string {
-	session := runner.RunKubectlCommandInNamespace(namespace, "get", resource, "-l", selector, "-o", "jsonpath={.items[0].metadata.name}")
-	Eventually(session, "10s").Should(gexec.Exit(0))
-
-	return string(session.Out.Contents())
+	return runner.GetOutputInNamespace(namespace, "get", resource, "-l", selector, "-o", "jsonpath={.items[0].metadata.name}")[0]
 }
 
 func (runner *KubectlRunner) GetPodStatusBySelector(namespace string, selector string) string {
