@@ -26,7 +26,7 @@ main() {
   tmp_cloud_config=$(mktemp)
 
   bosh cloud-config > "$tmp_cloud_config"
-  bosh -n update-cloud-config "$tmp_cloud_config" "${OPS}"
+  bosh -n update-cloud-config "$tmp_cloud_config" ${OPS}
 }
 
 main "$@"
