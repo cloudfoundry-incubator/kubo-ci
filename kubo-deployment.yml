@@ -653,6 +653,7 @@ jobs:
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       <% if env =~ /^gcp/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
       <% end %>
       <% if env =~ /^aws/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
@@ -1653,6 +1654,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-ci/manifests/ops-files/use-separate-master-ca.yml
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
@@ -1859,6 +1861,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
@@ -2121,6 +2124,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/use-coredns.yml
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
