@@ -636,7 +636,7 @@ jobs:
     file: git-kubo-ci/tasks/update-cloud-config.yml
     tags: ['<%= env %>']
     params:
-      OPS: -o "git-kubo-ci/manifests/ops-files/add-master-static-ips-cloud-config.yml" -vars_file=kubo-lock/metadata -o "git-kubo-ci/manifests/ops-files/vsphere-proxy-cloud-config.yml" -v "proxy_static_ip=10.74.42.132"
+      OPS: -o git-kubo-ci/manifests/ops-files/add-master-static-ips-cloud-config.yml -vars_file=kubo-lock/metadata -o git-kubo-ci/manifests/ops-files/vsphere-proxy-cloud-config.yml -v proxy_static_ip=10.74.42.132
   <% end %>
   - put: cfcr-deployment
     params:
