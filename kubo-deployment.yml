@@ -1105,6 +1105,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
         deployment_name: ci-service
         master_vm_type: master
         worker_vm_type: worker
+        apply_addons_vm_type: minimal
     tags: [<%= env %>]
     on_failure: *on_failure_alert
   - task: update-kubeconfig
@@ -1398,6 +1399,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
         deployment_name: ci-service
         worker_vm_type: worker
         master_vm_type: master
+        apply_addons_vm_type: minimal
     tags: [<%= env %>]
     on_failure: *on_failure_alert
   - put: run-apply-addons-errand

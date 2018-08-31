@@ -6,7 +6,7 @@ ops_files = '-o git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-
  -o git-kubo-ci/manifests/ops-files/add-api-server-endpoint.yml\
  -o git-kubo-deployment/manifests/ops-files/addons-spec.yml '
 vars_files = '-l gcs-load-balancer-vars/load-balancer-vars.yml -l kubo-lock/metadata '
-vars = "-v deployment_name=#{ENV['DEPLOYMENT_NAME']} -v worker_vm_type=worker -v master_vm_type=master "
+vars = "-v deployment_name=#{ENV['DEPLOYMENT_NAME']} -v worker_vm_type=worker -v master_vm_type=master -v apply_addons_vm_type=minimal"
 
 var_file = "--var-file=addons-spec=#{ENV['ADDONS_SPEC']}"
 
