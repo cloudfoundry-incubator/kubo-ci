@@ -214,6 +214,7 @@ jobs:
         deployment_name: gaffer
         worker_vm_type: worker
         master_vm_type: master
+        apply_addons_vm_type: minimal
         worker_count: 3
         api-hostname: 35.201.123.45
       vars_files:

@@ -389,6 +389,7 @@ jobs:
         deployment_name: ci-service
         master_vm_type: master
         worker_vm_type: worker
+        apply_addons_vm_type: minimal
     tags: [<%= env %>]
     on_failure: &on_failure_alert_<%= env %>
       aggregate:
