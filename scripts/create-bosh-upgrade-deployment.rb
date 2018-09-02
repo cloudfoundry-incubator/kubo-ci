@@ -10,7 +10,7 @@ vars = "-v deployment_name=#{ENV['DEPLOYMENT_NAME']} -v worker_vm_type=worker -v
 
 var_file = "--var-file=addons-spec=#{ENV['ADDONS_SPEC']}"
 
-if ENV['ENABLE_MULTI_AZ_TESTS']
+if ENV['ENABLE_MULTI_AZ_TESTS'] != 'false'
   ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
 else
   ops_files << '-o git-kubo-deployment/manifests/ops-files/misc/single-master.yml '
