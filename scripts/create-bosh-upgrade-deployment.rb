@@ -28,6 +28,7 @@ end
 
 if ENV['IAAS'] =~ /^vsphere-proxy/
   ops_files << '-o git-kubo-deployment/manifests/ops-files/add-proxy.yml '
+  ops_files << '-o git-kubo-ci/manifests/ops-files/add-master-static-ips.yml '
 end
 
 if ENV['IAAS'] =~ /^aws/

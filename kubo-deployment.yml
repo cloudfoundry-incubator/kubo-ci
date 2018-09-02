@@ -1089,6 +1089,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
       <% if env =~ /^vsphere-proxy/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/add-proxy.yml
+      - git-kubo-ci/manifests/ops-files/add-master-static-ips.yml
       <% end %>
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
