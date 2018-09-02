@@ -22,7 +22,7 @@ main() {
   bosh upload-release "$release_tarball"
   bosh upload-stemcell "${ROOT}/stemcell/stemcell.tgz"
 
-  if [[ $INTERNET_ACCESS ]]; then
+  if [[ "$INTERNET_ACCESS" != "false" ]]; then
     tmpfile="$(mktemp)"
     echo "CONFIG=${tmpfile}"
 
