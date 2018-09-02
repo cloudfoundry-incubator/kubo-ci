@@ -42,8 +42,7 @@ cmd = ['bosh -n -d',
        ENV['CFCR_MANIFEST_PATH'],
        ops_files,
        vars_files,
-       vars,
-       var_file].join(' ')
+       vars].join(' ')
 puts "command: #{cmd}"
 File.write(ENV['BOSH_DEPLOY_COMMAND'], "#!/usr/bin/env bash\n" + cmd)
 system("chmod +x #{ENV['BOSH_DEPLOY_COMMAND']}")
