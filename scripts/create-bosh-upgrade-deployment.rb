@@ -3,17 +3,16 @@
 ops_files = '-o git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml\
  -o git-kubo-deployment/manifests/ops-files/rename.yml\
  -o git-kubo-deployment/manifests/ops-files/vm-types.yml\
- -o git-kubo-ci/manifests/ops-files/add-api-server-endpoint.yml\
- -o git-kubo-deployment/manifests/ops-files/addons-spec.yml '
+ -o git-kubo-ci/manifests/ops-files/add-api-server-endpoint.yml '
 vars_files = '-l gcs-load-balancer-vars/load-balancer-vars.yml -l kubo-lock/metadata '
 vars = "-v deployment_name=#{ENV['DEPLOYMENT_NAME']} -v worker_vm_type=worker -v master_vm_type=master -v apply_addons_vm_type=minimal"
 
-var_file = "--var-file=addons-spec=#{ENV['ADDONS_SPEC']}"
 
 if ENV['ENABLE_MULTI_AZ_TESTS'] != 'false'
   ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
 else
   ops_files << '-o git-kubo-deployment/manifests/ops-files/misc/single-master.yml '
+  ops_files << '-o git-kubo-ci/manifests/ops-files/scale-to-one-az.yml '
 end
 
 if ENV['IAAS'] =~ /^gcp/
