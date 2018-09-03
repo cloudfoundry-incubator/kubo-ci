@@ -33,26 +33,7 @@ export BOSH_CA_CERT="${BOSH_CA_CERT}"
 export BOSH_ENVIRONMENT="${BOSH_ENVIRONMENT}"
 EOF
 
-  if [ -z "$(bosh stemcells | grep trusty)" ]; then
-    local stemcell_version=3586.27
-    local iaas_extension=
-    case ${IAAS} in
-    vsphere)
-      iaas_extension=${IAAS}-esxi
-      ;;
-    aws)
-      iaas_extension=${IAAS}-xen-hvm
-      ;;
-    openstack)
-      iaas_extension=${IAAS}-kvm
-      ;;
-    gcp)
-      iaas_extension=${IAAS}-kvm
-      ;;
-    esac
-
-    bosh upload-stemcell "https://bosh.io/d/stemcells/bosh-${iaas_extension}-ubuntu-trusty-go_agent?v=${stemcell_version}"
-  fi
+  bosh upload-stemcell "https://boshstemcell.com/$IAAS"
 
   bosh interpolate "$manifest_template"  \
       --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \

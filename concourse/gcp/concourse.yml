@@ -17,7 +17,7 @@ instance_groups:
       roles:
       - name: atc
         password: ((postgresql-password))
-  stemcell: bosh-google-kvm-ubuntu-trusty-go_agent
+  stemcell: default
   update:
     max_in_flight: 1
   vm_type: default
@@ -75,7 +75,7 @@ instance_groups:
     name: default
   persistent_disk_type: large
   properties: {}
-  stemcell: bosh-google-kvm-ubuntu-trusty-go_agent
+  stemcell: default
   update:
     max_in_flight: 1
   vm_type: default
@@ -109,7 +109,7 @@ instance_groups:
   name: worker-gcp
   networks:
   - name: default
-  stemcell: bosh-google-kvm-ubuntu-trusty-go_agent
+  stemcell: default
   update:
     max_in_flight: 1
   vm_type: large
@@ -138,27 +138,27 @@ instance_groups:
   name: worker
   networks:
   - name: default
-  stemcell: bosh-google-kvm-ubuntu-trusty-go_agent
+  stemcell: default
   update:
     max_in_flight: 1
   vm_type: large
 name: kubo-ci
 releases:
 - name: concourse
-  sha1: 6224188701f71c64a4b51fed47a64f7cecbaeed2
-  url: https://bosh.io/d/github.com/concourse/concourse?v=4.0.0
-  version: 4.0.0
+  sha1: 513e3a88d135e6e2cd8a974702e2e63caa0cb82b
+  url: https://bosh.io/d/github.com/concourse/concourse?v=4.1.0
+  version: 4.1.0
 - name: garden-runc
-  sha1: 1a8805090ae4089dacc28f97996d00012c4c6e93
-  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.16.0
-  version: 1.16.0
+  sha1: 2a7c813e7e4d862e19334addf022916fb6b91eb0
+  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.16.3
+  version: 1.16.3
 - name: postgres
   version: 29
   sha1: 24d2e2887a45258b71bc40577c0f406180e47701
   url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=29
 stemcells:
-- alias: bosh-google-kvm-ubuntu-trusty-go_agent
-  os: ubuntu-trusty
+- alias: default
+  os: ubuntu-xenial
   version: latest
 update:
   canaries: 1
