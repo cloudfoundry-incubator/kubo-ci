@@ -85,7 +85,7 @@ var _ = Describe("Api Extensions", func() {
 		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", replicationControllerSpec), "5s", "1s").Should(gexec.Exit(0))
 		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", serviceSpec), "5s", "1s").Should(gexec.Exit(0))
 		Eventually(kubectl.RunKubectlCommandInNamespace(apiExtensionsNamespace, "delete", "-f", apiServiceSpec), "5s", "1s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommand("delete", "namespace", apiExtensionsNamespace), "5s", "1s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("delete", "namespace", apiExtensionsNamespace), "45s", "1s").Should(gexec.Exit(0))
 		Expect(os.RemoveAll(tmpDir)).To(Succeed())
 	})
 
