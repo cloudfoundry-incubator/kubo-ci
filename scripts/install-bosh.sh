@@ -59,18 +59,18 @@ if [ "$iaas" = "gcp" ]; then
   else
     bosh int $metadata_path --path=/gcp_service_account > "${ROOT}/key.json"
   fi
-  "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "${ROOT}/key.json"
+  "${ROOT}/git-kubo-ci/scripts/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "${ROOT}/key.json"
 elif [ "$iaas" = "aws" ]; then
   bosh int $metadata_path --path=/private_key > "${ROOT}/key"
-  "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "${ROOT}/key"
+  "${ROOT}/git-kubo-ci/scripts/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "${ROOT}/key"
 elif [ "$iaas" = "openstack" ]; then
   bosh int $metadata_path --path=/private_key > "${ROOT}/key"
-  "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "${ROOT}/key"
+  "${ROOT}/git-kubo-ci/scripts/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "${ROOT}/key"
 else
-  "${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}"
+  "${ROOT}/git-kubo-ci/scripts/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}"
 fi
 
-"$KUBO_DEPLOYMENT_DIR/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
+"${ROOT}/git-kubo-ci/scripts/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
 
 # for Concourse outputs
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
