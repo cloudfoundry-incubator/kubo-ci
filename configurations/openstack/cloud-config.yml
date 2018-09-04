@@ -21,14 +21,13 @@ vm_types:
 
 networks:
 - name: default
-  type: dynamic
+  type: manual
   subnets:
   - azs: [z1]
-    dns: [((dns_recursor_ip))]
+    dns: [8.8.8.8]
+    static: ((master_static_ips))
     cloud_properties:
       net_id: ((net_id))
-- name: vip
-  type: vip
 
 compilation:
   workers: 5

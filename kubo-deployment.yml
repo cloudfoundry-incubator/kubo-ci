@@ -562,9 +562,7 @@ jobs:
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     params:
       USE_TURBULENCE: 1
-      <% if env.include? 'openstack' %>
-      CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
-      <% elsif env =~ /^(gcp|vsphere-lb)/ %>
+      <% if env =~ /^(gcp|vsphere-lb)/ %>
       CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
       <% elsif env.include? 'aws-lb' %>
       CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
@@ -661,6 +659,7 @@ jobs:
       <% end %>
       <% if env =~ /^openstack/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/openstack/cloud-provider.yml
+      - git-kubo-ci/manifests/ops-files/add-master-static-ips.yml
       <% end %>
       <% if env =~ /^vsphere/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
