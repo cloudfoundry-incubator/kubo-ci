@@ -24,7 +24,7 @@ main() {
 
   pushd "$(dirname "$0")/.." > /dev/null
    # shellcheck disable=SC1091
-    . ./bin/lib/deploy_utils
+    . ./scripts/lib/deploy_utils
 
     export_bosh_environment "${bosh_env}"
 
