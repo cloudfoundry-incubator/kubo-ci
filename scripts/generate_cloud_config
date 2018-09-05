@@ -11,7 +11,7 @@ EOF
 }
 
 repo_directory() {
-  echo -n "${PWD}/git-kubo-deployment"
+  echo -n "${PWD}/git-kubo-ci"
 }
 
 ops_string_for_service_accounts() {
