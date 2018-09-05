@@ -33,7 +33,7 @@ set -x
 DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"ci-service"}
 credhub delete -n "/${director_name}/${DEPLOYMENT_NAME}/tls-kubernetes"
 
-"$KUBO_DEPLOYMENT_DIR/bin/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
+"${KUBO_CI_DIR}/scripts/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
 master_ip=$(bosh int <(BOSH_CLIENT=bosh_admin BOSH_CLIENT_SECRET="${bosh_admin_client_secret}" bosh -e environment -d "${DEPLOYMENT_NAME}" vms --json) --path=/Tables/0/Rows/0/ips)
 
 cp -R kubo-lock-pre/* kubo-lock

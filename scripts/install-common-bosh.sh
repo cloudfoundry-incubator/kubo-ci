@@ -21,8 +21,8 @@ if [[ "$iaas" != "gcp" ]]; then
   exit 1
 fi
 
-BOSH_EXTRA_OPS="--ops-file \"${KUBO_DEPLOYMENT_DIR}/bosh-deployment/turbulence.yml\""
-BOSH_EXTRA_OPS="${BOSH_EXTRA_OPS} --ops-file \"${KUBO_DEPLOYMENT_DIR}/bosh-deployment/jumpbox-user.yml\""
+BOSH_EXTRA_OPS="--ops-file \"${KUBO_CI_DIR}/bosh-deployment/turbulence.yml\""
+BOSH_EXTRA_OPS="${BOSH_EXTRA_OPS} --ops-file \"${KUBO_CI_DIR}/bosh-deployment/jumpbox-user.yml\""
 
 if [[ -f "$KUBO_CI_DIR/manifests/ops-files/${iaas}-cpi.yml" ]]; then
   BOSH_EXTRA_OPS="${BOSH_EXTRA_OPS} --ops-file $KUBO_CI_DIR/manifests/ops-files/${iaas}-cpi.yml"
@@ -34,7 +34,7 @@ set +x
 echo ${GCP_SERVICE_ACCOUNT} > "$PWD/key.json"
 set -x
 
-"${KUBO_DEPLOYMENT_DIR}/bin/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key.json"
+"${KUBO_CI_DIR}/scripts/deploy_bosh" "${KUBO_ENVIRONMENT_DIR}" "$PWD/key.json"
 
 # for Concourse outputs
 if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
