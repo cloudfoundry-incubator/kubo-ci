@@ -16,7 +16,6 @@ type Config struct {
 	TurbulenceTests  TurbulenceTests  `json:"turbulence_tests"`
 	Kubernetes       Kubernetes       `json:"kubernetes"`
 	CFCR             CFCR             `json:"cfcr"`
-	IntegrationTests IntegrationTests `json:"integration_tests"`
 	UpgradeTests     UpgradeTests     `json:"upgrade_tests"`
 }
 
@@ -49,12 +48,6 @@ type TurbulenceTests struct {
 	IncludeMasterFailure      bool `json:"include_master_failure"`
 	IncludePersistenceFailure bool `json:"include_persistence_failure"`
 	IsMultiAZ                 bool `json:"is_multiaz"`
-}
-
-type IntegrationTests struct {
-	IncludeCloudFoundry     bool `json:"include_cloudfoundry"`
-	IncludeK8SLB            bool `json:"include_k8s_lb"`
-	IncludePersistentVolume bool `json:"include_persistent_volume"`
 }
 
 type UpgradeTests struct {
