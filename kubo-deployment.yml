@@ -763,7 +763,9 @@ jobs:
       <% if !(multi_az_envs.include?(env)) %>
       ENABLE_MULTI_AZ_TESTS: false
       <% end %>
-      ENABLE_K8S_LBS_TESTS: <%= env.match? /^(gcp|aws-lb)/  %>
+      <% if env =~ /^(gcp|aws-lb)/ %>
+      ENABLE_K8S_LBS_TESTS: true
+      <% end %>
   - task: pod-to-pod
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
