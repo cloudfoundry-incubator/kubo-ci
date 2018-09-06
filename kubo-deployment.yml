@@ -786,6 +786,8 @@ jobs:
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-k8s-<%= env %>' ]
+    - get: gcs-source-json
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
@@ -826,6 +828,8 @@ jobs:
     - get: gcs-bosh-creds
       passed: <%= turbulence_passed_reqs %>
     - get: gcs-kubo-release-tarball-untested
+      passed: <%= turbulence_passed_reqs %>
+    - get: gcs-source-json
       passed: <%= turbulence_passed_reqs %>
     - get: gcs-kubo-deployment-tarball-untested
       passed: <%= turbulence_passed_reqs %>
@@ -876,6 +880,8 @@ jobs:
     - get: gcs-bosh-creds
       passed: <%= destroy_k8s_passed_reqs %>
     - get: gcs-kubo-release-tarball-untested
+      passed: <%= destroy_k8s_passed_reqs %>
+    - get: gcs-source-json
       passed: <%= destroy_k8s_passed_reqs %>
     - get: gcs-kubo-deployment-tarball-untested
       passed: <%= destroy_k8s_passed_reqs %>
@@ -1202,6 +1208,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'upgrade-kubo-<%= env %>' ]
     - get: kubo-version
       passed: [ 'upgrade-kubo-<%= env %>' ]
+    - get: gcs-source-json
+      passed: [ 'upgrade-kubo-<%= env %>' ]
     - get: git-kubo-release
       passed: [ 'upgrade-kubo-<%= env %>' ]
     - get: git-kubo-deployment
@@ -1494,6 +1502,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'upgrade-kubo-multi-master-<%= env %>' ]
     - get: gcs-bosh-creds
       passed: [ 'upgrade-kubo-multi-master-<%= env %>' ]
+    - get: gcs-source-json
+      passed: [ 'upgrade-kubo-multi-master-<%= env %>' ]
     - get: kubo-version
       passed: [ 'upgrade-kubo-multi-master-<%= env %>' ]
     - get: git-kubo-release
@@ -1696,6 +1706,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: git-kubo-release
       passed: [ 'deploy-k8s-two-cas' ]
     - get: gcs-bosh-state
+      passed: [ 'deploy-k8s-two-cas' ]
+    - get: gcs-source-json
       passed: [ 'deploy-k8s-two-cas' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-k8s-two-cas' ]
@@ -1959,6 +1971,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: <%= destroy_k8s_bbr_passed_reqs %>
     - get: gcs-bosh-creds
       passed: <%= destroy_k8s_bbr_passed_reqs %>
+    - get: gcs-source-json
+      passed: <%= destroy_k8s_bbr_passed_reqs %>
     - get: gcs-kubo-release-tarball-untested
       passed: <%= destroy_k8s_bbr_passed_reqs %>
     - get: gcs-kubo-deployment-tarball-untested
@@ -2218,6 +2232,8 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     - get: gcs-bosh-state
       passed: ['run-k8s-integration-tests-coredns-<%= env %>']
     - get: gcs-bosh-creds
+      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+    - get: gcs-source-json
       passed: ['run-k8s-integration-tests-coredns-<%= env %>']
     - get: gcs-kubo-release-tarball-untested
       passed: ['run-k8s-integration-tests-coredns-<%= env %>']
