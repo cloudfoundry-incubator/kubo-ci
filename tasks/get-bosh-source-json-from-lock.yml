@@ -11,7 +11,7 @@ inputs:
 - name: kubo-lock
 
 outputs:
-- name: source_json
+- name: source-json
 
 run:
   path: bash
@@ -19,4 +19,4 @@ run:
   - -c
   - |
     set -euo pipefail
-    bosh int kubo-lock/metadata --path=/source_json > source_json/source.json
+    bosh int kubo-lock/metadata --path=/source_json > source-json/source.json

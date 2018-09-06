@@ -190,7 +190,6 @@ jobs:
       resource: stemcell-<%= env %>
   - task: get-bosh-source-json-from-lock
     file: git-kubo-ci/tasks/get-bosh-source-json-from-lock.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -427,7 +426,6 @@ jobs:
       passed: <%= destroy_k8s_passed_reqs %>
   - task: get-bosh-source-json-from-lock
     file: git-kubo-ci/tasks/get-bosh-source-json-from-lock.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - task: destroy-k8s
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
