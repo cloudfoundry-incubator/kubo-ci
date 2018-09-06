@@ -83,13 +83,6 @@ resources:
   source:
     url: ((build-alert-slack-url))
 
-- name: gcs-source-json
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
-    versioned_file: source.json
-
 - name: cfcr-deployment
   type: bosh-deployment
   source:
@@ -181,13 +174,18 @@ jobs:
     - get: git-kubo-ci
     - get: kubo-lock
       resource: kubo-lock-<%= env %>
+      passed: [ claim-lock-<%= env %> ]
       version: every
       trigger: true
     - get: git-kubo-deployment
+      passed: [ claim-lock-<%= env %> ]
     - get: git-kubo-release
+      passed: [ claim-lock-<%= env %> ]
     - get: kubo-version
     - get: gcs-kubo-release-tarball-untested
+      passed: [ claim-lock-<%= env %> ]
     - get: gcs-kubo-deployment-tarball-untested
+      passed: [ claim-lock-<%= env %> ]
     - get: stemcell
       resource: stemcell-<%= env %>
   - task: get-bosh-source-json-from-lock
@@ -279,7 +277,7 @@ jobs:
     tags: ['<%= env %>']
     params:
       manifest: git-kubo-ci/manifests/tinyproxy/manifest.yml
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       stemcells:
       - stemcell/stemcell.tgz
       vars_files:
@@ -427,6 +425,9 @@ jobs:
       passed: <%= destroy_k8s_passed_reqs %>
     - get: gcs-kubo-deployment-tarball-untested
       passed: <%= destroy_k8s_passed_reqs %>
+  - task: get-bosh-source-json-from-lock
+    file: git-kubo-ci/tasks/get-bosh-source-json-from-lock.yml
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - task: destroy-k8s
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
