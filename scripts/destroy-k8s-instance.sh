@@ -2,12 +2,11 @@
 
 set -exu -o pipefail
 
-creds_path="${PWD}/gcs-bosh-creds/creds.yml"
 
-export BOSH_CLIENT="bosh_admin"
-export BOSH_CLIENT_SECRET="$(bosh int "$creds_path" --path /bosh_admin_client_secret)"
-export BOSH_ENVIRONMENT="$(bosh int "kubo-lock/metadata" --path /internal_ip)"
-export BOSH_CA_CERT="$(bosh int "${creds_path}" --path=/director_ssl/ca)"
+export BOSH_ENVIRONMENT="$(jq -r .target gcs-source-json/source.json)"
+export BOSH_CLIENT="$(jq -r .client gcs-source-json/source.json)"
+export BOSH_CLIENT_SECRET="$(jq -r .client_secret gcs-source-json/source.json)"
+export BOSH_CA_CERT="$(jq -r .ca_cert gcs-source-json/source.json)"
 
 export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
