@@ -10,9 +10,15 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
+var defaultHPATimeout = "210s"
+
 var _ = Describe("Horizontal Pod Autoscaling", func() {
 	It("scales the pods accordingly", func() {
 		HPATimeout := MustHaveEnv("HPA_TIMEOUT")
+		if HPATimeout == "" {
+			HPATimeout = defaultHPATimeout
+		}
+
 		runHPAPod()
 		createHPA()
 
