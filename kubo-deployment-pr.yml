@@ -325,6 +325,8 @@ jobs:
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-k8s-<%= env %>' ]
+    - get: gcs-source-json
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubeconfig
       passed: [ 'deploy-k8s-<%= env %>' ]
   - put: git-kubo-deployment
@@ -363,6 +365,8 @@ jobs:
     - get: gcs-bosh-state
       passed: [ 'run-k8s-integration-tests-<%= env %>' ]
     - get: gcs-bosh-creds
+      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
+    - get: gcs-source-json
       passed: [ 'run-k8s-integration-tests-<%= env %>' ]
   - put: git-kubo-deployment
     params:

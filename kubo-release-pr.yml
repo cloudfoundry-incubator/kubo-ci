@@ -502,6 +502,8 @@ jobs:
       passed: [ 'upgrade-kubo-<%= env %>' ]
       version: every
       trigger: true
+    - get: gcs-source-json
+      passed: [ 'upgrade-kubo-<%= env %>' ]
     - get: kubo-version
       passed: [ 'upgrade-kubo-<%= env %>' ]
   - task: unpack-kubo-deployment
@@ -747,6 +749,8 @@ jobs:
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-k8s-<%= env %>' ]
+    - get: gcs-source-json
+      passed: [ 'deploy-k8s-<%= env %>' ]
     - get: git-kubo-release
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubeconfig
@@ -787,6 +791,8 @@ jobs:
     - get: gcs-bosh-state
       passed: [ 'run-k8s-integration-tests-<%= env %>' ]
     - get: gcs-bosh-creds
+      passed: [ 'run-k8s-integration-tests-<%= env %>' ]
+    - get: gcs-source-json
       passed: [ 'run-k8s-integration-tests-<%= env %>' ]
     - get: git-kubo-release
       passed: [ 'run-k8s-integration-tests-<%= env %>' ]

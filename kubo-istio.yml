@@ -246,6 +246,9 @@ jobs:
     - get: gcs-bosh-state
       passed:
       - deploy-k8s-gcp-lb
+    - get: gcs-source-json
+      passed:
+      - deploy-k8s-gcp-lb
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
@@ -283,6 +286,9 @@ jobs:
       passed:
       - run-istio-tests
     - get: gcs-bosh-state
+      passed:
+      - run-istio-tests
+    - get: gcs-source-json
       passed:
       - run-istio-tests
   - task: unpack-kubo-deployment

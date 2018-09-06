@@ -289,6 +289,8 @@ jobs:
       passed: [ 'deploy-k8s-change-cidrs-gcp-lb' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-k8s-change-cidrs-gcp-lb' ]
+    - get: gcs-source-json
+      passed: [ 'deploy-k8s-change-cidrs-gcp-lb' ]
     - get: kubo-dev-release
       passed: [ 'deploy-k8s-change-cidrs-gcp-lb' ]
     - get: gcs-kubeconfig
@@ -334,6 +336,8 @@ jobs:
     - get: gcs-bosh-state
       passed: [ 'run-k8s-integration-tests-change-cidrs-gcp-lb' ]
     - get: gcs-bosh-creds
+      passed: [ 'run-k8s-integration-tests-change-cidrs-gcp-lb' ]
+    - get: gcs-source-json
       passed: [ 'run-k8s-integration-tests-change-cidrs-gcp-lb' ]
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
