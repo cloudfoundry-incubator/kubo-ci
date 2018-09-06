@@ -192,6 +192,7 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
       - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
+      - git-kubo-ci/manifests/ops-files/allow-security-context.yml
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
