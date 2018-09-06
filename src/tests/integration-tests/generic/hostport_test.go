@@ -31,7 +31,7 @@ var _ = Describe("When deploying a pod with service", func() {
 		})
 
 		It("should be able to connect to <node>:<port>", func() {
-			hostIP := runner.RunKubectlCommand("get", "pod", "-l", "app=nginx-hostport",
+			hostIP := runner.GetOutput("get", "pod", "-l", "app=nginx-hostport",
 				"-o", "jsonpath='{@.items[0].status.hostIP}'")
 			url := fmt.Sprintf("http://%s:40801", hostIP)
 			session := runner.RunKubectlCommand("run", "curl-hostport",
