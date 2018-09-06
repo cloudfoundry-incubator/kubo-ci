@@ -1,0 +1,22 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+
+inputs:
+- name: git-kubo-ci
+- name: kubo-lock
+
+outputs:
+- name: source-json
+
+run:
+  path: bash
+  args:
+  - -c
+  - |
+    set -euo pipefail
+    bosh int kubo-lock/metadata --path source_json > source_json/source.json
