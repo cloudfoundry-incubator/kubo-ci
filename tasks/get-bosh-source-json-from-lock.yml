@@ -11,7 +11,7 @@ inputs:
 - name: kubo-lock
 
 outputs:
-- name: source-json
+- name: source_json
 
 run:
   path: bash
