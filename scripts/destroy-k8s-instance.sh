@@ -13,3 +13,5 @@ export BOSH_LOG_PATH="$PWD/bosh.log"
 
 set +x
 bosh -d "${DEPLOYMENT_NAME}" -n delete-deployment --force
+bosh -n clean-up --all
+
