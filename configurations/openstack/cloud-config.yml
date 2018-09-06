@@ -23,7 +23,9 @@ networks:
 - name: default
   type: manual
   subnets:
-  - azs: [z1]
+  - range: ((internal_cidr))
+    gateway: ((internal_gw))
+    azs: [z1]
     dns: [8.8.8.8]
     static: ((master_static_ips))
     cloud_properties:
