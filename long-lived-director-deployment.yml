@@ -219,10 +219,8 @@ jobs:
       <% if env =~ /^vsphere/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
       <% end %>
-      <% if !(env =~ /^(gcp|vsphere-lb|aws-lb|openstack)/) %>
-      - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
-      <% end %>
       <% if !(env =~ /^(gcp|vsphere-lb|aws-lb)/) %>
+      - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
       <% end %>
       <% if env =~ /^vsphere-proxy/ %>
