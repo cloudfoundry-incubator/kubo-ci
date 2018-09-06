@@ -13,4 +13,6 @@ inputs:
 outputs:
   - name: kubo-release-tarball
   - name: git-kubo-release-master-output
-
+params:
+  ACCESS_KEY_ID:
+  SECRET_ACCESS_KEY:
