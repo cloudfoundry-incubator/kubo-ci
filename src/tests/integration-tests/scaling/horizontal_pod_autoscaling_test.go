@@ -2,6 +2,7 @@ package generic_test
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	. "github.com/onsi/ginkgo"
@@ -9,8 +10,15 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
+var defaultHPATimeout = "210s"
+
 var _ = Describe("Horizontal Pod Autoscaling", func() {
 	It("scales the pods accordingly", func() {
+		HPATimeout := os.Getenv("HPA_TIMEOUT")
+		if HPATimeout == "" {
+			HPATimeout = defaultHPATimeout
+		}
+
 		runHPAPod()
 		createHPA()
 
@@ -22,7 +30,7 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 			Eventually(session, "10s").Should(gexec.Exit(0))
 			replicas, _ := strconv.Atoi(string(session.Out.Contents()))
 			return replicas
-		}, "210s").Should(BeNumerically(">", 1))
+		}, HPATimeout).Should(BeNumerically(">", 1))
 
 		By("decreasing the number of pods when the CPU load decreases")
 
@@ -34,7 +42,7 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 			Eventually(session, "10s").Should(gexec.Exit(0))
 			replicas, _ := strconv.Atoi(string(session.Out.Contents()))
 			return replicas
-		}, "210s").Should(BeNumerically("==", 1))
+		}, HPATimeout).Should(BeNumerically("==", 1))
 	})
 })
 

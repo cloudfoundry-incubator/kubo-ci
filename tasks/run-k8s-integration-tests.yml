@@ -16,6 +16,7 @@ params:
   ENABLE_CIDR_TESTS: false
   CIDR_VARS_FILE: manifests/vars-files/default-cidrs.yml
   KUBECONFIG_FILE: config
+  HPA_TIMEOUT: 210s
 
 inputs:
   - name: git-kubo-ci
