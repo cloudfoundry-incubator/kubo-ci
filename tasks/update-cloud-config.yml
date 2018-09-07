@@ -8,13 +8,13 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/update-cloud-config.sh
   args:
-  - gcs-source-json/source.json
+  - source-json/source.json
 
 params:
   OPS:
 
 inputs:
 - name: git-kubo-ci
-- name: gcs-source-json
+- name: source-json
 - name: kubo-lock
 - name: git-kubo-deployment

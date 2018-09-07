@@ -12,5 +12,5 @@ params:
   DEPLOYMENT_NAME: ci-service
 
 inputs:
-  - name: gcs-source-json
+  - name: source-json
   - name: git-kubo-ci

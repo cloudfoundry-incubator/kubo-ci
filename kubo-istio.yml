@@ -4,7 +4,7 @@ resources:
   type: bosh-io-stemcell
   source:
     name: bosh-google-kvm-ubuntu-xenial-go_agent
-- name: gcs-source-json
+- name: source-json
   type: gcs
   source:
     bucket: kubo-pipeline-store
@@ -148,7 +148,7 @@ jobs:
     - put: gcs-load-balancer-vars
       params:
         file: load-balancer-vars/vars.yml
-    - put: gcs-source-json
+    - put: source-json
       params:
         file: source-json/source.json
 - name: deploy-k8s-gcp-lb
@@ -172,7 +172,7 @@ jobs:
     - get: gcs-bosh-creds
       passed:
       - install-bosh-gcp-lb
-    - get: gcs-source-json
+    - get: source-json
       passed:
       - install-bosh-gcp-lb
     - get: gcs-load-balancer-vars
@@ -198,7 +198,7 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
       releases:
       - kubo-dev-release/kubo-release-latest.tgz
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       stemcells:
       - stemcell/stemcell.tgz
       vars:
@@ -213,14 +213,14 @@ jobs:
     params:
       keep_alive: true
       name: apply-addons
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags:
     - gcp-lb
   - put: run-smoke-tests-errand
     params:
       keep_alive: true
       name: smoke-tests
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags:
     - gcp-lb
 - name: run-istio-tests
@@ -247,7 +247,7 @@ jobs:
     - get: gcs-bosh-state
       passed:
       - deploy-k8s-gcp-lb
-    - get: gcs-source-json
+    - get: source-json
       passed:
       - deploy-k8s-gcp-lb
   - task: unpack-kubo-deployment
@@ -289,7 +289,7 @@ jobs:
     - get: gcs-bosh-state
       passed:
       - run-istio-tests
-    - get: gcs-source-json
+    - get: source-json
       passed:
       - run-istio-tests
   - task: unpack-kubo-deployment

@@ -61,7 +61,7 @@ resources:
     private_key: ((git-ssh-key.private_key))
     pool: kubo-gcp-lb
 
-- name: gcs-source-json
+- name: source-json
   type: gcs
   source:
     json_key: ((gcs-json-key))
@@ -181,7 +181,7 @@ jobs:
     - put: gcs-load-balancer-vars
       params:
         file: load-balancer-vars/vars.yml
-    - put: gcs-source-json
+    - put: source-json
       params:
         file: source-json/source.json
 
@@ -204,7 +204,7 @@ jobs:
       passed: [ 'install-bosh-change-cidrs-gcp-lb' ]
     - get: stemcell
       resource: stemcell-gcp-lb
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'install-bosh-change-cidrs-gcp-lb' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-change-cidrs-gcp-lb' ]
@@ -237,7 +237,7 @@ jobs:
       - stemcell/stemcell.tgz
       releases:
       - kubo-dev-release/*.tgz
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       vars:
         deployment_name: ci-service
         worker_count: 3
@@ -259,14 +259,14 @@ jobs:
     params:
       name: apply-addons
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [gcp-lb]
     on_failure: *on_failure_alert
   - put: run-smoke-tests-errand
     params:
       name: smoke-tests
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [gcp-lb]
     on_failure: *on_failure_alert
   - aggregate:
@@ -289,7 +289,7 @@ jobs:
       passed: [ 'deploy-k8s-change-cidrs-gcp-lb' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-k8s-change-cidrs-gcp-lb' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'deploy-k8s-change-cidrs-gcp-lb' ]
     - get: kubo-dev-release
       passed: [ 'deploy-k8s-change-cidrs-gcp-lb' ]
@@ -337,7 +337,7 @@ jobs:
       passed: [ 'run-k8s-integration-tests-change-cidrs-gcp-lb' ]
     - get: gcs-bosh-creds
       passed: [ 'run-k8s-integration-tests-change-cidrs-gcp-lb' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'run-k8s-integration-tests-change-cidrs-gcp-lb' ]
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml

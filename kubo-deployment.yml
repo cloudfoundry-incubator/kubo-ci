@@ -263,7 +263,7 @@ resources:
   source:
     url: ((build-alert-slack-url))
 
-- name: gcs-source-json
+- name: source-json
   type: gcs
   source:
     json_key: ((gcs-json-key))
@@ -589,7 +589,7 @@ jobs:
     - put: gcs-load-balancer-vars
       params:
         file: load-balancer-vars/vars.yml
-    - put: gcs-source-json
+    - put: source-json
       params:
         file: source-json/source.json
 
@@ -618,7 +618,7 @@ jobs:
       passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-<%= env %>' ]
@@ -685,7 +685,7 @@ jobs:
       - stemcell/stemcell.tgz
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       vars:
         deployment_name: ci-service
         worker_count: 3
@@ -698,14 +698,14 @@ jobs:
     params:
       name: apply-addons
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [<%= env %>]
     on_failure: *on_failure_alert
   - put: run-smoke-tests-errand
     params:
       name: smoke-tests
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [<%= env %>]
     on_failure: *on_failure_alert
   <% if env =~ /^vsphere-proxy/ %>
@@ -713,7 +713,7 @@ jobs:
     tags: ['<%= env %>']
     params:
       manifest: git-kubo-ci/manifests/tinyproxy/manifest.yml
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       stemcells:
       - stemcell/stemcell.tgz
       vars_files:
@@ -747,7 +747,7 @@ jobs:
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'deploy-k8s-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubeconfig
       passed: [ 'deploy-k8s-<%= env %>' ]
@@ -786,7 +786,7 @@ jobs:
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-k8s-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'deploy-k8s-<%= env %>' ]
@@ -829,7 +829,7 @@ jobs:
       passed: <%= turbulence_passed_reqs %>
     - get: gcs-kubo-release-tarball-untested
       passed: <%= turbulence_passed_reqs %>
-    - get: gcs-source-json
+    - get: source-json
       passed: <%= turbulence_passed_reqs %>
     - get: gcs-kubo-deployment-tarball-untested
       passed: <%= turbulence_passed_reqs %>
@@ -881,7 +881,7 @@ jobs:
       passed: <%= destroy_k8s_passed_reqs %>
     - get: gcs-kubo-release-tarball-untested
       passed: <%= destroy_k8s_passed_reqs %>
-    - get: gcs-source-json
+    - get: source-json
       passed: <%= destroy_k8s_passed_reqs %>
     - get: gcs-kubo-deployment-tarball-untested
       passed: <%= destroy_k8s_passed_reqs %>
@@ -1001,7 +1001,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - put: gcs-load-balancer-vars
       params:
         file: load-balancer-vars/vars.yml
-    - put: gcs-source-json
+    - put: source-json
       params:
         file: source-json/source.json
 
@@ -1034,7 +1034,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-for-upgrade-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-for-upgrade-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'install-bosh-for-upgrade-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-for-upgrade-<%= env %>' ]
@@ -1109,7 +1109,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       <% end %>
       releases:
       - old-kubo-release-tarball/*.tgz
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       vars:
         deployment_name: ci-service
         master_vm_type: master
@@ -1124,14 +1124,14 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     params:
       name: apply-addons
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [<%= env %>]
     on_failure: *on_failure_alert
   - put: run-smoke-tests-errand
     params:
       name: smoke-tests
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [<%= env %>]
     on_failure: *on_failure_alert
   - put: gcs-kubeconfig
@@ -1165,7 +1165,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'deploy-old-k8s-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'deploy-old-k8s-<%= env %>' ]
     - get: stemcell
       resource: stemcell-<%= env %>
@@ -1208,7 +1208,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'upgrade-kubo-<%= env %>' ]
     - get: kubo-version
       passed: [ 'upgrade-kubo-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'upgrade-kubo-<%= env %>' ]
     - get: git-kubo-release
       passed: [ 'upgrade-kubo-<%= env %>' ]
@@ -1315,7 +1315,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - put: gcs-load-balancer-vars
       params:
         file: load-balancer-vars/vars.yml
-    - put: gcs-source-json
+    - put: source-json
       params:
         file: source-json/source.json
 
@@ -1347,7 +1347,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-multi-master-<%= env %>' ]
     - get: git-kubo-deployment
       passed: [ 'install-bosh-multi-master-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'install-bosh-multi-master-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-multi-master-<%= env %>' ]
@@ -1405,7 +1405,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       <% end %>
       releases:
       - old-kubo-release-tarball/*.tgz
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       vars:
         deployment_name: ci-service
         worker_vm_type: worker
@@ -1417,14 +1417,14 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     params:
       name: apply-addons
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: ['<%= env %>']
     on_failure: *on_failure_alert
   - put: run-smoke-tests-errand
     params:
       name: smoke-tests
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: ['<%= env %>']
     on_failure: *on_failure_alert
   - task: update-kubeconfig
@@ -1460,7 +1460,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-multi-master-<%= env %>' ]
     - get: gcs-kubeconfig
       passed: [ 'deploy-old-k8s-multi-master-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'deploy-old-k8s-multi-master-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'deploy-old-k8s-multi-master-<%= env %>' ]
@@ -1502,7 +1502,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'upgrade-kubo-multi-master-<%= env %>' ]
     - get: gcs-bosh-creds
       passed: [ 'upgrade-kubo-multi-master-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'upgrade-kubo-multi-master-<%= env %>' ]
     - get: kubo-version
       passed: [ 'upgrade-kubo-multi-master-<%= env %>' ]
@@ -1608,7 +1608,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - put: gcs-load-balancer-vars
       params:
         file: load-balancer-vars/vars.yml
-    - put: gcs-source-json
+    - put: source-json
       params:
         file: source-json/source.json
 
@@ -1637,7 +1637,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-two-cas' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-two-cas' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'install-bosh-two-cas' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-two-cas' ]
@@ -1670,7 +1670,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - stemcell/stemcell.tgz
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       vars:
         deployment_name: ci-service
         worker_count: 3
@@ -1678,7 +1678,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     on_failure: *on_failure_alert
   - put: run-apply-addons-errand
     params:
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       name: apply-addons
       keep_alive: true
     tags: [ gcp ]
@@ -1687,7 +1687,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     params:
       name: smoke-tests
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [ gcp ]
     on_failure: *on_failure_alert
 - name: destroy-k8s-two-cas
@@ -1707,7 +1707,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-k8s-two-cas' ]
     - get: gcs-bosh-state
       passed: [ 'deploy-k8s-two-cas' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'deploy-k8s-two-cas' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-k8s-two-cas' ]
@@ -1818,7 +1818,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - put: gcs-load-balancer-vars
       params:
         file: load-balancer-vars/vars.yml
-    - put: gcs-source-json
+    - put: source-json
       params:
         file: source-json/source.json
 
@@ -1846,7 +1846,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-bbr-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-bbr-<%= env %>' ]
@@ -1876,7 +1876,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - stemcell/stemcell.tgz
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       vars:
         deployment_name: ci-service
         worker_count: 3
@@ -1889,14 +1889,14 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     params:
       name: apply-addons
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [<%= env %>]
     on_failure: *on_failure_alert
   - put: run-smoke-tests-errand
     params:
       name: smoke-tests
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [<%= env %>]
     on_failure: *on_failure_alert
   - aggregate:
@@ -1913,7 +1913,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       version: every
       trigger: true
       passed: [ 'deploy-k8s-bbr-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'deploy-k8s-bbr-<%= env %>' ]
     - get: gcs-kubeconfig
       passed: [ 'deploy-k8s-bbr-<%= env %>' ]
@@ -1971,7 +1971,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: <%= destroy_k8s_bbr_passed_reqs %>
     - get: gcs-bosh-creds
       passed: <%= destroy_k8s_bbr_passed_reqs %>
-    - get: gcs-source-json
+    - get: source-json
       passed: <%= destroy_k8s_bbr_passed_reqs %>
     - get: gcs-kubo-release-tarball-untested
       passed: <%= destroy_k8s_bbr_passed_reqs %>
@@ -2081,7 +2081,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     - put: gcs-load-balancer-vars
       params:
         file: load-balancer-vars/vars.yml
-    - put: gcs-source-json
+    - put: source-json
       params:
         file: source-json/source.json
 
@@ -2109,7 +2109,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-coredns-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-coredns-<%= env %>' ]
@@ -2140,7 +2140,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       - stemcell/stemcell.tgz
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       vars:
         deployment_name: ci-service
         worker_count: 3
@@ -2153,14 +2153,14 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     params:
       name: apply-addons
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: ['<%= env %>']
     on_failure: *on_failure_alert
   - put: run-smoke-tests-errand
     params:
       name: smoke-tests
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: ['<%= env %>']
     on_failure: *on_failure_alert
   - put: gcs-kubeconfig
@@ -2190,7 +2190,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       passed: [ 'deploy-k8s-coredns-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'deploy-k8s-coredns-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'deploy-k8s-coredns-<%= env %>' ]
     - get: gcs-kubeconfig
       passed: [ 'deploy-k8s-coredns-<%= env %>' ]
@@ -2233,7 +2233,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       passed: ['run-k8s-integration-tests-coredns-<%= env %>']
     - get: gcs-bosh-creds
       passed: ['run-k8s-integration-tests-coredns-<%= env %>']
-    - get: gcs-source-json
+    - get: source-json
       passed: ['run-k8s-integration-tests-coredns-<%= env %>']
     - get: gcs-kubo-release-tarball-untested
       passed: ['run-k8s-integration-tests-coredns-<%= env %>']

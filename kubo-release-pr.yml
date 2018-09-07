@@ -156,7 +156,7 @@ resources:
   source:
     deployment: ci-service
 
-- name: gcs-source-json
+- name: source-json
   type: gcs
   source:
     json_key: ((gcs-json-key))
@@ -308,7 +308,7 @@ jobs:
     - put: gcs-load-balancer-vars
       params:
         file: load-balancer-vars/vars.yml
-    - put: gcs-source-json
+    - put: source-json
       params:
         file: source-json/source.json
 
@@ -338,7 +338,7 @@ jobs:
       passed: [ 'install-bosh-for-upgrade-<%= env %>' ]
     - get: kubo-version
       passed: [ 'install-bosh-for-upgrade-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'install-bosh-for-upgrade-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-for-upgrade-<%= env %>' ]
@@ -384,7 +384,7 @@ jobs:
       - kubo-lock/metadata
       releases:
       - old-kubo-release-tarball/*.tgz
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       vars:
         deployment_name: ci-service
         master_vm_type: master
@@ -414,14 +414,14 @@ jobs:
     params:
       name: apply-addons
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [<%= env %>]
     on_failure: *on_failure_alert_<%= env %>
   - put: run-smoke-tests-errand
     params:
       name: smoke-tests
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [<%= env %>]
     on_failure: *on_failure_alert_<%= env %>
   - put: gcs-kubeconfig
@@ -451,7 +451,7 @@ jobs:
       trigger: true
     - get: git-kubo-release
       passed: [ 'deploy-old-k8s-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'deploy-old-k8s-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'deploy-old-k8s-<%= env %>' ]
@@ -502,7 +502,7 @@ jobs:
       passed: [ 'upgrade-kubo-<%= env %>' ]
       version: every
       trigger: true
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'upgrade-kubo-<%= env %>' ]
     - get: kubo-version
       passed: [ 'upgrade-kubo-<%= env %>' ]
@@ -635,7 +635,7 @@ jobs:
     - put: gcs-load-balancer-vars
       params:
         file: load-balancer-vars/vars.yml
-    - put: gcs-source-json
+    - put: source-json
       params:
         file: source-json/source.json
 
@@ -657,7 +657,7 @@ jobs:
       passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-pr-release-tarball
       passed: [ 'install-bosh-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-<%= env %>' ]
@@ -707,7 +707,7 @@ jobs:
       - stemcell/stemcell.tgz
       releases:
       - gcs-pr-release-tarball/*.tgz
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       vars:
         deployment_name: ci-service
         worker_count: 3
@@ -715,7 +715,7 @@ jobs:
     on_failure: *on_failure_<%= env %>
   - put: run-apply-addons-errand
     params:
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       name: apply-addons
       keep_alive: true
     tags: [<%= env %>]
@@ -724,7 +724,7 @@ jobs:
     params:
       name: smoke-tests
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [<%= env %>]
     on_failure: *on_failure_<%= env %>
   - task: update-kubeconfig
@@ -749,7 +749,7 @@ jobs:
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-bosh-creds
       passed: [ 'deploy-k8s-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: git-kubo-release
       passed: [ 'deploy-k8s-<%= env %>' ]
@@ -792,7 +792,7 @@ jobs:
       passed: [ 'run-k8s-integration-tests-<%= env %>' ]
     - get: gcs-bosh-creds
       passed: [ 'run-k8s-integration-tests-<%= env %>' ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ 'run-k8s-integration-tests-<%= env %>' ]
     - get: git-kubo-release
       passed: [ 'run-k8s-integration-tests-<%= env %>' ]

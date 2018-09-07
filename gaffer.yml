@@ -75,7 +75,7 @@ resources:
     bucket: kubo-public
     versioned_file: kubo-deployment-latest.tgz
 
-- name: gcs-source-json
+- name: source-json
   type: gcs
   source:
     json_key: ((gcs-json-key))
@@ -163,7 +163,7 @@ jobs:
     - put: gcs-load-balancer-vars
       params:
         file: load-balancer-vars/vars.yml
-    - put: gcs-source-json
+    - put: source-json
       params:
         file: source-json/source.json
 
@@ -180,7 +180,7 @@ jobs:
       passed: [ deploy-bosh ]
     - get: gcs-director.yml
       passed: [ deploy-bosh ]
-    - get: gcs-source-json
+    - get: source-json
       passed: [ deploy-bosh ]
     - get: gcs-load-balancer-vars
       passed: [ deploy-bosh ]
@@ -207,7 +207,7 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/vm-types.yml
       releases:
       - gcs-kubo-release-tarball/*.tgz
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
       stemcells:
       - stemcell/stemcell.tgz
       vars:
@@ -238,14 +238,14 @@ jobs:
     params:
       name: apply-addons
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [gaffer]
     on_failure: *on_failure_alert
   - put: run-smoke-tests-errand
     params:
       name: smoke-tests
       keep_alive: true
-      source_file: gcs-source-json/source.json
+      source_file: source-json/source.json
     tags: [gaffer]
     on_failure: *on_failure_alert
   - aggregate:

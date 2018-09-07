@@ -4,7 +4,7 @@ image_resource:
   source:
     repository: pcfkubo/kubo-ci
 inputs:
-- name: gcs-source-json
+- name: source-json
 outputs:
 - name: director_uuid
 run:
@@ -13,9 +13,9 @@ run:
   - -c
   - |
     set -euo pipefail
-    export BOSH_ENVIRONMENT="$(jq -r .target gcs-source-json/source.json)"
-    export BOSH_CLIENT="$(jq -r .client gcs-source-json/source.json)"
-    export BOSH_CLIENT_SECRET="$(jq -r .client_secret gcs-source-json/source.json)"
-    export BOSH_CA_CERT="$(jq -r .ca_cert gcs-source-json/source.json)"
+    export BOSH_ENVIRONMENT="$(jq -r .target source-json/source.json)"
+    export BOSH_CLIENT="$(jq -r .client source-json/source.json)"
+    export BOSH_CLIENT_SECRET="$(jq -r .client_secret source-json/source.json)"
+    export BOSH_CA_CERT="$(jq -r .ca_cert source-json/source.json)"
     mkdir -p director_uuid
     echo "director_uuid: \"$(bosh environment --json | jq -r .Tables[0].Rows[0].uuid)\"" > director_uuid/var.yml
