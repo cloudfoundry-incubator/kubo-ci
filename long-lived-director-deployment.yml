@@ -295,8 +295,6 @@ jobs:
     - get: slackers
     - get: git-kubo-ci
     - get: kubo-lock-<%= env %>
-      version: every
-      trigger: true
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: git-kubo-deployment
       passed: [ 'deploy-k8s-<%= env %>' ]
@@ -310,6 +308,8 @@ jobs:
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubeconfig
       passed: [ 'deploy-k8s-<%= env %>' ]
+      version: every
+      trigger: true
   - task: integration-tests
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
@@ -338,8 +338,6 @@ jobs:
     - get: slackers
     - get: git-kubo-ci
     - get: kubo-lock-<%= env %>
-      version: every
-      trigger: true
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'deploy-k8s-<%= env %>' ]
@@ -353,6 +351,8 @@ jobs:
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubeconfig
       passed: [ 'deploy-k8s-<%= env %>' ]
+      version: every
+      trigger: true
   - task: conformance-tests
     file: git-kubo-ci/tasks/run-conformance-tests.yml
     tags:
