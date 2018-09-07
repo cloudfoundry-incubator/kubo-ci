@@ -575,6 +575,11 @@ jobs:
     - put: gcs-bosh-state
       params:
         file: bosh-state/state.json
+  <% if env =~ /^(aws-lb)/ %>
+  - task: update-cloud-config-with-vm-ext
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
+  <% end %>
   - task: configure-bosh-for-turbulence
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/configure-bosh.yml
@@ -661,6 +666,7 @@ jobs:
       <% end %>
       <% if env =~ /^aws/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       - git-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
       <% end %>
       <% if env =~ /^openstack/ %>
