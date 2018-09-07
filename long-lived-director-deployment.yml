@@ -255,6 +255,10 @@ jobs:
   - task: update-kubeconfig
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
+    params:
+      CREDFILE: kubo-lock/metadata
+    input_mapping:
+      gcs-bosh-creds: kubo-lock
   - put: run-apply-addons-errand
     params:
       name: apply-addons
