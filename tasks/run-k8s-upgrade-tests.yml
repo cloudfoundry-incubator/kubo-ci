@@ -7,10 +7,8 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/run-k8s-upgrade-tests.sh
 params:
-  DEPLOYMENT_NAME: ci-service
+  DEPLOYMENT_NAME:
   INTERNET_ACCESS: true
-  CREDFILE: gcs-bosh-creds/creds.yml
-  VARFILE: kubo-lock/metadata
 
 inputs:
 - name: git-kubo-ci

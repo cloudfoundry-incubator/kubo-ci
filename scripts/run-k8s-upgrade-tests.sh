@@ -4,8 +4,10 @@ set -eu -o pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
-DEPLOYMENT_NAME="${DEPLOYMENT_NAME:="ci-service"}"
+export DEPLOYMENT_NAME="${DEPLOYMENT_NAME:="ci-service"}"
 KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
+
+export GOPATH="${ROOT}/git-kubo-ci"
 
 main() {
   local tmpfile release_tarball
@@ -24,9 +26,7 @@ main() {
     tmpfile="$(mktemp)"
     echo "CONFIG=${tmpfile}"
 
-    "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh"  > "${tmpfile}"
-
-    export GOPATH="${ROOT}/git-kubo-ci"
+    "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
     BOSH_DEPLOY_COMMAND="$ROOT/bosh-command/bosh-deploy.sh" CONFIG="${tmpfile}" ginkgo -r -v -progress "${ROOT}/git-kubo-ci/src/tests/upgrade-tests/"
   else
     $ROOT/bosh-command/bosh-deploy.sh

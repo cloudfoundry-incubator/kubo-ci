@@ -8,13 +8,11 @@ run:
   path: git-kubo-ci/scripts/run-k8s-turbulence-tests.sh
 
 params:
-  DEPLOYMENT_NAME: ci-service
+  DEPLOYMENT_NAME:
   ENABLE_TURBULENCE_WORKER_DRAIN_TESTS:
   ENABLE_TURBULENCE_WORKER_FAILURE_TESTS:
   ENABLE_TURBULENCE_MASTER_FAILURE_TESTS:
   ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS:
-  CREDFILE: gcs-bosh-creds/creds.yml
-  VARFILE: kubo-lock/metadata
 
 inputs:
   - name: git-kubo-ci
