@@ -630,11 +630,16 @@ jobs:
     file: git-kubo-ci/tasks/get_director_uuid.yml
   <% end %>
   <% if env =~ /^vsphere-proxy/ %>
-  - task: update-cloud-config
+  - task: update-cloud-config-with-master-static-ips
     file: git-kubo-ci/tasks/update-cloud-config.yml
     tags: ['<%= env %>']
     params:
-      OPS: -o git-kubo-ci/manifests/ops-files/add-master-static-ips-cloud-config.yml -o git-kubo-ci/manifests/ops-files/vsphere-proxy-cloud-config.yml --vars-file=kubo-lock/metadata
+      OPS: -o git-kubo-ci/manifests/ops-files/add-master-static-ips-cloud-config.yml --vars-file=kubo-lock/metadata
+  - task: update-cloud-config-for-proxy
+    file: git-kubo-ci/tasks/update-cloud-config.yml
+    tags: ['<%= env %>']
+    params:
+      OPS: -o git-kubo-ci/manifests/ops-files/vsphere-proxy-cloud-config.yml --vars-file=kubo-lock/metadata
   <% end %>
   - put: cfcr-deployment
     params:
@@ -1063,11 +1068,16 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     file: git-kubo-ci/tasks/get_director_uuid.yml
   <% end %>
   <% if env =~ /^vsphere-proxy/ %>
-  - task: update-cloud-config
+  - task: update-cloud-config-for-master-static-ips
     file: git-kubo-ci/tasks/update-cloud-config.yml
     tags: ['<%= env %>']
     params:
-      OPS: -o git-kubo-ci/manifests/ops-files/add-master-static-ips-cloud-config.yml -o git-kubo-ci/manifests/ops-files/vsphere-proxy-cloud-config.yml --vars-file=kubo-lock/metadata
+      OPS: -o git-kubo-ci/manifests/ops-files/add-master-static-ips-cloud-config.yml --vars-file=kubo-lock/metadata
+  - task: update-cloud-config-for-proxy-ip
+    file: git-kubo-ci/tasks/update-cloud-config.yml
+    tags: ['<%= env %>']
+    params:
+      OPS: -o git-kubo-ci/manifests/ops-files/vsphere-proxy-cloud-config.yml --vars-file=kubo-lock/metadata
   <% end %>
   - put: cfcr-deployment
     params:
