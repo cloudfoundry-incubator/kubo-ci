@@ -2,8 +2,8 @@ package generic_test
 
 import (
 	"fmt"
+	"os"
 	"strconv"
-	. "tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,7 +14,7 @@ var defaultHPATimeout = "210s"
 
 var _ = Describe("Horizontal Pod Autoscaling", func() {
 	It("scales the pods accordingly", func() {
-		HPATimeout := MustHaveEnv("HPA_TIMEOUT")
+		HPATimeout := os.Getenv("HPA_TIMEOUT")
 		if HPATimeout == "" {
 			HPATimeout = defaultHPATimeout
 		}
