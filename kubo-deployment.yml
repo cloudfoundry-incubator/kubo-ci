@@ -575,11 +575,6 @@ jobs:
     - put: gcs-bosh-state
       params:
         file: bosh-state/state.json
-  <% if env =~ /^(aws-lb)/ %>
-  - task: update-cloud-config-with-vm-ext
-    tags: ['<%= env %>']
-    file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
-  <% end %>
   - task: configure-bosh-for-turbulence
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/configure-bosh.yml
@@ -594,6 +589,11 @@ jobs:
     - put: source-json
       params:
         file: source-json/source.json
+  <% if env =~ /^(aws-lb)/ %>
+  - task: update-cloud-config-with-vm-ext
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
+  <% end %>
 
 
 - name: deploy-k8s-<%= env %>
