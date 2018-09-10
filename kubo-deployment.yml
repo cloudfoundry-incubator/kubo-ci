@@ -544,7 +544,8 @@ jobs:
     - get: git-kubo-ci
     - get: git-kubo-deployment
       passed: [ 'claim-lock-<%= env %>' ]
-    - get: kubo-lock-<%= env %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
       version: every
       trigger: true
       passed: [ 'claim-lock-<%= env %>' ]
@@ -559,7 +560,6 @@ jobs:
   - task: install
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/install-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     params:
       USE_TURBULENCE: 1
       <% if env =~ /^(gcp|vsphere-lb)/ %>
@@ -583,13 +583,10 @@ jobs:
   - task: configure-bosh-for-turbulence
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/configure-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - task: generate-load-balancer-vars
     file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - task: generate-source-json
     file: git-kubo-ci/tasks/generate-source-json.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - aggregate:
     - put: gcs-load-balancer-vars
       params:
