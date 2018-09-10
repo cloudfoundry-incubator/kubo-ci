@@ -41,7 +41,7 @@ main() {
     skipped_packages="$(echo $skipped_packages | cut -c 2-)"
   fi
 
-  ginkgo -keepGoing -r -progress -skipPackage "${skipped_packages}" "${ROOT}/git-kubo-ci/src/tests/integration-tests/"
+  ginkgo -keepGoing -r -progress -flakeAttempts=2 -skipPackage "${skipped_packages}" "${ROOT}/git-kubo-ci/src/tests/integration-tests/"
 }
 
 main
