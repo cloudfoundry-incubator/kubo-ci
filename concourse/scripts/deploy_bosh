@@ -61,6 +61,7 @@ elif [[ "${IAAS}" == "gcp" ]]; then
     --ops-file "$BOSH_DEPLOYMENT/$IAAS/cpi.yml" \
     --ops-file "$BOSH_DEPLOYMENT/uaa.yml" \
     --ops-file "$BOSH_DEPLOYMENT/credhub.yml" \
+    --ops-file "$CONCOURSE_DIR/$IAAS/change-bosh-disk-size.yml" \
     --vars-file "${director_yml}" \
     --var-file gcp_credentials_json=<(echo -n ${gcp_credentials}) \
     --vars-file <(echo -n "$secret") \
