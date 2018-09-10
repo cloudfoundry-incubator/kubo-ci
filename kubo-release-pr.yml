@@ -23,12 +23,13 @@ resource_types:
   type: docker-image
   source:
     repository: cloudfoundry/bosh-deployment-resource
-    tag: v2.11.1-rc.4
+    tag: v2.13.0
 
 - name: bosh-errand
   type: docker-image
   source:
-    repository: cfcommunity/bosh2-errand-resource
+    repository: pcfkubo/bosh2-errand-resource
+    tag: v0.1.3-dev
 
 resources:
 - name: git-kubo-ci
@@ -145,16 +146,19 @@ resources:
   type: bosh-deployment
   source:
     deployment: ci-service
+    skip_check: true
 
 - name: run-apply-addons-errand
   type: bosh-errand
   source:
     deployment: ci-service
+    skip_check: true
 
 - name: run-smoke-tests-errand
   type: bosh-errand
   source:
     deployment: ci-service
+    skip_check: true
 
 - name: source-json
   type: gcs
@@ -377,7 +381,7 @@ jobs:
       - unpacked-old-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
       var_files:
-        addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
+        addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
@@ -695,7 +699,7 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
       <% end %>
       var_files:
-        addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"
+        addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock-<%= env %>/metadata
