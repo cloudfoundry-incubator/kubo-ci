@@ -473,7 +473,7 @@ jobs:
   - task: create-bosh-upgrade-deployment
     params:
       env: <%= env %>
-      ENABLE_MULTI_AZ_TESTS: false
+      ENABLE_MULTI_AZ_TESTS: 'true'
       IAAS: "<%= env %>"
     file: git-kubo-ci/tasks/create-bosh-deploy-command.yml
   - task: upgrade
