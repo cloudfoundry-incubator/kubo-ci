@@ -1095,10 +1095,12 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
       <% if env =~ /^gcp/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       <% end %>
       <% if env =~ /^aws/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       <% end %>
       <% if env =~ /^openstack/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/openstack/cloud-provider.yml
@@ -1331,6 +1333,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - put: source-json
       params:
         file: source-json/source.json
+  <% if env =~ /^(aws-lb|gcp)/ %>
+  - task: update-cloud-config-with-vm-ext
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
+  <% end %>
 
 - name: deploy-old-k8s-multi-master-<%= env %>
   plan:
@@ -1399,10 +1406,12 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - unpacked-old-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       <% if env =~ /^gcp/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       <% end %>
       <% if env =~ /^aws/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       <% end %>
       - git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml
       <% if env =~ /^vsphere/ %>
@@ -1577,6 +1586,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - put: kubo-lock-two-cas
     params:
       acquire: true
+
 - name: install-bosh-two-cas
   plan:
   - aggregate:
@@ -1624,7 +1634,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - put: source-json
       params:
         file: source-json/source.json
-
+  - task: update-cloud-config-with-vm-ext
+    file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
 
 - name: deploy-k8s-two-cas
   plan:
@@ -1656,7 +1667,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-two-cas' ]
     - get: stemcell
       resource: stemcell-gcp-lb
-
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -1669,6 +1679,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-ci/manifests/ops-files/use-separate-master-ca.yml
@@ -1794,8 +1805,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: slackers
     - get: git-kubo-ci
     - get: git-kubo-deployment
-      passed: [ 'claim-lock-bbr-<%= env %>' ]
-    - get: kubo-lock-<%= env %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
       version: every
       trigger: true
       passed: [ 'claim-lock-bbr-<%= env %>' ]
@@ -1810,7 +1821,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - task: install
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/install-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     params:
       CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
     on_failure: *on_failure_alert
@@ -1823,10 +1833,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
         file: bosh-state/state.json
   - task: generate-load-balancer-vars
     file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - task: generate-source-json
     file: git-kubo-ci/tasks/generate-source-json.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - aggregate:
     - put: gcs-load-balancer-vars
       params:
@@ -1834,6 +1842,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - put: source-json
       params:
         file: source-json/source.json
+  <% if env =~ /^(aws-lb|gcp)/ %>
+  - task: update-cloud-config-with-vm-ext
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
+  <% end %>
 
 - name: deploy-k8s-bbr-<%= env %>
   plan:
@@ -1875,6 +1888,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
@@ -2097,6 +2111,9 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     - put: source-json
       params:
         file: source-json/source.json
+  - task: update-cloud-config-with-vm-ext
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
 
 - name: deploy-k8s-coredns-<%= env %>
   plan:
@@ -2138,6 +2155,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
       - git-kubo-deployment/manifests/ops-files/use-coredns.yml
