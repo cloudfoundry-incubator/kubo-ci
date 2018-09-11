@@ -1594,7 +1594,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: git-kubo-ci
     - get: git-kubo-deployment
       passed: [ 'claim-lock-two-cas' ]
-    - get: kubo-lock-two-cas
+    - get: kubo-lock
+      resource: kubo-lock-two-cas
       passed: [ 'claim-lock-two-cas' ]
       trigger: true
       version: every
@@ -1610,8 +1611,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     params:
       CLOUD_CONFIG_OPS_FILE: gcp-lb-k8s-cloud-config-multiaz.yml
     file: git-kubo-ci/tasks/install-bosh.yml
-    input_mapping:
-      kubo-lock: kubo-lock-two-cas
     tags: [ gcp ]
     on_failure: *on_failure_alert
   - aggregate:
@@ -1623,10 +1622,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
         file: bosh-state/state.json
   - task: generate-load-balancer-vars
     file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
-    input_mapping: {kubo-lock: kubo-lock-two-cas}
   - task: generate-source-json
     file: git-kubo-ci/tasks/generate-source-json.yml
-    input_mapping: {kubo-lock: kubo-lock-two-cas}
   - aggregate:
     - put: gcs-load-balancer-vars
       params:
@@ -2072,7 +2069,8 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     - get: git-kubo-ci
     - get: git-kubo-deployment
       passed: [ 'claim-lock-coredns-<%= env %>' ]
-    - get: kubo-lock-<%= env %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
       version: every
       trigger: true
       passed: [ 'claim-lock-coredns-<%= env %>' ]
@@ -2087,7 +2085,6 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
   - task: install
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/install-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     params:
       CLOUD_CONFIG_OPS_FILE: <%= env %>-k8s-cloud-config-multiaz.yml
     on_failure: *on_failure_alert
@@ -2100,10 +2097,8 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
         file: bosh-state/state.json
   - task: generate-load-balancer-vars
     file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - task: generate-source-json
     file: git-kubo-ci/tasks/generate-source-json.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - aggregate:
     - put: gcs-load-balancer-vars
       params:
