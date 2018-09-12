@@ -23,12 +23,15 @@ func DeployGuestBook(kubectl *KubectlRunner) {
 	WaitForPodsToRun(kubectl, timeout)
 }
 
-func PostToGuestBook(address string, testValue string) {
-
+func PostToGuestBook(address string, testValue string) error {
 	url := fmt.Sprintf("http://%s/guestbook.php?cmd=set&key=messages&value=%s", address, testValue)
-	_, err := http.Get(url)
-	Expect(err).ToNot(HaveOccurred())
 
+	httpClient := http.Client{
+		Timeout: time.Duration(5 * time.Second),
+	}
+	_, err := httpClient.Get(url)
+
+	return err
 }
 
 func GetValueFromGuestBook(address string) string {
@@ -39,7 +42,7 @@ func GetValueFromGuestBook(address string) string {
 	url := fmt.Sprintf("http://%s/guestbook.php?cmd=get&key=messages", address)
 	response, err := httpClient.Get(url)
 	if err != nil {
-		return fmt.Sprintf("error occured : %s", err.Error())
+		return fmt.Sprintf("error occurred : %s", err.Error())
 	}
 
 	bodyBytes, err := ioutil.ReadAll(response.Body)

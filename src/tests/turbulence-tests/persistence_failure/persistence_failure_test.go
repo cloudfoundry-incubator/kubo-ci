@@ -62,7 +62,9 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 			DeployGuestBook(kubectl)
 			appAddress := kubectl.GetAppAddress("svc/frontend")
 
-			PostToGuestBook(appAddress, testValue)
+			Eventually(func() error {
+				return PostToGuestBook(appAddress, testValue)
+			}, "120s", "5s").Should(Succeed())
 
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)

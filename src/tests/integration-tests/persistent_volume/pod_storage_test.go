@@ -62,7 +62,9 @@ var _ = Describe("Guestbook storage", func() {
 
 			testValue := strconv.Itoa(rand.Int())
 
-			PostToGuestBook(appAddress, testValue)
+			Eventually(func() error {
+				return PostToGuestBook(appAddress, testValue)
+			}, "120s", "5s").Should(Succeed())
 
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
@@ -114,7 +116,9 @@ var _ = Describe("Guestbook storage", func() {
 			testValue := strconv.Itoa(rand.Int())
 			println(testValue)
 
-			PostToGuestBook(appAddress, testValue)
+			Eventually(func() error {
+				return PostToGuestBook(appAddress, testValue)
+			}, "120s", "5s").Should(Succeed())
 
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
