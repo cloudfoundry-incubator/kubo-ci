@@ -1,5 +1,5 @@
 <%
-  envs = %w(aws-lb openstack gcp-lb vsphere-lb vsphere-proxy)
+  envs = %w(aws-lb gcp-lb vsphere-lb vsphere-proxy)
   stemcell_types = {
     'gcp' => 'google-kvm',
     'gcp-lb' => 'google-kvm',
@@ -15,7 +15,7 @@
   enable_failure_alert = true
 
   upgrade_test_envs = %w(gcp-lb vsphere-proxy)
-  multi_az_envs = %w(aws-lb openstack gcp-lb vsphere-lb)
+  multi_az_envs = %w(aws-lb gcp-lb vsphere-lb)
   multi_master_upgrade_test_envs = %w(aws-lb gcp-lb vsphere-lb)
   envs_for_new_bosh_stemcell = upgrade_test_envs | multi_master_upgrade_test_envs
   conformance_test_envs = envs
