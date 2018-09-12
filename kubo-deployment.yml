@@ -670,6 +670,7 @@ jobs:
       <% end %>
       <% if env =~ /^vsphere/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml
       <% end %>
       <% if !(env =~ /^(gcp|vsphere-lb|aws-lb)/) %>
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
@@ -1106,6 +1107,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       <% end %>
       <% if env =~ /^vsphere/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml
       <% end %>
       - unpacked-old-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
@@ -1413,6 +1415,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml
       <% if env =~ /^vsphere/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml
       <% end %>
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
