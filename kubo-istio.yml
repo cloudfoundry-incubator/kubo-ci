@@ -4,30 +4,36 @@ resources:
   type: bosh-io-stemcell
   source:
     name: bosh-google-kvm-ubuntu-xenial-go_agent
+
 - name: source-json
   type: gcs
   source:
     bucket: kubo-pipeline-store
     json_key: ((gcs-json-key))
     versioned_file: source.json
+
 - name: cfcr-deployment
   type: bosh-deployment
   source:
     deployment: ci-service
+
 - name: gcs-load-balancer-vars
   type: gcs
   source:
     bucket: kubo-pipeline-store
     json_key: ((gcs-json-key))
     versioned_file: load-balancer-vars.yml
+
 - name: run-apply-addons-errand
   type: bosh-errand
   source:
     deployment: ci-service
+
 - name: run-smoke-tests-errand
   type: bosh-errand
   source:
     deployment: ci-service
+
 - name: kubo-lock-gcp-lb
   type: pool
   source:
@@ -35,18 +41,21 @@ resources:
     pool: kubo-gcp-lb
     private_key: ((git-ssh-key.private_key))
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+
 - name: gcs-bosh-state
   type: gcs
   source:
     bucket: kubo-pipeline-store
     json_key: ((gcs-json-key))
     versioned_file: bosh/state.json
+
 - name: kubo-dev-release
   type: gcs
   source:
     bucket: kubo-public
     json_key: ((gcs-json-key))
     versioned_file: kubo-release-latest.tgz
+
 - name: slackers
   type: git
   source:
@@ -54,28 +63,43 @@ resources:
     - slackers
     private_key: ((git-ssh-key.private_key))
     uri: git@github.com:cloudfoundry-incubator/cfcr-home.git
+
 - name: kubo-dev-deployment
   type: gcs
   source:
     bucket: kubo-public
     json_key: ((gcs-json-key))
     versioned_file: kubo-deployment-latest.tgz
+
 - name: gcs-bosh-creds
   type: gcs
   source:
     bucket: kubo-pipeline-store
     json_key: ((gcs-json-key))
     versioned_file: bosh/creds.yml
+
+- name: git-kubo-deployment
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+    ignore_paths:
+    - 'LICENSE'
+    - 'NOTICE'
+
 - name: git-kubo-ci
   type: git
   source:
     branch: master
     private_key: ((git-ssh-key.private_key))
     uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+
 - name: slack-alert
   type: slack-notification
   source:
     url: ((build-alert-slack-url))
+
 resource_types:
 - name: slack-notification
   type: docker-image
@@ -95,6 +119,7 @@ resource_types:
   type: docker-image
   source:
     repository: cfcommunity/bosh2-errand-resource
+
 jobs:
 - name: claim-lock-gcp-lb
   plan:
@@ -103,6 +128,7 @@ jobs:
   - put: kubo-lock-gcp-lb
     params:
       acquire: true
+
 - name: install-bosh-gcp-lb
   plan:
   - aggregate:
@@ -110,12 +136,14 @@ jobs:
       passed:
       - claim-lock-gcp-lb
     - get: git-kubo-ci
+    - get: git-kubo-deployment
     - get: kubo-dev-deployment
-    - get: kubo-lock-gcp-lb
-      passed:
-      - claim-lock-gcp-lb
+    - get: kubo-lock
+      resource: kubo-lock-gcp-lb
       trigger: true
       version: every
+      passed:
+      - claim-lock-gcp-lb
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
@@ -125,8 +153,6 @@ jobs:
     params:
       CLOUD_CONFIG_OPS_FILE: gcp-lb-k8s-cloud-config-multiaz.yml
       USE_TURBULENCE: 1
-    input_mapping:
-      kubo-lock: kubo-lock-gcp-lb
     tags:
     - gcp-lb
   - aggregate:
@@ -138,12 +164,8 @@ jobs:
         file: bosh-state/state.json
   - task: generate-load-balancer-vars
     file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
-    input_mapping:
-      kubo-lock: kubo-lock-gcp-lb
   - task: generate-source-json
     file: git-kubo-ci/tasks/generate-source-json.yml
-    input_mapping:
-      kubo-lock: kubo-lock-gcp-lb
   - aggregate:
     - put: gcs-load-balancer-vars
       params:
@@ -151,6 +173,11 @@ jobs:
     - put: source-json
       params:
         file: source-json/source.json
+  - task: update-cloud-config-with-vm-ext
+    tags:
+    - gcp-lb
+    file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
+
 - name: deploy-k8s-gcp-lb
   plan:
   - aggregate:
@@ -158,7 +185,8 @@ jobs:
       passed:
       - install-bosh-gcp-lb
     - get: git-kubo-ci
-    - get: kubo-lock-gcp-lb
+    - get: kubo-lock
+      resource: kubo-lock-gcp-lb
       passed:
       - install-bosh-gcp-lb
       trigger: true
@@ -195,6 +223,7 @@ jobs:
       - git-kubo-ci/manifests/ops-files/allow-security-context.yml
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
       releases:
       - kubo-dev-release/kubo-release-latest.tgz
@@ -206,7 +235,7 @@ jobs:
         worker_count: 3
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
-      - kubo-lock-gcp-lb/metadata
+      - kubo-lock/metadata
     tags:
     - gcp-lb
   - put: run-apply-addons-errand
@@ -223,6 +252,7 @@ jobs:
       source_file: source-json/source.json
     tags:
     - gcp-lb
+
 - name: run-istio-tests
   serial: true
   plan:
@@ -266,6 +296,7 @@ jobs:
           text: |
             Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
     attempts: 2
+
 - name: destroy-k8s
   plan:
   - aggregate:
@@ -301,6 +332,7 @@ jobs:
     input_mapping:
       kubo-lock: kubo-lock
     on_failure: *on_failure
+
 - name: destroy-bosh
   plan:
   - aggregate:
