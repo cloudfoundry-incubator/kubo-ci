@@ -385,4 +385,4 @@ jobs:
     tags: [gcp-lb]
     file: git-kubo-ci/tasks/destroy-bosh.yml
   - put: kubo-lock-gcp-lb
-    params: { release: kubo-lock-gcp-lb }
+    params: { release: kubo-lock }
