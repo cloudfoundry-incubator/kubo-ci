@@ -1095,19 +1095,19 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
       <% if env =~ /^gcp/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
-      - unpacked-old-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       <% end %>
       <% if env =~ /^aws/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
-      - unpacked-old-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       <% end %>
       <% if env =~ /^openstack/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/openstack/cloud-provider.yml
       <% end %>
       <% if env =~ /^vsphere/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
-      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml
       <% end %>
       - unpacked-old-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
@@ -1405,17 +1405,17 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - unpacked-old-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       <% if env =~ /^gcp/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
-      - unpacked-old-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       <% end %>
       <% if env =~ /^aws/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
-      - unpacked-old-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       <% end %>
       - git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml
       <% if env =~ /^vsphere/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
-      - unpacked-old-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml
       <% end %>
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"

@@ -17,10 +17,12 @@ end
 
 if ENV['IAAS'] =~ /^gcp/
   ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml '
+  ops_files << '-o git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml '
 end
 
 if ENV['IAAS'] =~ /^vsphere/
   ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml '
+  ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml '
   vars_files << '-l director_uuid/var.yml '
 end
 
@@ -33,6 +35,7 @@ end
 if ENV['IAAS'] =~ /^aws/
   ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml '
   ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml '
+  ops_files << '-o git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml '
 end
 
 cmd = ['bosh -n -d',
