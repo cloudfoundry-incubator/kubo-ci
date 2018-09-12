@@ -29,6 +29,7 @@ EOF
 }
 
 create_vars_file() {
+  touch "${CC_VARS_FILE}"
   if [ "${IAAS}" == "aws" ]; then
     create_aws_vars_file
   fi

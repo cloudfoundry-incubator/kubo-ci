@@ -589,11 +589,9 @@ jobs:
     - put: source-json
       params:
         file: source-json/source.json
-  <% if env =~ /^(aws-lb|gcp)/ %>
   - task: update-cloud-config-with-vm-ext
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
-  <% end %>
 
 - name: deploy-k8s-<%= env %>
   plan:
@@ -981,7 +979,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'claim-lock-upgrade-<%= env %>' ]
     - get: git-kubo-deployment
       passed: [ 'claim-lock-upgrade-<%= env %>' ]
-
   - task: install
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/install-bosh.yml
@@ -993,7 +990,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       <% elsif env.include? 'aws-lb' %>
       CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
       <% end %>
-
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -1012,6 +1008,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - put: source-json
       params:
         file: source-json/source.json
+  - task: update-cloud-config-with-vm-ext
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
 
 - name: deploy-old-k8s-<%= env %>
   plan:
@@ -1333,11 +1332,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - put: source-json
       params:
         file: source-json/source.json
-  <% if env =~ /^(aws-lb|gcp)/ %>
   - task: update-cloud-config-with-vm-ext
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
-  <% end %>
 
 - name: deploy-old-k8s-multi-master-<%= env %>
   plan:
@@ -1839,11 +1836,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - put: source-json
       params:
         file: source-json/source.json
-  <% if env =~ /^(aws-lb|gcp)/ %>
   - task: update-cloud-config-with-vm-ext
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
-  <% end %>
 
 - name: deploy-k8s-bbr-<%= env %>
   plan:
