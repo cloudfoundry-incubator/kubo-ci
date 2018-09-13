@@ -17,6 +17,7 @@ end
 
 if ENV['IAAS'] =~ /^gcp/
   ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml '
+  ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml'
   ops_files << '-o git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml '
 end
 
