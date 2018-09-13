@@ -78,7 +78,6 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
     pool: kubo-<%= env %>
-
 <% end %>
 
 - name: old-kubo-release-tarball
@@ -259,6 +258,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-kubo-deployment
     - get: kubo-lock
       resource: kubo-lock-upgrade-<%= env %>
       version: every
@@ -315,6 +315,10 @@ jobs:
     - put: source-json
       params:
         file: source-json/source.json
+  - task: update-cloud-config-with-vm-ext
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
+
 
 - name: deploy-old-k8s-<%= env %>
   plan:
@@ -380,6 +384,7 @@ jobs:
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
+      - unpacked-old-kubo-deployment/manifests/use-vm-extensions.yml
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
@@ -407,7 +412,7 @@ jobs:
           params:
             ENV_FILE: kubo-lock/metadata
         - put: kubo-lock-<%= env %>
-          params: { release: kubo-lock-<%= env %> }
+          params: { release: kubo-lock }
   - task: update-kubeconfig
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
@@ -582,7 +587,8 @@ jobs:
     - get: git-kubo-ci
     - get: git-kubo-deployment
       passed: [ 'claim-lock-<%= env %>' ]
-    - get: kubo-lock-<%= env %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
       version: every
       trigger: true
       passed: [ 'claim-lock-<%= env %>' ]
@@ -597,7 +603,6 @@ jobs:
   - task: install
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/install-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     params:
       <% if env.include? 'openstack' %>
       CLOUD_CONFIG_OPS_FILE: openstack-k8s-cloud-config.yml
@@ -616,11 +621,10 @@ jobs:
         - task: cleanup-<%= env %>
           tags: [<%= env %>]
           file: git-kubo-ci/tasks/cleanup-<%= env.split('-').first %>-environment.yml
-          input_mapping: {kubo-lock: kubo-lock-<%= env %>}
           params:
             ENV_FILE: kubo-lock/metadata
         - put: kubo-lock-<%= env %>
-          params: { release: kubo-lock-<%= env %> }
+          params: { release: kubo-lock }
   - aggregate:
     - put: gcs-bosh-creds
       params:
@@ -630,10 +634,8 @@ jobs:
         file: bosh-state/state.json
   - task: generate-load-balancer-vars
     file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - task: generate-source-json
     file: git-kubo-ci/tasks/generate-source-json.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - aggregate:
     - put: gcs-load-balancer-vars
       params:
@@ -641,12 +643,16 @@ jobs:
     - put: source-json
       params:
         file: source-json/source.json
+  - task: update-cloud-config-with-vm-ext
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
 
 - name: deploy-k8s-<%= env %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
       trigger: true
       version: every
       passed: [ 'install-bosh-<%= env %>' ]
@@ -690,19 +696,22 @@ jobs:
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       <% if env =~ /^gcp/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       <% end %>
       <% if env =~ /^aws/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       <% end %>
       <% if env =~ /^vsphere/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml
       <% end %>
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
-      - kubo-lock-<%= env %>/metadata
+      - kubo-lock/metadata
       <% if env =~ /^vsphere/ %>
       - director_uuid/var.yml
       <% end %>
@@ -733,7 +742,6 @@ jobs:
   - task: update-kubeconfig
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
   - put: gcs-kubeconfig
     params:
       file: kubeconfig/config
@@ -742,7 +750,8 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
       trigger: true
       version: every
       passed: [ 'deploy-k8s-<%= env %>' ]
@@ -765,7 +774,6 @@ jobs:
   - task: integration-tests
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_<%= env %>
     params:
       ENABLE_ADDONS_TESTS: true
@@ -778,14 +786,14 @@ jobs:
   - task: pod-to-pod
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/pod-to-pod.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_<%= env %>
 
 - name: destroy-k8s-<%= env %>
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
       trigger: true
       version: every
       passed: [ 'run-k8s-integration-tests-<%= env %>' ]
@@ -806,7 +814,6 @@ jobs:
   - task: destroy-k8s
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_<%= env %>
 
 - name: destroy-bosh-<%= env %>
@@ -815,7 +822,9 @@ jobs:
     - get: git-kubo-ci
     - get: git-kubo-deployment
       passed: [ 'destroy-k8s-<%= env %>' ]
-    - get: kubo-lock-<%= env %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
+      trigger: true
       trigger: true
       version: every
       passed: [ 'destroy-k8s-<%= env %>' ]
@@ -832,11 +841,9 @@ jobs:
   - task: destroy
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-bosh.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_<%= env %>
-
   - put: kubo-lock-<%= env %>
-    params: { release: kubo-lock-<%= env %> }
+    params: { release: kubo-lock }
   <% end %>
 
 <%
