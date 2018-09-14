@@ -325,11 +325,6 @@ jobs:
       <% if env =~ /^(vsphere|openstack)/ %>
       ENABLE_K8S_LBS_TESTS: false
       <% end %>
-  - task: pod-to-pod
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/pod-to-pod.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
-    on_failure: *on_failure_alert
 
 <% if conformance_test_envs.include?(env) %>
 - name: run-k8s-conformance-tests-<%= env %>
@@ -337,7 +332,8 @@ jobs:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
       passed: [ 'deploy-k8s-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'deploy-k8s-<%= env %>' ]
@@ -372,7 +368,8 @@ jobs:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
       version: every
       trigger: true
       passed: <%= turbulence_passed_reqs %>
