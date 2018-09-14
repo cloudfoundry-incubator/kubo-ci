@@ -176,13 +176,6 @@ resources:
     drafts: true
     pre_release: true
 
-- name: tracker-finisher
-  type: tracker
-  source:
-    token: ((cfcr-tracker-token))
-    project_id: "2093412"
-    tracker_url: https://www.pivotaltracker.com
-
 jobs:
 - name: run-unit-tests
   plan:
@@ -307,15 +300,6 @@ jobs:
     - get: git-kubo-deployment
       passed: [ upload-kubo-deployment ]
       trigger: true
-  - put: tracker-finisher
-    params:
-      repos:
-        - git-kubo-release
-        - git-kubo-deployment
-  - put: slack-alert
-    params:
-      text: |
-        Published new artifacts for kubo-release and kubo-deployment. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: release-version
   plan:
