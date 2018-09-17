@@ -30,7 +30,8 @@ resource_types:
 - name: bosh-errand
   type: docker-image
   source:
-    repository: cfcommunity/bosh2-errand-resource
+    repository: pcfkubo/bosh2-errand-resource
+    tag: v0.1.3-dev
 
 resources:
 <% env_list.each do |env| %>
@@ -104,16 +105,19 @@ resources:
   type: bosh-deployment
   source:
     deployment: ci-service
+    skip_check: true
 
 - name: run-apply-addons-errand
   type: bosh-errand
   source:
     deployment: ci-service
+    skip_check: true
 
 - name: run-smoke-tests-errand
   type: bosh-errand
   source:
     deployment: ci-service
+    skip_check: true
 
 - name: gcs-kubeconfig
   type: gcs
