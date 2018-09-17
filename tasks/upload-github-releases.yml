@@ -21,3 +21,4 @@ inputs:
 outputs:
   - name: kubo-release
   - name: kubo-deployment
+  - name: git-kubo-release-output
