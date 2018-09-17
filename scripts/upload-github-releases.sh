@@ -17,7 +17,7 @@ cp -r git-kubo-deployment-output "kubo-deployment-${version}/kubo-deployment"
 
 tar -czf kubo-deployment/kubo-deployment-${version}.tgz "kubo-deployment-${version}"
 
-cd git-kubo-release-master-output
+cd git-kubo-release-output
 git checkout -b tmp/release
 git add .
 git commit -m "Final release for v${version}"

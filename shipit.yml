@@ -119,7 +119,7 @@ jobs:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
   - task: set-kubo-release-version-in-manifest
-    file: set-kubo-release-version-in-manifest.yml
+    file: git-kubo-ci/tasks/set-kubo-release-version-in-manifest.yml
   - task: upload-releases
     file: git-kubo-ci/tasks/upload-github-releases.yml
     params:
