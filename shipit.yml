@@ -113,6 +113,13 @@ jobs:
         bump: final
     - get: git-kubo-release
     - get: git-kubo-deployment
+  - task: create-final-release
+    file: git-kubo-ci/tasks/create-final-release.yml
+    params:
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - task: set-kubo-release-version-in-manifest
+    file: set-kubo-release-version-in-manifest.yml
   - task: upload-releases
     file: git-kubo-ci/tasks/upload-github-releases.yml
     params:
