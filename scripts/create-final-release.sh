@@ -8,9 +8,9 @@ version=$(cat kubo-version/version)
 git config --global user.name "cf-london"
 git config --global user.email "cf-london-eng@pivotal.io"
 
-cp -r git-kubo-release-master/. git-kubo-release-master-output
+cp -r git-kubo-release/. git-kubo-release-output
 
-cd git-kubo-release-master-output
+cd git-kubo-release-output
 
 cat <<EOF > "config/private.yml"
 blobstore:

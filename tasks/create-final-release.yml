@@ -9,10 +9,10 @@ run:
 inputs:
   - name: git-kubo-ci
   - name: kubo-version
-  - name: git-kubo-release-master
+  - name: git-kubo-release
 outputs:
   - name: kubo-release-tarball
-  - name: git-kubo-release-master-output
+  - name: git-kubo-release-output
 params:
   ACCESS_KEY_ID:
   SECRET_ACCESS_KEY:
