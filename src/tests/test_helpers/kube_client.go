@@ -37,7 +37,7 @@ func IaaS() (string, error) {
 	providerID := nodes.Items[0].Spec.ProviderID
 	iaas := strings.Split(providerID, ":")[0]
 	switch iaas {
-	case "vsphere", "gce", "openstack", "aws":
+	case "vsphere", "gce", "openstack", "aws", "azure":
 		return iaas, nil
 	}
 	return "", fmt.Errorf("'%s' is not a valid iaas", iaas)
