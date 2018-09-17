@@ -23,7 +23,6 @@ resource_types:
   type: docker-image
   source:
     repository: cloudfoundry/bosh-deployment-resource
-    tag: v2.13.0
 
 - name: bosh-errand
   type: docker-image
