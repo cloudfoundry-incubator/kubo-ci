@@ -24,7 +24,7 @@ git config --global user.email "cfcr+cibot@pivotal.io"
 git config --global user.name "CFCR CI BOT"
 git add .
 
-if ! git diff-index --quiet HEAD --; then
+if git diff-index --quiet HEAD --; then
     echo "No changes detected"
     exit 0
 fi

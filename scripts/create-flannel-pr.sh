@@ -34,7 +34,7 @@ EOF
   branch_name="upgrade/flannel${tag}"
   git checkout -b $branch_name
   git add .
-  if ! git diff-index --quiet HEAD --; then
+  if git diff-index --quiet HEAD --; then
     echo "No changes detected"
     exit 0
   fi
