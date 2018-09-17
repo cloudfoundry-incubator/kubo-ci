@@ -19,7 +19,7 @@ popd
 # Since we know that golang-release has two go versions, we find the greatest of those two
 latest_golang_version=${golang_semvers[0]}
 if [ $(compare_semvers ${golang_semvers[0]} ${golang_semvers[1]}) -lt 0 ]; then
-    latest_golang_version=${arr[1]}
+    latest_golang_version=${golang_semvers[1]}
 fi
 
 # Now we compare the existing version with the latest version
