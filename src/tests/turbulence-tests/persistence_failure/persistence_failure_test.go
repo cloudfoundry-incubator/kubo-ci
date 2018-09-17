@@ -21,9 +21,8 @@ import (
 var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 
 	var (
-		deployment          director.Deployment
-		countRunningWorkers func() int
-		kubectl             *KubectlRunner
+		deployment director.Deployment
+		kubectl    *KubectlRunner
 	)
 
 	BeforeEach(func() {
@@ -31,7 +30,6 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 		director := NewDirector(testconfig.Bosh)
 		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
 		Expect(err).NotTo(HaveOccurred())
-		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
 
 		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()
