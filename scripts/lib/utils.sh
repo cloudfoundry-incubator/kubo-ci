@@ -18,11 +18,7 @@ set_variables() {
 setup_env() {
   KUBO_ENVIRONMENT_DIR="${1}"
   mkdir -p "${KUBO_ENVIRONMENT_DIR}"
-
-  if [ -f "${ROOT}/gcs-bosh-creds/creds.yml" ]; then
-    cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
-  fi
-
+  cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
   cp "${ROOT}/kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 
   "${ROOT}/git-kubo-ci/scripts/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"

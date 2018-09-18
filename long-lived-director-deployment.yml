@@ -383,9 +383,11 @@ jobs:
       passed: <%= turbulence_passed_reqs %>
     - get: kubo-version
       passed: <%= turbulence_passed_reqs %>
+
   - task: turbulence-tests
     file: git-kubo-ci/tasks/run-k8s-turbulence-tests.yml
     tags: ['<%= env %>']
+    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
     params:
       ENABLE_TURBULENCE_WORKER_DRAIN_TESTS: true
