@@ -10,29 +10,11 @@ resources:
 jobs:
 - name: clean-gcp-disks
   plan:
+  - get: git-kubo-ci
   - task: cleanup-disks
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: { repository: google/cloud-sdk }
-      params:
-        GCP_SERVICE_ACCOUNT: ((gcp-service-account))
-      run:
-        path: /bin/bash
-        args:
-        - -eux
-        - -c
-        - |
-          export GOOGLE_APPLICATION_CREDENTIALS="$(mktemp)"
-          set +x
-          echo "$GCP_SERVICE_ACCOUNT" > "$GOOGLE_APPLICATION_CREDENTIALS"
-          set -x
-          gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS --project cf-pcf-kubo
-          disks_to_delete="$(gcloud compute disks list --format='value(selfLink)' --filter='-users:*')"
-          if [[ "$disks_to_delete" != "" ]]; then
-            gcloud -q compute disks delete $disks_to_delete
-          fi
+    file: git-kubo-ci/tasks/cleanup-gcp-disks.yml
+    params:
+      GCP_SERVICE_ACCOUNT: ((gcp-service-account))
 
 - name: clean-gcp-lbs
   plan:
