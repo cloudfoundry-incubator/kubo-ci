@@ -21,8 +21,6 @@ setup_env() {
 
   if [ -f "${ROOT}/gcs-bosh-creds/creds.yml" ]; then
     cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
-  else
-    cp "${ROOT}/kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/creds.yml"
   fi
 
   cp "${ROOT}/kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
