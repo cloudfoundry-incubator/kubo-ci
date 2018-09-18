@@ -7,6 +7,11 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
 
+- name: hourly
+  type: time
+  source:
+    interval: 1h
+
 jobs:
 - name: clean-gcp-disks
   plan:
@@ -23,3 +28,36 @@ jobs:
     file: git-kubo-ci/tasks/cleanup-gcp-lbs.yml
     params:
       GCP_SERVICE_ACCOUNT: ((gcp-service-account))
+
+- name: check-for-old-bbl-envs
+  plan:
+  - get: hourly
+    trigger: true
+  - task: check-for-old-bbl-envs
+    config:
+      platform: linux
+      params:
+        GCP_SERVICE_ACCOUNT: ((gcp-service-account))
+      image_resource:
+        type: docker-image
+        source: {repository: google/cloud-sdk}
+      run:
+        path: /bin/bash
+        args:
+        - -eux
+        - -c
+        - |
+          export GOOGLE_APPLICATION_CREDENTIALS="$(mktemp)"
+          set +x
+          echo "$GCP_SERVICE_ACCOUNT" > "$GOOGLE_APPLICATION_CREDENTIALS"
+          set -x
+          gcloud auth activate-service-account --key-file "$GOOGLE_APPLICATION_CREDENTIALS" --project cf-pcf-kubo
+          if [[ "$(gcloud compute instances list \
+                    --filter="labels.director~'bbl-env' AND creationTimestamp<-P14d" \
+                    --format="table(name,creationTimestamp.date(%Y-%m-%d):sort=1,networkInterfaces[0].network.scope())" \
+                    | wc -l | awk '{print $1}')" == "0" ]]; then
+            exit 0;
+          else
+            echo "There were old BBL resources";
+            exit 1;
+          fi
