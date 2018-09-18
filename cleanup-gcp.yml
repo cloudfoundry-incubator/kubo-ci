@@ -39,8 +39,5 @@ jobs:
   - get: git-kubo-ci
   - task: cleanup-lbs
     file: git-kubo-ci/tasks/cleanup-gcp-lbs.yml
-    config:
-      inputs:
-        - name: git-kubo-ci
-      params:
-        GCP_SERVICE_ACCOUNT: ((gcp-service-account))
+    params:
+      GCP_SERVICE_ACCOUNT: ((gcp-service-account))
