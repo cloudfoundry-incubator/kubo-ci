@@ -4,7 +4,7 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
 source "${ROOT}/git-kubo-ci/scripts/lib/utils.sh"
 setup_env "${KUBO_ENVIRONMENT_DIR}"
-ISTIO_VERSION=1.0.0
+ISTIO_VERSION=1.1.0.snapshot.0
 
 git clone --depth 50 --branch $ISTIO_VERSION https://github.com/istio/istio $GOPATH/src/istio.io/istio
 
