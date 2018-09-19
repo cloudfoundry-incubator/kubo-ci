@@ -111,6 +111,13 @@ resources:
     pool: <%= env %>
 <% end %>
 
+- name: gcs-creds-file
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/duck-openstack/creds.yml
+
 - name: gcs-kubeconfig
   type: gcs
   source:
@@ -154,16 +161,11 @@ jobs:
   plan:
   - aggregate:
     - get: kubo-version
-
       trigger: true
     - get: git-kubo-release
-
     - get: git-kubo-deployment
-
     - get: gcs-kubo-release-tarball-untested
-
     - get: gcs-kubo-deployment-tarball-untested
-
   - put: kubo-lock-<%= env %>
     params: { acquire: true }
 
@@ -372,7 +374,7 @@ jobs:
       resource: kubo-lock-<%= env %>
       version: every
       trigger: true
-      passed: <%= turbulence_passed_reqs %>
+    - get: gcs-creds-file
     - get: gcs-kubo-release-tarball-untested
       passed: <%= turbulence_passed_reqs %>
     - get: gcs-kubo-deployment-tarball-untested
@@ -383,11 +385,11 @@ jobs:
       passed: <%= turbulence_passed_reqs %>
     - get: kubo-version
       passed: <%= turbulence_passed_reqs %>
-
   - task: turbulence-tests
     file: git-kubo-ci/tasks/run-k8s-turbulence-tests.yml
     tags: ['<%= env %>']
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
+    input_mapping:
+      gcs-bosh-creds: gcs-creds-file
     on_failure: *on_failure_alert
     params:
       ENABLE_TURBULENCE_WORKER_DRAIN_TESTS: true
@@ -399,7 +401,6 @@ jobs:
       <% if env != "openstack" %>
       ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS: true
       <% end %>
-
 <%
   destroy_k8s_passed_reqs = ["run-k8s-turbulence-tests-#{env}"]
 %>
@@ -409,7 +410,8 @@ jobs:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
-    - get: kubo-lock-<%= env %>
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
       version: every
       trigger: true
       passed: <%= destroy_k8s_passed_reqs %>
@@ -428,7 +430,6 @@ jobs:
   - task: destroy-k8s
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
 <%
 destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
