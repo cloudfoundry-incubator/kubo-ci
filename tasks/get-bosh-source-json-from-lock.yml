@@ -8,7 +8,7 @@ image_resource:
 
 inputs:
 - name: git-kubo-ci
-- name: kubo-lock
+- name: gcs-creds-file
 
 outputs:
 - name: source-json
@@ -19,4 +19,4 @@ run:
   - -c
   - |
     set -euo pipefail
-    bosh int kubo-lock/metadata --path=/source_json > source-json/source.json
+    bosh int gcs-creds-file/creds.yml --path=/source_json > source-json/source.json
