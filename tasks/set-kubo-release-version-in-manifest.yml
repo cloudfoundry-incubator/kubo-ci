@@ -5,7 +5,7 @@ image_resource:
     repository: pcfkubo/kubo-ci
     tag: stable
 run:
-  path: git-kubo-ci/scripts/set-kubo-release-version-in-manifest.rb
+  path: git-kubo-ci/scripts/set-kubo-release-version-in-manifest.sh
 
 params:
   IS_FINAL:
@@ -16,4 +16,4 @@ inputs:
   - name: kubo-version
   - name: kubo-release-tarball
 outputs:
-  - name: kubo-deployment-output
+  - name: git-kubo-deployment-output

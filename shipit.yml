@@ -1,0 +1,185 @@
+<%
+  envs = %w(gcp-lb)
+  stemcell_types = {
+    'gcp' => 'google-kvm',
+    'gcp-lb' => 'google-kvm',
+    'vsphere' => 'vsphere-esxi',
+    'vsphere-lb' => 'vsphere-esxi',
+    'vsphere-proxy' => 'vsphere-esxi',
+    'aws' => 'aws-xen-hvm',
+    'aws-lb' => 'aws-xen-hvm',
+    'openstack' => 'openstack-kvm'
+  }
+  additional_envs = %w()
+  env_list = envs + additional_envs
+  enable_failure_alert = true
+
+  upgrade_test_envs = %w()
+  multi_az_envs = %w(gcp-lb)
+  multi_master_upgrade_test_envs = %w(gcp-lb)
+  envs_for_new_bosh_stemcell = upgrade_test_envs | multi_master_upgrade_test_envs
+  conformance_test_envs = envs
+  proxy_envs = %w()
+  bbr_test_envs = %w()
+  coredns_test_envs = %w()
+%>
+---
+groups:
+- name: all
+  jobs:
+  - upload-github-releases
+  - bump-minor-version
+
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+- name: bosh-deployment
+  type: docker-image
+  source:
+    repository: pcfkubo/bosh-deployment-resource
+    tag: v2.12.1-dev
+
+- name: bosh-errand
+  type: docker-image
+  source:
+    repository: pcfkubo/bosh2-errand-resource
+    tag: v0.1.3-dev
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    branch: wip-155998950
+    private_key: ((git-ssh-key.private_key))
+
+- name: git-kubo-deployment
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
+    branch: 155998950-master
+    private_key: ((git-ssh-key.private_key))
+    ignore_paths:
+    - 'LICENSE'
+    - 'NOTICE'
+
+- name: git-kubo-release-master
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
+    branch: 155998950-master
+    private_key: ((git-ssh-key.private_key))
+    ignore_paths:
+    - '*.md'
+    - 'LICENSE'
+    - 'NOTICE'
+
+- name: git-kubo-release-develop
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
+    branch: 155998950-develop
+    private_key: ((git-ssh-key.private_key))
+    ignore_paths:
+    - '*.md'
+    - 'LICENSE'
+    - 'NOTICE'
+
+- name: kubo-version
+  type: semver
+  source:
+    driver: gcs
+    key: versions/kubo-version
+    json_key: ((gcs-json-key))
+    bucket: shipit-testing-155998950
+
+- name: gh-release-kubo-release
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: kubo-release
+    access_token: ((github-token-key))
+    drafts: true
+    pre_release: true
+
+- name: gh-release-kubo-deployment
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: kubo-deployment
+    access_token: ((github-token-key))
+    drafts: true
+    pre_release: true
+
+jobs:
+- name: upload-github-releases
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-version
+      params:
+        bump: final
+    - get: git-kubo-release-master
+    - get: git-kubo-release-develop
+    - get: git-kubo-deployment
+  - put: git-kubo-release-master
+    params:
+      repository: git-kubo-release-develop
+      rebase: true
+  - task: create-final-release
+    file: git-kubo-ci/tasks/create-final-release.yml
+    input_mapping:
+      git-kubo-release: git-kubo-release-master
+    params:
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - task: set-kubo-release-version-in-manifest
+    file: git-kubo-ci/tasks/set-kubo-release-version-in-manifest.yml
+  - task: upload-releases
+    file: git-kubo-ci/tasks/upload-github-releases.yml
+    params:
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+  - aggregate:
+    - do:
+      - put: git-kubo-release-master
+        params:
+          repository: git-kubo-release-output
+          merge: true
+      - put: gh-release-kubo-release
+        params:
+          name: kubo-release/name
+          tag: kubo-version/version
+          tag_prefix: v
+          body: kubo-release/body
+          globs: ["kubo-release-tarball/*.tgz"]
+    - do:
+      - put: gh-release-kubo-deployment
+        params:
+          name: kubo-deployment/name
+          tag: kubo-version/version
+          tag_prefix: v
+          body: kubo-deployment/body
+          globs: ["kubo-deployment/kubo-deployment-*.tgz"]
+    - put: git-kubo-ci
+      params:
+        repository: git-kubo-ci
+        only_tag: true
+        tag: kubo-version/version
+        tag_prefix: v
+  - put: git-kubo-release-develop
+    params:
+      repository: git-kubo-release-master
+      merge: true
+  - put: kubo-version
+    params:
+      bump: patch
+
+- name: bump-minor-version
+  plan:
+  - put: kubo-version
+    params:
+      bump: minor
