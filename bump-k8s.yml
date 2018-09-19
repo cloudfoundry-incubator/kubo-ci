@@ -48,7 +48,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-release.git
-    branch: master
+    branch: develop
     private_key: ((git-ssh-key.private_key))
 
 groups:
