@@ -275,9 +275,9 @@ jobs:
       vars:
         deployment_name: ci-service-turbulence
         worker_count: 3
-        network_name: turbulence_network
-        master_static_ips: [192.168.16.11]
-        kubernetes_master_host: 192.168.16.11
+        network_name: integration_network
+        master_static_ips: [192.168.13.21]
+        kubernetes_master_host: 192.168.13.21
     tags: [<%= env %>]
     on_failure: &on_failure_alert
       do:
@@ -288,7 +288,6 @@ jobs:
           attachments_file: slack-notification/attachments
           text: |
             Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-
   - task: update-kubeconfig
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
