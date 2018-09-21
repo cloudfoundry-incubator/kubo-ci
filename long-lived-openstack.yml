@@ -78,6 +78,12 @@ resources:
     deployment: ci-service
     skip_check: true
 
+- name: cfcr-deployment-turbulence
+  type: bosh-deployment
+  source:
+    deployment: ci-service-turbulence
+    skip_check: true
+
 - name: run-apply-addons-errand
   type: bosh-errand
   source:
@@ -165,6 +171,7 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - git-kubo-deployment/manifests/ops-files/iaas/openstack/cloud-provider.yml
+      - git-kubo-ci/manifests/ops-files/change-network.yml
       - git-kubo-ci/manifests/ops-files/add-master-static-ips.yml
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
@@ -180,6 +187,9 @@ jobs:
       vars:
         deployment_name: ci-service
         worker_count: 3
+        network_name: integration_network
+        master_static_ips: [192.168.13.11]
+        kubernetes_master_host: 192.168.13.11
     tags: [<%= env %>]
     on_failure: &on_failure_alert
       do:
@@ -190,6 +200,95 @@ jobs:
           attachments_file: slack-notification/attachments
           text: |
             Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+  - task: update-kubeconfig
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/update-kubeconfig.yml
+    params:
+      CREDFILE: gcs-bosh-creds/creds.yml
+      VARFILE: gcs-bosh-creds/creds.yml
+    input_mapping:
+      gcs-bosh-creds: gcs-creds-file
+      kubo-lock: gcs-creds-file
+  - put: run-apply-addons-errand
+    params:
+      name: apply-addons
+      keep_alive: true
+      source_file: source-json/source.json
+    tags: [<%= env %>]
+    on_failure: *on_failure_alert
+  - put: run-smoke-tests-errand
+    params:
+      name: smoke-tests
+      keep_alive: true
+      source_file: source-json/source.json
+    tags: [<%= env %>]
+    on_failure: *on_failure_alert
+  - put: gcs-kubeconfig
+    params:
+      file: kubeconfig/config
+
+- name: deploy-k8s-turbulence-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: gcs-creds-file
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+      trigger: true
+    - get: git-kubo-release
+      trigger: true
+    - get: gcs-kubo-release-tarball-untested
+    - get: gcs-kubo-deployment-tarball-untested
+    - get: stemcell
+      resource: stemcell-<%= env %>
+  - task: get-bosh-source-json-from-lock
+    file: git-kubo-ci/tasks/get-bosh-source-json-from-lock.yml
+  - put: cfcr-deployment-turbulence
+    params:
+      manifest: git-kubo-deployment/manifests/cfcr.yml
+      cleanup: true
+      no_redact: true
+      ops_files:
+      - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
+      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
+      - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
+      - git-kubo-ci/manifests/ops-files/allow-security-context.yml
+      - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
+      - git-kubo-deployment/manifests/ops-files/addons-spec.yml
+      - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
+      - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/openstack/cloud-provider.yml
+      - git-kubo-ci/manifests/ops-files/change-network.yml
+      - git-kubo-ci/manifests/ops-files/add-master-static-ips.yml
+      - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
+      - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
+      - git-kubo-deployment/manifests/ops-files/rename.yml
+      var_files:
+        addons-spec: "git-kubo-ci/specs/guestbook.yml"
+      vars_files:
+      - gcs-creds-file/creds.yml
+      stemcells:
+      - stemcell/stemcell.tgz
+      releases:
+      - gcs-kubo-release-tarball-untested/*.tgz
+      source_file: source-json/source.json
+      vars:
+        deployment_name: ci-service-turbulence
+        worker_count: 3
+        network_name: turbulence_network
+        master_static_ips: [192.168.16.11]
+        kubernetes_master_host: 192.168.16.11
+    tags: [<%= env %>]
+    on_failure: &on_failure_alert
+      do:
+      - task: configure-slack-notification
+        file: git-kubo-ci/tasks/configure-slack-notification.yml
+      - put: slack-alert
+        params:
+          attachments_file: slack-notification/attachments
+          text: |
+            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
   - task: update-kubeconfig
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
@@ -272,7 +371,7 @@ jobs:
     on_failure: *on_failure_alert
 
 <%
-  turbulence_passed_reqs = ["run-k8s-integration-tests-#{env}", "run-k8s-conformance-tests-#{env}"]
+  turbulence_passed_reqs = ["deploy-k8s-turbulence-#{env}"]
 %>
 
 - name: run-k8s-turbulence-tests-<%= env %>
@@ -306,7 +405,33 @@ jobs:
       ENABLE_TURBULENCE_MASTER_FAILURE_TESTS: true
       ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS: false
 
+<%
+  destroy_k8s_reqs = ["run-k8s-integration-tests-#{env}", "run-k8s-conformance-tests-#{env}"]
+%>
 - name: destroy-k8s-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: git-kubo-ci
+    - get: gcs-creds-file
+    - get: git-kubo-deployment
+      passed: <%= destroy_k8s_reqs %>
+      trigger: true
+    - get: git-kubo-release
+      passed: <%= destroy_k8s_reqs %>
+      trigger: true
+    - get: gcs-kubo-release-tarball-untested
+      passed: <%= destroy_k8s_reqs %>
+    - get: gcs-kubo-deployment-tarball-untested
+      passed: <%= destroy_k8s_reqs %>
+  - task: get-bosh-source-json-from-lock
+    file: git-kubo-ci/tasks/get-bosh-source-json-from-lock.yml
+  - task: destroy-k8s
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+    on_failure: *on_failure_alert
+
+- name: destroy-k8s-turbulence-<%= env %>
   plan:
   - aggregate:
     - get: slackers
@@ -329,4 +454,3 @@ jobs:
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     on_failure: *on_failure_alert
 <% end %>
-
