@@ -2406,7 +2406,6 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
   - put: git-kubo-release-master
     params:
       repository: git-kubo-release-develop
-      rebase: true
   - task: create-final-release
     file: git-kubo-ci/tasks/create-final-release.yml
     input_mapping:
@@ -2426,7 +2425,6 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       - put: git-kubo-release-master
         params:
           repository: git-kubo-release-output
-          merge: true
       - put: gh-release-kubo-release
         params:
           name: kubo-release/name
@@ -2457,7 +2455,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
   - put: git-kubo-release
     params:
       repository: git-kubo-release-master
-      rebase: true
+      merge: true
   - put: kubo-version
     params:
       bump: patch
