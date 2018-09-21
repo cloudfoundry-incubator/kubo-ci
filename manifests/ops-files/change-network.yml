@@ -1,0 +1,6 @@
+- type: remove
+  path: /instance_groups/name=master/networks/name=default
+
+- type: replace
+  path: /instance_groups/name=master/networks/?
+  value: ((network_name))
