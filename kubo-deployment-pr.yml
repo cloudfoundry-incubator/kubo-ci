@@ -52,7 +52,7 @@ resources:
   source:
     repo: cloudfoundry-incubator/kubo-deployment
     uri: git@github.com:cloudfoundry-incubator/kubo-deployment
-    base: master
+    base: develop
     private_key: ((git-ssh-key.private_key))
     access_token: ((github-token-key))
 

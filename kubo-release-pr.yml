@@ -41,7 +41,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/kubo-deployment
-    branch: master
+    branch: develop
 
 - name: git-kubo-release
   type: pull-request
