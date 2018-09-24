@@ -656,6 +656,7 @@ jobs:
       cleanup: true
       no_redact: true
       ops_files:
+      - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
       - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
@@ -1680,6 +1681,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       cleanup: true
       no_redact: true
       ops_files:
+      - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
       - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
@@ -1889,6 +1891,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       cleanup: true
       no_redact: true
       ops_files:
+      - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
       - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
@@ -2154,6 +2157,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       cleanup: true
       no_redact: true
       ops_files:
+      - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
       - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml

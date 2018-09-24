@@ -216,6 +216,7 @@ jobs:
       cleanup: true
       manifest: git-kubo-deployment/manifests/cfcr.yml
       ops_files:
+      - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
