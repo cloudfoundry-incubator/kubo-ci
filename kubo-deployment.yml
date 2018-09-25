@@ -83,7 +83,7 @@ groups:
   - upload-kubo-release
   - success-notification
   - release-version
-  - upload-github-releases
+  - ship-it
   - bump-minor-version
 - name: build
   jobs:
@@ -233,6 +233,16 @@ resources:
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
     branch: develop
+    private_key: ((git-ssh-key.private_key))
+    ignore_paths:
+    - 'LICENSE'
+    - 'NOTICE'
+
+- name: git-kubo-deployment-master
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
+    branch: master
     private_key: ((git-ssh-key.private_key))
     ignore_paths:
     - 'LICENSE'
@@ -2393,7 +2403,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     - get: git-kubo-deployment
       passed: <%= passed_requirements %>
 
-- name: upload-github-releases
+- name: ship-it
   plan:
   - aggregate:
     - get: slackers
@@ -2404,23 +2414,25 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     - get: git-kubo-release-develop
       resource: git-kubo-release
       passed: [ 'release-version' ]
-    - get: git-kubo-deployment
+    - get: git-kubo-deployment #develop
       passed: [ 'release-version' ]
-    - get: git-kubo-release-master
   - put: git-kubo-release-master
     params:
       repository: git-kubo-release-develop
+  - put: git-kubo-deployment-master # merge to master
+    params:
+      repository: git-kubo-deployment
   - task: create-final-release
     file: git-kubo-ci/tasks/create-final-release.yml
     input_mapping:
       git-kubo-release: git-kubo-release-master
     params:
-      access_key_id: ((gcs-access-key-id))
-      secret_access_key: ((gcs-secret-access-key))
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
   - task: set-kubo-release-version-in-manifest
     file: git-kubo-ci/tasks/set-kubo-release-version-in-manifest.yml
-  - task: upload-releases
-    file: git-kubo-ci/tasks/upload-github-releases.yml
+  - task: create-kubo-deployment-tarball
+    file: git-kubo-ci/tasks/create-kubo-deployment-tarball.yml
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
@@ -2431,25 +2443,22 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
           repository: git-kubo-release-output
       - put: gh-release-kubo-release
         params:
-          name: kubo-release/name
+          body: kubo-release-tarball-notes/body
+          globs: [ "kubo-release-tarball/*.tgz" ]
+          name: kubo-release-tarball-notes/name
           tag: kubo-version/version
           tag_prefix: v
-          body: kubo-release/body
-          globs: ["kubo-release-tarball/*.tgz"]
     - do:
-      - put: git-kubo-deployment
+      - put: git-kubo-deployment-master
         params:
-          repository: git-kubo-deployment
-          tag: kubo-version/version
-          tag_prefix: v
-          only_tag: true
+          repository: git-kubo-deployment-output
       - put: gh-release-kubo-deployment
         params:
+          body: kubo-deployment/body
+          globs: [ "kubo-deployment/kubo-deployment-*.tgz" ]
           name: kubo-deployment/name
           tag: kubo-version/version
           tag_prefix: v
-          body: kubo-deployment/body
-          globs: ["kubo-deployment/kubo-deployment-*.tgz"]
     - put: git-kubo-ci
       params:
         repository: git-kubo-ci
@@ -2460,6 +2469,10 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     params:
       repository: git-kubo-release-master
       merge: true
+  - put: git-kubo-deployment
+    params:
+      merge: true
+      repository: git-kubo-deployment-master
   - put: kubo-version
     params:
       bump: patch
