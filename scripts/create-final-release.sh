@@ -8,6 +8,9 @@ version=$(cat kubo-version/version)
 git config --global user.name "cfcr"
 git config --global user.email "cfcr@pivotal.io"
 
+echo "kubo-release ${version}" >kubo-release-tarball-notes/name
+echo "See [CFCR Release notes](https://docs-cfcr.cfapps.io/overview/release-notes/) page" > kubo-release-tarball-notes/body
+
 cp -r git-kubo-release/. git-kubo-release-output
 
 cd git-kubo-release-output
@@ -24,6 +27,3 @@ bosh create-release --final --version="${version}" --sha2 --tarball "../kubo-rel
 git add .
 git commit -m "Final release for v${version}"
 git tag -a "v${version}" -m "Tag for version v${version}"
-
-echo "kubo-release ${version}" >kubo-release-tarball-notes/name
-echo "See [CFCR Release notes](https://docs-cfcr.cfapps.io/overview/release-notes/) page" > kubo-release-tarball-notes/body
