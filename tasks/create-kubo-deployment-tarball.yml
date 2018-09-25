@@ -18,4 +18,3 @@ inputs:
   - name: kubo-version
 outputs:
   - name: kubo-deployment
-  - name: kubo-release

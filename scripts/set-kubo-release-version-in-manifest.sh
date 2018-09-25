@@ -18,7 +18,6 @@ sha="$(shasum kubo-release-tarball/kubo-release-${version}.tgz | cut -d ' ' -f 1
 url="https://github.com/cloudfoundry-incubator/kubo-release/releases/download/v${version}/kubo-release-${version}.tgz"
 bosh int git-kubo-deployment/manifests/cfcr.yml -o replace-kubo-version.yml -v version="$version" -v sha="$sha" -v url="$url" > git-kubo-deployment-output/manifests/cfcr.yml
 
-
 git config --global user.name "cfcr"
 git config --global user.email "cfcr@pivotal.io"
 cd git-kubo-deployment-output

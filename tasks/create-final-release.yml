@@ -13,6 +13,7 @@ inputs:
 outputs:
   - name: kubo-release-tarball
   - name: git-kubo-release-output
+  - name: kubo-release-tarball-notes
 params:
   ACCESS_KEY_ID:
   SECRET_ACCESS_KEY:

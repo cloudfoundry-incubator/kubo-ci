@@ -3,8 +3,6 @@
 set -exu -o pipefail
 
 version=$(cat kubo-version/version)
-echo "kubo-release ${version}" >kubo-release/name
-echo "See [CFCR Release notes](https://docs-cfcr.cfapps.io/overview/release-notes/) page" > kubo-release/body
 
 echo "kubo-deployment ${version}" >kubo-deployment/name
 echo "See [CFCR Release notes](https://docs-cfcr.cfapps.io/overview/release-notes/) page" > kubo-deployment/body
