@@ -222,7 +222,7 @@ func (runner *KubectlRunner) GetLBAddress(service, iaas string) string {
 	}
 
 	if len(output) == 0 {
-		fmt.Printf("loadbalancer still pending creation\n")
+		fmt.Fprintf(GinkgoWriter, "loadbalancer still pending creation\n")
 		return ""
 	}
 
