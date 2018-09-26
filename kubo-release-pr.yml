@@ -369,6 +369,13 @@ jobs:
     params:
       env: <%= env.split('-')[0] %>
       IAAS: <%= env.split('-')[0] %>
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: gcs-pr-deployment-tarball
+    output_mapping:
+      unpacked_dir: git-kubo-deployment
+    tags: ['<%= env %>']
   - put: cfcr-deployment
     params:
       manifest: unpacked-old-kubo-deployment/manifests/cfcr.yml
@@ -383,6 +390,7 @@ jobs:
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
