@@ -111,6 +111,9 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 })
 
 func VMIpOfRedis(kubectl *KubectlRunner) string {
-	nodeName := kubectl.GetOutput("get", "pods", "-l", "app=redis", "-o", "jsonpath={.items[0].spec.nodeName}")
-	return kubectl.GetOutput("get", "nodes", nodeName[0], "-o", "jsonpath={.status.addresses[?(@.type==\"InternalIP\")].address}")[0]
+	nodeName, err := kubectl.GetOutput("get", "pods", "-l", "app=redis", "-o", "jsonpath={.items[0].spec.nodeName}")
+	Expect(err).NotTo(HaveOccurred())
+	output, err := kubectl.GetOutput("get", "nodes", nodeName[0], "-o", "jsonpath={.status.addresses[?(@.type==\"InternalIP\")].address}")
+	Expect(err).NotTo(HaveOccurred())
+	return output[0]
 }

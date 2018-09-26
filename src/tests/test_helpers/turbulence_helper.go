@@ -143,7 +143,9 @@ func GetComponentStatusOrError(kubectl *KubectlRunner) ([]ComponentStatus, error
 }
 
 func GetNodeNamesForRunningPods(kubectl *KubectlRunner) []string {
-	return kubectl.GetOutput("get", "pods", "-o", "jsonpath='{.items[*].spec.nodeName}'")
+	output, err := kubectl.GetOutput("get", "pods", "-o", "jsonpath='{.items[*].spec.nodeName}'")
+	Expect(err).ToNot(HaveOccurred())
+	return output
 }
 
 func GetNewVmId(oldVms []director.VMInfo, newVmIds []string) (string, error) {

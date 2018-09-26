@@ -25,7 +25,8 @@ var _ = Describe("Kubectl", func() {
 
 	It("Should have a ulimit of 65536", func() {
 		podName := test_helpers.GenerateRandomUUID()
-		output := runner.GetOutput("run", podName, "--image", "pcfkubo/ulimit", "--restart=Never", "-i", "--rm")
+		output, err := runner.GetOutput("run", podName, "--image", "pcfkubo/ulimit", "--restart=Never", "-i", "--rm")
+		Expect(err).NotTo(HaveOccurred())
 		Expect(output[0]).To(Equal("65536"))
 	})
 
