@@ -97,14 +97,16 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 			return loadbalancerAddress
 		}, "120s", "5s").Should(Not(Equal("")))
 
-		By("Waiting until LB address resolves")
-		Eventually(func() ([]string, error) {
-			hosts, err := net.LookupHost(loadbalancerAddress)
-			if err == nil {
-				fmt.Fprintf(GinkgoWriter, "Found hosts: %#v\n", hosts)
-			}
-			return hosts, err
-		}, "5m", "5s").ShouldNot(HaveLen(0))
+		if ip := net.ParseIP(loadbalancerAddress); ip == nil {
+			By("Waiting until LB address resolves")
+			Eventually(func() ([]string, error) {
+				hosts, err := net.LookupHost(loadbalancerAddress)
+				if err == nil {
+					fmt.Fprintf(GinkgoWriter, "Found hosts: %#v\n", hosts)
+				}
+				return hosts, err
+			}, "5m", "5s").ShouldNot(HaveLen(0))
+		}
 	}
 
 	By("Monitoring workload availability")
