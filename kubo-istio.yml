@@ -81,6 +81,13 @@ resources:
     json_key: ((gcs-json-key))
     versioned_file: bosh/creds.yml
 
+- name: gcs-kubeconfig
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: k8s/config
+
 - name: git-kubo-deployment
   type: git
   source:
@@ -259,12 +266,21 @@ jobs:
       source_file: source-json/source.json
     tags:
     - gcp-lb
+  - task: update-kubeconfig
+    tags: [gcp-lb]
+    file: git-kubo-ci/tasks/update-kubeconfig.yml
+  - put: gcs-kubeconfig
+    params:
+      file: kubeconfig/config
 
 - name: run-istio-tests
   serial: true
   plan:
   - aggregate:
     - get: slackers
+    - get: gcs-kubeconfig
+      passed:
+      - deploy-k8s-gcp-lb
     - get: kubo-dev-release
       passed:
       - deploy-k8s-gcp-lb
