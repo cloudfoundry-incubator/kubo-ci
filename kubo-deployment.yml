@@ -794,11 +794,6 @@ jobs:
       <% if env =~ /^(vsphere|openstack)/ %>
       ENABLE_K8S_LBS_TESTS: false
       <% end %>
-  - task: pod-to-pod
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/pod-to-pod.yml
-    input_mapping: {kubo-lock: kubo-lock-<%= env %>}
-    on_failure: *on_failure_alert
 
 <% if conformance_test_envs.include?(env) %>
 - name: run-k8s-conformance-tests-<%= env %>
@@ -2254,13 +2249,6 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       ENABLE_PERSISTENT_VOLUME_TESTS: true
       ENABLE_MULTI_AZ_TESTS: true
       ENABLE_K8S_LBS_TESTS: true
-  - task: pod-to-pod
-    tags: ['<%= env %>']
-    file: git-kubo-ci/tasks/pod-to-pod.yml
-    input_mapping: {kubo-lock: kubo-lock-gcp-lb}
-    on_failure: *on_failure_alert
-    params:
-      DEPLOYMENT_NAME: ci-service
 
 - name: destroy-k8s-coredns-<%= env %>
   plan:

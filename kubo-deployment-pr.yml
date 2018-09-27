@@ -360,10 +360,6 @@ jobs:
       <% if env =~ /^(vsphere|openstack)/ %>
       ENABLE_K8S_LBS_TESTS: false
       <% end %>
-  - task: pod-to-pod
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/pod-to-pod.yml
-    on_failure: *on_failure_<%= env %>
 
 - name: destroy-k8s-<%= env %>
   plan:

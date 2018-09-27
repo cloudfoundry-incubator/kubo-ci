@@ -791,10 +791,6 @@ jobs:
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
       ENABLE_K8S_LBS_TESTS: <%= env.match? /^(gcp|aws-lb)/  %>
-  - task: pod-to-pod
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/pod-to-pod.yml
-    on_failure: *on_failure_<%= env %>
 
 - name: destroy-k8s-<%= env %>
   plan:
