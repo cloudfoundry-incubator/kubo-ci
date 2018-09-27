@@ -89,25 +89,30 @@ resources:
     deployment: ci-service
     skip_check: true
 
+- name: run-apply-addons-errand-turbulence
+  type: bosh-errand
+  source:
+    deployment: ci-service-turbulence
+    skip_check: true
+
 - name: run-smoke-tests-errand
   type: bosh-errand
   source:
     deployment: ci-service
     skip_check: true
 
-- name: gcs-creds-file
+- name: run-smoke-tests-errand-turbulence
+  type: bosh-errand
+  source:
+    deployment: ci-service-turbulence
+    skip_check: true
+
+- name: gcs-bosh-creds
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     versioned_file: bosh/duck-openstack/creds.yml
-
-- name: gcs-metadata-file
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
-    versioned_file: bosh/duck-openstack/metadata
 
 - name: gcs-kubeconfig
   type: gcs
@@ -143,7 +148,7 @@ jobs:
   plan:
   - aggregate:
     - get: slackers
-    - get: gcs-creds-file
+    - get: gcs-bosh-creds
     - get: git-kubo-ci
     - get: git-kubo-deployment
       trigger: true
@@ -170,14 +175,13 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - git-kubo-deployment/manifests/ops-files/iaas/openstack/cloud-provider.yml
-      - git-kubo-ci/manifests/ops-files/change-network.yml
       - git-kubo-ci/manifests/ops-files/add-master-static-ips.yml
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
-      - gcs-creds-file/creds.yml
+      - gcs-bosh-creds/creds.yml
       stemcells:
       - stemcell/stemcell.tgz
       releases:
@@ -186,7 +190,6 @@ jobs:
       vars:
         deployment_name: ci-service
         worker_count: 3
-        network_name: integration_network
         master_static_ips: [192.168.13.11]
         kubernetes_master_host: 192.168.13.11
     tags: [<%= env %>]
@@ -207,8 +210,7 @@ jobs:
       VARFILE: gcs-bosh-creds/creds.yml
       API_URL: https://192.168.13.11:8443
     input_mapping:
-      gcs-bosh-creds: gcs-creds-file
-      kubo-lock: gcs-creds-file
+      kubo-lock: gcs-bosh-creds
   - put: run-apply-addons-errand
     params:
       name: apply-addons
@@ -231,7 +233,7 @@ jobs:
   plan:
   - aggregate:
     - get: slackers
-    - get: gcs-creds-file
+    - get: gcs-bosh-creds
     - get: git-kubo-ci
     - get: git-kubo-deployment
       trigger: true
@@ -258,7 +260,6 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - git-kubo-deployment/manifests/ops-files/iaas/openstack/cloud-provider.yml
-      - git-kubo-ci/manifests/ops-files/change-network.yml
       - git-kubo-ci/manifests/ops-files/add-master-static-ips.yml
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
       - git-kubo-ci/manifests/ops-files/scale-to-one-az.yml
@@ -266,7 +267,7 @@ jobs:
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
-      - gcs-creds-file/creds.yml
+      - gcs-bosh-creds/creds.yml
       stemcells:
       - stemcell/stemcell.tgz
       releases:
@@ -275,9 +276,8 @@ jobs:
       vars:
         deployment_name: ci-service-turbulence
         worker_count: 3
-        network_name: turbulence_network
-        master_static_ips: [192.168.16.11]
-        kubernetes_master_host: 192.168.16.11
+        master_static_ips: [192.168.13.21]
+        kubernetes_master_host: 192.168.13.21
     tags: [<%= env %>]
     on_failure: &on_failure_alert
       do:
@@ -288,25 +288,24 @@ jobs:
           attachments_file: slack-notification/attachments
           text: |
             Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-
   - task: update-kubeconfig
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-kubeconfig.yml
     params:
       CREDFILE: gcs-bosh-creds/creds.yml
       VARFILE: gcs-bosh-creds/creds.yml
-      API_URL: https://192.168.16.11:8443
+      API_URL: https://192.168.13.21:8443
+      DEPLOYMENT_NAME: "ci-service-turbulence"
     input_mapping:
-      gcs-bosh-creds: gcs-creds-file
-      kubo-lock: gcs-creds-file
-  - put: run-apply-addons-errand
+      kubo-lock: gcs-bosh-creds
+  - put: run-apply-addons-errand-turbulence
     params:
       name: apply-addons
       keep_alive: true
       source_file: source-json/source.json
     tags: [<%= env %>]
     on_failure: *on_failure_alert
-  - put: run-smoke-tests-errand
+  - put: run-smoke-tests-errand-turbulence
     params:
       name: smoke-tests
       keep_alive: true
@@ -321,7 +320,7 @@ jobs:
   plan:
   - aggregate:
     - get: slackers
-    - get: gcs-creds-file
+    - get: gcs-bosh-creds
     - get: git-kubo-ci
     - get: git-kubo-deployment
       passed: [ 'deploy-k8s-<%= env %>' ]
@@ -351,7 +350,7 @@ jobs:
   plan:
   - aggregate:
     - get: slackers
-    - get: gcs-creds-file
+    - get: gcs-bosh-creds
     - get: git-kubo-ci
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'deploy-k8s-<%= env %>' ]
@@ -379,8 +378,7 @@ jobs:
   plan:
   - aggregate:
     - get: slackers
-    - get: gcs-metadata-file
-    - get: gcs-creds-file
+    - get: gcs-bosh-creds
       passed: <%= turbulence_passed_reqs %>
     - get: git-kubo-ci
     - get: gcs-kubo-release-tarball-untested
@@ -393,14 +391,17 @@ jobs:
     - get: git-kubo-release
       passed: <%= turbulence_passed_reqs %>
       trigger: true
+    - get: gcs-kubeconfig
+      passed: [ 'deploy-k8s-turbulence-<%= env %>' ]
+      version: every
+  - task: copy-openstack-creds-to-director
+    file: git-kubo-ci/tasks/copy-openstack-creds-to-director.yml
   - task: turbulence-tests
     file: git-kubo-ci/tasks/run-k8s-turbulence-tests.yml
     tags: ['<%= env %>']
-    input_mapping:
-      gcs-bosh-creds: gcs-creds-file
-      kubo-lock: gcs-metadata-file
     on_failure: *on_failure_alert
     params:
+      DEPLOYMENT_NAME: ci-service-turbulence
       ENABLE_TURBULENCE_WORKER_DRAIN_TESTS: true
       ENABLE_TURBULENCE_WORKER_FAILURE_TESTS: true
       ENABLE_TURBULENCE_MASTER_FAILURE_TESTS: true
@@ -414,7 +415,7 @@ jobs:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
-    - get: gcs-creds-file
+    - get: gcs-bosh-creds
     - get: git-kubo-deployment
       passed: <%= destroy_k8s_reqs %>
       trigger: true
@@ -437,7 +438,7 @@ jobs:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
-    - get: gcs-creds-file
+    - get: gcs-bosh-creds
     - get: git-kubo-deployment
       passed: ['run-k8s-turbulence-tests-<%= env %>']
       trigger: true

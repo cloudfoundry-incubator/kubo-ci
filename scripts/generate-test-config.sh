@@ -136,8 +136,6 @@ generate_test_config() {
 	    "is_multiaz": ${enable_multi_az_tests}
 	  },
 	  "kubernetes": {
-	    "master_host": "$(bosh int $director_yml --path=/kubernetes_master_host)",
-	    "master_port": $(bosh int $director_yml --path=/kubernetes_master_port),
 	    "tls_cert": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/certificate' --json | jq .Blocks[0]),
 	    "tls_private_key": $(bosh int <(credhub get -n "${director_name}/${deployment}/tls-kubernetes" --output-json) --path='/value/private_key' --json | jq .Blocks[0]),
 	    "cluster_ip_range": "$(bosh int ${ROOT}/${cidr_vars_file} --path=/service_cluster_cidr)",

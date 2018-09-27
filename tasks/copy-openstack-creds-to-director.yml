@@ -11,7 +11,7 @@ inputs:
 - name: gcs-bosh-creds
 
 outputs:
-- name: source-json
+- name: kubo-lock
 
 run:
   path: bash
@@ -19,4 +19,4 @@ run:
   - -c
   - |
     set -euo pipefail
-    bosh int gcs-bosh-creds/creds.yml --path=/source_json > source-json/source.json
+    cp gcs-bosh-creds/creds.yml kubo-lock/metadata
