@@ -167,7 +167,7 @@ func (runner *KubectlRunner) GetNodePortInNamespace(service string, namespace st
 }
 
 func (runner *KubectlRunner) GetWorkerIP() string {
-	output, err := runner.GetOutput("get", "nodes", "-o", "jsonpath='{.items[*].status.addresses[?(@.type==\"InternalIP\")].address}'")
+	output, err := runner.GetOutput("get", "nodes", "-o", "jsonpath={.items[*].status.addresses[?(@.type==\"InternalIP\")].address}")
 	Expect(err).NotTo(HaveOccurred())
 	return output[0]
 }
