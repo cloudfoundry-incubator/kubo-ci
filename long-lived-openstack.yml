@@ -21,8 +21,7 @@ resource_types:
 - name: bosh-deployment
   type: docker-image
   source:
-    repository: pcfkubo/bosh-deployment-resource
-    tag: v2.12.1-dev
+    repository: cloudfoundry/bosh-deployment-resource
 
 - name: bosh-errand
   type: docker-image
