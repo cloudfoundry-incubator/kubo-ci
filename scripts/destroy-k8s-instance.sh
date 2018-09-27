@@ -14,7 +14,7 @@ export BOSH_LOG_PATH="$PWD/bosh.log"
 set +x
 bosh -d "${DEPLOYMENT_NAME}" -n delete-deployment --force
 
-export CREDHUB_SERVER="https://$(bosh int gcs-bosh-creds/creds.yml --path=/internal_ip):8844"
+export CREDHUB_SERVER="${BOSH_ENVIRONMENT/25555/8844}"
 export CREDHUB_CLIENT="credhub-admin"
 export CREDHUB_SECRET="$(bosh int gcs-bosh-creds/creds.yml --path=/credhub_admin_client_secret)"
 
