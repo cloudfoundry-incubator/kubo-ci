@@ -55,5 +55,6 @@ func DeleteSmorgasbord(kubectl *KubectlRunner, iaas string) {
 	smorgasbordSpec := PathFromRoot("specs/smorgasbord.yml")
 
 	Eventually(kubectl.RunKubectlCommand("delete", "-f", smorgasbordSpec), "120s").Should(gexec.Exit(0))
+	Eventually(kubectl.RunKubectlCommand("delete", "--all", "pvc"), "120s").Should(gexec.Exit(0))
 	Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "120s").Should(gexec.Exit(0))
 }
