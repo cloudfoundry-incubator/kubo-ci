@@ -1519,10 +1519,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
-      ENABLE_MULTI_AZ_TESTS: true
-      BOSH_DEPLOY_COMMAND: "bosh-command/bosh-deploy.sh"
       DEPLOYMENT_NAME: ci-service
-      KUBO_RELEASE_TARBALL: gcs-kubo-release-tarball-untested
 
 - name: destroy-k8s-upgrade-multi-master-<%= env %>
   plan:
