@@ -219,7 +219,7 @@ func (runner *KubectlRunner) GetPodStatusBySelector(namespace string, selector s
 func (runner *KubectlRunner) GetLBAddress(service, iaas string) string {
 	var jsonPathForLoadBalancer string
 
-	if iaas == "gce" || iaas == "azure" { // TODO: remove GCP once testconfig is gone
+	if iaas == "gcp" || iaas == "gce" || iaas == "azure" { // TODO: remove GCP once testconfig is gone
 		jsonPathForLoadBalancer = "jsonpath={.status.loadBalancer.ingress[0].ip}"
 	} else if iaas == "aws" {
 		jsonPathForLoadBalancer = "jsonpath={.status.loadBalancer.ingress[0].hostname}"
