@@ -145,6 +145,7 @@ resources:
 jobs:
 <% envs.each do |env| %>
 - name: deploy-k8s-<%= env %>
+  serial_groups: [main]
   plan:
   - aggregate:
     - get: slackers
@@ -230,6 +231,7 @@ jobs:
       file: kubeconfig/config
 
 - name: deploy-k8s-turbulence-<%= env %>
+  serial_groups: [turbulence]
   plan:
   - aggregate:
     - get: slackers
@@ -317,6 +319,7 @@ jobs:
       file: kubeconfig/config
 
 - name: run-k8s-integration-tests-<%= env %>
+  serial_groups: [main]
   plan:
   - aggregate:
     - get: slackers
@@ -347,6 +350,7 @@ jobs:
       ENABLE_MULTI_AZ_TESTS: false
 
 - name: run-k8s-conformance-tests-<%= env %>
+  serial_groups: [main]
   plan:
   - aggregate:
     - get: slackers
@@ -375,6 +379,7 @@ jobs:
 %>
 
 - name: run-k8s-turbulence-tests-<%= env %>
+  serial_groups: [turbulence]
   plan:
   - aggregate:
     - get: slackers
@@ -411,6 +416,7 @@ jobs:
   destroy_k8s_reqs = ["run-k8s-integration-tests-#{env}", "run-k8s-conformance-tests-#{env}"]
 %>
 - name: destroy-k8s-<%= env %>
+  serial_groups: [main]
   plan:
   - aggregate:
     - get: slackers
@@ -434,6 +440,7 @@ jobs:
     on_failure: *on_failure_alert
 
 - name: destroy-k8s-turbulence-<%= env %>
+  serial_groups: [turbulence]
   plan:
   - aggregate:
     - get: slackers
