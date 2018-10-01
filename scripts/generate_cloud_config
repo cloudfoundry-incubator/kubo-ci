@@ -14,20 +14,6 @@ repo_directory() {
   echo -n "${PWD}/git-kubo-ci"
 }
 
-ops_string_for_service_accounts() {
-  local bosh_env=$1
-  local ops_string=""
-
-  if ! bosh int "${bosh_env}/director.yml" --path='/service_account_master' &> /dev/null; then
-    ops_string="${ops_string} --ops-file=$(repo_directory)/manifests/ops-files/iaas/gcp/cloud-config/remove-service-account-master.yml"
-  fi
-
-  if ! bosh int "${bosh_env}/director.yml" --path='/service_account_worker' &> /dev/null; then
-    ops_string="${ops_string} --ops-file=$(repo_directory)/manifests/ops-files/iaas/gcp/cloud-config/remove-service-account-worker.yml"
-  fi
-  echo "$ops_string"
-}
-
 main() {
   if [ $# -ne 1 ] ; then
     print_usage
@@ -48,23 +34,7 @@ main() {
     done <<< "${CLOUD_CONFIG_OPS_FILES}"
   fi
 
-  if [ "${bosh_iaas}" == "gcp" ]; then
-     ops_string="${ops_string} $(ops_string_for_service_accounts "$bosh_env")"
-  fi
-
-  if [ "$(bosh int "${bosh_env}/director.yml" --path='/routing_mode')" == "cf" ]; then
-    cloud_args=$(echo -n "$(repo_directory)/configurations/${bosh_iaas}/cloud-config.yml" --vars-file ${bosh_env}/director.yml)
-  elif [ "$(bosh int "${bosh_env}/director.yml" --path='/routing_mode')" == "iaas" ]; then
-    if [ "${bosh_iaas}" == "gcp" ]; then
-       cloud_args=$(echo -n "$(repo_directory)/configurations/${bosh_iaas}/cloud-config.yml" --vars-file ${bosh_env}/director.yml --ops-file="$(repo_directory)/manifests/ops-files/iaas/gcp/cloud-config/load-balancer-target-pools.yml")
-    elif [ "${bosh_iaas}" == "aws" ]; then
-       cloud_args=$(echo -n "$(repo_directory)/configurations/${bosh_iaas}/cloud-config.yml" --vars-file ${bosh_env}/director.yml --ops-file="$(repo_directory)/manifests/ops-files/iaas/aws/cloud-config/lb.yml")
-    else
-       cloud_args=$(echo -n "$(repo_directory)/configurations/${bosh_iaas}/cloud-config.yml" --vars-file ${bosh_env}/director.yml)
-    fi
-  else
-    cloud_args=$(echo -n "$(repo_directory)/configurations/${bosh_iaas}/cloud-config.yml" --vars-file ${bosh_env}/director.yml)
-  fi
+  cloud_args=$(echo -n "$(repo_directory)/configurations/${bosh_iaas}/cloud-config.yml" --vars-file ${bosh_env}/director.yml)
 
   bosh int ${cloud_args} ${ops_string}
 }
