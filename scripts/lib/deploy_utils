@@ -204,10 +204,6 @@ generate_manifest() {
     "3" \
   )"
 
-  if [[ "${routing_mode}" == "cf" ]]; then
-    interpolate_arguments+=" --ops-file=\"${ops_dir}/cf-routing.yml\""
-  fi
-
   if [[ "aws" == "${iaas}" ]]; then
     interpolate_arguments+=" --ops-file=\"${ops_dir}/iaas/aws/lb.yml\""
   elif [[ "gcp" == "${iaas}" ]]; then

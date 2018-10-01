@@ -102,11 +102,6 @@ generate_test_config() {
   local iaas=$(bosh int "$environment/director.yml" --path='/iaas')
   local routing_mode=$(bosh int "$environment/director.yml" --path='/routing_mode')
 
-  local enable_cloudfoundry_tests="false"
-  if [[ ${routing_mode} == "cf" ]]; then
-    enable_cloudfoundry_tests="true"
-  fi
-
   set +e # Cant be set since read returns a non-zero when it reaches EOF
   read -r -d '' config <<-EOF
 	{
