@@ -15,7 +15,7 @@ main() {
   source "${ROOT}/git-kubo-ci/scripts/lib/utils.sh"
   setup_env "${KUBO_ENVIRONMENT_DIR}"
 
-  BOSH_ENV="${KUBO_ENVIRONMENT_DIR}" source "${ROOT}/git-kubo-deployment/bin/set_bosh_environment"
+  BOSH_ENV="${KUBO_ENVIRONMENT_DIR}" source "${ROOT}/git-kubo-ci/scripts/set_bosh_environment"
 
   release_tarball=$(find "${ROOT}/gcs-kubo-release-tarball/" -name "*kubo-*.tgz" | head -n1)
 
