@@ -1074,7 +1074,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       unpacked_dir: unpacked-old-kubo-deployment
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
+      COLLAPSE_DIR: kubo-deployment-*
   - task: upload-old-stemcell
     tags: ['<%= env %>']
     input_mapping:
@@ -1398,7 +1398,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       unpacked_dir: unpacked-old-kubo-deployment
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
+      COLLAPSE_DIR: kubo-deployment-*
   - task: get_director_uuid
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/get_director_uuid.yml
