@@ -12,7 +12,7 @@ BOSH_ENV="${KUBO_ENVIRONMENT_DIR}"
 cp "$PWD/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
 cp "kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
 
-source "git-kubo-deployment/bin/set_bosh_environment"
+source "git-kubo-ci/scripts/set_bosh_environment"
 
 turbulence_release_url=$(bosh int "git-kubo-ci/manifests/turbulence/runtime-config.yml" --path='/releases/name=turbulence/url')
 bosh -n -e "${BOSH_ENVIRONMENT}" upload-release "$turbulence_release_url"
