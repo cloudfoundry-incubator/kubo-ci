@@ -1387,6 +1387,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-multi-master-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-multi-master-<%= env %>' ]
+    - get: slackers
     - get: stemcell
       resource: stemcell-<%= env %>
   - task: unpack-tgz
