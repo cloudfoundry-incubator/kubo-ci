@@ -30,6 +30,10 @@ resource_types:
     tag: v0.1.3-dev
 
 resources:
+- name: 60m
+  type: time
+  source: {interval: 60m}
+
 - name: git-kubo-ci
   type: git
   source:
@@ -148,6 +152,8 @@ jobs:
   serial_groups: [main]
   plan:
   - aggregate:
+    - get: 60m
+      trigger: true
     - get: slackers
     - get: gcs-bosh-creds
     - get: git-kubo-ci
@@ -319,7 +325,6 @@ jobs:
 #       file: kubeconfig/config
 
 - name: run-k8s-integration-tests-<%= env %>
-  serial_groups: [main]
   plan:
   - aggregate:
     - get: slackers
@@ -338,6 +343,7 @@ jobs:
     - get: gcs-kubeconfig
       passed: [ 'deploy-k8s-<%= env %>' ]
       version: every
+      trigger: true
   - task: integration-tests
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
@@ -350,7 +356,6 @@ jobs:
       ENABLE_MULTI_AZ_TESTS: false
 
 - name: run-k8s-conformance-tests-<%= env %>
-  serial_groups: [main]
   plan:
   - aggregate:
     - get: slackers
@@ -368,6 +373,7 @@ jobs:
     - get: gcs-kubeconfig
       passed: [ 'deploy-k8s-<%= env %>' ]
       version: every
+      trigger: true
   - task: conformance-tests
     file: git-kubo-ci/tasks/run-conformance-tests.yml
     tags:
