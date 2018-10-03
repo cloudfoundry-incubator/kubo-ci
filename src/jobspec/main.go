@@ -51,8 +51,8 @@ func main() {
 	apiserverFlags := options.NewServerRunOptions()
 	apiserverFlags.AddFlags(flags)
 	flags.VisitAll(func(f *pflag.Flag) {
-		k = append(k, f.Name)
-		jobSpec.Properties[f.Name] = Property{Description: f.Usage}
+		k = append(k, "args."+f.Name)
+		jobSpec.Properties["args."+f.Name] = Property{Description: f.Usage}
 	})
 	jobSpecBytes, _ := yaml.Marshal(jobSpec)
 	file.WriteAt(jobSpecBytes, 0)
