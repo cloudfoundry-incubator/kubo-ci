@@ -434,6 +434,10 @@ jobs:
     - get: git-kubo-release
       passed: <%= destroy_k8s_reqs %>
       trigger: true
+    - get: gcs-kubeconfig
+      passed: <%= destroy_k8s_reqs %>
+      version: every
+      trigger: true
     - get: gcs-kubo-release-tarball-untested
       passed: <%= destroy_k8s_reqs %>
     - get: gcs-kubo-deployment-tarball-untested
