@@ -30,10 +30,6 @@ resource_types:
     tag: v0.1.3-dev
 
 resources:
-- name: 60m
-  type: time
-  source: {interval: 60m}
-
 - name: git-kubo-ci
   type: git
   source:
@@ -152,8 +148,6 @@ jobs:
   serial_groups: [main]
   plan:
   - aggregate:
-    - get: 60m
-      trigger: true
     - get: slackers
     - get: gcs-bosh-creds
     - get: git-kubo-ci
