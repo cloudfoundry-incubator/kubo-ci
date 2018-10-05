@@ -25,7 +25,7 @@ cat <<EOF > "${CC_VARS_FILE}"
 cfcr_master_service_account_address: $(bosh int "${LOCK_FILE}" --path=/service_account_master)
 cfcr_worker_service_account_address: $(bosh int "${LOCK_FILE}" --path=/service_account_worker)
 deployment_name: "${DEPLOYMENT_NAME}"
-cfcr_backend_service: $(bosh int "${LOCK_FILE}" --path=/master_target_pool)
+cfcr_backend_service: $(bosh int "${LOCK_FILE}" --path=/cfcr_backend_service)
 EOF
 }
 
