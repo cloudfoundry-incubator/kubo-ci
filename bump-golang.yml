@@ -109,6 +109,7 @@ jobs:
     - get: golang-release
     - get: golang-version
       trigger: true
+      passed: [ 'update-component-golang-version' ]
   - task: bump-release-golang
     file: git-kubo-ci/tasks/bump-release-golang.yml
     input_mapping: { release: git-docker-boshrelease }
@@ -130,6 +131,7 @@ jobs:
     - get: golang-release
     - get: golang-version
       trigger: true
+      passed: [ 'update-component-golang-version' ]
   - task: bump-release-golang
     file: git-kubo-ci/tasks/bump-release-golang.yml
     input_mapping: { release: git-kubo-release }
@@ -151,6 +153,7 @@ jobs:
     - get: golang-release
     - get: golang-version
       trigger: true
+      passed: [ 'update-component-golang-version' ]
   - task: bump-release-golang
     file: git-kubo-ci/tasks/bump-release-golang.yml
     input_mapping: { release: git-cfcr-etcd-release }
@@ -170,6 +173,7 @@ jobs:
     - get: git-kubo-ci
     - get: golang-version
       trigger: true
+      passed: [ 'update-component-golang-version' ]
   - task: bump-golang
     config:
       platform: linux
