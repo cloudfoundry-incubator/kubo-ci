@@ -13,8 +13,8 @@ spec:
         app: nginx-hostport
     spec:
       containers:
-      - image: nginx:1.13-alpine
-        imagePullPolicy: Never
+      - image: nginx:1.15-alpine
+        imagePullPolicy: Always
         name: nginx
         ports:
         - containerPort: 80
