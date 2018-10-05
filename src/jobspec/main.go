@@ -30,8 +30,8 @@ type Property struct {
 
 type kflags []string
 
-func (k kflags) Contains(key string) bool {
-	for _, v := range k {
+func Contains(key string, arr []string) bool {
+	for _, v := range arr {
 		if v == key {
 			return true
 		}
@@ -40,6 +40,12 @@ func (k kflags) Contains(key string) bool {
 }
 
 func main() {
+	blacklistedFlags := []string{
+		"etcd-servers",
+		"apiserver-count",
+		"cloud-provider",
+		"cloud-config",
+	}
 	k := kflags{}
 	specPath := os.Args[1]
 	file, _ := os.OpenFile(specPath, os.O_RDWR|os.O_CREATE, 0644)
@@ -51,15 +57,19 @@ func main() {
 	apiserverFlags := options.NewServerRunOptions()
 	apiserverFlags.AddFlags(flags)
 	flags.VisitAll(func(f *pflag.Flag) {
-		k = append(k, "args."+f.Name)
-		jobSpec.Properties["args."+f.Name] = Property{Description: f.Usage}
+		if Contains(f.Name, blacklistedFlags) {
+			delete(jobSpec.Properties, "args."+f.Name)
+		} else {
+			k = append(k, "args."+f.Name)
+			jobSpec.Properties["args."+f.Name] = Property{Description: f.Usage}
+		}
 	})
 	jobSpecBytes, _ := yaml.Marshal(jobSpec)
 	file.WriteAt(jobSpecBytes, 0)
 
 	for s := range jobSpec.Properties {
-		if !k.Contains(s) {
-			fmt.Fprintf(os.Stderr, "Could not find flag %s in kubernetes flags\n", s)
+		if !Contains(s, k) {
+			fmt.Fprintf(os.Stderr, "We have the following flag, %s, in our spec that was not provided by kubernetes (or was blacklisted by this tool)\n", s)
 		}
 	}
 }
