@@ -41,7 +41,6 @@ func Contains(key string, arr []string) bool {
 
 func main() {
 	blacklistedFlags := []string{
-		"etcd-servers",
 		"apiserver-count",
 		"cloud-provider",
 		"cloud-config",
@@ -65,6 +64,9 @@ func main() {
 		}
 	})
 	jobSpecBytes, _ := yaml.Marshal(jobSpec)
+	if err := file.Truncate(0); err != nil {
+		panic(err)
+	}
 	file.WriteAt(jobSpecBytes, 0)
 
 	for s := range jobSpec.Properties {
