@@ -1,0 +1,12 @@
+---
+type: replace
+path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/args/enable-admission-plugins?
+value:
+- LimitRanger
+- DefaultTolerationSeconds
+- ValidatingAdmissionWebhook
+- NamespaceLifecycle
+- ResourceQuota
+- ServiceAccount
+- DefaultStorageClass
+- MutatingAdmissionWebhook

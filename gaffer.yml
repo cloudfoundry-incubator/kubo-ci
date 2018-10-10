@@ -219,7 +219,7 @@ jobs:
       - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
-      - git-kubo-deployment/manifests/ops-files/disable-deny-escalating-exec.yml
+      - git-kubo-ci/manifests/ops-files/admission-plugins-for-allow-privileged.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       - git-kubo-deployment/manifests/ops-files/misc/single-master.yml
