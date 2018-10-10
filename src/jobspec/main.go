@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/kubernetes/cmd/kube-apiserver/app/options"
 
+	goflag "flag"
 	"os"
 
 	"io/ioutil"
@@ -53,6 +54,7 @@ func main() {
 	c, _ := ioutil.ReadAll(file)
 	yaml.Unmarshal(c, jobSpec)
 	flags := pflag.NewFlagSet("all", pflag.ContinueOnError)
+	flags.AddGoFlagSet(goflag.CommandLine)
 	apiserverFlags := options.NewServerRunOptions()
 	apiserverFlags.AddFlags(flags)
 	flags.VisitAll(func(f *pflag.Flag) {
