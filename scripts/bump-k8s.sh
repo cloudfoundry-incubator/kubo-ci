@@ -40,6 +40,8 @@ blobstore:
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
     bosh upload-blobs
+
+    git-kubo-ci/src/jobspec/jobspec.sh "${version}" "git-kubernetes" "git-kubo-release-output/jobs/kube-apiserver/spec"
     generate_pull_request "kubernetes" "$tag" "kubo-release"
   fi
 
