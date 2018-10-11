@@ -13,6 +13,6 @@ inputs:
 - name: source-json
 - name: gcs-kubeconfig
 - name: bbr-cli
-- name: kubo-disaster-recovery-acceptance-tests
+- name: git-kubo-drats
   path: src/github.com/cloudfoundry-incubator/kubo-disaster-recovery-acceptance-tests
 
