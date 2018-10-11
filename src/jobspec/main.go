@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/spf13/pflag"
 	"k8s.io/kubernetes/cmd/kube-apiserver/app/options"
 
@@ -46,23 +44,22 @@ func main() {
 		"cloud-provider",
 		"cloud-config",
 	}
-	k := kflags{}
 	specPath := os.Args[1]
 	file, _ := os.OpenFile(specPath, os.O_RDWR|os.O_CREATE, 0644)
 	defer file.Close()
 	jobSpec := &JobSpec{}
 	c, _ := ioutil.ReadAll(file)
 	yaml.Unmarshal(c, jobSpec)
+	jobSpec.Properties["k8s-args"] = Property{Properties: map[string]Property{}}
 	flags := pflag.NewFlagSet("all", pflag.ContinueOnError)
 	flags.AddGoFlagSet(goflag.CommandLine)
 	apiserverFlags := options.NewServerRunOptions()
 	apiserverFlags.AddFlags(flags)
 	flags.VisitAll(func(f *pflag.Flag) {
 		if Contains(f.Name, blacklistedFlags) {
-			delete(jobSpec.Properties, "args."+f.Name)
+			delete(jobSpec.Properties["k8s-args"].Properties, f.Name)
 		} else {
-			k = append(k, "args."+f.Name)
-			jobSpec.Properties["args."+f.Name] = Property{Description: f.Usage}
+			jobSpec.Properties["k8s-args"].Properties[f.Name] = Property{Description: f.Usage}
 		}
 	})
 	jobSpecBytes, _ := yaml.Marshal(jobSpec)
@@ -70,10 +67,4 @@ func main() {
 		panic(err)
 	}
 	file.WriteAt(jobSpecBytes, 0)
-
-	for s := range jobSpec.Properties {
-		if !Contains(s, k) {
-			fmt.Fprintf(os.Stderr, "We have the following flag, %s, in our spec that was not provided by kubernetes (or was blacklisted by this tool)\n", s)
-		}
-	}
 }
