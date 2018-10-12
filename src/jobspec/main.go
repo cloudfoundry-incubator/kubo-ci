@@ -27,7 +27,9 @@ type Property struct {
 	Default     interface{}         `yaml:"default,omitempty"`
 }
 
-type kflags []string
+type K8sFlags interface {
+	AddFlags(fs *pflag.FlagSet)
+}
 
 func Contains(key string, arr []string) bool {
 	for _, v := range arr {
@@ -38,6 +40,39 @@ func Contains(key string, arr []string) bool {
 	return false
 }
 
+func ReadExistingSpec(specPath string) *JobSpec {
+	file, _ := os.OpenFile(specPath, os.O_RDWR|os.O_CREATE, 0644)
+	defer file.Close()
+	jobSpec := &JobSpec{}
+	c, _ := ioutil.ReadAll(file)
+	yaml.Unmarshal(c, jobSpec)
+	return jobSpec
+}
+
+func WriteNewSpec(specPath string, jobSpec *JobSpec) {
+	jobSpecBytes, _ := yaml.Marshal(jobSpec)
+	file, _ := os.OpenFile(specPath, os.O_RDWR|os.O_CREATE, 0644)
+	if err := file.Truncate(0); err != nil {
+		panic(err)
+	}
+	file.WriteAt(jobSpecBytes, 0)
+}
+
+func GenerateArgsFromFlags(apiserverFlags K8sFlags, blacklistedFlags []string) Property {
+	newProperties := Property{Properties: map[string]Property{}}
+	flags := pflag.NewFlagSet("all", pflag.ContinueOnError)
+	flags.AddGoFlagSet(goflag.CommandLine)
+
+	apiserverFlags.AddFlags(flags)
+	flags.VisitAll(func(f *pflag.Flag) {
+		if !Contains(f.Name, blacklistedFlags) {
+			newProperties.Properties[f.Name] = Property{Description: f.Usage}
+		}
+	})
+
+	return newProperties
+}
+
 func main() {
 	blacklistedFlags := []string{
 		"apiserver-count",
@@ -45,26 +80,10 @@ func main() {
 		"cloud-config",
 	}
 	specPath := os.Args[1]
-	file, _ := os.OpenFile(specPath, os.O_RDWR|os.O_CREATE, 0644)
-	defer file.Close()
-	jobSpec := &JobSpec{}
-	c, _ := ioutil.ReadAll(file)
-	yaml.Unmarshal(c, jobSpec)
-	jobSpec.Properties["k8s-args"] = Property{Properties: map[string]Property{}}
-	flags := pflag.NewFlagSet("all", pflag.ContinueOnError)
-	flags.AddGoFlagSet(goflag.CommandLine)
+	jobSpec := ReadExistingSpec(specPath)
+
 	apiserverFlags := options.NewServerRunOptions()
-	apiserverFlags.AddFlags(flags)
-	flags.VisitAll(func(f *pflag.Flag) {
-		if Contains(f.Name, blacklistedFlags) {
-			delete(jobSpec.Properties["k8s-args"].Properties, f.Name)
-		} else {
-			jobSpec.Properties["k8s-args"].Properties[f.Name] = Property{Description: f.Usage}
-		}
-	})
-	jobSpecBytes, _ := yaml.Marshal(jobSpec)
-	if err := file.Truncate(0); err != nil {
-		panic(err)
-	}
-	file.WriteAt(jobSpecBytes, 0)
+	jobSpec.Properties["k8s-args"] = GenerateArgsFromFlags(apiserverFlags, blacklistedFlags)
+
+	WriteNewSpec(specPath, jobSpec)
 }
