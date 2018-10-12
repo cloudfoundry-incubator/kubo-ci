@@ -5,5 +5,5 @@ metadata:
 provisioner: kubernetes.io/azure-disk
 parameters:
   skuname: Standard_LRS
-  kind: managed
+  kind: shared
   cachingmode: None
