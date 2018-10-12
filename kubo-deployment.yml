@@ -270,6 +270,13 @@ resources:
     - 'LICENSE'
     - 'NOTICE'
 
+- name: git-kubo-drats
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-disaster-recovery-acceptance-tests.git
+    branch: wip-bbr-160512406
+    private_key: ((git-ssh-key.private_key))
+
 - name: slackers
   type: git
   source:
@@ -1817,6 +1824,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: kubo-version
       passed: [ 'package-kubo-deployment-tarball' ]
       trigger: true
+    - get: git-kubo-drats
+      trigger: true
     - get: git-kubo-release
       passed: [ 'package-kubo-deployment-tarball' ]
     - get: git-kubo-deployment
@@ -1838,6 +1847,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       resource: kubo-lock-<%= env %>
       version: every
       trigger: true
+      passed: [ 'claim-lock-bbr-<%= env %>' ]
+    - get: git-kubo-drats
       passed: [ 'claim-lock-bbr-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'claim-lock-bbr-<%= env %>' ]
@@ -1884,6 +1895,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       resource: kubo-lock-<%= env %>
       version: every
       trigger: true
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: git-kubo-drats
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: git-kubo-deployment
       passed: [ 'install-bosh-bbr-<%= env %>' ]
@@ -1968,6 +1981,8 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       version: every
       trigger: true
       passed: [ 'deploy-k8s-bbr-<%= env %>' ]
+    - get: git-kubo-drats
+      passed: [ 'deploy-k8s-bbr-<%= env %>' ]
     - get: source-json
       passed: [ 'deploy-k8s-bbr-<%= env %>' ]
     - get: gcs-kubeconfig
@@ -1991,7 +2006,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-k8s-bbr-tests.yml
     on_failure: *on_failure_alert
-    input_mapping: { kubo-lock: kubo-lock-<%= env %> }
     params:
       DEPLOYMENT_NAME: ci-service
       ENABLE_OSS_ONLY_TESTS: true
@@ -2002,6 +2016,12 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       <% if env =~ /^(gcp|aws-lb)/ %>
       ENABLE_K8S_LBS_TESTS: true
       <% end %>
+  - task: kubo-drats-tests
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/run-kubo-drats-tests.yml
+    on_failure: *on_failure_alert
+    params:
+      DEPLOYMENT_NAME: ci-service
 
 <%
   destroy_k8s_bbr_passed_reqs = ["run-k8s-bbr-tests-#{env}"]
