@@ -33,22 +33,44 @@ func Contains(key string, arr []string) bool {
 	return false
 }
 
-func ReadExistingSpec(specPath string) *JobSpec {
-	file, _ := os.OpenFile(specPath, os.O_RDWR|os.O_CREATE, 0644)
+func ReadSpecFile(specPath string) (*JobSpec, error) {
+	file, err := os.OpenFile(specPath, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return nil, err
+	}
 	defer file.Close()
-	jobSpec := &JobSpec{}
-	c, _ := ioutil.ReadAll(file)
-	yaml.Unmarshal(c, jobSpec)
-	return jobSpec
+	contents, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	return ReadSpec(contents)
 }
 
-func WriteNewSpec(specPath string, jobSpec *JobSpec) {
-	jobSpecBytes, _ := yaml.Marshal(jobSpec)
-	file, _ := os.OpenFile(specPath, os.O_RDWR|os.O_CREATE, 0644)
-	if err := file.Truncate(0); err != nil {
-		panic(err)
+func ReadSpec(spec []byte) (*JobSpec, error) {
+	jobSpec := &JobSpec{}
+	err := yaml.Unmarshal(spec, jobSpec)
+	return jobSpec, err
+}
+
+func WriteSpecFile(specPath string, jobSpec *JobSpec) error {
+	jobSpecBytes, err := WriteSpec(jobSpec)
+	if err != nil {
+		return err
+	}
+	file, err := os.OpenFile(specPath, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	err = file.Truncate(0)
+	if err != nil {
+		return err
 	}
 	file.WriteAt(jobSpecBytes, 0)
+	return nil
+}
+
+func WriteSpec(jobSpec *JobSpec) ([]byte, error) {
+	return yaml.Marshal(jobSpec)
 }
 
 func GenerateArgsFromFlags(apiserverFlags K8sFlags, blacklistedFlags []string) Property {

@@ -15,10 +15,10 @@ func main() {
 		"cloud-config",
 	}
 	specPath := os.Args[1]
-	jobSpec := flag_generator.ReadExistingSpec(specPath)
+	jobSpec, _ := flag_generator.ReadSpecFile(specPath)
 
 	apiserverFlags := options.NewServerRunOptions()
 	jobSpec.Properties["k8s-args"] = flag_generator.GenerateArgsFromFlags(apiserverFlags, blacklistedFlags)
 
-	flag_generator.WriteNewSpec(specPath, jobSpec)
+	flag_generator.WriteSpecFile(specPath, jobSpec)
 }
