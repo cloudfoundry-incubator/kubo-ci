@@ -27,7 +27,8 @@ JOBSPEC_DIRECTORY=$K8S_PATH/jobspec
 trap "rm -rf $JOBSPEC_DIRECTORY" EXIT
 mkdir "$JOBSPEC_DIRECTORY"
 cp main.go "$JOBSPEC_DIRECTORY"
-cp -r flag_generator "$JOBSPEC_DIRECTORY"
+mkdir "$JOBSPEC_DIRECTORY/flag_generator"
+cp -r flag_generator/*.go "$JOBSPEC_DIRECTORY/flag_generator"
 
 unset GOPATH
 
