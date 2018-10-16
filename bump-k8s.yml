@@ -37,6 +37,12 @@ resources:
     repository: metrics-server
     access_token: ((github-token-key))
 
+- name: git-kubernetes
+  type: git
+  source:
+    uri: https://github.com/kubernetes/kubernetes.git
+    branch: master
+
 - name: git-kubo-ci
   type: git
   source:
@@ -82,6 +88,7 @@ jobs:
         - name: git-kubo-ci
         - name: git-kubo-release
         - name: k8s-release
+        - name: git-kubernetes
       params:
         ACCESS_KEY_ID: ((gcs-access-key-id))
         SECRET_ACCESS_KEY: ((gcs-secret-access-key))
