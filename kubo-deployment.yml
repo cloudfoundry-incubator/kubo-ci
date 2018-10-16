@@ -2017,20 +2017,20 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'deploy-k8s-bbr-<%= env %>' ]
     - get: bbr-cli
-  - task: bbr-tests
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/run-k8s-bbr-tests.yml
-    on_failure: *on_failure_alert
-    params:
-      DEPLOYMENT_NAME: ci-service
-      ENABLE_OSS_ONLY_TESTS: true
-      ENABLE_PERSISTENT_VOLUME_TESTS: true
-      <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
-      ENABLE_MULTI_AZ_TESTS: true
-      <% end %>
-      <% if env =~ /^(gcp|aws-lb)/ %>
-      ENABLE_K8S_LBS_TESTS: true
-      <% end %>
+  # - task: bbr-tests
+  #   tags: [<%= env %>]
+  #   file: git-kubo-ci/tasks/run-k8s-bbr-tests.yml
+  #   on_failure: *on_failure_alert
+  #   params:
+  #     DEPLOYMENT_NAME: ci-service
+  #     ENABLE_OSS_ONLY_TESTS: true
+  #     ENABLE_PERSISTENT_VOLUME_TESTS: true
+  #     <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
+  #     ENABLE_MULTI_AZ_TESTS: true
+  #     <% end %>
+  #     <% if env =~ /^(gcp|aws-lb)/ %>
+  #     ENABLE_K8S_LBS_TESTS: true
+  #     <% end %>
   - task: kubo-drats-tests
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-kubo-drats-tests.yml
