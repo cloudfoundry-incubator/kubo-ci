@@ -72,6 +72,7 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-release
+    - get: git-kubernetes
     - get: k8s-release
       trigger: true
   - task: bump-k8s
