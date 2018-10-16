@@ -18,19 +18,20 @@ K8S_PATH=$1
 shift
 SPEC_PATH=$1
 
-pushd $K8S_PATH
+pushd "$K8S_PATH"
     git fetch upstream --tags
-    git checkout $K8S_VERSION
-    mkdir flag_generator || true
+    git checkout "$K8S_VERSION"
 popd
 
-FLAG_DIRECTORY=$K8S_PATH/flag_generator
-cp ./main.go $FLAG_DIRECTORY
+JOBSPEC_DIRECTORY=$K8S_PATH/jobspec
+trap "rm -rf $JOBSPEC_DIRECTORY" EXIT
+mkdir "$JOBSPEC_DIRECTORY"
+cp main.go "$JOBSPEC_DIRECTORY"
+mkdir "$JOBSPEC_DIRECTORY/flag_generator"
+cp -r flag_generator/*.go "$JOBSPEC_DIRECTORY/flag_generator"
 
 unset GOPATH
 
-cd $FLAG_DIRECTORY
-    go run main.go $SPEC_PATH
-cd -
-
-rm -rf $FLAG_DIRECTORY
+pushd "$JOBSPEC_DIRECTORY"
+    go run main.go "$SPEC_PATH"
+popd
