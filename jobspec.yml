@@ -2,9 +2,8 @@ resources:
 - name: git-kubo-ci
   type: git
   source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
-    branch: 160558973-configurable-apiserver
-    private_key: ((git-ssh-key.private_key))
+    uri: https://github.com/cloudfoundry-incubator/kubo-ci
+    branch: master
     paths: [src/jobspec]
 
 jobs:
