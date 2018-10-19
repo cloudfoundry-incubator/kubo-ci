@@ -45,7 +45,6 @@ groups:
 <% bbr_test_envs.each do |env| %>
   - claim-lock-bbr-<%= env %>
   - install-bosh-bbr-<%= env %>
-  - create-and-upload-etcd-pr-release-<%= env %>
   - deploy-k8s-bbr-<%= env %>
   - run-k8s-bbr-tests-<%= env %>
   - destroy-k8s-bbr-<%= env %>
@@ -182,7 +181,6 @@ groups:
   <% bbr_test_envs.each do |env| %>
     - claim-lock-bbr-<%= env %>
     - install-bosh-bbr-<%= env %>
-    - create-and-upload-etcd-pr-release-<%= env %>
     - deploy-k8s-bbr-<%= env %>
     - run-k8s-bbr-tests-<%= env %>
     - destroy-k8s-bbr-<%= env %>
@@ -279,24 +277,13 @@ resources:
     branch: wip-bbr-160512406
     private_key: ((git-ssh-key.private_key))
 
-- name: github-etcd-release
+- name: git-etcd-release
   type: github-release
   source:
     owner: cloudfoundry-incubator
     repository: cfcr-etcd-release
     access_token: ((github-kubo-gitbot-access-token))
     tag_filter: "v(.*)"
-
-- name: git-bbr-pr-etcd
-  type: git
-  source:
-    uri: git@github.com:cloudfoundry-incubator/cfcr-etcd-release.git
-    branch: PR-backup-and-restore-#160017872
-    private_key: ((git-ssh-key.private_key))
-    ignore_paths:
-    - '*.md'
-    - 'LICENSE'
-    - 'NOTICE'
 
 - name: slackers
   type: git
@@ -1841,10 +1828,10 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   max_in_flight: 1
   plan:
   - aggregate:
-    - get: github-etcd-release
-      trigger: true
     - get: kubo-version
       passed: [ 'package-kubo-deployment-tarball' ]
+      trigger: true
+    - get: git-etcd-release
       trigger: true
     - get: git-kubo-drats
       trigger: true
@@ -1870,7 +1857,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       version: every
       trigger: true
       passed: [ 'claim-lock-bbr-<%= env %>' ]
-    - get: github-etcd-release
+    - get: git-etcd-release
       passed: [ 'claim-lock-bbr-<%= env %>' ]
     - get: git-kubo-drats
       passed: [ 'claim-lock-bbr-<%= env %>' ]
@@ -1910,45 +1897,21 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
 
-- name: create-and-upload-etcd-pr-release-<%= env %>
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: release-dir
-      resource: git-bbr-pr-etcd
-    - get: git-kubo-ci
-    - get: git-kubo-deployment
-      passed: [ 'install-bosh-bbr-<%= env %>' ]
-    - get: source-json
-      passed: [ 'install-bosh-bbr-<%= env %>' ]
-    - get: kubo-lock
-      resource: kubo-lock-<%= env %>
-      trigger: true
-      passed: [ 'install-bosh-bbr-<%= env %>' ]
-  - task: create-etcd-release
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/etcd/create-release.yml
-  - task: upload-etcd-release
-    tags: [<%= env %>]
-    file: git-kubo-ci/tasks/upload-release.yml
-
 - name: deploy-k8s-bbr-<%= env %>
   plan:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
-      passed: [ 'create-and-upload-etcd-pr-release-<%= env %>' ]
     - get: kubo-lock
       resource: kubo-lock-<%= env %>
       version: every
       trigger: true
-      passed: [ 'create-and-upload-etcd-pr-release-<%= env %>' ]
-    - get: github-etcd-release
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: git-etcd-release
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: git-kubo-drats
-      passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: git-kubo-deployment
-      passed: [ 'create-and-upload-etcd-pr-release-<%= env %>' ]
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: git-kubo-release
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: kubo-version
@@ -1962,7 +1925,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: source-json
-      passed: [ 'create-and-upload-etcd-pr-release-<%= env %>' ]
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: stemcell
@@ -1993,7 +1956,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - stemcell/stemcell.tgz
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
-      - github-etcd-release/*.tgz
+      - git-etcd-release/*.tgz
       source_file: source-json/source.json
       vars:
         deployment_name: ci-service
