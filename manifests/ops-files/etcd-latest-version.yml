@@ -1,0 +1,9 @@
+- type: remove
+  path: /releases/name=cfcr-etcd
+
+- type: replace
+  path: /releases/-
+  value:
+    name: cfcr-etcd
+    version: latest
+
