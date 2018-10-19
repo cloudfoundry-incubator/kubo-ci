@@ -45,6 +45,7 @@ groups:
 <% bbr_test_envs.each do |env| %>
   - claim-lock-bbr-<%= env %>
   - install-bosh-bbr-<%= env %>
+  - create-and-upload-etcd-pr-release-<%= env %>
   - deploy-k8s-bbr-<%= env %>
   - run-k8s-bbr-tests-<%= env %>
   - destroy-k8s-bbr-<%= env %>
@@ -282,9 +283,19 @@ resources:
   source:
     owner: cloudfoundry-incubator
     repository: cfcr-etcd-release
-    pre_release: true
     access_token: ((github-kubo-gitbot-access-token))
     tag_filter: "v(.*)"
+
+- name: git-bbr-pr-etcd
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/cfcr-etcd-release.git
+    branch: PR-backup-and-restore-#160017872
+    private_key: ((git-ssh-key.private_key))
+    ignore_paths:
+    - '*.md'
+    - 'LICENSE'
+    - 'NOTICE'
 
 - name: slackers
   type: git
@@ -1898,6 +1909,28 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
 
+- name: create-and-upload-etcd-pr-release-<%= env %>
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: release-dir
+      resource: git-bbr-pr-etcd
+    - get: git-kubo-ci
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: git-kubo-deployment
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: source-json
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+    - get: kubo-lock
+      resource: kubo-lock-<%= env %>
+      passed: [ 'install-bosh-bbr-<%= env %>' ]
+  - task: create-etcd-release
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/etcd/create-release.yml
+  - task: upload-etcd-release
+    tags: [<%= env %>]
+    file: git-kubo-ci/tasks/upload-release.yml
+
 - name: deploy-k8s-bbr-<%= env %>
   plan:
   - aggregate:
@@ -2016,20 +2049,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'deploy-k8s-bbr-<%= env %>' ]
     - get: bbr-cli
-  # - task: bbr-tests
-  #   tags: [<%= env %>]
-  #   file: git-kubo-ci/tasks/run-k8s-bbr-tests.yml
-  #   on_failure: *on_failure_alert
-  #   params:
-  #     DEPLOYMENT_NAME: ci-service
-  #     ENABLE_OSS_ONLY_TESTS: true
-  #     ENABLE_PERSISTENT_VOLUME_TESTS: true
-  #     <% if env =~ /^(gcp|vsphere-lb|aws-lb)/ %>
-  #     ENABLE_MULTI_AZ_TESTS: true
-  #     <% end %>
-  #     <% if env =~ /^(gcp|aws-lb)/ %>
-  #     ENABLE_K8S_LBS_TESTS: true
-  #     <% end %>
   - task: kubo-drats-tests
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/run-kubo-drats-tests.yml
