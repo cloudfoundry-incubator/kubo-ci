@@ -182,6 +182,7 @@ groups:
   <% bbr_test_envs.each do |env| %>
     - claim-lock-bbr-<%= env %>
     - install-bosh-bbr-<%= env %>
+    - create-and-upload-etcd-pr-release-<%= env %>
     - deploy-k8s-bbr-<%= env %>
     - run-k8s-bbr-tests-<%= env %>
     - destroy-k8s-bbr-<%= env %>
@@ -1923,6 +1924,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: kubo-lock
       resource: kubo-lock-<%= env %>
+      trigger: true
       passed: [ 'install-bosh-bbr-<%= env %>' ]
   - task: create-etcd-release
     tags: [<%= env %>]
@@ -1936,17 +1938,18 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
+      passed: [ 'create-and-upload-etcd-pr-release-<%= env %>' ]
     - get: kubo-lock
       resource: kubo-lock-<%= env %>
       version: every
       trigger: true
-      passed: [ 'install-bosh-bbr-<%= env %>' ]
+      passed: [ 'create-and-upload-etcd-pr-release-<%= env %>' ]
     - get: github-etcd-release
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: git-kubo-drats
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: git-kubo-deployment
-      passed: [ 'install-bosh-bbr-<%= env %>' ]
+      passed: [ 'create-and-upload-etcd-pr-release-<%= env %>' ]
     - get: git-kubo-release
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: kubo-version
@@ -1960,7 +1963,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: source-json
-      passed: [ 'install-bosh-bbr-<%= env %>' ]
+      passed: [ 'create-and-upload-etcd-pr-release-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: stemcell
