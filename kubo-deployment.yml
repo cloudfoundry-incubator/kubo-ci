@@ -1216,6 +1216,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-<%= env %>' ]
     - get: stemcell
       resource: stemcell-<%= env %>
+    - get: slackers
     tags: ['<%= env %>']
   - task: get_director_uuid
     tags: ['<%= env %>']
