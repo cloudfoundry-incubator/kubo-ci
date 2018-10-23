@@ -222,7 +222,6 @@ jobs:
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
-      - git-kubo-ci/manifests/vars-files/new-cidrs.yml
       stemcells:
       - stemcell/stemcell.tgz
       releases:
@@ -295,7 +294,6 @@ jobs:
       ENABLE_PERSISTENT_VOLUME_TESTS: true
       ENABLE_MULTI_AZ_TESTS: false
       ENABLE_K8S_LBS_TESTS: true
-      ENABLE_CIDR_TESTS: true
     on_failure: &on_failure_alert
       do:
       - task: configure-slack-notification
