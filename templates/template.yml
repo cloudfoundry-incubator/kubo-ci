@@ -1,0 +1,361 @@
+---
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+- name: bosh-deployment
+  type: docker-image
+  source:
+    repository: cloudfoundry/bosh-deployment-resource
+
+- name: bosh-errand
+  type: docker-image
+  source:
+    repository: pcfkubo/bosh2-errand-resource
+    tag: v0.1.3-dev
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/kubo-ci
+    branch: master
+
+- name: kubo-release
+  type: gcs
+  source:
+    bucket: kubo-public
+    json_key: ((gcs-json-key))
+    versioned_file: kubo-release-latest.tgz
+
+- name: kubo-deployment
+  type: gcs
+  source:
+    bucket: kubo-public
+    json_key: ((gcs-json-key))
+    versioned_file: kubo-deployment-latest.tgz
+
+- name: kubo-lock
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+    pool: kubo-gcp-lb
+
+- name: source-json
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: source.json
+
+- name: gcs-load-balancer-vars
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: load-balancer-vars.yml
+
+- name: cfcr-deployment
+  type: bosh-deployment
+  source:
+    deployment: ci-service
+    skip_check: true
+
+- name: gcs-bosh-state
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/state.json
+
+- name: gcs-bosh-creds
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: bosh/creds.yml
+
+- name: slackers
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/cfcr-home.git
+    private_key: ((git-ssh-key.private_key))
+    paths:
+    - 'slackers'
+
+- name: slack-alert
+  type: slack-notification
+  source:
+    url: ((build-alert-slack-url))
+
+- name: stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-google-kvm-ubuntu-xenial-go_agent
+
+- name: gcs-kubeconfig
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: k8s/config
+
+- name: run-apply-addons-errand
+  type: bosh-errand
+  source:
+    deployment: ci-service
+    skip_check: true
+
+- name: run-smoke-tests-errand
+  type: bosh-errand
+  source:
+    deployment: ci-service
+    skip_check: true
+
+jobs:
+
+- name: claim-lock
+  max_in_flight: 1
+  plan:
+  - get: kubo-release
+    trigger: true
+  - put: kubo-lock
+    params: { acquire: true }
+
+- name: install-bosh
+  plan:
+  - aggregate:
+    - get: kubo-release
+      passed:
+      - claim-lock
+    - get: git-kubo-ci
+    - get: kubo-deployment
+    - get: kubo-lock
+      passed:
+      - claim-lock
+      trigger: true
+      version: every
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-deployment
+  - task: install
+    file: git-kubo-ci/tasks/install-bosh.yml
+    params:
+      CLOUD_CONFIG_OPS_FILE: gcp-lb-k8s-cloud-config-multiaz.yml
+    tags:
+    - ((worker-tag))
+  - aggregate:
+    - put: gcs-bosh-creds
+      params:
+        file: bosh-creds/creds.yml
+    - put: gcs-bosh-state
+      params:
+        file: bosh-state/state.json
+  - task: generate-load-balancer-vars
+    file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
+  - task: generate-source-json
+    file: git-kubo-ci/tasks/generate-source-json.yml
+  - aggregate:
+    - put: gcs-load-balancer-vars
+      params:
+        file: load-balancer-vars/vars.yml
+    - put: source-json
+      params:
+        file: source-json/source.json
+  - task: update-cloud-config-with-vm-ext
+    tags:
+    - ((worker-tag))
+    file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
+
+- name: deploy-k8s
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: kubo-release
+      passed: [ 'install-bosh' ]
+    - get: git-kubo-ci
+    - get: kubo-lock
+      passed: [ 'install-bosh' ]
+    - get: kubo-deployment
+      passed: [ 'install-bosh' ]
+    - get: gcs-bosh-state
+      passed: [ 'install-bosh' ]
+    - get: gcs-bosh-creds
+      passed: [ 'install-bosh' ]
+    - get: stemcell
+    - get: source-json
+      passed: [ 'install-bosh' ]
+      version: every
+      trigger: true
+    - get: gcs-load-balancer-vars
+      passed: [ 'install-bosh' ]
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-deployment
+  - put: cfcr-deployment
+    params:
+      manifest: git-kubo-deployment/manifests/cfcr.yml
+      cleanup: true
+      no_redact: true
+      ops_files:
+      - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
+      - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
+      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
+      - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
+      - git-kubo-ci/manifests/ops-files/admission-plugins-for-allow-privileged.yml
+      - git-kubo-deployment/manifests/ops-files/addons-spec.yml
+      - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
+      var_files:
+        addons-spec: "git-kubo-ci/specs/guestbook.yml"
+      vars_files:
+      - gcs-load-balancer-vars/load-balancer-vars.yml
+      - kubo-lock/metadata
+      - git-kubo-ci/manifests/vars-files/new-cidrs.yml
+      stemcells:
+      - stemcell/stemcell.tgz
+      releases:
+      - kubo-release/*.tgz
+      source_file: source-json/source.json
+      vars:
+        deployment_name: ci-service
+        worker_count: 3
+    on_failure: &on_failure_alert
+      do:
+      - task: configure-slack-notification
+        file: git-kubo-ci/tasks/configure-slack-notification-without-git-release.yml
+      - put: slack-alert
+        params:
+          attachments_file: slack-notification/attachments
+          text: |
+            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+  - task: update-kubeconfig
+    tags: [((worker-tag))]
+    file: git-kubo-ci/tasks/update-kubeconfig.yml
+  - put: run-apply-addons-errand
+    params:
+      name: apply-addons
+      keep_alive: true
+      source_file: source-json/source.json
+    tags: [((worker-tag))]
+    on_failure: *on_failure_alert
+  - put: run-smoke-tests-errand
+    params:
+      name: smoke-tests
+      keep_alive: true
+      source_file: source-json/source.json
+    tags: [((worker-tag))]
+    on_failure: *on_failure_alert
+  - aggregate:
+    - put: gcs-kubeconfig
+      params:
+        file: kubeconfig/config
+
+- name: run-k8s-integration-tests
+  plan:
+  - aggregate:
+    - get: slackers
+    - get: git-kubo-ci
+    - get: kubo-lock
+      passed: [ 'deploy-k8s' ]
+    - get: kubo-deployment
+      passed: [ 'deploy-k8s' ]
+    - get: gcs-bosh-state
+      passed: [ 'deploy-k8s' ]
+    - get: gcs-bosh-creds
+      passed: [ 'deploy-k8s' ]
+    - get: source-json
+      passed: [ 'deploy-k8s' ]
+    - get: kubo-release
+      passed: [ 'deploy-k8s' ]
+    - get: gcs-kubeconfig
+      passed: [ "deploy-k8s" ]
+      version: every
+      trigger: true
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-deployment
+  - task: integration-tests
+    tags: [((worker-tag))]
+    file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
+    params:
+      ENABLE_OSS_ONLY_TESTS: true
+      ENABLE_PERSISTENT_VOLUME_TESTS: true
+      ENABLE_MULTI_AZ_TESTS: false
+      ENABLE_K8S_LBS_TESTS: true
+      ENABLE_CIDR_TESTS: true
+    on_failure: &on_failure_alert
+      do:
+      - task: configure-slack-notification
+        file: git-kubo-ci/tasks/configure-slack-notification-without-git-release.yml
+      - put: slack-alert
+        params:
+          attachments_file: slack-notification/attachments
+          text: |
+            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
+- name: destroy-k8s
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      passed: [ 'run-k8s-integration-tests' ]
+    - get: kubo-deployment
+      passed: [ 'run-k8s-integration-tests' ]
+    - get: kubo-release
+      passed: [ 'run-k8s-integration-tests' ]
+    - get: gcs-bosh-state
+      passed: [ 'run-k8s-integration-tests' ]
+    - get: gcs-bosh-creds
+      passed: [ 'run-k8s-integration-tests' ]
+    - get: source-json
+      passed: [ 'run-k8s-integration-tests' ]
+      version: every
+      trigger: true
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-deployment
+  - task: destroy-k8s
+    tags: [((worker-tag))]
+    file: git-kubo-ci/tasks/destroy-k8s-instance.yml
+
+- name: destroy-bosh
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: kubo-deployment
+      passed: [ 'destroy-k8s' ]
+    - get: kubo-release
+      passed: [ 'destroy-k8s' ]
+    - get: kubo-lock
+      version: every
+      trigger: true
+      passed: [ 'destroy-k8s' ]
+    - get: gcs-bosh-state
+      passed: [ 'destroy-k8s' ]
+    - get: gcs-bosh-creds
+      passed: [ 'destroy-k8s' ]
+      version: every
+      trigger: true
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-deployment
+  - task: destroy
+    tags: [((worker-tag))]
+    file: git-kubo-ci/tasks/destroy-bosh.yml
+  - put: kubo-lock
+    params: { release: kubo-lock }
