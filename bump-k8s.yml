@@ -46,7 +46,7 @@ resources:
 - name: git-kubo-ci
   type: git
   source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-ci.git
+    uri: git@github.com:cloudfoundry-incubator/kubo-ci.git
     branch: master
     private_key: ((git-ssh-key.private_key))
 
