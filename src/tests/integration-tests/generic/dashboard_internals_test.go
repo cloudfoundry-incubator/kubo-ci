@@ -39,11 +39,11 @@ var _ = Describe("Dashboard Internals", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		kubectl = NewKubectlRunner()
-		kubectl.CreateNamespace()
+		kubectl.Setup()
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		kubectl.Teardown()
 	})
 
 	It("dashboard should be able to connect to heapster", func() {

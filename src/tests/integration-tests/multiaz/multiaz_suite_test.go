@@ -20,11 +20,11 @@ var (
 
 var _ = BeforeSuite(func() {
 	runner = test_helpers.NewKubectlRunner()
-	runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
+	runner.Setup()
 })
 
 var _ = AfterSuite(func() {
-	if runner != nil && !CurrentGinkgoTestDescription().Failed {
-		runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("60s")
+	if runner != nil {
+		runner.Teardown()
 	}
 })

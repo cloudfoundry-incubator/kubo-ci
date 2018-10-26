@@ -28,10 +28,10 @@ var _ = BeforeSuite(func() {
 
 var _ = BeforeEach(func() {
 	k8sRunner = test_helpers.NewKubectlRunner()
-	k8sRunner.CreateNamespace()
+	k8sRunner.Setup()
 })
 
 var _ = AfterEach(func() {
 	k8sRunner = test_helpers.NewKubectlRunner()
-	k8sRunner.RunKubectlCommand("delete", "namespace", k8sRunner.Namespace())
+	k8sRunner.Teardown()
 })

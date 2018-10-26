@@ -22,7 +22,7 @@ var _ = Describe("Guestbook storage", func() {
 
 	BeforeEach(func() {
 		kubectl = NewKubectlRunner()
-		kubectl.CreateNamespace()
+		kubectl.Setup()
 
 		var err error
 		iaas, err = IaaS()
@@ -30,7 +30,7 @@ var _ = Describe("Guestbook storage", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		kubectl.Teardown()
 	})
 
 	Context("when the storage class for the pvc is provided", func() {

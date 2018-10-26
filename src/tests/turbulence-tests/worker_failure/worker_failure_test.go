@@ -29,14 +29,14 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
 
 		kubectl = NewKubectlRunner()
-		kubectl.CreateNamespace()
+		kubectl.Setup()
 
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 
 	AfterEach(func() {
 		kubectl.RunKubectlCommand("delete", "-f", nginxDaemonSetSpec)
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		kubectl.Teardown()
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 

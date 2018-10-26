@@ -14,10 +14,10 @@ var runner *test_helpers.KubectlRunner
 var _ = Describe("When deploying a pod with service", func() {
 	BeforeEach(func() {
 		runner = test_helpers.NewKubectlRunner()
-		runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
+		runner.Setup()
 	})
 	AfterEach(func() {
-		runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("60s")
+		runner.Teardown()
 	})
 
 	Context("of type HostPort", func() {

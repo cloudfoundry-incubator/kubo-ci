@@ -32,7 +32,7 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		kubectl = NewKubectlRunner()
-		kubectl.CreateNamespace()
+		kubectl.Setup()
 
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 
@@ -49,7 +49,7 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 		Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
 		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
 		Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		kubectl.Teardown()
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 

@@ -25,7 +25,7 @@ var (
 
 var _ = BeforeSuite(func() {
 	runner = test_helpers.NewKubectlRunner()
-	runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
+	runner.Setup()
 
 	var err error
 	iaas, err = test_helpers.IaaS()
@@ -35,6 +35,6 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	if runner != nil {
-		runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("60s")
+		runner.Teardown()
 	}
 })

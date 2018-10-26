@@ -34,13 +34,13 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters))
 
 		kubectl = NewKubectlRunner()
-		kubectl.CreateNamespace()
+		kubectl.Setup()
 	})
 
 	AfterEach(func() {
 		director.EnableResurrection(true)
 		kubectl.RunKubectlCommand("delete", "-f", nginxSpec)
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		kubectl.Teardown()
 	})
 
 	Specify("The cluster is healthy after master is resurrected", func() {

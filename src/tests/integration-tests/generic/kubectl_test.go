@@ -21,13 +21,11 @@ var _ = Describe("Kubectl", func() {
 
 	BeforeEach(func() {
 		kubectl = NewKubectlRunner()
-		kubectl.RunKubectlCommand(
-			"create", "namespace", kubectl.Namespace()).Wait("60s")
+		kubectl.Setup()
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand(
-			"delete", "namespace", kubectl.Namespace()).Wait("60s")
+		kubectl.Teardown()
 	})
 
 	It("Should be able to run kubectl commands within pod", func() {

@@ -18,11 +18,11 @@ var runner *test_helpers.KubectlRunner
 
 var _ = BeforeSuite(func() {
 	runner = test_helpers.NewKubectlRunner()
-	runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
+	runner.Setup()
 })
 
 var _ = AfterSuite(func() {
 	if runner != nil {
-		runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("60s")
+		runner.Teardown()
 	}
 })

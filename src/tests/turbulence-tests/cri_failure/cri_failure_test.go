@@ -34,11 +34,11 @@ var _ = CRIFailureDescribe("A dockerd failure", func() {
 		numberOfWorkers = countRunningWorkers()
 
 		kubectl = NewKubectlRunner()
-		kubectl.CreateNamespace()
+		kubectl.Setup()
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		kubectl.Teardown()
 	})
 
 	Specify("The containers continued to run after dockerd restart", func() {

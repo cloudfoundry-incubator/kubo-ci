@@ -30,7 +30,6 @@ var _ = Describe("Api Extensions", func() {
 
 	var (
 		kubectl *KubectlRunner
-		session *gexec.Session
 
 		tmpDir                    string
 		apiExtensionsNamespace    string
@@ -60,6 +59,7 @@ var _ = Describe("Api Extensions", func() {
 	BeforeEach(func() {
 		var err error
 		kubectl = NewKubectlRunner()
+		kubectl.Setup()
 		apiExtensionsNamespace = kubectl.Namespace()
 
 		tmpDir, err = ioutil.TempDir("", "api-extensions")
@@ -73,8 +73,6 @@ var _ = Describe("Api Extensions", func() {
 		apiServiceSpec = templateNamespaceIntoFile(tmpDir, apiServiceSpecTemplate, apiExtensionsNamespace)
 
 		sampleApiEndpoint = "v1alpha1." + apiExtensionsNamespace + ".k8s.io"
-		session = kubectl.RunKubectlCommand("create", "namespace", apiExtensionsNamespace)
-		Eventually(session).Should(gexec.Exit(0))
 	})
 
 	AfterEach(func() {
@@ -88,7 +86,7 @@ var _ = Describe("Api Extensions", func() {
 		fmt.Fprintf(GinkgoWriter, "AuthReaderSpec delete exit code %d\n", session.ExitCode())
 		kubectl.RunKubectlCommandWithTimeout("delete", "-f", replicationControllerSpec)
 		kubectl.RunKubectlCommandWithTimeout("delete", "-f", serviceSpec)
-		kubectl.RunKubectlCommandWithTimeout("delete", "namespace", apiExtensionsNamespace)
+		kubectl.Teardown()
 		Expect(os.RemoveAll(tmpDir)).To(Succeed())
 	})
 

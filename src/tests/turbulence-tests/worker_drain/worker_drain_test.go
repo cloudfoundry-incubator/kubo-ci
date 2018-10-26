@@ -25,7 +25,7 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		kubectl = NewKubectlRunner()
-		kubectl.CreateNamespace()
+		kubectl.Setup()
 
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 		DeploySmorgasbord(kubectl, testconfig.Iaas)
@@ -35,7 +35,7 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 
 		DeleteSmorgasbord(kubectl, testconfig.Iaas)
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		kubectl.Teardown()
 	})
 
 	Specify("Drain doesn't fail with temporary network issues", func() {

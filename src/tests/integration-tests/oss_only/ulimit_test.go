@@ -15,13 +15,11 @@ var _ = Describe("Kubectl", func() {
 
 	BeforeEach(func() {
 		runner = test_helpers.NewKubectlRunner()
-		runner.RunKubectlCommand(
-			"create", "namespace", runner.Namespace()).Wait("60s")
+		runner.Setup()
 	})
 
 	AfterEach(func() {
-		runner.RunKubectlCommand(
-			"delete", "namespace", runner.Namespace()).Wait("60s")
+		runner.Teardown()
 	})
 
 	It("Should have a ulimit at least of 65536", func() {

@@ -21,7 +21,7 @@ var _ = Describe("Cluster upgrade", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		kubectl = NewKubectlRunner()
-		kubectl.CreateNamespace()
+		kubectl.Setup()
 
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 		DeploySmorgasbord(kubectl, testconfig.Iaas)
@@ -31,7 +31,7 @@ var _ = Describe("Cluster upgrade", func() {
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 
 		DeleteSmorgasbord(kubectl, testconfig.Iaas)
-		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
+		kubectl.Teardown()
 	})
 
 	Specify("doesn't fail when deployment is recreated", func() {

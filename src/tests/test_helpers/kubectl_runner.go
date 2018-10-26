@@ -41,6 +41,14 @@ func PathFromRoot(relativePath string) string {
 	return filepath.Join(currentDir, "..", "..", "..", relativePath)
 }
 
+func (runner KubectlRunner) Setup() {
+	runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
+}
+
+func (runner KubectlRunner) Teardown() {
+	runner.RunKubectlCommand("delete", "namespace", runner.Namespace())
+}
+
 func (runner KubectlRunner) Namespace() string {
 	return runner.namespace
 }
@@ -92,10 +100,6 @@ func (runner KubectlRunner) ExpectEventualSuccess(args ...string) {
 func GenerateRandomUUID() string {
 	randomUUID := uuid.NewV4()
 	return randomUUID.String()
-}
-
-func (runner KubectlRunner) CreateNamespace() {
-	Eventually(runner.RunKubectlCommand("create", "namespace", runner.namespace), "60s").Should(gexec.Exit(0))
 }
 
 func (runner *KubectlRunner) GetOutput(kubectlArgs ...string) ([]string, error) {
