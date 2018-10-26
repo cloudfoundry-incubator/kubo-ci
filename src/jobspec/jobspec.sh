@@ -14,11 +14,11 @@ fi
 
 K8S_VERSION=$1
 shift
-K8S_PATH=$1
+K8S_PATH=$(cd "$1"; pwd)
 shift
 K8S_COMPONENT=$1
 shift
-SPEC_PATH=$1
+SPEC_PATH=$(cd "$(dirname "$1")"; pwd)/$(basename "$1")
 
 pushd "$K8S_PATH"
     git fetch origin --tags
@@ -26,11 +26,13 @@ pushd "$K8S_PATH"
 popd
 
 JOBSPEC_DIRECTORY=$K8S_PATH/jobspec
-trap "rm -rf $JOBSPEC_DIRECTORY" EXIT
+trap 'rm -rf "$JOBSPEC_DIRECTORY"' EXIT
 mkdir "$JOBSPEC_DIRECTORY"
-cp main.go "$JOBSPEC_DIRECTORY"
-mkdir "$JOBSPEC_DIRECTORY/flag_generator"
-cp -r flag_generator/*.go "$JOBSPEC_DIRECTORY/flag_generator"
+pushd "$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)"
+    cp main.go "$JOBSPEC_DIRECTORY"
+    mkdir "$JOBSPEC_DIRECTORY/flag_generator"
+    cp -r flag_generator/*.go "$JOBSPEC_DIRECTORY/flag_generator"
+popd
 
 unset GOPATH
 

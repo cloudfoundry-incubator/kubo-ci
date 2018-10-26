@@ -41,8 +41,11 @@ blobstore:
 EOF
     bosh upload-blobs
 
-    git-kubo-ci/src/jobspec/jobspec.sh "${version}" "git-kubernetes" "kube-apiserver" "git-kubo-release-output/jobs/kube-apiserver/spec"
-    git-kubo-ci/src/jobspec/jobspec.sh "${version}" "git-kubernetes" "kubelet" "git-kubo-release-output/jobs/kubelet/spec"
+    mkdir -p $HOME/go/src/k8s.io/kubernetes
+    cp -r ../git-kubernetes/. $HOME/go/src/k8s.io/kubernetes/
+
+    ../git-kubo-ci/src/jobspec/jobspec.sh "v${version}" "$HOME/go/src/k8s.io/kubernetes" "kube-apiserver" "jobs/kube-apiserver/spec"
+    ../git-kubo-ci/src/jobspec/jobspec.sh "v${version}" "$HOME/go/src/k8s.io/kubernetes" "kubelet" "jobs/kubelet/spec"
     generate_pull_request "kubernetes" "$tag" "kubo-release"
   fi
 
