@@ -5,7 +5,7 @@ set -exu -o pipefail
 create_pr_payload() {
   title="Flannel upgrade $1"
   body="This is an auto generated PR created for flannel upgrade to $1"
-  echo '{"title":"'"$title"'","body":"'"$body"'","head":"'"$2"'","base":"master"}'
+  echo '{"title":"'"$title"'","body":"'"$body"'","head":"'"$2"'","base":"develop"}'
 }
 
 main() {
