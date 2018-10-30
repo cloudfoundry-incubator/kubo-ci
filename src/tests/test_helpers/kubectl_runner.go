@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"html/template"
+	"io/ioutil"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -246,4 +248,24 @@ func (runner *KubectlRunner) GetLBAddress(service, iaas string) string {
 		return output[0]
 	}
 	return ""
+}
+
+func (runner *KubectlRunner) templatePSPWithNamespace(namespace string) string {
+	_, filename, _, _ := runtime.Caller(0)
+	srcDir, err := filepath.Abs(filepath.Dir(filename))
+	Expect(err).NotTo(HaveOccurred())
+
+	file := filepath.Join(srcDir, "fixtures", "smoke-test-psp.yml")
+
+	t, err := template.ParseFiles(file)
+	Expect(err).NotTo(HaveOccurred())
+
+	f, err := ioutil.TempFile("", filepath.Base(file))
+	Expect(err).NotTo(HaveOccurred())
+	defer f.Close()
+
+	type templateInfo struct{ PSPName, Namespace string }
+	Expect(t.Execute(f, templateInfo{PSPName: namespace, Namespace: namespace})).To(Succeed())
+
+	return f.Name()
 }
