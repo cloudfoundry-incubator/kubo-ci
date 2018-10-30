@@ -36,7 +36,7 @@ var _ = Describe("When deploying a pod with service", func() {
 			Expect(err).NotTo(HaveOccurred())
 			url := fmt.Sprintf("http://%s:40801", hostIP)
 			session := runner.RunKubectlCommand("run", "curl-hostport",
-				"--image=tutum/curl", "--restart=Never", "--", "curl", url)
+				"--image=appropriate/curl", "--restart=Never", "--", "curl", url)
 			Eventually(session, "10s").Should(gexec.Exit(0))
 		})
 	})

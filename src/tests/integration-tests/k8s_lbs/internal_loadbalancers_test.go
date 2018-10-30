@@ -28,7 +28,7 @@ var _ = Describe("Internal load balancers", func() {
 
 		appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
 
-		session := runner.RunKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl-"+test_helpers.GenerateRandomUUID(), "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", appUrl)
+		session := runner.RunKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl-"+test_helpers.GenerateRandomUUID(), "--image=appropriate/curl", "--restart=Never", "-ti", "--rm", "--", "curl", appUrl)
 		Eventually(session, "5m").Should(gexec.Exit(0))
 	})
 
