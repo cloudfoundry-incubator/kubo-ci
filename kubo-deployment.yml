@@ -686,6 +686,7 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
+      - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       <% if env =~ /^gcp/ %>
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
@@ -1719,6 +1720,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
+      - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
@@ -1937,6 +1939,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
       - git-kubo-ci/manifests/ops-files/etcd-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
+      - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
       - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
@@ -2200,6 +2203,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
+      - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
       - git-kubo-deployment/manifests/ops-files/use-coredns.yml
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
