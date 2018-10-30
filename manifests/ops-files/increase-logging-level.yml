@@ -1,11 +1,11 @@
 - type: replace
   path: /instance_groups/name=worker/jobs/name=kubelet/properties/k8s-args/v?
-  value: 10
+  value: 5
 
 - type: replace
   path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/k8s-args/v?
-  value: 10
+  value: 5
 
 - type: replace
   path: /instance_groups/name=master/jobs/name=kube-controller-manager/properties/logging-level?
-  value: 10
+  value: 5
