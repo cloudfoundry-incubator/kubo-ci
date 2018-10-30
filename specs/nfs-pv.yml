@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs
+  labels:
+    nfs: "primary"
+spec:
+  capacity:
+    storage: 1Mi
+  volumeMode: Filesystem
+  persistentVolumeReclaimPolicy: Delete
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    # ensure this is the IP exposed by nfs-server
+    server: 10.100.200.99
+    path: "/"
