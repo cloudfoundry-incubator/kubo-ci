@@ -226,6 +226,7 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
       - git-kubo-deployment/manifests/ops-files/change-cidrs.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
+      - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       var_files:
         addons-spec: "/tmp/build/put/git-kubo-ci/specs/guestbook.yml"

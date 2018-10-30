@@ -66,14 +66,9 @@ var _ = Describe("NFS", func() {
 			Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 		})
 
-		FIt("should mount an NFS PV to a workload", func() {
-			podName := kubectl.GetResourceNameBySelector(kubectl.Namespace(), "pod", "name=nfs-busybox")
-
-			Eventually(func() int {
-				session := kubectl.RunKubectlCommand("exec", podName, "--", "cat", "/mnt/index.html")
-				fmt.Println(session.ExitCode())
-				return session.ExitCode()
-			}, "300s", "5s").Should(Equal(0))
+		It("should mount an NFS PV to a workload", func() {
+			rolloutWatch := kubectl.RunKubectlCommand("rollout", "status", "deployment/nfs-busybox", "-w")
+			Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
 		})
 	})
 })

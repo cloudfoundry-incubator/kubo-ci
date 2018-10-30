@@ -41,9 +41,9 @@ var _ = Describe("Guestbook storage", func() {
 
 		BeforeEach(func() {
 			storageClassSpec = PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
-			Eventually(kubectl.RunKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("apply", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 			pvcSpec = PathFromRoot("specs/persistent-volume-claim.yml")
-			Eventually(kubectl.RunKubectlCommand("create", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("apply", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
 		})
 
 		AfterEach(func() {

@@ -31,7 +31,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		numberOfMasters = len(DeploymentVmsOfType(deployment, MasterVMType, ""))
 		countRunningApiServerOnMaster = CountProcessesOnVmsOfType(deployment, MasterVMType, "kube-apiserver", VMRunningState)
 
-		Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters))
+		Expect(countRunningApiServerOnMaster()).To(Equal(numberOfMasters), "Precondition is to have all masters running before the test")
 
 		kubectl = NewKubectlRunner()
 		kubectl.CreateNamespace()
