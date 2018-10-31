@@ -23,24 +23,22 @@ type CIDRConfig struct {
 
 var _ = Describe("Custom CIDRs", func() {
 	var (
-		k8s           kubernetes.Interface
-		testNamespace string
-		err           error
-		svcController client_v1.ServiceInterface
-		cidrConfig    CIDRConfig
+		k8s               kubernetes.Interface
+		testNamespaceName string
+		svcController     client_v1.ServiceInterface
+		cidrConfig        CIDRConfig
 	)
 
 	BeforeEach(func() {
+		var err error
 		k8s, err = NewKubeClient()
 		Expect(err).NotTo(HaveOccurred())
 
-		testNamespace = "test-" + GenerateRandomUUID()
-		_, err = k8s.CoreV1().Namespaces().Create(&v1.Namespace{
-			ObjectMeta: meta_v1.ObjectMeta{Name: testNamespace},
-		})
+		testNamespace, err := CreateTestNamespace(k8s, "test")
 		Expect(err).NotTo(HaveOccurred())
+		testNamespaceName = testNamespace.Name
 
-		svcController = k8s.CoreV1().Services(testNamespace)
+		svcController = k8s.CoreV1().Services(testNamespaceName)
 
 		cidrVarsFile := MustHaveEnv("CIDR_VARS_FILE")
 		b, err := ioutil.ReadFile(PathFromRoot(cidrVarsFile))
@@ -50,7 +48,7 @@ var _ = Describe("Custom CIDRs", func() {
 	})
 
 	AfterEach(func() {
-		k8s.CoreV1().Namespaces().Delete(testNamespace, &meta_v1.DeleteOptions{})
+		DeleteTestNamespace(k8s, testNamespaceName)
 	})
 
 	Context("Services", func() {
@@ -97,14 +95,14 @@ var _ = Describe("Custom CIDRs", func() {
 				},
 			}
 
-			pod, err := k8s.CoreV1().Pods(testNamespace).Create(&podSpec)
+			pod, err := k8s.CoreV1().Pods(testNamespaceName).Create(&podSpec)
 
-			defer k8s.CoreV1().Pods(testNamespace).Delete(podName, &meta_v1.DeleteOptions{})
+			defer k8s.CoreV1().Pods(testNamespaceName).Delete(podName, &meta_v1.DeleteOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			_, subnet, _ := net.ParseCIDR(cidrConfig.PodIPRange)
 			Eventually(func() bool {
-				pod, err = k8s.CoreV1().Pods(testNamespace).Get(podName, meta_v1.GetOptions{})
+				pod, err = k8s.CoreV1().Pods(testNamespaceName).Get(podName, meta_v1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
 				return subnet.Contains(net.ParseIP(pod.Status.PodIP))

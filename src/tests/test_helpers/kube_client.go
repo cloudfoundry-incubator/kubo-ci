@@ -107,3 +107,7 @@ func CreateTestNamespace(k8s k8s.Interface, prefix string) (*corev1.Namespace, e
 	namespaceObject := corev1.Namespace{ObjectMeta: meta_v1.ObjectMeta{Name: name, Labels: labels}}
 	return k8s.CoreV1().Namespaces().Create(&namespaceObject)
 }
+
+func DeleteTestNamespace(k8s k8s.Interface, namespace string) error {
+	return k8s.CoreV1().Namespaces().Delete(namespace, &meta_v1.DeleteOptions{})
+}
