@@ -1,6 +1,83 @@
 # This mounts the nfs volume claim into /mnt and continuously
 # overwrites /mnt/index.html with the time and hostname of the pod.
 
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nfs-busybox-sa
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: nfs-busybox-psp
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default'
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName:  'docker/default'
+    apparmor.security.beta.kubernetes.io/defaultProfileName:  'runtime/default'
+spec:
+  privileged: false
+  # Required to prevent escalations to root.
+  allowPrivilegeEscalation: false
+  allowedCapabilities:
+  - '*'
+  # Allow core volume types.
+  hostNetwork: true
+  hostPorts:
+  - min: 0
+    max: 65535
+  hostIPC: true
+  hostPID: true
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+  runAsUser:
+    # Require the container to run without root privileges.
+    rule: 'RunAsAny'
+  seLinux:
+    # This policy assumes the nodes are using AppArmor rather than SELinux.
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+    # rule: 'MustRunAs'
+    # ranges:
+    #   # Forbid adding the root group.
+    #   - min: 1
+    #     max: 65535
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: psp:nfs-busybox-psp
+  namespace: kube-system
+rules:
+- apiGroups:
+  - extensions
+  resourceNames:
+  - nfs-busybox-psp
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: psp:nfs-busybox-psp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: psp:nfs-busybox-psp
+subjects:
+- kind: ServiceAccount
+  name: nfs-busybox-sa
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,6 +93,7 @@ spec:
         name: nfs-busybox
     spec:
       containers:
+      serviceAccountName: nfs-busybox-sa
       - image: busybox
         command:
           - sh

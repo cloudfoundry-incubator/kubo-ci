@@ -1,3 +1,80 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pv-guestbook-sa
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: pv-guestbook-psp
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default'
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName:  'docker/default'
+    apparmor.security.beta.kubernetes.io/defaultProfileName:  'runtime/default'
+spec:
+  privileged: false
+  # Required to prevent escalations to root.
+  allowPrivilegeEscalation: false
+  allowedCapabilities:
+  - '*'
+  # Allow core volume types.
+  hostNetwork: true
+  hostPorts:
+  - min: 0
+    max: 65535
+  hostIPC: true
+  hostPID: true
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+  runAsUser:
+    # Require the container to run without root privileges.
+    rule: 'RunAsAny'
+  seLinux:
+    # This policy assumes the nodes are using AppArmor rather than SELinux.
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+    # rule: 'MustRunAs'
+    # ranges:
+    #   # Forbid adding the root group.
+    #   - min: 1
+    #     max: 65535
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: psp:pv-guestbook-psp
+  namespace: kube-system
+rules:
+- apiGroups:
+  - extensions
+  resourceNames:
+  - pv-guestbook-psp
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: psp:pv-guestbook-psp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: psp:pv-guestbook-psp
+subjects:
+- kind: ServiceAccount
+  name: pv-guestbook-sa
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -32,6 +109,7 @@ spec:
         role: master
         tier: backend
     spec:
+      serviceAccountName: pv-guestbook-sa
       containers:
       - name: master
         image: gcr.io/google_containers/redis:e2e  # or just image: redis
@@ -97,6 +175,7 @@ spec:
         app: guestbook
         tier: frontend
     spec:
+      serviceAccountName: pv-guestbook-sa
       containers:
       - name: php-redis
         image: gcr.io/google-samples/gb-frontend:v6
