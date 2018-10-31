@@ -55,7 +55,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: psp:nfs-busybox-psp
-  namespace: kube-system
 rules:
 - apiGroups:
   - extensions

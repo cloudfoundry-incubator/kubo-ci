@@ -52,7 +52,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: psp:nginx-internal-lb-psp
-  namespace: kube-system
 rules:
 - apiGroups:
   - extensions
