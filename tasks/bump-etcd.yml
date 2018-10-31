@@ -1,0 +1,17 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+    tag: stable
+run:
+  path: git-kubo-ci/scripts/bump-etcd.sh
+inputs:
+  - name: git-kubo-ci
+  - name: git-cfcr-etcd
+  - name: etcd-release
+outputs:
+  - name: git-cfcr-etcd-output
+params:
+  ACCESS_KEY_ID:
+  SECRET_ACCESS_KEY:
