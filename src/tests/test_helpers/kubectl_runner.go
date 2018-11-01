@@ -195,12 +195,7 @@ func (runner *KubectlRunner) GetAppAddressInNamespace(service string, namespace 
 }
 
 func (runner *KubectlRunner) GetPodStatus(namespace string, podName string) string {
-	session := runner.RunKubectlCommandInNamespace(namespace, "describe", "pod", podName)
-	Eventually(session, "120s").Should(gexec.Exit(0))
-	re := regexp.MustCompile(`Status:\s+(\w+)`)
-	matches := re.FindStringSubmatch(string(session.Out.Contents()))
-	podStatus := matches[1]
-	return podStatus
+	return runner.getPodStatus(namespace, podName)
 }
 
 func (runner *KubectlRunner) GetResourceNameBySelector(namespace, resource, selector string) string {
@@ -208,9 +203,15 @@ func (runner *KubectlRunner) GetResourceNameBySelector(namespace, resource, sele
 }
 
 func (runner *KubectlRunner) GetPodStatusBySelector(namespace string, selector string) string {
+	return runner.getPodStatus(namespace, "-l", selector)
+}
+
+func (runner *KubectlRunner) getPodStatus(namespace string, selector ...string) string {
 	var session *gexec.Session
+	args := []string{"describe", "pod"}
+	args = append(args, selector...)
 	Eventually(func() string {
-		session = runner.RunKubectlCommandInNamespace(namespace, "describe", "pod", "-l", selector)
+		session = runner.RunKubectlCommandInNamespace(namespace, args...)
 		Eventually(session, "10s").Should(gexec.Exit(0))
 
 		return string(session.Out.Contents())

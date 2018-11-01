@@ -1,7 +1,6 @@
 package generic_test
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"tests/test_helpers"
@@ -20,11 +19,10 @@ var (
 var _ = Describe("Horizontal Pod Autoscaling", func() {
 	BeforeEach(func() {
 		createHPADeployment()
-		autoscaleHPA()
 	})
 
 	AfterEach(func() {
-		deleteHPADeployment()
+		runner.RunKubectlCommand("delete", "-f", hpaDeployment).Wait("60s")
 	})
 
 	It("scales the pods accordingly", func() {
@@ -57,31 +55,22 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 	})
 })
 
-func deleteHPADeployment() {
-	runner.RunKubectlCommand("delete", "-f", hpaDeployment)
-}
-
 func createHPADeployment() {
 	session := runner.RunKubectlCommand("create", "-f", hpaDeployment)
 	Eventually(session, "10s").Should(gexec.Exit(0))
 
 	Eventually(func() string {
-		return runner.GetPodStatusBySelector(runner.Namespace(), "run=php-apache")
+		return runner.GetPodStatusBySelector(runner.Namespace(), "app=php-apache")
 	}, "120s").Should(Equal("Running"))
 }
 
-func autoscaleHPA() {
-	session := runner.RunKubectlCommand("autoscale", "deployment/php-apache", "--cpu-percent=25", "--min=1", "--max=2")
-	Eventually(session, "10s").Should(gexec.Exit(0))
-}
-
 func increaseCPULoad() {
-	remoteCommand := fmt.Sprintf("while true; do wget -q -O- http://php-apache.%s.svc.cluster.local; done", runner.Namespace())
+	remoteCommand := "while true; do wget -q -O- http://php-apache; done"
 
-	session := runner.RunKubectlCommand("run", "-i", "--tty", "load-generator", "--image=busybox", "--", "/bin/sh", "-c", remoteCommand)
+	session := runner.RunKubectlCommand("run", "-i", "--tty", "load-generator", "--generator=run-pod/v1", "--image=busybox", "--", "/bin/sh", "-c", remoteCommand)
 	Eventually(session, "10s").Should(gexec.Exit(0))
 
 	Eventually(func() string {
-		return runner.GetPodStatusBySelector(runner.Namespace(), "run=load-generator")
+		return runner.GetPodStatus(runner.Namespace(), "load-generator")
 	}, "120s").Should(Equal("Running"))
 }
