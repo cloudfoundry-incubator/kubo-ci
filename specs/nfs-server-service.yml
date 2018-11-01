@@ -13,6 +13,5 @@ spec:
     name: mountd
   - port: 111
     name: rpcbind
-  clusterIP: 10.100.200.99
   selector:
     app: nfs-server

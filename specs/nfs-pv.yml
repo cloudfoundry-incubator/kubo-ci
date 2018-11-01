@@ -13,5 +13,5 @@ spec:
     - ReadWriteOnce
   nfs:
     # ensure this is the IP exposed by nfs-server
-    server: 10.100.200.99
+    server: {{.NFSServerIP}}
     path: "/"
