@@ -109,7 +109,7 @@ spec:
   maxReplicas: 5
   minReplicas: 1
   scaleTargetRef:
-    apiVersion: apps/v1
+    apiVersion: extensions/v1beta1
     kind: Deployment
     name: php-apache
   targetCPUUtilizationPercentage: 5
