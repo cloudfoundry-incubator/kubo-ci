@@ -604,9 +604,11 @@ jobs:
     on_failure: *on_failure_alert
   - aggregate:
     - put: gcs-bosh-creds
+      attempts: 10
       params:
         file: bosh-creds/creds.yml
     - put: gcs-bosh-state
+      attempts: 10
       params:
         file: bosh-state/state.json
   - task: configure-bosh-for-turbulence
@@ -618,9 +620,11 @@ jobs:
     file: git-kubo-ci/tasks/generate-source-json.yml
   - aggregate:
     - put: gcs-load-balancer-vars
+      attempts: 10
       params:
         file: load-balancer-vars/vars.yml
     - put: source-json
+      attempts: 10
       params:
         file: source-json/source.json
   - task: update-cloud-config-with-vm-ext
@@ -1024,9 +1028,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       <% end %>
   - aggregate:
     - put: gcs-bosh-creds
+      attempts: 10
       params:
         file: bosh-creds/creds.yml
     - put: gcs-bosh-state
+      attempts: 10
       params:
         file: bosh-state/state.json
   - task: generate-load-balancer-vars
@@ -1035,9 +1041,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     file: git-kubo-ci/tasks/generate-source-json.yml
   - aggregate:
     - put: gcs-load-balancer-vars
+      attempts: 10
       params:
         file: load-balancer-vars/vars.yml
     - put: source-json
+      attempts: 10
       params:
         file: source-json/source.json
   - task: update-cloud-config-with-vm-ext
@@ -1356,9 +1364,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       <% end %>
   - aggregate:
     - put: gcs-bosh-creds
+      attempts: 10
       params:
         file: bosh-creds/creds.yml
     - put: gcs-bosh-state
+      attempts: 10
       params:
         file: bosh-state/state.json
   - task: generate-load-balancer-vars
@@ -1369,9 +1379,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       git-kubo-ci: git-kubo-ci-new
   - aggregate:
     - put: gcs-load-balancer-vars
+      attempts: 10
       params:
         file: load-balancer-vars/vars.yml
     - put: source-json
+      attempts: 10
       params:
         file: source-json/source.json
   - task: update-cloud-config-with-vm-ext
@@ -1661,9 +1673,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     on_failure: *on_failure_alert
   - aggregate:
     - put: gcs-bosh-creds
+      attempts: 10
       params:
         file: bosh-creds/creds.yml
     - put: gcs-bosh-state
+      attempts: 10
       params:
         file: bosh-state/state.json
   - task: generate-load-balancer-vars
@@ -1672,9 +1686,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     file: git-kubo-ci/tasks/generate-source-json.yml
   - aggregate:
     - put: gcs-load-balancer-vars
+      attempts: 10
       params:
         file: load-balancer-vars/vars.yml
     - put: source-json
+      attempts: 10
       params:
         file: source-json/source.json
   - task: update-cloud-config-with-vm-ext
@@ -1879,9 +1895,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     on_failure: *on_failure_alert
   - aggregate:
     - put: gcs-bosh-creds
+      attempts: 10
       params:
         file: bosh-creds/creds.yml
     - put: gcs-bosh-state
+      attempts: 10
       params:
         file: bosh-state/state.json
   - task: generate-load-balancer-vars
@@ -1890,9 +1908,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     file: git-kubo-ci/tasks/generate-source-json.yml
   - aggregate:
     - put: gcs-load-balancer-vars
+      attempts: 10
       params:
         file: load-balancer-vars/vars.yml
     - put: source-json
+      attempts: 10
       params:
         file: source-json/source.json
   - task: update-cloud-config-with-vm-ext
@@ -2143,9 +2163,11 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     on_failure: *on_failure_alert
   - aggregate:
     - put: gcs-bosh-creds
+      attempts: 10
       params:
         file: bosh-creds/creds.yml
     - put: gcs-bosh-state
+      attempts: 10
       params:
         file: bosh-state/state.json
   - task: generate-load-balancer-vars
@@ -2154,9 +2176,11 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     file: git-kubo-ci/tasks/generate-source-json.yml
   - aggregate:
     - put: gcs-load-balancer-vars
+      attempts: 10
       params:
         file: load-balancer-vars/vars.yml
     - put: source-json
+      attempts: 10
       params:
         file: source-json/source.json
   - task: update-cloud-config-with-vm-ext
