@@ -101,6 +101,20 @@ spec:
           requests:
             cpu: 200m
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-apache
+  labels:
+    app: php-apache
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: php-apache
+---
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:

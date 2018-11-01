@@ -43,8 +43,8 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 
 		By("decreasing the number of pods when the CPU load decreases")
 
-		session := runner.RunKubectlCommand("delete", "deployment/load-generator")
-		Eventually(session, "10s").Should(gexec.Exit(0))
+		session := runner.RunKubectlCommand("delete", "pod/load-generator", "--now")
+		Eventually(session, "30s").Should(gexec.Exit(0))
 
 		Eventually(func() int {
 			session := runner.RunKubectlCommand("get", "hpa/php-apache", "-o", "jsonpath={.status.currentReplicas}")
@@ -56,7 +56,7 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 })
 
 func createHPADeployment() {
-	session := runner.RunKubectlCommand("create", "-f", hpaDeployment)
+	session := runner.RunKubectlCommand("apply", "-f", hpaDeployment)
 	Eventually(session, "10s").Should(gexec.Exit(0))
 
 	Eventually(func() string {
