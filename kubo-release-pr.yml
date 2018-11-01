@@ -275,16 +275,6 @@ jobs:
       passed: [ 'claim-lock-upgrade-<%= env %>' ]
     - get: git-kubo-release
       passed: [ 'claim-lock-upgrade-<%= env %>' ]
-  - task: unpack-tgz
-    file: git-kubo-ci/tasks/unpack-tgz.yml
-    tags: ['<%= env %>']
-    input_mapping:
-      source_tarball: old-kubo-deployment-tarball
-    output_mapping:
-      unpacked_dir: git-kubo-deployment
-    params:
-      SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
   - task: install
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/install-bosh.yml
@@ -360,7 +350,7 @@ jobs:
       unpacked_dir: unpacked-old-kubo-deployment
     params:
       SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
-      COLLAPSE_DIR: kubo-deployment-*/kubo-deployment
+      COLLAPSE_DIR: kubo-deployment-*
   - task: upload-old-stemcell
     tags: ['<%= env %>']
     input_mapping:
