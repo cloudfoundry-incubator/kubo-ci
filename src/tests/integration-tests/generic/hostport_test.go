@@ -21,15 +21,20 @@ var _ = Describe("When deploying a pod with service", func() {
 	})
 
 	Context("of type HostPort", func() {
+		var (
+			nginxHostPortSpec = test_helpers.PathFromRoot("specs/nginx-hostport.yml")
+		)
 
 		BeforeEach(func() {
-			nginxHostPortSpec := test_helpers.PathFromRoot("specs/nginx-hostport.yml")
 			deployNginx := runner.RunKubectlCommand("create", "-f", nginxHostPortSpec)
 			Eventually(deployNginx, "60s").Should(gexec.Exit(0))
 			rolloutWatch := runner.RunKubectlCommand("rollout", "status", "deployment/nginx-hostport", "-w")
 			Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
 		})
 
+		AfterEach(func() {
+			runner.RunKubectlCommand("delete", "-f", nginxHostPortSpec)
+		})
 		It("should be able to connect to <node>:<port>", func() {
 			hostIP, err := runner.GetOutput("get", "pod", "-l", "app=nginx-hostport",
 				"-o", "jsonpath='{@.items[0].status.hostIP}'")

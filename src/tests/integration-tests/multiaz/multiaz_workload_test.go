@@ -17,10 +17,7 @@ var _ = Describe("Multi-AZ workload deployment", func() {
 	})
 
 	AfterEach(func() {
-		if !CurrentGinkgoTestDescription().Failed {
-			session := runner.RunKubectlCommand("delete", "-f", nginxSpec)
-			session.Wait("60s")
-		}
+		runner.RunKubectlCommand("delete", "-f", nginxSpec).Wait("60s")
 	})
 
 	It("deploys three pods across three azs", func() {

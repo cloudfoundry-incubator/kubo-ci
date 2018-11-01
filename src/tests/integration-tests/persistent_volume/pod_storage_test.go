@@ -99,8 +99,8 @@ var _ = Describe("Guestbook storage", func() {
 		})
 
 		AfterEach(func() {
-			UndeployGuestBook(kubectl)
 			if iaas == "gce" {
+				UndeployGuestBook(kubectl)
 				Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
 			}
 		})
