@@ -4,23 +4,34 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )
 
-var defaultHPATimeout = "210s"
+const defaultHPATimeout = "210s"
+
+var (
+	hpaDeployment = test_helpers.PathFromRoot("specs/hpa-php-apache.yml")
+)
 
 var _ = Describe("Horizontal Pod Autoscaling", func() {
+	BeforeEach(func() {
+		createHPADeployment()
+		autoscaleHPA()
+	})
+
+	AfterEach(func() {
+		deleteHPADeployment()
+	})
+
 	It("scales the pods accordingly", func() {
 		HPATimeout := os.Getenv("HPA_TIMEOUT")
 		if HPATimeout == "" {
 			HPATimeout = defaultHPATimeout
 		}
-
-		runHPAPod()
-		createHPA()
 
 		By("creating more pods when the CPU load increases")
 
@@ -46,8 +57,12 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 	})
 })
 
-func runHPAPod() {
-	session := runner.RunKubectlCommand("run", "php-apache", "--image=k8s.gcr.io/hpa-example", "--requests=cpu=200m", "--expose", "--port=80")
+func deleteHPADeployment() {
+	runner.RunKubectlCommand("delete", "-f", hpaDeployment)
+}
+
+func createHPADeployment() {
+	session := runner.RunKubectlCommand("create", "-f", hpaDeployment)
 	Eventually(session, "10s").Should(gexec.Exit(0))
 
 	Eventually(func() string {
@@ -55,7 +70,7 @@ func runHPAPod() {
 	}, "120s").Should(Equal("Running"))
 }
 
-func createHPA() {
+func autoscaleHPA() {
 	session := runner.RunKubectlCommand("autoscale", "deployment/php-apache", "--cpu-percent=25", "--min=1", "--max=2")
 	Eventually(session, "10s").Should(gexec.Exit(0))
 }
