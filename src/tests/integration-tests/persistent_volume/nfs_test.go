@@ -81,8 +81,7 @@ var _ = Describe("NFS", func() {
 		})
 
 		It("should mount an NFS PV to a workload", func() {
-			rolloutWatch := kubectl.RunKubectlCommand("rollout", "status", "deployment/nfs-busybox", "-w")
-			Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
+			WaitForPodsToRun(kubectl, "120s")
 		})
 	})
 })
