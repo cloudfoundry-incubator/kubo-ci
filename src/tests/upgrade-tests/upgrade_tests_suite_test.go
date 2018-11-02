@@ -32,6 +32,5 @@ var _ = BeforeEach(func() {
 })
 
 var _ = AfterEach(func() {
-	k8sRunner = test_helpers.NewKubectlRunner()
 	k8sRunner.Teardown()
 })
