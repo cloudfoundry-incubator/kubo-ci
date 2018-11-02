@@ -40,12 +40,6 @@ blobstore:
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
     bosh upload-blobs
-
-    mkdir -p $HOME/go/src/k8s.io/kubernetes
-    cp -r ../git-kubernetes/. $HOME/go/src/k8s.io/kubernetes/
-
-    ../git-kubo-ci/src/jobspec/jobspec.sh "v${version}" "$HOME/go/src/k8s.io/kubernetes" "kube-apiserver" "jobs/kube-apiserver/spec"
-    ../git-kubo-ci/src/jobspec/jobspec.sh "v${version}" "$HOME/go/src/k8s.io/kubernetes" "kubelet" "jobs/kubelet/spec"
     generate_pull_request "kubernetes" "$tag" "kubo-release"
   fi
 
