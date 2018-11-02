@@ -1,12 +1,12 @@
 ---
 - type: replace
-  path: /instance_groups/name=master/jobs/name=kube-controller-manager/properties/horizontal-pod-autoscaler?/upscale-delay?
+  path: /instance_groups/name=master/jobs/name=kube-controller-manager/properties/k8s-args?/horizontal-pod-autoscaler-upscale-delay?
   value: 1m0s
 
 - type: replace
-  path: /instance_groups/name=master/jobs/name=kube-controller-manager/properties/horizontal-pod-autoscaler?/downscale-delay?
+  path: /instance_groups/name=master/jobs/name=kube-controller-manager/properties/k8s-args?/horizontal-pod-autoscaler-downscale-delay?
   value: 1m0s
 
 - type: replace
-  path: /instance_groups/name=master/jobs/name=kube-controller-manager/properties/horizontal-pod-autoscaler?/sync-period?
+  path: /instance_groups/name=master/jobs/name=kube-controller-manager/properties/k8s-args?/horizontal-pod-autoscaler-sync-period?
   value: 10s

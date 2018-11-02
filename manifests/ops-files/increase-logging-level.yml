@@ -7,5 +7,5 @@
   value: 5
 
 - type: replace
-  path: /instance_groups/name=master/jobs/name=kube-controller-manager/properties/logging-level?
+  path: /instance_groups/name=master/jobs/name=kube-controller-manager/properties/k8s-args?/v?
   value: 5
