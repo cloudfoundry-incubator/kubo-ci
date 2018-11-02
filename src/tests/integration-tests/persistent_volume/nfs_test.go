@@ -50,9 +50,9 @@ var _ = Describe("NFS", func() {
 			nfsPvcSpec = PathFromRoot("specs/nfs-pvc.yml")
 			nfsPodRcSpec = PathFromRoot("specs/nfs-pod-rc.yml")
 
-			Eventually(kubectl.RunKubectlCommand("apply", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("apply", "-f", nfsServerSpec), "60s").Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("apply", "-f", nfsServerServiceSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("create", "-f", nfsServerSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("create", "-f", nfsServerServiceSpec), "60s").Should(gexec.Exit(0))
 
 			k8s, err := NewKubeClient()
 			Expect(err).NotTo(HaveOccurred())
@@ -61,23 +61,23 @@ var _ = Describe("NFS", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			nfsPvSpec = templateNFSSpec(NFSService.Spec.ClusterIP, PathFromRoot("specs/nfs-pv.yml"))
-			Eventually(kubectl.RunKubectlCommand("apply", "-f", nfsPvSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("create", "-f", nfsPvSpec), "60s").Should(gexec.Exit(0))
 
-			Eventually(kubectl.RunKubectlCommand("apply", "-f", nfsPvcSpec), "60s").Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("apply", "-f", nfsPodRcSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("create", "-f", nfsPvcSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("create", "-f", nfsPodRcSpec), "60s").Should(gexec.Exit(0))
 		})
 
 		AfterEach(func() {
-			Eventually(kubectl.RunKubectlCommand("delete", "-f", nfsPodRcSpec), "60s").Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("delete", "-f", nfsPvcSpec), "60s").Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("delete", "-f", nfsPvSpec), "60s").Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("delete", "-f", nfsServerServiceSpec), "60s").Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("delete", "-f", nfsServerSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("delete", "-f", nfsPodRcSpec), "60s").Should(gexec.Exit())
+			Eventually(kubectl.RunKubectlCommand("delete", "-f", nfsPvcSpec), "60s").Should(gexec.Exit())
+			Eventually(kubectl.RunKubectlCommand("delete", "-f", nfsPvSpec), "60s").Should(gexec.Exit())
+			Eventually(kubectl.RunKubectlCommand("delete", "-f", nfsServerServiceSpec), "60s").Should(gexec.Exit())
+			Eventually(kubectl.RunKubectlCommand("delete", "-f", nfsServerSpec), "60s").Should(gexec.Exit())
 
 			// Some pv(c)s aren't being cleaned
-			Eventually(kubectl.RunKubectlCommand("delete", "pvc", "--all"), "60s").Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("delete", "pv", "--all"), "60s").Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("delete", "pvc", "--all"), "60s").Should(gexec.Exit())
+			Eventually(kubectl.RunKubectlCommand("delete", "pv", "--all"), "60s").Should(gexec.Exit())
+			Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "60s").Should(gexec.Exit())
 		})
 
 		It("should mount an NFS PV to a workload", func() {
