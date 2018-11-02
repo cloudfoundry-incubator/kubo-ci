@@ -16,7 +16,7 @@ var (
 
 func TestCRIFailure(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Master failure suite")
+	RunSpecs(t, "CRI Failure Suite")
 }
 
 var _ = BeforeSuite(func() {
