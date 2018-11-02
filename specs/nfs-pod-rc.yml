@@ -35,6 +35,7 @@ spec:
     - 'projected'
     - 'secret'
     - 'downwardAPI'
+    - 'persistentVolumeClaim'
   runAsUser:
     # Require the container to run without root privileges.
     rule: 'RunAsAny'
