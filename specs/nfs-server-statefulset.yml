@@ -14,9 +14,8 @@ metadata:
     seccomp.security.alpha.kubernetes.io/defaultProfileName:  'docker/default'
     apparmor.security.beta.kubernetes.io/defaultProfileName:  'runtime/default'
 spec:
-  privileged: false
-  # Required to prevent escalations to root.
-  allowPrivilegeEscalation: false
+  privileged: true
+  allowPrivilegeEscalation: true
   allowedCapabilities:
   - '*'
   # Allow core volume types.
@@ -90,6 +89,7 @@ spec:
       labels:
         app: nfs-server
     spec:
+      serviceAccountName: nfs-server-sa
       containers:
       - name: nfs-server
         image: gcr.io/google_containers/volume-nfs:0.8
