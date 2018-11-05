@@ -34,32 +34,26 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 		By("creating more pods when the CPU load increases")
 
 		increaseCPULoad()
-		Eventually(func() int {
-			session := runner.RunKubectlCommand("get", "hpa/php-apache", "-o", "jsonpath={.status.currentReplicas}")
-			Eventually(session, "10s").Should(gexec.Exit())
-			if session.ExitCode() != 0 {
-				return 0
-			}
-			replicas, _ := strconv.Atoi(string(session.Out.Contents()))
-			return replicas
-		}, HPATimeout, "5s").Should(BeNumerically(">", 1))
+		Eventually(getNumberOfPods, HPATimeout, "5s").Should(BeNumerically(">", 1))
 
 		By("decreasing the number of pods when the CPU load decreases")
 
 		session := runner.RunKubectlCommand("delete", "pod/load-generator", "--now")
 		Eventually(session, "30s").Should(gexec.Exit(0))
 
-		Eventually(func() int {
-			session := runner.RunKubectlCommand("get", "hpa/php-apache", "-o", "jsonpath={.status.currentReplicas}")
-			Eventually(session, "10s").Should(gexec.Exit())
-			if session.ExitCode() != 0 {
-				return 0
-			}
-			replicas, _ := strconv.Atoi(string(session.Out.Contents()))
-			return replicas
-		}, HPATimeout, "5s").Should(BeNumerically("==", 1))
+		Eventually(getNumberOfPods, HPATimeout, "5s").Should(BeNumerically("==", 1))
 	})
 })
+
+func getNumberOfPods() int {
+	session := runner.RunKubectlCommand("get", "hpa/php-apache", "-o", "jsonpath={.status.currentReplicas}")
+	Eventually(session, "20s").Should(gexec.Exit())
+	if session.ExitCode() != 0 {
+		return 0
+	}
+	replicas, _ := strconv.Atoi(string(session.Out.Contents()))
+	return replicas
+}
 
 func createHPADeployment() {
 	session := runner.RunKubectlCommand("apply", "-f", hpaDeployment)
