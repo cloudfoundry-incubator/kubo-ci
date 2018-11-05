@@ -36,10 +36,13 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 		increaseCPULoad()
 		Eventually(func() int {
 			session := runner.RunKubectlCommand("get", "hpa/php-apache", "-o", "jsonpath={.status.currentReplicas}")
-			Eventually(session, "10s").Should(gexec.Exit(0))
+			Eventually(session, "10s").Should(gexec.Exit())
+			if session.ExitCode() != 0 {
+				return 0
+			}
 			replicas, _ := strconv.Atoi(string(session.Out.Contents()))
 			return replicas
-		}, HPATimeout).Should(BeNumerically(">", 1))
+		}, HPATimeout, "5s").Should(BeNumerically(">", 1))
 
 		By("decreasing the number of pods when the CPU load decreases")
 
@@ -48,10 +51,13 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 
 		Eventually(func() int {
 			session := runner.RunKubectlCommand("get", "hpa/php-apache", "-o", "jsonpath={.status.currentReplicas}")
-			Eventually(session, "10s").Should(gexec.Exit(0))
+			Eventually(session, "10s").Should(gexec.Exit())
+			if session.ExitCode() != 0 {
+				return 0
+			}
 			replicas, _ := strconv.Atoi(string(session.Out.Contents()))
 			return replicas
-		}, HPATimeout).Should(BeNumerically("==", 1))
+		}, HPATimeout, "5s").Should(BeNumerically("==", 1))
 	})
 })
 
