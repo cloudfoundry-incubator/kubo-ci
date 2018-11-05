@@ -1849,7 +1849,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: kubo-version
       passed: [ 'package-kubo-deployment-tarball' ]
       trigger: true
-    - get: git-etcd-release
+    - get: github-etcd-release
       trigger: true
     - get: git-kubo-drats
       trigger: true
@@ -1875,7 +1875,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       version: every
       trigger: true
       passed: [ 'claim-lock-bbr-<%= env %>' ]
-    - get: git-etcd-release
+    - get: github-etcd-release
       passed: [ 'claim-lock-bbr-<%= env %>' ]
     - get: git-kubo-drats
       passed: [ 'claim-lock-bbr-<%= env %>' ]
@@ -1929,7 +1929,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       version: every
       trigger: true
       passed: [ 'install-bosh-bbr-<%= env %>' ]
-    - get: git-etcd-release
+    - get: github-etcd-release
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: git-kubo-drats
     - get: git-kubo-deployment
@@ -1979,7 +1979,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - stemcell/stemcell.tgz
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
-      - git-etcd-release/*.tgz
+      - github-etcd-release/*.tgz
       source_file: source-json/source.json
       vars:
         deployment_name: ci-service

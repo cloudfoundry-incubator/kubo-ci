@@ -18,15 +18,12 @@ login_gcp() {
 delete_gcloud_vms() {
   subnetwork=$(bosh int "${ENV_FILE}" --path='/subnetwork')
   subnetLink=$(gcloud compute networks subnets list --filter name="$subnetwork" --format=json | bosh int - --path=/0/selfLink)
-  vms=$(gcloud  compute instances list --filter="networkInterfaces.subnetwork=$subnetLink" --format="table(name,zone)[no-heading]")
+  vms=$(gcloud  compute instances list --uri --filter="networkInterfaces.subnetwork=$subnetLink")
 
   IFS=$'\n'
 
   for vm in $vms; do
-    vm_name="$(echo $vm | awk '{print $1}')"
-    vm_zone="$(echo $vm | awk '{print $2}')"
-
-    gcloud compute instances delete "$vm_name" --zone="$vm_zone" --delete-disks=all --quiet
+    gcloud compute instances delete "$vm" --delete-disks=all --quiet
   done
 
   unset IFS
@@ -41,6 +38,5 @@ delete_firewall_rules() {
 }
 
 login_gcp
-delete_gcloud_vms
 delete_gcloud_vms
 delete_firewall_rules
