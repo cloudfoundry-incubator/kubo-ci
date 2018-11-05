@@ -10,7 +10,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-const defaultHPATimeout = "210s"
+const defaultHPATimeout = "10m"
 
 var (
 	hpaDeployment = test_helpers.PathFromRoot("specs/hpa-php-apache.yml")
