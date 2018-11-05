@@ -276,7 +276,7 @@ resources:
     branch: wip-bbr-160512406
     private_key: ((git-ssh-key.private_key))
 
-- name: git-etcd-release
+- name: github-etcd-release
   type: github-release
   source:
     owner: cloudfoundry-incubator
