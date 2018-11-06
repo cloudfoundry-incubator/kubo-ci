@@ -32,8 +32,6 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 	})
 
 	AfterEach(func() {
-		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
-
 		DeleteSmorgasbord(kubectl, testconfig.Iaas)
 		kubectl.Teardown()
 	})
@@ -70,6 +68,7 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 		hellRaiser.CreateIncident(blockOneWorker)
 		err = deployment.Recreate(director.NewAllOrInstanceGroupOrInstanceSlug("worker", blockedWorkerID), director.RecreateOpts{Canaries: "0", MaxInFlight: "100%"})
 		Expect(err).NotTo(HaveOccurred())
+		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 
 })
