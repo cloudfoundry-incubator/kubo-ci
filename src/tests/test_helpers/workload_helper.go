@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func DeploySmorgasbord(kubectl *KubectlRunner, iaas string) {
@@ -20,14 +20,22 @@ func DeploySmorgasbord(kubectl *KubectlRunner, iaas string) {
 }
 
 func WaitForPodsToRun(kubectl *KubectlRunner, timeout string) {
+	waitForPods(kubectl, "status.phase!=Running,status.phase!=Succeeded", timeout)
+}
+
+func WaitForPodsToDie(kubectl *KubectlRunner, timeout string) {
+	waitForPods(kubectl, "status.phase!=Succeeded", timeout)
+}
+
+func waitForPods(kubectl *KubectlRunner, selector, timeout string) {
 	Eventually(func() bool {
 		clientset, err := NewKubeClient()
 		if err != nil {
 			GinkgoWriter.Write([]byte(err.Error()))
 			return false
 		}
-		pods, err := clientset.CoreV1().Pods(kubectl.Namespace()).List(v1.ListOptions{
-			FieldSelector: "status.phase!=Running,status.phase!=Succeeded",
+		pods, err := clientset.CoreV1().Pods(kubectl.Namespace()).List(meta_v1.ListOptions{
+			FieldSelector: selector,
 		})
 		if err != nil {
 			GinkgoWriter.Write([]byte(err.Error()))
@@ -35,7 +43,7 @@ func WaitForPodsToRun(kubectl *KubectlRunner, timeout string) {
 		}
 		for _, pod := range pods.Items {
 			fmt.Fprintf(GinkgoWriter, "Pod name:%s, pod status: %s, Events:\n", pod.Name, pod.Status.Phase)
-			events, err := clientset.CoreV1().Events(kubectl.Namespace()).List(v1.ListOptions{
+			events, err := clientset.CoreV1().Events(kubectl.Namespace()).List(meta_v1.ListOptions{
 				FieldSelector: fmt.Sprintf("involvedObject.kind=Pod,involvedObject.name=%s", pod.Name),
 			})
 			if err != nil {
@@ -57,4 +65,5 @@ func DeleteSmorgasbord(kubectl *KubectlRunner, iaas string) {
 	Eventually(kubectl.RunKubectlCommand("delete", "-f", smorgasbordSpec), "120s").Should(gexec.Exit(0))
 	Eventually(kubectl.RunKubectlCommand("delete", "--all", "pvc"), "120s").Should(gexec.Exit(0))
 	Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "120s").Should(gexec.Exit(0))
+	WaitForPodsToDie(kubectl, timeout)
 }
