@@ -65,5 +65,5 @@ func DeleteSmorgasbord(kubectl *KubectlRunner, iaas string) {
 	Eventually(kubectl.RunKubectlCommand("delete", "-f", smorgasbordSpec), "120s").Should(gexec.Exit(0))
 	Eventually(kubectl.RunKubectlCommand("delete", "--all", "pvc"), "120s").Should(gexec.Exit(0))
 	Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "120s").Should(gexec.Exit(0))
-	WaitForPodsToDie(kubectl, timeout)
+	WaitForPodsToDie(kubectl, "5m")
 }
