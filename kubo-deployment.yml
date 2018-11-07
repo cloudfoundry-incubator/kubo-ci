@@ -1541,6 +1541,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-multi-master-<%= env %>' ]
     - get: stemcell
       resource: stemcell-<%= env %>
+    - get: slackers
   - task: create-bosh-upgrade-deployment
     params:
       ENABLE_MULTI_AZ_TESTS: true
