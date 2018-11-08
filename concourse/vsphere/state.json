@@ -1,16 +1,16 @@
 {
     "director_id": "5166ef5f-9501-4596-5d62-2a58c29ff264",
     "installation_id": "8cf898f8-7040-4108-5423-f87fd2a68d63",
-    "current_vm_cid": "vm-48e43521-4226-4b22-a105-034e19240277",
+    "current_vm_cid": "vm-d51bba1d-e46d-41a1-b5ba-6f0d0608d1e3",
     "current_stemcell_id": "6b266f5c-fc20-42ab-44dd-83cfa1075893",
     "current_disk_id": "518487a4-3744-4280-73c6-9b4a91a1d81d",
     "current_release_ids": [
-        "78ce5a75-adb6-4c18-7a10-5744b5370d25",
-        "35a26291-5e9c-4911-4472-5a574e98aee9",
-        "a9c13357-2691-4e57-61db-efe10fb3b9a3",
-        "3ccf62f1-40ce-471e-5112-ddd74f274251"
+        "a74b693e-7be5-4c4f-5edf-52706ab31512",
+        "85453b0c-a0f1-410b-64c1-9086d4ee7285",
+        "452b7cc4-b7d9-4f24-5dcc-ec3b52fdb10c",
+        "272c32af-95f9-4edc-50b4-890ad45608c8"
     ],
-    "current_manifest_sha": "06ef574bacb2f03c65d5bb897ffb1d405d157adccfaab75a82ce0a40e7367270072ef3789a2ef2bac774ab48fd83a5eed60b7ab3e8e83737c62cfd5cc767e516",
+    "current_manifest_sha": "5d50d569506055227d10e7edc18cd57640958488c237daef0c613ab5389b35c7214d9ff365cfa6edcec56c492419313e8e89472260444ac3b1cb45e8bc36979b",
     "disks": [
         {
             "id": "518487a4-3744-4280-73c6-9b4a91a1d81d",
@@ -29,22 +29,22 @@
     ],
     "releases": [
         {
-            "id": "78ce5a75-adb6-4c18-7a10-5744b5370d25",
+            "id": "a74b693e-7be5-4c4f-5edf-52706ab31512",
             "name": "bosh",
-            "version": "268.1.0"
+            "version": "268.2.0"
         },
         {
-            "id": "35a26291-5e9c-4911-4472-5a574e98aee9",
+            "id": "85453b0c-a0f1-410b-64c1-9086d4ee7285",
             "name": "bpm",
             "version": "0.12.3"
         },
         {
-            "id": "a9c13357-2691-4e57-61db-efe10fb3b9a3",
+            "id": "452b7cc4-b7d9-4f24-5dcc-ec3b52fdb10c",
             "name": "bosh-vsphere-cpi",
-            "version": "50"
+            "version": "51"
         },
         {
-            "id": "3ccf62f1-40ce-471e-5112-ddd74f274251",
+            "id": "272c32af-95f9-4edc-50b4-890ad45608c8",
             "name": "os-conf",
             "version": "18"
         }
