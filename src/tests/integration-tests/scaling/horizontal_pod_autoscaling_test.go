@@ -23,6 +23,7 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 
 	AfterEach(func() {
 		runner.RunKubectlCommand("delete", "-f", hpaDeployment).Wait("60s")
+		runner.RunKubectlCommand("delete", "pods", "--all").Wait("60s")
 	})
 
 	It("scales the pods accordingly", func() {
@@ -31,6 +32,7 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 			HPATimeout = defaultHPATimeout
 		}
 
+		Eventually(getNumberOfPods, HPATimeout, "5s").Should(Equal(1))
 		By("creating more pods when the CPU load increases")
 
 		increaseCPULoad()
@@ -38,8 +40,7 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 
 		By("decreasing the number of pods when the CPU load decreases")
 
-		session := runner.RunKubectlCommand("delete", "pod/load-generator", "--now")
-		Eventually(session, "30s").Should(gexec.Exit(0))
+		runner.RunKubectlCommand("delete", "pod/load-generator", "--now").Wait("30s")
 
 		Eventually(getNumberOfPods, HPATimeout, "5s").Should(BeNumerically("==", 1))
 	})
