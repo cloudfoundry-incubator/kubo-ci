@@ -28,10 +28,9 @@ var _ = Describe("Cluster upgrade", func() {
 	})
 
 	AfterEach(func() {
-		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
-
 		DeleteSmorgasbord(kubectl, testconfig.Iaas)
 		kubectl.Teardown()
+		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 
 	Specify("doesn't fail when deployment is recreated", func() {
