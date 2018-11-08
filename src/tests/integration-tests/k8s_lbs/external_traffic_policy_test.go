@@ -28,7 +28,7 @@ func getIPAddressFromEchoserver(appURL string) (string, error) {
 		return "", fmt.Errorf("Failed to get response from %s: StatusCode %v\n", appURL, result.StatusCode)
 	}
 
-	defer result.body.Close()
+	defer result.Body.Close()
 	body, err := ioutil.ReadAll(result.Body)
 	if err != nil {
 		return "", err
