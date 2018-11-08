@@ -28,6 +28,7 @@ func getIPAddressFromEchoserver(appURL string) (string, error) {
 		return "", fmt.Errorf("Failed to get response from %s: StatusCode %v\n", appURL, result.StatusCode)
 	}
 
+	defer result.body.Close()
 	body, err := ioutil.ReadAll(result.Body)
 	if err != nil {
 		return "", err
@@ -42,8 +43,8 @@ var _ = Describe("When deploying a loadbalancer", func() {
 
 	Context("with externalTrafficPolicy to local", func() {
 		It("shows a different source client IPs", func() {
-			if iaas != "gce" {
-				Skip("Test only valid for GCE")
+			if iaas != "gce" && iaas != "azure" {
+				Skip("Test only valid for GCE and Azure")
 			}
 
 			deployEchoserver := runner.RunKubectlCommand("create", "-f", echoserverLBSpec)
@@ -71,6 +72,7 @@ var _ = Describe("When deploying a loadbalancer", func() {
 
 			loadbalancerAddress = runner.GetLBAddress("echoserver", iaas)
 			appURL = fmt.Sprintf("http://%s", loadbalancerAddress)
+			runner.RunKubectlCommand("delete", "pods", "--all")
 
 			Eventually(func() string {
 				newPrefix, err := getIPAddressFromEchoserver(appURL)
@@ -83,9 +85,8 @@ var _ = Describe("When deploying a loadbalancer", func() {
 	})
 
 	AfterEach(func() {
-		if iaas == "gce" {
-			session := runner.RunKubectlCommand("delete", "-f", echoserverLBSpec)
-			session.Wait("60s")
+		if iaas == "gce" || iaas == "azure" {
+			runner.RunKubectlCommand("delete", "-f", echoserverLBSpec).Wait("60s")
 		}
 	})
 })
