@@ -36,9 +36,9 @@ var _ = Describe("Upgrade components", func() {
 	})
 
 	AfterEach(func() {
-		test_helpers.DeleteSmorgasbord(k8sRunner, testconfig.Iaas)
 		session := k8sRunner.RunKubectlCommand("delete", "-f", nginxSpec)
 		session.Wait("60s")
+		test_helpers.DeleteSmorgasbord(k8sRunner, testconfig.Iaas)
 	})
 
 	It("upgrades CFCR Release", func() {
