@@ -40,9 +40,7 @@ pr_kubo_release() {
 
   ./scripts/download_k8s_binaries $version
 
-  if git diff-index --quiet HEAD --; then
-    echo "Kubernetes version is already up-to-date"
-  else
+  if [ -n "$(git status --porcelain)" ]; then
     cat <<EOF > "config/private.yml"
 blobstore:
   options:
@@ -51,6 +49,8 @@ blobstore:
 EOF
     bosh upload-blobs
     generate_pull_request "kubernetes" "$tag" "kubo-release"
+  else
+    echo "Kubernetes version is already up-to-date"
   fi
 
   popd
