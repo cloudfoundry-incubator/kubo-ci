@@ -33,19 +33,9 @@ RUN go get github.com/onsi/gomega && \
    go get github.com/onsi/ginkgo/ginkgo && \
    go get github.com/tsenart/vegeta
 
-# CF
-RUN wget -O /cf-cli_amd64.deb https://cli.run.pivotal.io/stable?release=debian64 && \
- dpkg -i /cf-cli_amd64.deb && rm /cf-cli_amd64.deb
-
-# om
-
-RUN wget -q -O - https://raw.githubusercontent.com/starkandwayne/homebrew-cf/master/public.key | apt-key add - && \
-echo "deb http://apt.starkandwayne.com stable main" | tee /etc/apt/sources.list.d/starkandwayne.list &&\
-apt-get update && apt-get install om
-
 # Google SDK
-ENV GCLOUD_VERSION=211.0.0
-ENV GCLOUD_SHA1SUM=53becbf0a512bc1f928921a116c9a397cbf172621849e1d85dd2f906933b2241
+ENV GCLOUD_VERSION=224.0.0
+ENV GCLOUD_SHA1SUM=0a85de5c35c562f5d602ad20f567d45a214e91e5570ae95a93ced8361fa6d021
 
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz \
     -O gcloud_${GCLOUD_VERSION}_linux_amd64.tar.gz && \
@@ -58,8 +48,7 @@ ENV PATH=$PATH:/google-cloud-sdk/bin
 
 # Ruby required for bosh-cli create-env
 RUN git clone https://github.com/postmodern/ruby-install.git /usr/local/ruby-install
-ENV PATH /usr/local/ruby-install/bin:/usr/local/bin:$PATH
-RUN ruby-install --system ruby 2.5.1
+RUN /usr/local/ruby-install/bin/ruby-install --system ruby 2.5.3
 
 # Credhub
 RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/1.7.7/credhub-linux-1.7.7.tgz \
@@ -71,9 +60,9 @@ ADD https://storage.googleapis.com/kubernetes-release/release/$KUBE_VERSION/bin/
 RUN chmod +x /usr/bin/kubectl
 
 # BOSH CLI
-RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-5.1.1-linux-amd64 -O bosh && \
-  echo eccaaf1f5d9e0399271403c6966108443367ac80 bosh > bosh-shasum && \
-  sha1sum -cw --status bosh-shasum && \
+RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-5.3.1-linux-amd64 -O bosh && \
+  echo "5017ea3be52a71c9c35ee015904f1e91f77cddc4a32f011e042cf4cdf33f7278  bosh" > bosh-shasum && \
+  shasum -a 256 -cw --status bosh-shasum && \
   install bosh /usr/local/bin
 
 # Openstack CLI
