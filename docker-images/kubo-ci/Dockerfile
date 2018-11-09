@@ -66,7 +66,7 @@ RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download
   -O credhub-linux-1.7.7.tgz && tar xvf credhub-linux-1.7.7.tgz && mv credhub /usr/bin
 
 # kubectl
-ENV KUBE_VERSION="v1.11.3"
+ENV KUBE_VERSION="v1.12.2"
 ADD https://storage.googleapis.com/kubernetes-release/release/$KUBE_VERSION/bin/linux/amd64/kubectl /usr/bin/kubectl
 RUN chmod +x /usr/bin/kubectl
 
