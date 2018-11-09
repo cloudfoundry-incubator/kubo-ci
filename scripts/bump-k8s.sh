@@ -40,7 +40,9 @@ pr_kubo_release() {
 
   ./scripts/download_k8s_binaries $version
 
-  if ! git diff-index --quiet HEAD --; then
+  if git diff-index --quiet HEAD --; then
+    echo "Kubernetes version is already up-to-date"
+  else
     cat <<EOF > "config/private.yml"
 blobstore:
   options:
