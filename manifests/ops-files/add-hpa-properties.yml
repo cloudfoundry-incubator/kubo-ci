@@ -1,6 +1,6 @@
 ---
 - type: replace
-  path: /instance_groups/name=master/jobs/name=kube-controller-manager/properties/k8s-args?/horizontal-pod-autoscaler-cpu-initialization-perio?
+  path: /instance_groups/name=master/jobs/name=kube-controller-manager/properties/k8s-args?/horizontal-pod-autoscaler-cpu-initialization-period?
   value: 1m0s
 
 - type: replace
