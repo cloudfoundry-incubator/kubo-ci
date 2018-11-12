@@ -30,7 +30,7 @@ groups:
   - run-unit-tests
   - build-kubo-release
   - package-kubo-deployment-tarball
-<% envs.each do |env| %>
+<% conformance_test_envs.each do |env| %>
   - run-k8s-conformance-tests-<%= env %>
 <% end %>
 <% env_list.each do |env| %>
@@ -851,7 +851,7 @@ jobs:
 
 <%
   turbulence_passed_reqs = ["run-k8s-integration-tests-#{env}"]
-  if envs.include? env
+  if conformance_test_envs.include? env
     turbulence_passed_reqs << "run-k8s-conformance-tests-#{env}"
   end
 %>
