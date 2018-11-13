@@ -69,14 +69,6 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 		By("Verifying that the Worker VM has joined the K8s cluster")
 		Eventually(GetReadyNodes, "450s", "5s").Should(HaveLen(3))
 
-		By("Deploying nginx on 3 nodes")
-		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxDaemonSetSpec), "30s", "5s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommand("rollout", "status", "daemonset/nginx", "-w"), "120s").Should(gexec.Exit(0))
-
-		By("Verifying nginx got deployed on new node")
-		nodeNames := GetNodeNamesForRunningPods(kubectl)
-		Expect(nodeNames).To(HaveLen(3))
-
 		By("Ensuring a new worker VM has joined the bosh deployment")
 		var runningWorkerVms []director.VMInfo
 		getRunningWorkerVms := func() []director.VMInfo {
@@ -84,6 +76,17 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 			return runningWorkerVms
 		}
 		Eventually(getRunningWorkerVms, "10s", "1s").Should(HaveLen(3))
+
+		By("Deploying nginx on 3 nodes")
+		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxDaemonSetSpec), "30s", "5s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("rollout", "status", "daemonset/nginx", "-w"), "120s").Should(gexec.Exit(0))
+
+		By("Verifying nginx got deployed on new node")
+		var nodeNames []string
+		Eventually(func() []string {
+			nodeNames = GetNodeNamesForRunningPods(kubectl)
+			return nodeNames
+		}, "60s").Should(HaveLen(3))
 
 		_, err := GetNewVmId(runningWorkerVms, nodeNames)
 		Expect(err).ToNot(HaveOccurred())
