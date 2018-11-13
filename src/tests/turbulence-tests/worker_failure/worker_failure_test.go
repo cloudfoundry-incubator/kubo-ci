@@ -35,7 +35,7 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", nginxDaemonSetSpec)
+		kubectl.RunKubectlCommand("delete", "-f", nginxDaemonSetSpec).Wait("60s")
 		kubectl.Teardown()
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})

@@ -38,7 +38,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", nginxSpec)
+		kubectl.RunKubectlCommand("delete", "-f", nginxSpec).Wait("60s")
 		director.EnableResurrection(true)
 		kubectl.Teardown()
 	})

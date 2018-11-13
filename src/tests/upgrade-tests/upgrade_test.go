@@ -36,8 +36,7 @@ var _ = Describe("Upgrade components", func() {
 	})
 
 	AfterEach(func() {
-		session := k8sRunner.RunKubectlCommand("delete", "-f", nginxSpec)
-		session.Wait("60s")
+		k8sRunner.RunKubectlCommand("delete", "-f", nginxSpec).Wait("60s")
 		test_helpers.DeleteSmorgasbord(k8sRunner, testconfig.Iaas)
 	})
 

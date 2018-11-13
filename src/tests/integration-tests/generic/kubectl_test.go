@@ -110,7 +110,7 @@ var _ = Describe("Kubectl", func() {
 		})
 
 		AfterEach(func() {
-			kubectl.RunKubectlCommand("delete", "-f", serviceAccount)
+			kubectl.RunKubectlCommand("delete", "-f", serviceAccount).Wait("60s")
 		})
 
 		It("Should not be allowed to perform attach,exec,logs actions", func() {

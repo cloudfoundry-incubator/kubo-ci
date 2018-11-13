@@ -33,8 +33,9 @@ var _ = Describe("When deploying a pod with service", func() {
 		})
 
 		AfterEach(func() {
-			runner.RunKubectlCommand("delete", "-f", nginxHostPortSpec)
+			runner.RunKubectlCommand("delete", "-f", nginxHostPortSpec).Wait("60s")
 		})
+
 		It("should be able to connect to <node>:<port>", func() {
 			hostIP, err := runner.GetOutput("get", "pod", "-l", "app=nginx-hostport",
 				"-o", "jsonpath='{@.items[0].status.hostIP}'")

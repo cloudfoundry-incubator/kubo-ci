@@ -33,7 +33,6 @@ var _ = Describe("Internal load balancers", func() {
 	})
 
 	AfterEach(func() {
-		session := runner.RunKubectlCommand("delete", "-f", internalNginxLBSpec)
-		session.Wait("60s")
+		runner.RunKubectlCommand("delete", "-f", internalNginxLBSpec).Wait("60s")
 	})
 })
