@@ -1,0 +1,5 @@
+- type: replace
+  path: /addons/name=bosh-dns-windows/include/stemcell/-
+  value:
+    os: windows1803
+
