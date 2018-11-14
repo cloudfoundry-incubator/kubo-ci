@@ -6,6 +6,9 @@ image_resource:
     tag: stable
 run:
   path: git-kubo-ci/scripts/bump-boshrelease.sh
+params:
+  REPO_URL:
+  RELEASE_NAME:
 inputs:
   - name: git-kubo-ci
   - name: git-kubo-deployment

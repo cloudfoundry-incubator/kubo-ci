@@ -79,3 +79,6 @@ jobs:
     params:
       RELEASE_NAME: cfcr-etcd
       REPO_URL: https://github.com/cloudfoundry-incubator/cfcr-etcd-release
+  - put: git-kubo-deployment
+    params:
+      repository: git-kubo-deployment-output
