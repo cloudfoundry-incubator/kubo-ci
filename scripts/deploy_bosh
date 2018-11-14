@@ -64,7 +64,7 @@ main() {
 
   BOSH_ENV="$bosh_env" source "$(repo_directory)/scripts/set_bosh_environment"
   bosh -n update-runtime-config "$(repo_directory)/bosh-deployment/runtime-configs/dns.yml" \
-    -o manifests/ops-files/add-windows-stemcell-to-runtime.yml
+    -o "$(repo_directory)/manifests/ops-files/add-windows-stemcell-to-runtime.yml"
 
   export_bosh_environment "${bosh_env}"
   set_cloud_config
