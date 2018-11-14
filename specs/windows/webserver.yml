@@ -6,6 +6,11 @@ metadata:
 spec:
   nodeSelector:
     beta.kubernetes.io/os: windows
+  tolerations:
+  - key: "windows"
+    operator: "Equal"
+    value: "1803"
+    effect: "NoSchedule"
   restartPolicy: Always
   containers:
   - image: microsoft/windowsservercore:1803
