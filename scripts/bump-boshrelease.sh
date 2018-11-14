@@ -6,7 +6,6 @@ cp -r git-kubo-deployment/. git-kubo-deployment-output
 
 release="${RELEASE_NAME}"
 version="$(cat boshrelease/version)"
-sha1="$(cat boshrelease/sha1)"
 
 if [ -z ${REPO_URL+x} ]; then
  url="$(cat boshrelease/url)"
@@ -14,10 +13,10 @@ else
  url="${REPO_URL}/releases/download/v${version}/cfcr-etcd-release-${version}.tgz"
 fi
 
-if [ -f "boshrelease/sha" ]; then
+if [ -f "boshrelease/sha1" ]; then
   sha1="$(cat boshrelease/sha1)"
 else
-  sha1=$(sha1sum "boshrelease/*.tgz" | awk '{print $1}')
+  sha1=$(sha1sum boshrelease/*.tgz | awk '{print $1}')
 fi
 
 cat > update-$release-release.yml <<EOF
