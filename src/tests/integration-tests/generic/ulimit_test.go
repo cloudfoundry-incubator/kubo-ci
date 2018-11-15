@@ -1,4 +1,4 @@
-package oss_only_test
+package generic
 
 import (
 	"strconv"
@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Kubectl", func() {
+var _ = Describe("Ulimit", func() {
 	var (
 		runner *test_helpers.KubectlRunner
 	)

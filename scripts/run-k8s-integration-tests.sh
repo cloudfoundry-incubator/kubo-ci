@@ -21,10 +21,6 @@ main() {
     skipped_packages="$skipped_packages,multiaz"
   fi
 
-  if [[ "${ENABLE_OSS_ONLY_TESTS:-false}" == "false" ]]; then
-    skipped_packages="$skipped_packages,oss_only"
-  fi
-
   if [[ "${ENABLE_PERSISTENT_VOLUME_TESTS:-false}" == "false" ]]; then
     skipped_packages="$skipped_packages,persistent_volume"
   fi

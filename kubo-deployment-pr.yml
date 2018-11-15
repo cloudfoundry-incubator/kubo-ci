@@ -355,7 +355,6 @@ jobs:
       ENABLE_API_EXTENSIONS_TESTS: true
       ENABLE_CERTIFICATE_TESTS: true
       ENABLE_GENERIC_TESTS: true
-      ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
       <% if env =~ /^(vsphere|openstack)/ %>
       ENABLE_K8S_LBS_TESTS: false
