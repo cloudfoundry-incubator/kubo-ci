@@ -35,7 +35,6 @@ bosh int git-kubo-deployment/manifests/cfcr.yml \
 pushd git-kubo-deployment-output
 git config --global user.email "cfcr+cibot@pivotal.io"
 git config --global user.name "CFCR CI BOT"
-git diff
 
 set +e
 git diff-index --quiet HEAD
