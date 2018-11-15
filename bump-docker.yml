@@ -29,21 +29,12 @@ jobs:
     - get: docker-boshrelease
       trigger: true
   - task: bump-kubo-docker
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pcfkubo/kubo-ci
-          tag: stable
-      run:
-        path: git-kubo-ci/scripts/bump-docker-boshrelease.sh
-      inputs:
-        - name: git-kubo-ci
-        - name: git-kubo-deployment
-        - name: docker-boshrelease
-      outputs:
-        - name: git-kubo-deployment-output
+    file: git-kubo-ci/tasks/bump-boshrelease.yml
+    input_mapping:
+      boshrelease: docker-boshrelease
+    params:
+      RELEASE_NAME: docker
+      REPO_URL: https://github.com/cloudfoundry-incubator/docker-boshrelease
   - put: git-kubo-deployment
     params:
       repository: git-kubo-deployment-output
