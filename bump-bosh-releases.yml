@@ -30,6 +30,13 @@ resources:
   source:
     repository: cloudfoundry-incubator/bpm-release
 
+- name: docker-boshrelease
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: docker-boshrelease
+    access_token: ((github-token-key))
+
 jobs:
 - name: bump-boshdns-release
   plan:
@@ -79,6 +86,24 @@ jobs:
     params:
       RELEASE_NAME: cfcr-etcd
       REPO_URL: https://github.com/cloudfoundry-incubator/cfcr-etcd-release
+  - put: git-kubo-deployment
+    params:
+      repository: git-kubo-deployment-output
+
+- name: bump-docker-boshrelease
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+    - get: docker-boshrelease
+      trigger: true
+  - task: bump-kubo-docker
+    file: git-kubo-ci/tasks/bump-boshrelease.yml
+    input_mapping:
+      boshrelease: docker-boshrelease
+    params:
+      RELEASE_NAME: docker
+      REPO_URL: https://github.com/cloudfoundry-incubator/docker-boshrelease
   - put: git-kubo-deployment
     params:
       repository: git-kubo-deployment-output
