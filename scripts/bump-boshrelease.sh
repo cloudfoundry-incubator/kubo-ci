@@ -35,10 +35,14 @@ bosh int git-kubo-deployment/manifests/cfcr.yml \
 pushd git-kubo-deployment-output
 git config --global user.email "cfcr+cibot@pivotal.io"
 git config --global user.name "CFCR CI BOT"
+git diff
 
+set +e
 git diff-index --quiet HEAD
+set -e
+
 exit_status=$?
-if [ $exit_status -eq 0 ]; then
+if [ $exit_status -eq 1 ]; then
     git add manifests/cfcr.yml
     git commit -m "Bump $release to version $version"
 else
