@@ -18,7 +18,7 @@ var _ = Describe("NFS", func() {
 
 	BeforeEach(func() {
 		kubectl = NewKubectlRunner()
-		kubectl.Setup()
+		kubectl.CreateNamespace()
 
 		var err error
 		iaas, err = IaaS()
@@ -26,7 +26,7 @@ var _ = Describe("NFS", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.Teardown()
+		kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace())
 	})
 
 	Context("when creating an NFS PV", func() {
