@@ -18,7 +18,7 @@
   multi_az_envs = %w(aws-lb gcp-lb vsphere-lb)
   multi_master_upgrade_test_envs = %w(aws-lb gcp-lb vsphere-lb)
   envs_for_new_bosh_stemcell = upgrade_test_envs | multi_master_upgrade_test_envs
-  conformance_test_envs = envs
+  conformance_test_envs = envs - %w(vsphere-proxy)
   proxy_envs = %w(vsphere-proxy)
   bbr_test_envs = %w(gcp-lb)
   coredns_test_envs = %w(gcp-lb)
