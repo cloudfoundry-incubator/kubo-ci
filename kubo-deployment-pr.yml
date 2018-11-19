@@ -15,7 +15,7 @@ resource_types:
 - name: pull-request
   type: docker-image
   source:
-    repository: jtarchie/pr
+    repository: teliaoss/github-pr-resource
 
 - name: gcs
   type: docker-image
@@ -50,10 +50,7 @@ resources:
 - name: git-kubo-deployment
   type: pull-request
   source:
-    repo: cloudfoundry-incubator/kubo-deployment
-    uri: git@github.com:cloudfoundry-incubator/kubo-deployment
-    base: develop
-    private_key: ((git-ssh-key.private_key))
+    repository: cloudfoundry-incubator/kubo-deployment
     access_token: ((github-token-key))
 
 <% env_list.each do |env| %>
