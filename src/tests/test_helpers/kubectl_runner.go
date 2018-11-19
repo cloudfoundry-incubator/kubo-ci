@@ -48,7 +48,7 @@ func (runner KubectlRunner) Setup() {
 }
 
 func (runner KubectlRunner) Teardown() {
-	runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("60s")
+	runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("120s")
 }
 
 func (runner KubectlRunner) Namespace() string {
