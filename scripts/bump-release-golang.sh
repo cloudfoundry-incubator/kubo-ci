@@ -16,7 +16,6 @@ check_and_remove_existing_vendor_package() {
     echo "Release already at the latest golang vendor package"
     exit 0
   fi
-  pushd .final_builds/packages >/dev/null; rm -rf "golang-${EXISTING_V}-linux/"; popd >/dev/null;
   pushd packages >/dev/null; rm -rf "golang-${EXISTING_V}-linux/"; popd >/dev/null;
 
   popd > /dev/null
