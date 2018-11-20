@@ -1,14 +1,5 @@
 <%
   env_list = %w(vsphere-lb gcp-lb aws-lb)
-  stemcell_types = {
-    'gcp' => 'google-kvm',
-    'gcp-lb' => 'google-kvm',
-    'vsphere' => 'vsphere-esxi',
-    'vsphere-lb' => 'vsphere-esxi',
-    'aws' => 'aws-xen-hvm',
-    'aws-lb' => 'aws-xen-hvm',
-    'openstack' => 'openstack-kvm'
-  }
 %>
 ---
 resource_types:
@@ -34,13 +25,6 @@ resource_types:
     tag: v0.1.3-dev
 
 resources:
-<% env_list.each do |env| %>
-- name: stemcell-<%= env %>
-  type: bosh-io-stemcell
-  source:
-    name: bosh-<%= stemcell_types[env] %>-ubuntu-xenial-go_agent
-<% end %>
-
 - name: git-kubo-ci
   type: git
   source:
@@ -239,13 +223,16 @@ jobs:
       passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-<%= env %>' ]
-    - get: stemcell
-      resource: stemcell-<%= env %>
   <% if env =~ /^vsphere/ %>
   - task: get_director_uuid
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/get_director_uuid.yml
   <% end %>
+  - task: upload-stemcell
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: <%= env.split('-')[0] %>
   - put: git-kubo-deployment
     params:
       path: git-kubo-deployment
@@ -288,8 +275,6 @@ jobs:
       <% if env =~ /^vsphere/ %>
       - director_uuid/var.yml
       <% end %>
-      stemcells:
-      - stemcell/stemcell.tgz
       releases:
       - gcs-kubo-release-tarball/*.tgz
       source_file: source-json/source.json

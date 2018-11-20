@@ -1,19 +1,25 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -euxo pipefail
+set -eux -o pipefail
 
-stemcell_version=$(cat ./gcp-stemcell/version)
-./git-kubo-deployment/bin/update_stemcell "${stemcell_version}"
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../" && pwd)
+cp -r "${ROOT}/git-kubo-deployment/." "${ROOT}/git-kubo-deployment-output"
 
-cp -a git-kubo-deployment/. git-kubo-deployment-with-updated-stemcell
+cat << EOF > replace-stemcell-version.yml
+- type: replace
+  path: /stemcells/0/version
+  value: ((stemcell_version))
+EOF
+stemcell_version="$(cat stemcell/version)"
 
-pushd git-kubo-deployment-with-updated-stemcell
+bosh int "${ROOT}/git-kubo-deployment/manifests/cfcr.yml" \
+  -o replace-stemcell-version.yml \
+  -v stemcell_version="${stemcell_version}" \
+  > git-kubo-deployment-output/manifests/cfcr.yml
 
-  git config user.email "ci-bot@localhost"
-  git config user.name "CI Bot"
+git config --global user.name "cfcr"
+git config --global user.email "cfcr@pivotal.io"
+cd "${ROOT}/git-kubo-deployment-output"
 
-  git checkout master
-  git add .
-  git diff-index --quiet HEAD || git commit -m "Update stemcell version to $stemcell_version"
-
-popd
+git add .
+git commit -m "Bumping stemcell to v${stemcell_version}"

@@ -1,0 +1,17 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+    tag: stable
+run:
+  path: git-kubo-ci/scripts/bump-stemcell.sh
+
+params: []
+
+inputs:
+  - name: git-kubo-ci
+  - name: git-kubo-deployment
+  - name: stemcell
+outputs:
+  - name: git-kubo-deployment-output

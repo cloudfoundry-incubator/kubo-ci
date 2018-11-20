@@ -1,10 +1,5 @@
 groups: []
 resources:
-- name: stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-google-kvm-ubuntu-xenial-go_agent
-
 - name: source-json
   type: gcs
   source:
@@ -205,11 +200,15 @@ jobs:
     - get: gcs-load-balancer-vars
       passed:
       - install-bosh
-    - get: stemcell
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
       gcs-kubo-deployment-pre: kubo-deployment
+  - task: upload-stemcell
+    tags: ['gcp-lb']
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: gcp
   - put: cfcr-deployment
     params:
       cleanup: true
@@ -226,8 +225,6 @@ jobs:
       releases:
       - kubo-release/kubo-release-latest.tgz
       source_file: source-json/source.json
-      stemcells:
-      - stemcell/stemcell.tgz
       vars:
         deployment_name: ci-service
         worker_count: 3

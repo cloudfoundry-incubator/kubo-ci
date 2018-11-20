@@ -204,13 +204,16 @@ jobs:
       passed: [ deploy-bosh ]
     - get: gcs-load-balancer-vars
       passed: [ deploy-bosh ]
-    - get: stemcell
-      resource: stemcell
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
       gcs-kubo-deployment-pre: gcs-kubo-deployment-tarball
     on_failure: *on_failure_alert
+  - task: upload-stemcell
+    tags: ['gaffer']
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: gcp
   - put: cfcr-deployment
     params:
       cleanup: true
@@ -229,8 +232,6 @@ jobs:
       releases:
       - gcs-kubo-release-tarball/*.tgz
       source_file: source-json/source.json
-      stemcells:
-      - stemcell/stemcell.tgz
       vars:
         deployment_name: gaffer
         worker_vm_type: worker

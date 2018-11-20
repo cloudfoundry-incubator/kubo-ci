@@ -1,8 +1,5 @@
 <%
   envs = %w(openstack)
-  stemcell_types = {
-    'openstack' => 'openstack-kvm'
-  }
   enable_failure_alert = true
 %>
 ---
@@ -134,13 +131,6 @@ resources:
     bucket: kubo-pipeline-store
     regexp: dev-builds/kubo-deployment-(.*).tgz
 
-<% envs.each do |env| %>
-- name: stemcell-<%= env %>
-  type: bosh-io-stemcell
-  source:
-    name: bosh-<%= stemcell_types[env] %>-ubuntu-xenial-go_agent
-<% end %>
-
 jobs:
 <% envs.each do |env| %>
 - name: deploy-k8s-<%= env %>
@@ -156,10 +146,13 @@ jobs:
       trigger: true
     - get: gcs-kubo-release-tarball-untested
     - get: gcs-kubo-deployment-tarball-untested
-    - get: stemcell
-      resource: stemcell-<%= env %>
   - task: get-bosh-source-json-from-lock
     file: git-kubo-ci/tasks/get-bosh-source-json-from-lock.yml
+  - task: upload-stemcell
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: <%= env.split('-')[0] %>
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -180,8 +173,6 @@ jobs:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
       - gcs-bosh-creds/creds.yml
-      stemcells:
-      - stemcell/stemcell.tgz
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
       source_file: source-json/source.json
@@ -240,10 +231,13 @@ jobs:
 #       trigger: true
 #     - get: gcs-kubo-release-tarball-untested
 #     - get: gcs-kubo-deployment-tarball-untested
-#     - get: stemcell
-#       resource: stemcell-<%= env %>
 #   - task: get-bosh-source-json-from-lock
 #     file: git-kubo-ci/tasks/get-bosh-source-json-from-lock.yml
+#   - task: upload-stemcell
+#     tags: ['<%= env %>']
+#     file: git-kubo-ci/tasks/upload-stemcell.yml
+#     params:
+#       IAAS: <%= env.split('-')[0] %>
 #   - put: cfcr-deployment-turbulence
 #     params:
 #       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -265,8 +259,6 @@ jobs:
 #         addons-spec: "git-kubo-ci/specs/guestbook.yml"
 #       vars_files:
 #       - gcs-bosh-creds/creds.yml
-#       stemcells:
-#       - stemcell/stemcell.tgz
 #       releases:
 #       - gcs-kubo-release-tarball-untested/*.tgz
 #       source_file: source-json/source.json

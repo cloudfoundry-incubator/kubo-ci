@@ -1,15 +1,5 @@
 <%
   envs = %w(aws-lb gcp-lb vsphere-lb vsphere-proxy)
-  stemcell_types = {
-    'gcp' => 'google-kvm',
-    'gcp-lb' => 'google-kvm',
-    'vsphere' => 'vsphere-esxi',
-    'vsphere-lb' => 'vsphere-esxi',
-    'vsphere-proxy' => 'vsphere-esxi',
-    'aws' => 'aws-xen-hvm',
-    'aws-lb' => 'aws-xen-hvm',
-    'openstack' => 'openstack-kvm'
-  }
   additional_envs = %w()
   env_list = envs + additional_envs
   enable_failure_alert = true
@@ -17,7 +7,6 @@
   upgrade_test_envs = %w(gcp-lb vsphere-proxy)
   multi_az_envs = %w(aws-lb gcp-lb vsphere-lb)
   multi_master_upgrade_test_envs = %w(aws-lb gcp-lb vsphere-lb)
-  envs_for_new_bosh_stemcell = upgrade_test_envs | multi_master_upgrade_test_envs
   conformance_test_envs = envs - %w(vsphere-proxy)
   proxy_envs = %w(vsphere-proxy)
   bbr_test_envs = %w(gcp-lb)
@@ -433,13 +422,6 @@ resources:
     pre_release: true
     access_token: ((github-kubo-gitbot-access-token))
 
-<% env_list.each do |env| %>
-- name: stemcell-<%= env %>
-  type: bosh-io-stemcell
-  source:
-    name: bosh-<%= stemcell_types[env] %>-ubuntu-xenial-go_agent
-<% end %>
-
 - name: kubo-version
   type: semver
   source:
@@ -660,8 +642,6 @@ jobs:
       passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-<%= env %>' ]
-    - get: stemcell
-      resource: stemcell-<%= env %>
   <% if env =~ /^vsphere/ %>
   - task: get_director_uuid
     tags: ['<%= env %>']
@@ -679,6 +659,11 @@ jobs:
     params:
       OPS: -o git-kubo-ci/manifests/ops-files/vsphere-proxy-cloud-config.yml --vars-file=kubo-lock/metadata
   <% end %>
+  - task: upload-stemcell
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: <%= env.split('-')[0] %>
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -728,8 +713,6 @@ jobs:
       <% if env =~ /^vsphere/ %>
       - director_uuid/var.yml
       <% end %>
-      stemcells:
-      - stemcell/stemcell.tgz
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
       source_file: source-json/source.json
@@ -761,8 +744,6 @@ jobs:
     params:
       manifest: git-kubo-ci/manifests/tinyproxy/manifest.yml
       source_file: source-json/source.json
-      stemcells:
-      - stemcell/stemcell.tgz
       vars_files:
       - kubo-lock/metadata
     on_failure: *on_failure_alert
@@ -1085,8 +1066,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-for-upgrade-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-for-upgrade-<%= env %>' ]
-    - get: stemcell
-      resource: stemcell-<%= env %>
   - task: unpack-tgz
     file: git-kubo-ci/tasks/unpack-tgz.yml
     tags: ['<%= env %>']
@@ -1221,13 +1200,16 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-<%= env %>' ]
     - get: source-json
       passed: [ 'deploy-old-k8s-<%= env %>' ]
-    - get: stemcell
-      resource: stemcell-<%= env %>
     - get: slackers
     tags: ['<%= env %>']
   - task: get_director_uuid
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/get_director_uuid.yml
+  - task: upload-stemcell
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: <%= env.split('-')[0] %>
   - task: create-bosh-upgrade-deployment
     params:
       IAAS: <%= env %>
@@ -1422,8 +1404,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-multi-master-<%= env %>' ]
     - get: slackers
-    - get: stemcell
-      resource: stemcell-<%= env %>
   - task: unpack-tgz
     file: git-kubo-ci/tasks/unpack-tgz.yml
     tags: ['<%= env %>']
@@ -1537,9 +1517,12 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-multi-master-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'deploy-old-k8s-multi-master-<%= env %>' ]
-    - get: stemcell
-      resource: stemcell-<%= env %>
     - get: slackers
+  - task: upload-old-stemcell
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: <%= env.split('-')[0] %>
   - task: create-bosh-upgrade-deployment
     params:
       ENABLE_MULTI_AZ_TESTS: true
@@ -1723,8 +1706,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-two-cas' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-two-cas' ]
-    - get: stemcell
-      resource: stemcell-gcp-lb
+  - task: upload-stemcell
+    tags: ['gcp-lb']
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: gcp
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -1750,8 +1736,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
-      stemcells:
-      - stemcell/stemcell.tgz
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
       source_file: source-json/source.json
@@ -1949,8 +1933,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-bbr-<%= env %>' ]
-    - get: stemcell
-      resource: stemcell-<%= env %>
+  - task: upload-stemcell
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: <%= env.split('-')[0] %>
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -1974,8 +1961,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
-      stemcells:
-      - stemcell/stemcell.tgz
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
       - github-etcd-release/*.tgz
@@ -2214,8 +2199,11 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       passed: [ 'install-bosh-coredns-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-coredns-<%= env %>' ]
-    - get: stemcell
-      resource: stemcell-gcp-lb
+  - task: upload-stemcell
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: <%= env.split('-')[0] %>
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -2240,8 +2228,6 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
-      stemcells:
-      - stemcell/stemcell.tgz
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
       source_file: source-json/source.json

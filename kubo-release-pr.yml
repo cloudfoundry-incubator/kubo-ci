@@ -1,11 +1,6 @@
 <%
   env_list = %w(vsphere-lb gcp-lb aws-lb)
   upgrade_env_list = %w(gcp-lb)
-  stemcell_types = {
-    'gcp-lb' => 'google-kvm',
-    'vsphere-lb' => 'vsphere-esxi',
-    'aws-lb' => 'aws-xen-hvm'
-  }
 %>
 ---
 resource_types:
@@ -57,13 +52,6 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
     pool: kubo-<%= env %>
-<% end %>
-
-<% env_list.each do |env| %>
-- name: xenial-stemcell-<%= env %>
-  type: bosh-io-stemcell
-  source:
-    name: bosh-<%= stemcell_types[env] %>-ubuntu-xenial-go_agent
 <% end %>
 
 <% upgrade_env_list.each do |env| %>
@@ -455,8 +443,6 @@ jobs:
       passed: [ 'deploy-old-k8s-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'deploy-old-k8s-<%= env %>' ]
-    - get: stemcell
-      resource: xenial-stemcell-<%= env %>
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
@@ -467,6 +453,11 @@ jobs:
   - task: get_director_uuid
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/get_director_uuid.yml
+  - task: upload-stemcell
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: <%= env.split('-')[0] %>
   - task: create-bosh-upgrade-deployment
     params:
       env: <%= env %>
@@ -662,8 +653,6 @@ jobs:
       passed: [ 'install-bosh-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-<%= env %>' ]
-    - get: stemcell
-      resource: xenial-stemcell-<%= env %>
   - put: git-kubo-release
     params:
       path: git-kubo-release
@@ -673,6 +662,11 @@ jobs:
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/get_director_uuid.yml
   <% end %>
+  - task: upload-stemcell
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: <%= env.split('-')[0] %>
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -709,8 +703,6 @@ jobs:
       <% if env =~ /^vsphere/ %>
       - director_uuid/var.yml
       <% end %>
-      stemcells:
-      - stemcell/stemcell.tgz
       releases:
       - gcs-pr-release-tarball/*.tgz
       source_file: source-json/source.json

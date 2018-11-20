@@ -20,7 +20,6 @@ main() {
   release_tarball=$(find "${ROOT}/gcs-kubo-release-tarball/" -name "*kubo-*.tgz" | head -n1)
 
   bosh upload-release "$release_tarball"
-  bosh upload-stemcell "${ROOT}/stemcell/stemcell.tgz"
 
   if [[ "$INTERNET_ACCESS" != "false" ]]; then
     tmpfile="$(mktemp)"

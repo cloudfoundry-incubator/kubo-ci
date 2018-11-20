@@ -98,11 +98,6 @@ resources:
   source:
     url: ((build-alert-slack-url))
 
-- name: stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-google-kvm-ubuntu-xenial-go_agent
-
 - name: gcs-kubeconfig
   type: gcs
   source:
@@ -193,7 +188,6 @@ jobs:
       passed: [ 'install-bosh' ]
     - get: gcs-bosh-creds
       passed: [ 'install-bosh' ]
-    - get: stemcell
     - get: source-json
       passed: [ 'install-bosh' ]
       version: every
@@ -204,6 +198,11 @@ jobs:
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
       gcs-kubo-deployment-pre: kubo-deployment
+  - task: upload-stemcell
+    tags: [((worker-tag))]
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: ((iaas))
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -222,8 +221,6 @@ jobs:
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
-      stemcells:
-      - stemcell/stemcell.tgz
       releases:
       - kubo-release/*.tgz
       source_file: source-json/source.json
