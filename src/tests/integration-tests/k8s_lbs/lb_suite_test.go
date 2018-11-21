@@ -15,8 +15,9 @@ func TestK8sLb(t *testing.T) {
 }
 
 var (
-	runner      *test_helpers.KubectlRunner
-	nginxLBSpec = test_helpers.PathFromRoot("specs/nginx-lb.yml")
+	runner           *test_helpers.KubectlRunner
+	nginxLBSpec      = test_helpers.PathFromRoot("specs/nginx-lb.yml")
+	echoserverLBSpec = test_helpers.PathFromRoot("specs/echoserver-lb.yml")
 
 	internalNginxLBSpec string
 	iaas                string

@@ -1,4 +1,4 @@
-package external_traffic_policy_test
+package k8s_lbs_test
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-func getSourceIPFromEchoserver(appURL string) (string, error) {
+func getIPAddressFromEchoserver(appURL string) (string, error) {
 
 	httpClient := http.Client{
 		Timeout: time.Duration(5 * time.Second),
@@ -62,7 +62,7 @@ var _ = Describe("When deploying a loadbalancer", func() {
 			var ipAddress string
 			Eventually(func() error {
 				var err error
-				ipAddress, err = getSourceIPFromEchoserver(appURL)
+				ipAddress, err = getIPAddressFromEchoserver(appURL)
 				return err
 			}, "90s", "15s").Should(Succeed())
 			segments := strings.Split(ipAddress, ".")
@@ -72,11 +72,10 @@ var _ = Describe("When deploying a loadbalancer", func() {
 
 			loadbalancerAddress = runner.GetLBAddress("echoserver", iaas)
 			appURL = fmt.Sprintf("http://%s", loadbalancerAddress)
-			// reset cache
 			runner.RunKubectlCommand("delete", "pods", "--all")
 
 			Eventually(func() string {
-				newPrefix, err := getSourceIPFromEchoserver(appURL)
+				newPrefix, err := getIPAddressFromEchoserver(appURL)
 				if err != nil {
 					GinkgoWriter.Write([]byte(err.Error()))
 				}
@@ -88,48 +87,6 @@ var _ = Describe("When deploying a loadbalancer", func() {
 	AfterEach(func() {
 		if iaas == "gce" || iaas == "azure" {
 			runner.RunKubectlCommand("delete", "-f", echoserverLBSpec).Wait("60s")
-		}
-	})
-})
-
-var _ = Describe("When using a NodePort service", func() {
-	Context("with externalTrafficPolicy to local", func() {
-		It("shows a different source client IPs", func() {
-			if iaas != "vsphere" {
-				Skip("Test only valid for vSphere")
-			}
-			deployEchoserver := runner.RunKubectlCommand("create", "-f", echoserverNodePortSpec)
-			Eventually(deployEchoserver, "120s").Should(gexec.Exit(0))
-			rolloutWatch := runner.RunKubectlCommand("rollout", "status", "daemonset/echoserver", "-w")
-			Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
-
-			appURL := fmt.Sprintf("http://%s", runner.GetAppAddress("svc/echoserver"))
-			var sourceIP string
-			Eventually(func() error {
-				var err error
-				sourceIP, err = getSourceIPFromEchoserver(appURL)
-				return err
-			}, "90s", "15s").Should(Succeed())
-			segments := strings.Split(sourceIP, ".")
-
-			runner.RunKubectlCommandWithTimeout("patch", "svc/echoserver", "-p", "{\"spec\":{\"externalTrafficPolicy\":\"Local\"}}")
-			prefix := segments[0] + "." + segments[1] + "."
-
-			// reset cache
-			runner.RunKubectlCommand("delete", "pods", "--all")
-
-			Eventually(func() string {
-				newSourceIP, err := getSourceIPFromEchoserver(appURL)
-				if err != nil {
-					GinkgoWriter.Write([]byte(err.Error()))
-				}
-				return newSourceIP
-			}, "600s", "60s").Should(And(Not(BeEmpty()), Not(HavePrefix(prefix))))
-		})
-	})
-	AfterEach(func() {
-		if iaas == "vsphere" {
-			runner.RunKubectlCommand("delete", "-f", echoserverNodePortSpec).Wait("60s")
 		}
 	})
 })
