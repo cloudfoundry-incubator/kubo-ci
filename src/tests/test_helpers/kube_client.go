@@ -111,17 +111,3 @@ func CreateTestNamespace(k8s k8s.Interface, prefix string) (*corev1.Namespace, e
 func DeleteTestNamespace(k8s k8s.Interface, namespace string) error {
 	return k8s.CoreV1().Namespaces().Delete(namespace, &meta_v1.DeleteOptions{})
 }
-
-func HasWindowsWorkers() (bool, error) {
-	nodes, err := GetNodes()
-	if err != nil {
-		return false, err
-	}
-
-	for _, n := range nodes.Items {
-		if n.Status.NodeInfo.OperatingSystem == "windows" {
-			return true, nil
-		}
-	}
-	return false, nil
-}
