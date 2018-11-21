@@ -274,6 +274,13 @@ resources:
     access_token: ((github-kubo-gitbot-access-token))
     tag_filter: "v(.*)"
 
+- name: git-bosh-deployment
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/bosh-deployment.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
 - name: slackers
   type: git
   source:
@@ -559,6 +566,7 @@ jobs:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: git-kubo-deployment
       passed: [ 'claim-lock-<%= env %>' ]
     - get: kubo-lock
