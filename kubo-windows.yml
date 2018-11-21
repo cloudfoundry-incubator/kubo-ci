@@ -244,6 +244,9 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/windows/add-worker.yml
       - git-kubo-deployment/manifests/ops-files/windows/scale-to-one-az.yml
       - git-kubo-deployment/manifests/ops-files/windows/use-hostgw.yml
+      - git-kubo-deployment/manifests/ops-files/windows/use-runtime-config-bosh-dns.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/windows/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/windows/use-vm-extensions.yml
       releases:
       - kubo-release/release.tgz
       source_file: source-json/source.json
