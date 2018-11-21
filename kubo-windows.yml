@@ -241,6 +241,7 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml
       - git-kubo-deployment/manifests/ops-files/use-hostgw.yml
+      - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/windows/add-worker.yml
       - git-kubo-deployment/manifests/ops-files/windows/scale-to-one-az.yml
       - git-kubo-deployment/manifests/ops-files/windows/use-hostgw.yml
@@ -256,6 +257,8 @@ jobs:
       vars:
         deployment_name: ci-service
         worker_count: 3
+      var_files:
+        addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
