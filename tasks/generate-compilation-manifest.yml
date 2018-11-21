@@ -7,19 +7,16 @@ image_resource:
     repository: pcfkubo/kubo-ci
 
 inputs:
-- name: git-kubo-ci
 - name: git-kubo-deployment
-- name: gaffer-director-creds
-- name: gaffer-director-metadata
+- name: git-kubo-ci
 - name: kubo-version
   optional: true
-- name: compilation-deployment
 
 outputs:
-- name: compiled-releases
+- name: compilation-manifest
 
 run:
-  path: git-kubo-ci/scripts/export-release.sh
+  path: git-kubo-ci/scripts/generate-compilation-manifest.sh
 
 params:
   RELEASE_LIST:
