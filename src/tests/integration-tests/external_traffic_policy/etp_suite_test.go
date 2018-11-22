@@ -1,7 +1,6 @@
-package k8s_lbs_test
+package external_traffic_policy_test
 
 import (
-	"fmt"
 	"testing"
 	"tests/test_helpers"
 
@@ -11,15 +10,15 @@ import (
 
 func TestK8sLb(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "K8sLb Suite")
+	RunSpecs(t, "ExternalTrafficPolicy Suite")
 }
 
 var (
-	runner      *test_helpers.KubectlRunner
-	nginxLBSpec = test_helpers.PathFromRoot("specs/nginx-lb.yml")
+	runner                 *test_helpers.KubectlRunner
+	echoserverLBSpec       = test_helpers.PathFromRoot("specs/echoserver-lb.yml")
+	echoserverNodePortSpec = test_helpers.PathFromRoot("specs/echoserver-nodeport.yml")
 
-	internalNginxLBSpec string
-	iaas                string
+	iaas string
 )
 
 var _ = BeforeSuite(func() {
@@ -29,7 +28,6 @@ var _ = BeforeSuite(func() {
 	var err error
 	iaas, err = test_helpers.IaaS()
 	Expect(err).ToNot(HaveOccurred())
-	internalNginxLBSpec = fmt.Sprintf(test_helpers.PathFromRoot("specs/nginx-internal-lb-%s.yml"), iaas)
 })
 
 var _ = AfterSuite(func() {

@@ -1,0 +1,107 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: echoserver-sa
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: echoserver-psp
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default'
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName:  'docker/default'
+    apparmor.security.beta.kubernetes.io/defaultProfileName:  'runtime/default'
+spec:
+  privileged: false
+  # Required to prevent escalations to root.
+  allowPrivilegeEscalation: false
+  allowedCapabilities:
+  - '*'
+  # Allow core volume types.
+  hostNetwork: true
+  hostPorts:
+  - min: 0
+    max: 65535
+  hostIPC: true
+  hostPID: true
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+  runAsUser:
+    # Require the container to run without root privileges.
+    rule: 'RunAsAny'
+  seLinux:
+    # This policy assumes the nodes are using AppArmor rather than SELinux.
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+    # rule: 'MustRunAs'
+    # ranges:
+    #   # Forbid adding the root group.
+    #   - min: 1
+    #     max: 65535
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: psp:echoserver-psp
+rules:
+- apiGroups:
+  - extensions
+  resourceNames:
+  - echoserver-psp
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: psp:echoserver-psp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: psp:echoserver-psp
+subjects:
+- kind: ServiceAccount
+  name: echoserver-sa
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: echoserver
+  name: echoserver
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: echoserver
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: echoserver
+spec:
+  selector:
+    matchLabels:
+        app: echoserver
+  template:
+    metadata:
+      labels:
+        app: echoserver
+    spec:
+      serviceAccountName: echoserver-sa
+      containers:
+      - name: echoserver
+        image: k8s.gcr.io/echoserver:1.10
