@@ -12,7 +12,6 @@ params:
 
 inputs:
 - name: git-kubo-ci
-- name: git-bosh-deployment
 - name: git-kubo-deployment
 - name: kubo-lock
 outputs:
