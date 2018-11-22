@@ -14,7 +14,7 @@ var _ = Describe("Kubernetes DNS", func() {
 
 		podName := kubectl.GetResourceNameBySelector("kube-system", "pod", "k8s-app=metrics-server")
 
-		session := kubectl.RunKubectlCommandInNamespace("kube-system", "exec", podName, "--", "nslookup", "kubernetes-dashboard.kube-system.svc.cluster.local")
+		session := kubectl.StartKubectlCommandInNamespace("kube-system", "exec", podName, "--", "nslookup", "kubernetes-dashboard.kube-system.svc.cluster.local")
 		Eventually(session, "10s").Should(gexec.Exit(0))
 	})
 })

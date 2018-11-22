@@ -21,7 +21,7 @@ var _ = Describe("check apply-specs errand has run correctly", func() {
 	})
 
 	DescribeTable("all deployments have rolled out", func(deploymentName string) {
-		session := kubectl.RunKubectlCommandInNamespace("default", "rollout", "status", fmt.Sprintf("deployment/%s", deploymentName), "-w")
+		session := kubectl.StartKubectlCommandInNamespace("default", "rollout", "status", fmt.Sprintf("deployment/%s", deploymentName), "-w")
 		Eventually(session, "180s").Should(gexec.Exit(0))
 		Eventually(session, "120s").Should(gbytes.Say(fmt.Sprintf("deployment \"%s\" successfully rolled out", deploymentName)))
 	},

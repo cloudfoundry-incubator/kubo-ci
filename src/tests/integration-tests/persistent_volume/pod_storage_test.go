@@ -41,15 +41,15 @@ var _ = Describe("Guestbook storage", func() {
 
 		BeforeEach(func() {
 			storageClassSpec = PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
-			Eventually(kubectl.RunKubectlCommand("apply", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
+			Eventually(kubectl.StartKubectlCommand("apply", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 			pvcSpec = PathFromRoot("specs/persistent-volume-claim.yml")
-			Eventually(kubectl.RunKubectlCommand("apply", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
+			Eventually(kubectl.StartKubectlCommand("apply", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		})
 
 		AfterEach(func() {
 			UndeployGuestBook(kubectl)
-			Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
+			Eventually(kubectl.StartKubectlCommand("delete", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
+			Eventually(kubectl.StartKubectlCommand("delete", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		})
 
 		It("should persist when application was undeployed", func() {
@@ -95,13 +95,13 @@ var _ = Describe("Guestbook storage", func() {
 			}
 
 			pvcSpec = PathFromRoot("specs/default-persistent-volume-claim.yml")
-			Eventually(kubectl.RunKubectlCommand("create", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
+			Eventually(kubectl.StartKubectlCommand("create", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		})
 
 		AfterEach(func() {
 			if iaas == "gce" {
 				UndeployGuestBook(kubectl)
-				Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
+				Eventually(kubectl.StartKubectlCommand("delete", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 			}
 		})
 

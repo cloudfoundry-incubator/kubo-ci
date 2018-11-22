@@ -14,9 +14,9 @@ var _ = Describe("Deploy workload", func() {
 
 	var loadbalancerAddress string
 	It("exposes routes via LBs", func() {
-		deployNginx := kubectl.RunKubectlCommand("create", "-f", nginxLBSpec)
+		deployNginx := kubectl.StartKubectlCommand("create", "-f", nginxLBSpec)
 		Eventually(deployNginx, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
-		rolloutWatch := kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w")
+		rolloutWatch := kubectl.StartKubectlCommand("rollout", "status", "deployment/nginx", "-w")
 		Eventually(rolloutWatch, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 		loadbalancerAddress = ""
 		Eventually(func() string {
@@ -45,6 +45,6 @@ var _ = Describe("Deploy workload", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", nginxLBSpec).Wait(kubectl.TimeoutInSeconds)
+		kubectl.StartKubectlCommand("delete", "-f", nginxLBSpec).Wait(kubectl.TimeoutInSeconds)
 	})
 })

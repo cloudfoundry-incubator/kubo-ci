@@ -38,7 +38,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", nginxSpec).Wait(kubectl.TimeoutInSeconds)
+		kubectl.StartKubectlCommand("delete", "-f", nginxSpec).Wait(kubectl.TimeoutInSeconds)
 		director.EnableResurrection(true)
 		kubectl.Teardown()
 	})
@@ -95,7 +95,7 @@ func createTurbulenceIncident(request incident.Request, waitForIncident bool, ms
 	By("Deploying a workload on the k8s cluster")
 	kubectl.RunKubectlCommandWithTimeout("create", "-f", nginxSpec)
 	WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*2)
-	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+	Eventually(kubectl.StartKubectlCommand("rollout", "status", "deployment/nginx", "-w"), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 
 	By("Creating Turbulence Incident")
 	hellRaiser := TurbulenceClient(testconfig.Turbulence)
@@ -113,7 +113,7 @@ func createTurbulenceIncident(request incident.Request, waitForIncident bool, ms
 	Eventually(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVMType, VMRunningState) }, kubectl.TimeoutInSeconds, "2s").Should(HaveLen(numberOfMasters))
 
 	By("Checking for the workload on the k8s cluster")
-	session := kubectl.RunKubectlCommand("get", "deployment", "nginx")
+	session := kubectl.StartKubectlCommand("get", "deployment", "nginx")
 	Eventually(session, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 
 	By("Checking that master is back consistently")

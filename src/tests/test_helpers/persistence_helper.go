@@ -12,12 +12,12 @@ import (
 
 func UndeployGuestBook(kubectl *KubectlRunner) {
 	guestBookSpec := PathFromRoot("specs/pv-guestbook.yml")
-	Eventually(kubectl.RunKubectlCommand("delete", "-f", guestBookSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+	Eventually(kubectl.StartKubectlCommand("delete", "-f", guestBookSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 }
 
 func DeployGuestBook(kubectl *KubectlRunner) {
 	guestBookSpec := PathFromRoot("specs/pv-guestbook.yml")
-	Eventually(kubectl.RunKubectlCommand("apply", "-f", guestBookSpec), 5*kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
+	Eventually(kubectl.StartKubectlCommand("apply", "-f", guestBookSpec), 5*kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 	WaitForPodsToRun(kubectl, 5*kubectl.TimeoutInSeconds)
 }
 

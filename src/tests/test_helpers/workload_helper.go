@@ -13,9 +13,9 @@ func DeploySmorgasbord(kubectl *KubectlRunner, iaas string) {
 	storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
 	smorgasbordSpec := PathFromRoot("specs/smorgasbord.yml")
 
-	Eventually(kubectl.RunKubectlCommand("apply", "-f", storageClassSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("apply", "-f", smorgasbordSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("rollout", "status", "daemonset/fluentd-elasticsearch", "-w"), "900s").Should(gexec.Exit(0))
+	Eventually(kubectl.StartKubectlCommand("apply", "-f", storageClassSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+	Eventually(kubectl.StartKubectlCommand("apply", "-f", smorgasbordSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+	Eventually(kubectl.StartKubectlCommand("rollout", "status", "daemonset/fluentd-elasticsearch", "-w"), "900s").Should(gexec.Exit(0))
 	WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*5)
 }
 
@@ -62,8 +62,8 @@ func DeleteSmorgasbord(kubectl *KubectlRunner, iaas string) {
 	storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
 	smorgasbordSpec := PathFromRoot("specs/smorgasbord.yml")
 
-	Eventually(kubectl.RunKubectlCommand("delete", "-f", smorgasbordSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("delete", "--all", "pvc"), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+	Eventually(kubectl.StartKubectlCommand("delete", "-f", smorgasbordSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+	Eventually(kubectl.StartKubectlCommand("delete", "--all", "pvc"), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+	Eventually(kubectl.StartKubectlCommand("delete", "-f", storageClassSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 	WaitForPodsToDie(kubectl, kubectl.TimeoutInSeconds*5)
 }

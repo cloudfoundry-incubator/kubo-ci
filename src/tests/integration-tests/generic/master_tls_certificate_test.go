@@ -22,7 +22,7 @@ var _ = Describe("MasterTlsCertificate", func() {
 
 	DescribeTable("hostnames", func(hostname string) {
 		url := fmt.Sprintf("https://%s", hostname)
-		session := kubectl.RunKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl-"+GenerateRandomUUID(), "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", url, "--cacert", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+		session := kubectl.StartKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl-"+GenerateRandomUUID(), "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", url, "--cacert", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
 		Eventually(session, "5m").Should(gexec.Exit(0))
 	},
 		Entry("kubernetes", "kubernetes"),

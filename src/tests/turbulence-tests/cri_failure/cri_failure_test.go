@@ -45,17 +45,17 @@ var _ = CRIFailureDescribe("A dockerd failure", func() {
 
 		By("Deploying a workload on the k8s cluster")
 		remoteCommand := "while true; do sleep 30; done;"
-		Eventually(kubectl.RunKubectlCommand("run", "busybox", "--image=busybox", "--", "/bin/sh", "-c", remoteCommand))
+		Eventually(kubectl.StartKubectlCommand("run", "busybox", "--image=busybox", "--", "/bin/sh", "-c", remoteCommand))
 		Eventually(func() string {
 			return kubectl.GetPodStatusBySelector(kubectl.Namespace(), "run=busybox")
 		}, "120s").Should(Equal("Running"))
 
 		By("Getting the workload's node/bosh.id")
-		session := kubectl.RunKubectlCommand("get", "pod", "-l", "run=busybox", "-o", "jsonpath={.items[0].spec.nodeName}")
+		session := kubectl.StartKubectlCommand("get", "pod", "-l", "run=busybox", "-o", "jsonpath={.items[0].spec.nodeName}")
 		Eventually(session, "10s").Should(gexec.Exit(0))
 		nodeName := string(session.Out.Contents())
 
-		session = kubectl.RunKubectlCommand("get", "nodes", nodeName, "-o", "jsonpath={.metadata.labels['bosh\\.id']}")
+		session = kubectl.StartKubectlCommand("get", "nodes", nodeName, "-o", "jsonpath={.metadata.labels['bosh\\.id']}")
 		Eventually(session, "10s").Should(gexec.Exit(0))
 		boshID := string(session.Out.Contents())
 
@@ -93,7 +93,7 @@ var _ = CRIFailureDescribe("A dockerd failure", func() {
 		time.Sleep(30 * time.Second)
 
 		By("Checking that the containers have not restarted")
-		Eventually(kubectl.RunKubectlCommand("get", "pod", "-l", "run=busybox", "-o", "jsonpath={.items[0].status.containerStatuses[0].restartCount}"), "30s").Should(gbytes.Say("0"))
+		Eventually(kubectl.StartKubectlCommand("get", "pod", "-l", "run=busybox", "-o", "jsonpath={.items[0].status.containerStatuses[0].restartCount}"), "30s").Should(gbytes.Say("0"))
 	})
 })
 

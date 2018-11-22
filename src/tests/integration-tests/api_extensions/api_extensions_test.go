@@ -78,10 +78,10 @@ var _ = Describe("Api Extensions", func() {
 	AfterEach(func() {
 		kubectl.RunKubectlCommandWithTimeout("delete", "-f", apiServiceSpec)
 		kubectl.RunKubectlCommandWithTimeout("delete", "-f", serviceAccountSpec)
-		session := kubectl.RunKubectlCommandInNamespace(systemNamespace, "delete", "-f", authDelegatorSpec)
+		session := kubectl.StartKubectlCommandInNamespace(systemNamespace, "delete", "-f", authDelegatorSpec)
 		session.Wait("5s")
 		fmt.Fprintf(GinkgoWriter, "AuthDelegatorSpec delete exit code %d\n", session.ExitCode())
-		session = kubectl.RunKubectlCommandInNamespace(systemNamespace, "delete", "-f", authReaderSpec)
+		session = kubectl.StartKubectlCommandInNamespace(systemNamespace, "delete", "-f", authReaderSpec)
 		session.Wait("5s")
 		fmt.Fprintf(GinkgoWriter, "AuthReaderSpec delete exit code %d\n", session.ExitCode())
 		kubectl.RunKubectlCommandWithTimeout("delete", "-f", replicationControllerSpec)
@@ -95,9 +95,9 @@ var _ = Describe("Api Extensions", func() {
 		kubectl.RunKubectlCommandWithTimeout("create", "-f", serviceAccountSpec)
 
 		By("creating the rolebindings for authentication delegation")
-		session := kubectl.RunKubectlCommandInNamespace(systemNamespace, "create", "-f", authDelegatorSpec)
+		session := kubectl.StartKubectlCommandInNamespace(systemNamespace, "create", "-f", authDelegatorSpec)
 		Eventually(session).Should(gexec.Exit(0))
-		session = kubectl.RunKubectlCommandInNamespace(systemNamespace, "create", "-f", authReaderSpec)
+		session = kubectl.StartKubectlCommandInNamespace(systemNamespace, "create", "-f", authReaderSpec)
 		Eventually(session).Should(gexec.Exit(0))
 
 		By("creating the service and replication and replication controller")
@@ -116,7 +116,7 @@ var _ = Describe("Api Extensions", func() {
 			} `json:"metadata"`
 		}
 
-		session = kubectl.RunKubectlCommand("proxy", "--port=8000")
+		session = kubectl.StartKubectlCommand("proxy", "--port=8000")
 		Eventually(session).Should(gbytes.Say("Starting to serve on"))
 		defer session.Kill()
 		resp, err := http.Get(fmt.Sprintf("http://localhost:8000/apis/apiregistration.k8s.io/v1beta1/apiservices/%s", sampleApiEndpoint))

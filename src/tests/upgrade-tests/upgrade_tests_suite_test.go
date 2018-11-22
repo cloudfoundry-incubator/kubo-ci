@@ -30,6 +30,6 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
-	kubectl.RunKubectlCommand("delete", "--all", "psp")
+	kubectl.StartKubectlCommand("delete", "--all", "psp")
 	kubectl.Teardown()
 })

@@ -22,8 +22,8 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", hpaDeployment).Wait(kubectl.TimeoutInSeconds)
-		kubectl.RunKubectlCommand("delete", "pods", "--all").Wait(kubectl.TimeoutInSeconds)
+		kubectl.StartKubectlCommand("delete", "-f", hpaDeployment).Wait(kubectl.TimeoutInSeconds)
+		kubectl.StartKubectlCommand("delete", "pods", "--all").Wait(kubectl.TimeoutInSeconds)
 	})
 
 	It("scales the pods accordingly", func() {
@@ -40,14 +40,14 @@ var _ = Describe("Horizontal Pod Autoscaling", func() {
 
 		By("decreasing the number of pods when the CPU load decreases")
 
-		kubectl.RunKubectlCommand("delete", "pod/load-generator", "--now").Wait(kubectl.TimeoutInSeconds / 2)
+		kubectl.StartKubectlCommand("delete", "pod/load-generator", "--now").Wait(kubectl.TimeoutInSeconds / 2)
 
 		Eventually(getNumberOfPods, HPATimeout, "5s").Should(BeNumerically("==", 1))
 	})
 })
 
 func getNumberOfPods() int {
-	session := kubectl.RunKubectlCommand("get", "hpa/php-apache", "-o", "jsonpath={.status.currentReplicas}")
+	session := kubectl.StartKubectlCommand("get", "hpa/php-apache", "-o", "jsonpath={.status.currentReplicas}")
 	Eventually(session, "20s").Should(gexec.Exit())
 	if session.ExitCode() != 0 {
 		return 0
@@ -57,7 +57,7 @@ func getNumberOfPods() int {
 }
 
 func createHPADeployment() {
-	session := kubectl.RunKubectlCommand("apply", "-f", hpaDeployment)
+	session := kubectl.StartKubectlCommand("apply", "-f", hpaDeployment)
 	Eventually(session, "10s").Should(gexec.Exit(0))
 
 	Eventually(func() string {
@@ -68,7 +68,7 @@ func createHPADeployment() {
 func increaseCPULoad() {
 	remoteCommand := "while true; do wget -q -O- http://php-apache; done"
 
-	session := kubectl.RunKubectlCommand("run", "-i", "--tty", "load-generator", "--generator=run-pod/v1", "--image=busybox", "--", "/bin/sh", "-c", remoteCommand)
+	session := kubectl.StartKubectlCommand("run", "-i", "--tty", "load-generator", "--generator=run-pod/v1", "--image=busybox", "--", "/bin/sh", "-c", remoteCommand)
 	Eventually(session, "10s").Should(gexec.Exit(0))
 
 	Eventually(func() string {

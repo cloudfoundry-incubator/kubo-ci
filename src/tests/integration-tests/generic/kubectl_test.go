@@ -30,30 +30,30 @@ var _ = Describe("Kubectl", func() {
 
 	It("Should be able to run kubectl commands within pod", func() {
 		roleBindingName := kubectl.Namespace() + "-admin"
-		s := kubectl.RunKubectlCommand("create", "rolebinding", roleBindingName, "--clusterrole=admin", "--user=system:serviceaccount:"+kubectl.Namespace()+":default")
+		s := kubectl.StartKubectlCommand("create", "rolebinding", roleBindingName, "--clusterrole=admin", "--user=system:serviceaccount:"+kubectl.Namespace()+":default")
 		Eventually(s, "15s").Should(gexec.Exit(0))
 
 		podName := GenerateRandomUUID()
-		session := kubectl.RunKubectlCommand("run", podName, "--image", "pcfkubo/alpine:stable", "--restart=Never", "--image-pull-policy=Always", "-ti", "--rm", "--", "kubectl", "get", "services")
+		session := kubectl.StartKubectlCommand("run", podName, "--image", "pcfkubo/alpine:stable", "--restart=Never", "--image-pull-policy=Always", "-ti", "--rm", "--", "kubectl", "get", "services")
 		session.Wait(120)
 		Expect(session).To(gexec.Exit(0))
 	})
 
 	It("Should be able to run kubectl top pod successfully", func() {
 		Eventually(func() int {
-			return kubectl.RunKubectlCommand("top", "pods", "-n", "kube-system").Wait(30 * time.Second).ExitCode()
+			return kubectl.StartKubectlCommand("top", "pods", "-n", "kube-system").Wait(30 * time.Second).ExitCode()
 		}, "300s", "10s").Should(Equal(0))
 	})
 
 	It("Should be able to run kubectl top nodes successfully", func() {
 		Eventually(func() int {
-			return kubectl.RunKubectlCommand("top", "nodes").Wait(30 * time.Second).ExitCode()
+			return kubectl.StartKubectlCommand("top", "nodes").Wait(30 * time.Second).ExitCode()
 		}, "300s", "10s").Should(Equal(0))
 	})
 
 	Context("Dashboard", func() {
 		It("Should provide access to the dashboard via kubectl proxy", func() {
-			session := kubectl.RunKubectlCommand("proxy")
+			session := kubectl.StartKubectlCommand("proxy")
 			Eventually(session).Should(gbytes.Say("Starting to serve on"))
 
 			timeout := time.Duration(5 * time.Second)
@@ -110,15 +110,15 @@ var _ = Describe("Kubectl", func() {
 		})
 
 		AfterEach(func() {
-			kubectl.RunKubectlCommand("delete", "-f", serviceAccount).Wait(kubectl.TimeoutInSeconds)
+			kubectl.StartKubectlCommand("delete", "-f", serviceAccount).Wait(kubectl.TimeoutInSeconds)
 		})
 
 		It("Should not be allowed to perform attach,exec,logs actions", func() {
-			session := kubectl.RunKubectlCommand("--as=system:serviceaccounts:build-robot", "auth", "can-i", "attach", "pod")
+			session := kubectl.StartKubectlCommand("--as=system:serviceaccounts:build-robot", "auth", "can-i", "attach", "pod")
 			Eventually(session, "15s").Should(gbytes.Say("no"))
-			session = kubectl.RunKubectlCommand("--as=system:serviceaccounts:build-robot", "auth", "can-i", "logs", "pod")
+			session = kubectl.StartKubectlCommand("--as=system:serviceaccounts:build-robot", "auth", "can-i", "logs", "pod")
 			Eventually(session, "15s").Should(gbytes.Say("no"))
-			session = kubectl.RunKubectlCommand("--as=system:serviceaccounts:build-robot", "auth", "can-i", "exec", "pod")
+			session = kubectl.StartKubectlCommand("--as=system:serviceaccounts:build-robot", "auth", "can-i", "exec", "pod")
 			Eventually(session, "15s").Should(gbytes.Say("no"))
 		})
 	})

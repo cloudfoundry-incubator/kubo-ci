@@ -47,9 +47,9 @@ var _ = Describe("When deploying a loadbalancer", func() {
 				Skip("Test only valid for GCE and Azure")
 			}
 
-			deployEchoserver := kubectl.RunKubectlCommand("create", "-f", echoserverLBSpec)
+			deployEchoserver := kubectl.StartKubectlCommand("create", "-f", echoserverLBSpec)
 			Eventually(deployEchoserver, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
-			rolloutWatch := kubectl.RunKubectlCommand("rollout", "status", "deployment/echoserver", "-w")
+			rolloutWatch := kubectl.StartKubectlCommand("rollout", "status", "deployment/echoserver", "-w")
 			Eventually(rolloutWatch, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 
 			loadbalancerAddress = ""
@@ -73,7 +73,7 @@ var _ = Describe("When deploying a loadbalancer", func() {
 			loadbalancerAddress = kubectl.GetLBAddress("echoserver", iaas)
 			appURL = fmt.Sprintf("http://%s", loadbalancerAddress)
 			// reset cache
-			kubectl.RunKubectlCommand("delete", "pods", "--all")
+			kubectl.StartKubectlCommand("delete", "pods", "--all")
 
 			Eventually(func() string {
 				newPrefix, err := getSourceIPFromEchoserver(appURL)
@@ -87,7 +87,7 @@ var _ = Describe("When deploying a loadbalancer", func() {
 
 	AfterEach(func() {
 		if iaas == "gce" || iaas == "azure" {
-			kubectl.RunKubectlCommand("delete", "-f", echoserverLBSpec).Wait(kubectl.TimeoutInSeconds)
+			kubectl.StartKubectlCommand("delete", "-f", echoserverLBSpec).Wait(kubectl.TimeoutInSeconds)
 		}
 	})
 })
@@ -98,9 +98,9 @@ var _ = Describe("When using a NodePort service", func() {
 			if iaas != "vsphere" && iaas != "openstack" {
 				Skip("Test only valid for vSphere and Openstack")
 			}
-			deployEchoserver := kubectl.RunKubectlCommand("create", "-f", echoserverNodePortSpec)
+			deployEchoserver := kubectl.StartKubectlCommand("create", "-f", echoserverNodePortSpec)
 			Eventually(deployEchoserver, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
-			rolloutWatch := kubectl.RunKubectlCommand("rollout", "status", "daemonset/echoserver", "-w")
+			rolloutWatch := kubectl.StartKubectlCommand("rollout", "status", "daemonset/echoserver", "-w")
 			Eventually(rolloutWatch, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 
 			appURL := fmt.Sprintf("http://%s", kubectl.GetAppAddress("svc/echoserver"))
@@ -116,7 +116,7 @@ var _ = Describe("When using a NodePort service", func() {
 			prefix := segments[0] + "." + segments[1] + "."
 
 			// reset cache
-			kubectl.RunKubectlCommand("delete", "pods", "--all")
+			kubectl.StartKubectlCommand("delete", "pods", "--all")
 
 			Eventually(func() string {
 				newSourceIP, err := getSourceIPFromEchoserver(appURL)
@@ -130,7 +130,7 @@ var _ = Describe("When using a NodePort service", func() {
 
 	AfterEach(func() {
 		if iaas == "vsphere" && iaas != "openstack" {
-			kubectl.RunKubectlCommand("delete", "-f", echoserverNodePortSpec).Wait(kubectl.TimeoutInSeconds)
+			kubectl.StartKubectlCommand("delete", "-f", echoserverNodePortSpec).Wait(kubectl.TimeoutInSeconds)
 		}
 	})
 })

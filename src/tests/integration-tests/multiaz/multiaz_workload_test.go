@@ -9,24 +9,24 @@ import (
 
 var _ = Describe("Multi-AZ workload deployment", func() {
 	BeforeEach(func() {
-		deployNginx := kubectl.RunKubectlCommand("create", "-f", nginxSpec)
+		deployNginx := kubectl.StartKubectlCommand("create", "-f", nginxSpec)
 		Eventually(deployNginx, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 
-		rolloutWatch := kubectl.RunKubectlCommand("rollout", "status", "daemonset/nginx", "-w")
+		rolloutWatch := kubectl.StartKubectlCommand("rollout", "status", "daemonset/nginx", "-w")
 		Eventually(rolloutWatch, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", nginxSpec).Wait(kubectl.TimeoutInSeconds)
+		kubectl.StartKubectlCommand("delete", "-f", nginxSpec).Wait(kubectl.TimeoutInSeconds)
 	})
 
 	It("deploys three pods across three azs", func() {
-		nodeList := kubectl.RunKubectlCommand("get", "nodes", "-o", "yaml")
+		nodeList := kubectl.StartKubectlCommand("get", "nodes", "-o", "yaml")
 		Eventually(nodeList, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		nodeZones, err := getNodeZones(nodeList.Out.Contents())
 		Expect(err).NotTo(HaveOccurred())
 
-		podList := kubectl.RunKubectlCommand("get", "pods", "-l", "app=nginx", "-o", "yaml")
+		podList := kubectl.StartKubectlCommand("get", "pods", "-l", "app=nginx", "-o", "yaml")
 		Eventually(podList, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		podNodes, err := getPodInstanceNodes(podList.Out.Contents())
 		Expect(err).NotTo(HaveOccurred())

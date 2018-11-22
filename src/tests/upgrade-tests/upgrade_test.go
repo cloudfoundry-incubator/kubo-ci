@@ -29,14 +29,14 @@ var _ = Describe("Upgrade components", func() {
 
 		masterRequestLossThreshold = 0.95
 
-		deployNginx := kubectl.RunKubectlCommand("create", "-f", nginxSpec)
+		deployNginx := kubectl.StartKubectlCommand("create", "-f", nginxSpec)
 		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
 
 		test_helpers.DeploySmorgasbord(kubectl, testconfig.Iaas)
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", nginxSpec).Wait("60s")
+		kubectl.StartKubectlCommand("delete", "-f", nginxSpec).Wait("60s")
 		test_helpers.DeleteSmorgasbord(kubectl, testconfig.Iaas)
 	})
 
@@ -151,7 +151,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 			defer GinkgoRecover()
 
 			k8sMasterRunner := test_helpers.NewKubectlRunner()
-			session := k8sMasterRunner.RunKubectlCommandInNamespaceSilent(kubectl.Namespace(), "describe", "pod", "nginx")
+			session := k8sMasterRunner.StartKubectlCommandInNamespaceSilent(kubectl.Namespace(), "describe", "pod", "nginx")
 			session.Wait("120s")
 			if session.ExitCode() == 0 {
 				return nil

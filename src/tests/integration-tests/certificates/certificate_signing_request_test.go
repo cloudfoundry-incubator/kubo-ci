@@ -33,8 +33,8 @@ var _ = Describe("Certificate Signing Requests", func() {
 	})
 
 	AfterEach(func() {
-		Eventually(kubectl.RunKubectlCommand("delete", "-f", csrSpec), "30s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommand("config", "unset", "users."+csrUsername), "30s").Should(gexec.Exit(0))
+		Eventually(kubectl.StartKubectlCommand("delete", "-f", csrSpec), "30s").Should(gexec.Exit(0))
+		Eventually(kubectl.StartKubectlCommand("config", "unset", "users."+csrUsername), "30s").Should(gexec.Exit(0))
 
 		if certFile != "" {
 			os.Remove(certFile)
@@ -43,7 +43,7 @@ var _ = Describe("Certificate Signing Requests", func() {
 
 	Context("When a user creates a CSR within the 'system:master' group", func() {
 		It("should create a client certificate that can talk to Kube API Server", func() {
-			Eventually(kubectl.RunKubectlCommand("apply", "-f", csrSpec), "30s").Should(gexec.Exit(0))
+			Eventually(kubectl.StartKubectlCommand("apply", "-f", csrSpec), "30s").Should(gexec.Exit(0))
 
 			k8s, err := NewKubeClient()
 			Expect(err).NotTo(HaveOccurred())
@@ -70,10 +70,10 @@ var _ = Describe("Certificate Signing Requests", func() {
 			clientCert, err := CSRClient.Get("test-csr", v1.GetOptions{})
 			certFile := writeCertToFile(clientCert.Status.Certificate)
 
-			Eventually(kubectl.RunKubectlCommand("config", "set-credentials", csrUsername,
+			Eventually(kubectl.StartKubectlCommand("config", "set-credentials", csrUsername,
 				"--client-certificate", certFile, "--client-key", keyFile), "30s").Should(gexec.Exit(0))
 
-			Eventually(kubectl.RunKubectlCommand("--user", csrUsername, "get", "nodes"), "30s").Should(gexec.Exit(0))
+			Eventually(kubectl.StartKubectlCommand("--user", csrUsername, "get", "nodes"), "30s").Should(gexec.Exit(0))
 		})
 	})
 })

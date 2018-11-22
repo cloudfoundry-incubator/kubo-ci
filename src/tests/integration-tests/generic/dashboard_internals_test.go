@@ -72,7 +72,7 @@ var _ = Describe("Dashboard Internals", func() {
 	It("heapster should be able to connect to influxdb", func() {
 		url := "https://monitoring-influxdb.kube-system.svc.cluster.local:8086/query"
 
-		session := kubectl.RunKubectlCommand("run", "influxdb-test", "--image=tutum/curl",
+		session := kubectl.StartKubectlCommand("run", "influxdb-test", "--image=tutum/curl",
 			"--restart=Never", "-it", "--rm", "--",
 			"curl", "-k", url, "--data-urlencode", "q=SHOW DATABASES")
 		Eventually(session, "60s").Should(gexec.Exit(0))

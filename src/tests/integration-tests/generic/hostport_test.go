@@ -26,14 +26,14 @@ var _ = Describe("When deploying a pod with service", func() {
 		)
 
 		BeforeEach(func() {
-			deployNginx := kubectl.RunKubectlCommand("create", "-f", nginxHostPortSpec)
+			deployNginx := kubectl.StartKubectlCommand("create", "-f", nginxHostPortSpec)
 			Eventually(deployNginx, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
-			rolloutWatch := kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx-hostport", "-w")
+			rolloutWatch := kubectl.StartKubectlCommand("rollout", "status", "deployment/nginx-hostport", "-w")
 			Eventually(rolloutWatch, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 		})
 
 		AfterEach(func() {
-			kubectl.RunKubectlCommand("delete", "-f", nginxHostPortSpec).Wait(kubectl.TimeoutInSeconds)
+			kubectl.StartKubectlCommand("delete", "-f", nginxHostPortSpec).Wait(kubectl.TimeoutInSeconds)
 		})
 
 		It("should be able to connect to <node>:<port>", func() {
@@ -41,7 +41,7 @@ var _ = Describe("When deploying a pod with service", func() {
 				"-o", "jsonpath='{@.items[0].status.hostIP}'")
 			Expect(err).NotTo(HaveOccurred())
 			url := fmt.Sprintf("http://%s:40801", hostIP)
-			session := kubectl.RunKubectlCommand("run", "curl-hostport",
+			session := kubectl.StartKubectlCommand("run", "curl-hostport",
 				"--image=tutum/curl", "--restart=Never", "--", "curl", url)
 			Eventually(session, "10s").Should(gexec.Exit(0))
 		})
