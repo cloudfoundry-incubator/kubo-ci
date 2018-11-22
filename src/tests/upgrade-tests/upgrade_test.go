@@ -29,15 +29,15 @@ var _ = Describe("Upgrade components", func() {
 
 		masterRequestLossThreshold = 0.95
 
-		deployNginx := k8sRunner.RunKubectlCommand("create", "-f", nginxSpec)
+		deployNginx := kubectl.RunKubectlCommand("create", "-f", nginxSpec)
 		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
 
-		test_helpers.DeploySmorgasbord(k8sRunner, testconfig.Iaas)
+		test_helpers.DeploySmorgasbord(kubectl, testconfig.Iaas)
 	})
 
 	AfterEach(func() {
-		k8sRunner.RunKubectlCommand("delete", "-f", nginxSpec).Wait("60s")
-		test_helpers.DeleteSmorgasbord(k8sRunner, testconfig.Iaas)
+		kubectl.RunKubectlCommand("delete", "-f", nginxSpec).Wait("60s")
+		test_helpers.DeleteSmorgasbord(kubectl, testconfig.Iaas)
 	})
 
 	It("upgrades CFCR Release", func() {
@@ -92,7 +92,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 		defer session.Process.Kill()
 	} else {
 		Eventually(func() string {
-			loadbalancerAddress = k8sRunner.GetLBAddress("nginx", testconfig.Iaas)
+			loadbalancerAddress = kubectl.GetLBAddress("nginx", testconfig.Iaas)
 			return loadbalancerAddress
 		}, "120s", "5s").Should(Not(Equal("")))
 
@@ -104,7 +104,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 					fmt.Fprintf(GinkgoWriter, "Found hosts: %#v\n", hosts)
 				}
 				return hosts, err
-			}, "5m", "5s").ShouldNot(HaveLen(0))
+			}, kubectl.TimeoutInSeconds*5, "5s").ShouldNot(HaveLen(0))
 		}
 	}
 
@@ -117,7 +117,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 		status, err := curlURL(appURL)
 		fmt.Fprintf(GinkgoWriter, "Status: %d, err %#v\n", status, err)
 		return status, err
-	}, "5m", "5s").Should(Equal(200))
+	}, kubectl.TimeoutInSeconds*5, "5s").Should(Equal(200))
 
 	go func(doneChannel chan bool, f func(string) (int, error)) {
 		fmt.Fprintf(os.Stdout, "\nStart curling endpoint %s", appURL)
@@ -151,7 +151,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 			defer GinkgoRecover()
 
 			k8sMasterRunner := test_helpers.NewKubectlRunner()
-			session := k8sMasterRunner.RunKubectlCommandInNamespaceSilent(k8sRunner.Namespace(), "describe", "pod", "nginx")
+			session := k8sMasterRunner.RunKubectlCommandInNamespaceSilent(kubectl.Namespace(), "describe", "pod", "nginx")
 			session.Wait("120s")
 			if session.ExitCode() == 0 {
 				return nil
@@ -163,7 +163,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 			}
 			return fmt.Errorf("Failed to run kubectl: %s", errorMessage)
 		}
-		Eventually(masterCheck, "5m", "5s").Should(BeNil())
+		Eventually(masterCheck, kubectl.TimeoutInSeconds*5, "5s").Should(BeNil())
 
 		go func(doneChannel chan bool, f func() error) {
 			fmt.Fprintf(os.Stdout, "\nStart kubectl describe pod\n")
@@ -205,7 +205,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	}
 
 	By("Checking that all workloads are running once again")
-	test_helpers.WaitForPodsToRun(k8sRunner, "10m")
+	test_helpers.WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*10)
 }
 
 func curlURL(appURL string) (int, error) {

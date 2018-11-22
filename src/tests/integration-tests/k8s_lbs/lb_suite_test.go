@@ -15,7 +15,7 @@ func TestK8sLb(t *testing.T) {
 }
 
 var (
-	runner      *test_helpers.KubectlRunner
+	kubectl     *test_helpers.KubectlRunner
 	nginxLBSpec = test_helpers.PathFromRoot("specs/nginx-lb.yml")
 
 	internalNginxLBSpec string
@@ -23,8 +23,8 @@ var (
 )
 
 var _ = BeforeSuite(func() {
-	runner = test_helpers.NewKubectlRunner()
-	runner.Setup()
+	kubectl = test_helpers.NewKubectlRunner()
+	kubectl.Setup()
 
 	var err error
 	iaas, err = test_helpers.IaaS()
@@ -33,7 +33,7 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
-	if runner != nil {
-		runner.Teardown()
+	if kubectl != nil {
+		kubectl.Teardown()
 	}
 })

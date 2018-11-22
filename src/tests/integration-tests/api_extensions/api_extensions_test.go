@@ -107,7 +107,7 @@ var _ = Describe("Api Extensions", func() {
 		By("creating the api service extension")
 		kubectl.RunKubectlCommandWithTimeout("create", "-f", apiServiceSpec)
 
-		WaitForPodsToRun(kubectl, "120s")
+		WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*2)
 
 		By("verifying the api extension has been registered to the cluster")
 		var apiServiceResp struct {

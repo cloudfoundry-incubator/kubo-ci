@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	k8sRunner  *test_helpers.KubectlRunner
+	kubectl    *test_helpers.KubectlRunner
 	testconfig *config.Config
 )
 
@@ -25,11 +25,11 @@ var _ = BeforeSuite(func() {
 	testconfig, err = config.InitConfig()
 	Expect(err).NotTo(HaveOccurred())
 
-	k8sRunner = test_helpers.NewKubectlRunner()
-	k8sRunner.Setup()
+	kubectl = test_helpers.NewKubectlRunner()
+	kubectl.Setup()
 })
 
 var _ = AfterSuite(func() {
-	k8sRunner.RunKubectlCommand("delete", "--all", "psp")
-	k8sRunner.Teardown()
+	kubectl.RunKubectlCommand("delete", "--all", "psp")
+	kubectl.Teardown()
 })

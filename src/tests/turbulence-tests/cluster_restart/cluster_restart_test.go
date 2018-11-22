@@ -40,7 +40,7 @@ var _ = Describe("Cluster upgrade", func() {
 		err = deployment.Recreate(director.AllOrInstanceGroupOrInstanceSlug{}, director.RecreateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
-		WaitForPodsToRun(kubectl, "5m")
+		WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*5)
 	})
 
 	Specify("doesn't fail when deployment is restarted", func() {
@@ -50,6 +50,6 @@ var _ = Describe("Cluster upgrade", func() {
 		err = deployment.Restart(director.AllOrInstanceGroupOrInstanceSlug{}, director.RestartOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
-		WaitForPodsToRun(kubectl, "5m")
+		WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*5)
 	})
 })

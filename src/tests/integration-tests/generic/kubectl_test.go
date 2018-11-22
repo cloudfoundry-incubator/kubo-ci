@@ -70,7 +70,7 @@ var _ = Describe("Kubectl", func() {
 					return -1
 				}
 				return result.StatusCode
-			}, "120s", "5s").Should(Equal(200))
+			}, kubectl.TimeoutInSeconds*2, "5s").Should(Equal(200))
 
 			session.Terminate()
 		})
@@ -97,7 +97,7 @@ var _ = Describe("Kubectl", func() {
 					return -1
 				}
 				return result.StatusCode
-			}, "120s", "5s").Should(Equal(200))
+			}, kubectl.TimeoutInSeconds*2, "5s").Should(Equal(200))
 		})
 	})
 
@@ -110,7 +110,7 @@ var _ = Describe("Kubectl", func() {
 		})
 
 		AfterEach(func() {
-			kubectl.RunKubectlCommand("delete", "-f", serviceAccount).Wait("60s")
+			kubectl.RunKubectlCommand("delete", "-f", serviceAccount).Wait(kubectl.TimeoutInSeconds)
 		})
 
 		It("Should not be allowed to perform attach,exec,logs actions", func() {

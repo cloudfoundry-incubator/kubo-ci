@@ -14,17 +14,17 @@ func TestK8sMultiAZ(t *testing.T) {
 }
 
 var (
-	runner    *test_helpers.KubectlRunner
+	kubectl   *test_helpers.KubectlRunner
 	nginxSpec = test_helpers.PathFromRoot("specs/nginx-daemonset.yml")
 )
 
 var _ = BeforeSuite(func() {
-	runner = test_helpers.NewKubectlRunner()
-	runner.Setup()
+	kubectl = test_helpers.NewKubectlRunner()
+	kubectl.Setup()
 })
 
 var _ = AfterSuite(func() {
-	if runner != nil {
-		runner.Teardown()
+	if kubectl != nil {
+		kubectl.Teardown()
 	}
 })

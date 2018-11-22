@@ -47,16 +47,16 @@ var _ = Describe("When deploying a loadbalancer", func() {
 				Skip("Test only valid for GCE and Azure")
 			}
 
-			deployEchoserver := runner.RunKubectlCommand("create", "-f", echoserverLBSpec)
-			Eventually(deployEchoserver, "120s").Should(gexec.Exit(0))
-			rolloutWatch := runner.RunKubectlCommand("rollout", "status", "deployment/echoserver", "-w")
-			Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
+			deployEchoserver := kubectl.RunKubectlCommand("create", "-f", echoserverLBSpec)
+			Eventually(deployEchoserver, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+			rolloutWatch := kubectl.RunKubectlCommand("rollout", "status", "deployment/echoserver", "-w")
+			Eventually(rolloutWatch, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 
 			loadbalancerAddress = ""
 			Eventually(func() string {
-				loadbalancerAddress = runner.GetLBAddress("echoserver", iaas)
+				loadbalancerAddress = kubectl.GetLBAddress("echoserver", iaas)
 				return loadbalancerAddress
-			}, "240s", "60s").Should(Not(Equal("")))
+			}, "240s", kubectl.TimeoutInSeconds).Should(Not(Equal("")))
 
 			appURL := fmt.Sprintf("http://%s", loadbalancerAddress)
 			var ipAddress string
@@ -67,13 +67,13 @@ var _ = Describe("When deploying a loadbalancer", func() {
 			}, "90s", "15s").Should(Succeed())
 			segments := strings.Split(ipAddress, ".")
 
-			runner.RunKubectlCommandWithTimeout("patch", "svc/echoserver", "-p", "{\"spec\":{\"externalTrafficPolicy\":\"Local\"}}")
+			kubectl.RunKubectlCommandWithTimeout("patch", "svc/echoserver", "-p", "{\"spec\":{\"externalTrafficPolicy\":\"Local\"}}")
 			prefix := segments[0] + "." + segments[1] + "."
 
-			loadbalancerAddress = runner.GetLBAddress("echoserver", iaas)
+			loadbalancerAddress = kubectl.GetLBAddress("echoserver", iaas)
 			appURL = fmt.Sprintf("http://%s", loadbalancerAddress)
 			// reset cache
-			runner.RunKubectlCommand("delete", "pods", "--all")
+			kubectl.RunKubectlCommand("delete", "pods", "--all")
 
 			Eventually(func() string {
 				newPrefix, err := getSourceIPFromEchoserver(appURL)
@@ -81,13 +81,13 @@ var _ = Describe("When deploying a loadbalancer", func() {
 					GinkgoWriter.Write([]byte(err.Error()))
 				}
 				return newPrefix
-			}, "600s", "60s").Should(And(Not(BeEmpty()), Not(HavePrefix(prefix))))
+			}, "600s", kubectl.TimeoutInSeconds).Should(And(Not(BeEmpty()), Not(HavePrefix(prefix))))
 		})
 	})
 
 	AfterEach(func() {
 		if iaas == "gce" || iaas == "azure" {
-			runner.RunKubectlCommand("delete", "-f", echoserverLBSpec).Wait("60s")
+			kubectl.RunKubectlCommand("delete", "-f", echoserverLBSpec).Wait(kubectl.TimeoutInSeconds)
 		}
 	})
 })
@@ -98,12 +98,12 @@ var _ = Describe("When using a NodePort service", func() {
 			if iaas != "vsphere" && iaas != "openstack" {
 				Skip("Test only valid for vSphere and Openstack")
 			}
-			deployEchoserver := runner.RunKubectlCommand("create", "-f", echoserverNodePortSpec)
-			Eventually(deployEchoserver, "120s").Should(gexec.Exit(0))
-			rolloutWatch := runner.RunKubectlCommand("rollout", "status", "daemonset/echoserver", "-w")
-			Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
+			deployEchoserver := kubectl.RunKubectlCommand("create", "-f", echoserverNodePortSpec)
+			Eventually(deployEchoserver, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+			rolloutWatch := kubectl.RunKubectlCommand("rollout", "status", "daemonset/echoserver", "-w")
+			Eventually(rolloutWatch, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 
-			appURL := fmt.Sprintf("http://%s", runner.GetAppAddress("svc/echoserver"))
+			appURL := fmt.Sprintf("http://%s", kubectl.GetAppAddress("svc/echoserver"))
 			var sourceIP string
 			Eventually(func() error {
 				var err error
@@ -112,11 +112,11 @@ var _ = Describe("When using a NodePort service", func() {
 			}, "90s", "15s").Should(Succeed())
 			segments := strings.Split(sourceIP, ".")
 
-			runner.RunKubectlCommandWithTimeout("patch", "svc/echoserver", "-p", "{\"spec\":{\"externalTrafficPolicy\":\"Local\"}}")
+			kubectl.RunKubectlCommandWithTimeout("patch", "svc/echoserver", "-p", "{\"spec\":{\"externalTrafficPolicy\":\"Local\"}}")
 			prefix := segments[0] + "." + segments[1] + "."
 
 			// reset cache
-			runner.RunKubectlCommand("delete", "pods", "--all")
+			kubectl.RunKubectlCommand("delete", "pods", "--all")
 
 			Eventually(func() string {
 				newSourceIP, err := getSourceIPFromEchoserver(appURL)
@@ -124,13 +124,13 @@ var _ = Describe("When using a NodePort service", func() {
 					GinkgoWriter.Write([]byte(err.Error()))
 				}
 				return newSourceIP
-			}, "600s", "60s").Should(And(Not(BeEmpty()), Not(HavePrefix(prefix))))
+			}, "600s", kubectl.TimeoutInSeconds).Should(And(Not(BeEmpty()), Not(HavePrefix(prefix))))
 		})
 	})
 
 	AfterEach(func() {
 		if iaas == "vsphere" && iaas != "openstack" {
-			runner.RunKubectlCommand("delete", "-f", echoserverNodePortSpec).Wait("60s")
+			kubectl.RunKubectlCommand("delete", "-f", echoserverNodePortSpec).Wait(kubectl.TimeoutInSeconds)
 		}
 	})
 })

@@ -21,15 +21,15 @@ import (
 )
 
 type KubectlRunner struct {
-	configPath string
-	namespace  string
-	Timeout    string
+	configPath       string
+	namespace        string
+	TimeoutInSeconds float64
 }
 
 func NewKubectlRunner() *KubectlRunner {
 	return &KubectlRunner{
-		namespace: "test-" + GenerateRandomUUID(),
-		Timeout:   "60s",
+		namespace:        "test-" + GenerateRandomUUID(),
+		TimeoutInSeconds: 60,
 	}
 }
 
@@ -43,34 +43,34 @@ func PathFromRoot(relativePath string) string {
 	return filepath.Join(currentDir, "..", "..", "..", relativePath)
 }
 
-func (runner KubectlRunner) Setup() {
-	runner.RunKubectlCommand("create", "namespace", runner.Namespace()).Wait("60s")
+func (kubectl KubectlRunner) Setup() {
+	kubectl.RunKubectlCommand("create", "namespace", kubectl.Namespace()).Wait(kubectl.TimeoutInSeconds)
 }
 
-func (runner KubectlRunner) Teardown() {
-	runner.RunKubectlCommand("delete", "namespace", runner.Namespace()).Wait("120s")
+func (kubectl KubectlRunner) Teardown() {
+	kubectl.RunKubectlCommand("delete", "namespace", kubectl.Namespace()).Wait(kubectl.TimeoutInSeconds * 2)
 }
 
-func (runner KubectlRunner) Namespace() string {
-	return runner.namespace
+func (kubectl KubectlRunner) Namespace() string {
+	return kubectl.namespace
 }
 
-func (runner KubectlRunner) RunKubectlCommand(args ...string) *gexec.Session {
-	return runner.RunKubectlCommandInNamespace(runner.namespace, args...)
+func (kubectl KubectlRunner) RunKubectlCommand(args ...string) *gexec.Session {
+	return kubectl.RunKubectlCommandInNamespace(kubectl.namespace, args...)
 }
 
-func (runner KubectlRunner) RunKubectlCommandOrError(args ...string) (*gexec.Session, error) {
-	return runner.RunKubectlCommandInNamespaceOrError(runner.namespace, args...)
+func (kubectl KubectlRunner) RunKubectlCommandOrError(args ...string) (*gexec.Session, error) {
+	return kubectl.RunKubectlCommandInNamespaceOrError(kubectl.namespace, args...)
 }
 
-func (runner KubectlRunner) RunKubectlCommandWithTimeout(args ...string) {
-	Eventually(runner.RunKubectlCommandInNamespace(runner.namespace, args...), "60s").Should(gexec.Exit(0))
+func (kubectl KubectlRunner) RunKubectlCommandWithTimeout(args ...string) {
+	Eventually(kubectl.RunKubectlCommandInNamespace(kubectl.namespace, args...), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 }
 
-func (runner KubectlRunner) RunKubectlCommandInNamespace(namespace string, args ...string) *gexec.Session {
+func (kubectl KubectlRunner) RunKubectlCommandInNamespace(namespace string, args ...string) *gexec.Session {
 	argsWithNamespace := append([]string{"--namespace", namespace}, args...)
-	if runner.configPath != "" {
-		argsWithNamespace = append([]string{"--kubeconfig", runner.configPath}, argsWithNamespace...)
+	if kubectl.configPath != "" {
+		argsWithNamespace = append([]string{"--kubeconfig", kubectl.configPath}, argsWithNamespace...)
 	}
 	command := exec.Command("kubectl", argsWithNamespace...)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -79,15 +79,15 @@ func (runner KubectlRunner) RunKubectlCommandInNamespace(namespace string, args 
 	return session
 }
 
-func (runner KubectlRunner) RunKubectlCommandInNamespaceOrError(namespace string, args ...string) (*gexec.Session, error) {
-	newArgs := append([]string{"--kubeconfig", runner.configPath, "--namespace", namespace}, args...)
+func (kubectl KubectlRunner) RunKubectlCommandInNamespaceOrError(namespace string, args ...string) (*gexec.Session, error) {
+	newArgs := append([]string{"--kubeconfig", kubectl.configPath, "--namespace", namespace}, args...)
 	command := exec.Command("kubectl", newArgs...)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	return session, err
 }
 
-func (runner KubectlRunner) RunKubectlCommandInNamespaceSilent(namespace string, args ...string) *gexec.Session {
-	newArgs := append([]string{"--kubeconfig", runner.configPath, "--namespace", namespace}, args...)
+func (kubectl KubectlRunner) RunKubectlCommandInNamespaceSilent(namespace string, args ...string) *gexec.Session {
+	newArgs := append([]string{"--kubeconfig", kubectl.configPath, "--namespace", namespace}, args...)
 	command := exec.Command("kubectl", newArgs...)
 	session, err := gexec.Start(command, nil, GinkgoWriter)
 
@@ -95,8 +95,8 @@ func (runner KubectlRunner) RunKubectlCommandInNamespaceSilent(namespace string,
 	return session
 }
 
-func (runner KubectlRunner) ExpectEventualSuccess(args ...string) {
-	Eventually(runner.RunKubectlCommand(args...), runner.Timeout).Should(gexec.Exit(0))
+func (kubectl KubectlRunner) ExpectEventualSuccess(args ...string) {
+	Eventually(kubectl.RunKubectlCommand(args...), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 }
 
 func GenerateRandomUUID() string {
@@ -104,26 +104,26 @@ func GenerateRandomUUID() string {
 	return randomUUID.String()
 }
 
-func (runner *KubectlRunner) GetOutput(kubectlArgs ...string) ([]string, error) {
-	output, err := runner.GetOutputBytesOrError(kubectlArgs...)
+func (kubectl *KubectlRunner) GetOutput(kubectlArgs ...string) ([]string, error) {
+	output, err := kubectl.GetOutputBytesOrError(kubectlArgs...)
 	return strings.Fields(string(output)), err
 }
 
-func (runner *KubectlRunner) GetOutputInNamespace(namespace string, kubectlArgs ...string) []string {
-	output := runner.GetOutputBytesInNamespace(namespace, kubectlArgs...)
+func (kubectl *KubectlRunner) GetOutputInNamespace(namespace string, kubectlArgs ...string) []string {
+	output := kubectl.GetOutputBytesInNamespace(namespace, kubectlArgs...)
 	return strings.Fields(string(output))
 }
 
-func (runner *KubectlRunner) GetOutputBytes(kubectlArgs ...string) []byte {
-	session := runner.RunKubectlCommand(kubectlArgs...)
-	Eventually(session, "60s").Should(gexec.Exit(0))
+func (kubectl *KubectlRunner) GetOutputBytes(kubectlArgs ...string) []byte {
+	session := kubectl.RunKubectlCommand(kubectlArgs...)
+	Eventually(session, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 	output := session.Out.Contents()
 	return bytes.Trim(output, `"`)
 }
 
-func (runner *KubectlRunner) GetOutputBytesOrError(kubectlArgs ...string) ([]byte, error) {
-	session := runner.RunKubectlCommand(kubectlArgs...)
-	Eventually(session, "60s").Should(gexec.Exit())
+func (kubectl *KubectlRunner) GetOutputBytesOrError(kubectlArgs ...string) ([]byte, error) {
+	session := kubectl.RunKubectlCommand(kubectlArgs...)
+	Eventually(session, kubectl.TimeoutInSeconds).Should(gexec.Exit())
 	if session.ExitCode() != 0 {
 		return []byte{}, fmt.Errorf("kubectl command exitted with non zero exit code: %d", session.ExitCode())
 	}
@@ -131,20 +131,20 @@ func (runner *KubectlRunner) GetOutputBytesOrError(kubectlArgs ...string) ([]byt
 	return bytes.Trim(output, `"`), nil
 }
 
-func (runner *KubectlRunner) GetOutputBytesInNamespace(namespace string, kubectlArgs ...string) []byte {
+func (kubectl *KubectlRunner) GetOutputBytesInNamespace(namespace string, kubectlArgs ...string) []byte {
 	var session *gexec.Session
 	Eventually(func() int {
-		session = runner.RunKubectlCommandInNamespace(namespace, kubectlArgs...)
-		Eventually(session, "60s").Should(gexec.Exit())
+		session = kubectl.RunKubectlCommandInNamespace(namespace, kubectlArgs...)
+		Eventually(session, kubectl.TimeoutInSeconds).Should(gexec.Exit())
 
 		return session.ExitCode()
-	}, "60s", "30s").Should(Equal(0))
+	}, kubectl.TimeoutInSeconds, "30s").Should(Equal(0))
 	output := session.Out.Contents()
 	return bytes.Trim(output, `"`)
 }
 
-func (runner *KubectlRunner) GetNodePort(service string) (string, error) {
-	output, err := runner.GetOutput("describe", service)
+func (kubectl *KubectlRunner) GetNodePort(service string) (string, error) {
+	output, err := kubectl.GetOutput("describe", service)
 	if err != nil {
 		return "", err
 	}
@@ -159,8 +159,8 @@ func (runner *KubectlRunner) GetNodePort(service string) (string, error) {
 	return "", errors.New("No nodePort found!")
 }
 
-func (runner *KubectlRunner) GetNodePortInNamespace(service string, namespace string) (string, error) {
-	output := runner.GetOutputInNamespace(namespace, "describe", service)
+func (kubectl *KubectlRunner) GetNodePortInNamespace(service string, namespace string) (string, error) {
+	output := kubectl.GetOutputInNamespace(namespace, "describe", service)
 
 	for i := 0; i < len(output); i++ {
 		if output[i] == "NodePort:" {
@@ -172,50 +172,50 @@ func (runner *KubectlRunner) GetNodePortInNamespace(service string, namespace st
 	return "", errors.New("No nodePort found!")
 }
 
-func (runner *KubectlRunner) GetWorkerIP() string {
-	output, err := runner.GetOutput("get", "nodes", "-o", "jsonpath={.items[*].status.addresses[?(@.type==\"InternalIP\")].address}")
+func (kubectl *KubectlRunner) GetWorkerIP() string {
+	output, err := kubectl.GetOutput("get", "nodes", "-o", "jsonpath={.items[*].status.addresses[?(@.type==\"InternalIP\")].address}")
 	Expect(err).NotTo(HaveOccurred())
 	return output[0]
 }
 
-func (runner *KubectlRunner) GetAppAddress(service string) string {
-	workerIP := runner.GetWorkerIP()
-	nodePort, err := runner.GetNodePort(service)
+func (kubectl *KubectlRunner) GetAppAddress(service string) string {
+	workerIP := kubectl.GetWorkerIP()
+	nodePort, err := kubectl.GetNodePort(service)
 	Expect(err).ToNot(HaveOccurred())
 
 	return fmt.Sprintf("%s:%s", workerIP, nodePort)
 }
 
-func (runner *KubectlRunner) GetAppAddressInNamespace(service string, namespace string) string {
-	workerIP := runner.GetWorkerIP()
-	nodePort, err := runner.GetNodePortInNamespace(service, namespace)
+func (kubectl *KubectlRunner) GetAppAddressInNamespace(service string, namespace string) string {
+	workerIP := kubectl.GetWorkerIP()
+	nodePort, err := kubectl.GetNodePortInNamespace(service, namespace)
 	Expect(err).ToNot(HaveOccurred())
 
 	return fmt.Sprintf("%s:%s", workerIP, nodePort)
 }
 
-func (runner *KubectlRunner) GetPodStatus(namespace string, podName string) string {
-	return runner.getPodStatus(namespace, podName)
+func (kubectl *KubectlRunner) GetPodStatus(namespace string, podName string) string {
+	return kubectl.getPodStatus(namespace, podName)
 }
 
-func (runner *KubectlRunner) GetResourceNameBySelector(namespace, resource, selector string) string {
-	return runner.GetOutputInNamespace(namespace, "get", resource, "-l", selector, "-o", "jsonpath={.items[0].metadata.name}")[0]
+func (kubectl *KubectlRunner) GetResourceNameBySelector(namespace, resource, selector string) string {
+	return kubectl.GetOutputInNamespace(namespace, "get", resource, "-l", selector, "-o", "jsonpath={.items[0].metadata.name}")[0]
 }
 
-func (runner *KubectlRunner) GetPodStatusBySelector(namespace string, selector string) string {
-	return runner.getPodStatus(namespace, "-l", selector)
+func (kubectl *KubectlRunner) GetPodStatusBySelector(namespace string, selector string) string {
+	return kubectl.getPodStatus(namespace, "-l", selector)
 }
 
-func (runner *KubectlRunner) getPodStatus(namespace string, selector ...string) string {
+func (kubectl *KubectlRunner) getPodStatus(namespace string, selector ...string) string {
 	var session *gexec.Session
 	args := []string{"describe", "pod"}
 	args = append(args, selector...)
 	Eventually(func() string {
-		session = runner.RunKubectlCommandInNamespace(namespace, args...)
+		session = kubectl.RunKubectlCommandInNamespace(namespace, args...)
 		Eventually(session, "10s").Should(gexec.Exit(0))
 
 		return string(session.Out.Contents())
-	}, "120s").ShouldNot(BeEmpty())
+	}, kubectl.TimeoutInSeconds*2).ShouldNot(BeEmpty())
 
 	re := regexp.MustCompile(`Status:\s+(\w+)`)
 	matches := re.FindStringSubmatch(string(session.Out.Contents()))
@@ -223,7 +223,7 @@ func (runner *KubectlRunner) getPodStatus(namespace string, selector ...string) 
 	return podStatus
 }
 
-func (runner *KubectlRunner) GetLBAddress(service, iaas string) string {
+func (kubectl *KubectlRunner) GetLBAddress(service, iaas string) string {
 	var jsonPathForLoadBalancer string
 
 	if iaas == "gcp" || iaas == "gce" || iaas == "azure" { // TODO: remove GCP once testconfig is gone
@@ -232,7 +232,7 @@ func (runner *KubectlRunner) GetLBAddress(service, iaas string) string {
 		jsonPathForLoadBalancer = "jsonpath={.status.loadBalancer.ingress[0].hostname}"
 	}
 
-	output, err := runner.GetOutput("get", "service", service, "-o", jsonPathForLoadBalancer)
+	output, err := kubectl.GetOutput("get", "service", service, "-o", jsonPathForLoadBalancer)
 
 	if err != nil {
 		fmt.Fprintf(GinkgoWriter, "error when connecting to Kubernetes: %s", err.Error())
@@ -251,7 +251,7 @@ func (runner *KubectlRunner) GetLBAddress(service, iaas string) string {
 	return ""
 }
 
-func (runner *KubectlRunner) templatePSPWithNamespace(namespace string) string {
+func (kubectl *KubectlRunner) templatePSPWithNamespace(namespace string) string {
 	_, filename, _, _ := runtime.Caller(0)
 	srcDir, err := filepath.Abs(filepath.Dir(filename))
 	Expect(err).NotTo(HaveOccurred())

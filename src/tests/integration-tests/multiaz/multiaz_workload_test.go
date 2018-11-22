@@ -9,25 +9,25 @@ import (
 
 var _ = Describe("Multi-AZ workload deployment", func() {
 	BeforeEach(func() {
-		deployNginx := runner.RunKubectlCommand("create", "-f", nginxSpec)
-		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
+		deployNginx := kubectl.RunKubectlCommand("create", "-f", nginxSpec)
+		Eventually(deployNginx, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 
-		rolloutWatch := runner.RunKubectlCommand("rollout", "status", "daemonset/nginx", "-w")
-		Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
+		rolloutWatch := kubectl.RunKubectlCommand("rollout", "status", "daemonset/nginx", "-w")
+		Eventually(rolloutWatch, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 	})
 
 	AfterEach(func() {
-		runner.RunKubectlCommand("delete", "-f", nginxSpec).Wait("60s")
+		kubectl.RunKubectlCommand("delete", "-f", nginxSpec).Wait(kubectl.TimeoutInSeconds)
 	})
 
 	It("deploys three pods across three azs", func() {
-		nodeList := runner.RunKubectlCommand("get", "nodes", "-o", "yaml")
-		Eventually(nodeList, "60s").Should(gexec.Exit(0))
+		nodeList := kubectl.RunKubectlCommand("get", "nodes", "-o", "yaml")
+		Eventually(nodeList, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		nodeZones, err := getNodeZones(nodeList.Out.Contents())
 		Expect(err).NotTo(HaveOccurred())
 
-		podList := runner.RunKubectlCommand("get", "pods", "-l", "app=nginx", "-o", "yaml")
-		Eventually(podList, "60s").Should(gexec.Exit(0))
+		podList := kubectl.RunKubectlCommand("get", "pods", "-l", "app=nginx", "-o", "yaml")
+		Eventually(podList, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		podNodes, err := getPodInstanceNodes(podList.Out.Contents())
 		Expect(err).NotTo(HaveOccurred())
 		Expect(podNodes).To(HaveLen(3))

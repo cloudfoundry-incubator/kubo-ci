@@ -41,15 +41,15 @@ var _ = Describe("Guestbook storage", func() {
 
 		BeforeEach(func() {
 			storageClassSpec = PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
-			Eventually(kubectl.RunKubectlCommand("apply", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("apply", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 			pvcSpec = PathFromRoot("specs/persistent-volume-claim.yml")
-			Eventually(kubectl.RunKubectlCommand("apply", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("apply", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		})
 
 		AfterEach(func() {
 			UndeployGuestBook(kubectl)
-			Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
-			Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		})
 
 		It("should persist when application was undeployed", func() {
@@ -64,11 +64,11 @@ var _ = Describe("Guestbook storage", func() {
 
 			Eventually(func() error {
 				return PostToGuestBook(appAddress, testValue)
-			}, "120s", "5s").Should(Succeed())
+			}, kubectl.TimeoutInSeconds*2, "5s").Should(Succeed())
 
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
-			}, "120s", "2s").Should(ContainSubstring(testValue))
+			}, kubectl.TimeoutInSeconds*2, "2s").Should(ContainSubstring(testValue))
 
 			By("Un-deploying the application and re-deploying the data is still available from the persisted source")
 
@@ -79,7 +79,7 @@ var _ = Describe("Guestbook storage", func() {
 			appAddress = kubectl.GetAppAddress("svc/frontend")
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
-			}, "120s", "2s").Should(ContainSubstring(testValue))
+			}, kubectl.TimeoutInSeconds*2, "2s").Should(ContainSubstring(testValue))
 
 		})
 	})
@@ -95,13 +95,13 @@ var _ = Describe("Guestbook storage", func() {
 			}
 
 			pvcSpec = PathFromRoot("specs/default-persistent-volume-claim.yml")
-			Eventually(kubectl.RunKubectlCommand("create", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
+			Eventually(kubectl.RunKubectlCommand("create", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		})
 
 		AfterEach(func() {
 			if iaas == "gce" {
 				UndeployGuestBook(kubectl)
-				Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
+				Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 			}
 		})
 
@@ -118,11 +118,11 @@ var _ = Describe("Guestbook storage", func() {
 
 			Eventually(func() error {
 				return PostToGuestBook(appAddress, testValue)
-			}, "120s", "5s").Should(Succeed())
+			}, kubectl.TimeoutInSeconds*2, "5s").Should(Succeed())
 
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
-			}, "120s", "2s").Should(ContainSubstring(testValue))
+			}, kubectl.TimeoutInSeconds*2, "2s").Should(ContainSubstring(testValue))
 
 			By("Un-deploying the application and re-deploying the data is still available from the persisted source")
 
@@ -132,7 +132,7 @@ var _ = Describe("Guestbook storage", func() {
 			appAddress = kubectl.GetAppAddress("svc/frontend")
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
-			}, "120s", "2s").Should(ContainSubstring(testValue))
+			}, kubectl.TimeoutInSeconds*2, "2s").Should(ContainSubstring(testValue))
 
 		})
 	})

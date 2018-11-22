@@ -37,18 +37,18 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 
 		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
-		Eventually(kubectl.RunKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("create", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
-		Eventually(kubectl.RunKubectlCommand("create", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("create", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 
 	})
 
 	AfterEach(func() {
 		UndeployGuestBook(kubectl)
 		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
-		Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), "60s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("delete", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
-		Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		kubectl.Teardown()
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
@@ -62,11 +62,11 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 
 			Eventually(func() error {
 				return PostToGuestBook(appAddress, testValue)
-			}, "120s", "5s").Should(Succeed())
+			}, kubectl.TimeoutInSeconds*2, "5s").Should(Succeed())
 
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
-			}, "120s", "2s").Should(ContainSubstring(testValue))
+			}, kubectl.TimeoutInSeconds*2, "2s").Should(ContainSubstring(testValue))
 		})
 
 		By("Un-deploying and re-deploying the app", func() {
@@ -76,7 +76,7 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
-			}, "120s", "2s").Should(ContainSubstring(testValue))
+			}, kubectl.TimeoutInSeconds*2, "2s").Should(ContainSubstring(testValue))
 		})
 
 		By("Deleting the node/worker with persistent volume", func() {

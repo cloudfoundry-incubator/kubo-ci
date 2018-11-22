@@ -15,24 +15,24 @@ var _ = Describe("Internal load balancers", func() {
 		if iaas != "gce" {
 			Skip("Test only valid for GCE")
 		}
-		deployNginx := runner.RunKubectlCommand("create", "-f", internalNginxLBSpec)
-		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
-		rolloutWatch := runner.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w")
-		Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
+		deployNginx := kubectl.RunKubectlCommand("create", "-f", internalNginxLBSpec)
+		Eventually(deployNginx, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
+		rolloutWatch := kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w")
+		Eventually(rolloutWatch, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 
 		loadbalancerAddress := ""
 		Eventually(func() string {
-			loadbalancerAddress = runner.GetLBAddress("nginx", iaas)
+			loadbalancerAddress = kubectl.GetLBAddress("nginx", iaas)
 			return loadbalancerAddress
 		}, "240s", "5s").Should(Not(Equal("")))
 
 		appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
 
-		session := runner.RunKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl-"+test_helpers.GenerateRandomUUID(), "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", appUrl)
+		session := kubectl.RunKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl-"+test_helpers.GenerateRandomUUID(), "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", appUrl)
 		Eventually(session, "5m").Should(gexec.Exit(0))
 	})
 
 	AfterEach(func() {
-		runner.RunKubectlCommand("delete", "-f", internalNginxLBSpec).Wait("60s")
+		kubectl.RunKubectlCommand("delete", "-f", internalNginxLBSpec).Wait(kubectl.TimeoutInSeconds)
 	})
 })

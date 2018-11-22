@@ -35,7 +35,7 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", nginxDaemonSetSpec).Wait("60s")
+		kubectl.RunKubectlCommand("delete", "-f", nginxDaemonSetSpec).Wait(kubectl.TimeoutInSeconds)
 		kubectl.Teardown()
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
@@ -78,15 +78,15 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 		Eventually(getRunningWorkerVms, "10s", "1s").Should(HaveLen(3))
 
 		By("Deploying nginx on 3 nodes")
-		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxDaemonSetSpec), "30s", "5s").Should(gexec.Exit(0))
-		Eventually(kubectl.RunKubectlCommand("rollout", "status", "daemonset/nginx", "-w"), "120s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("create", "-f", nginxDaemonSetSpec), kubectl.TimeoutInSeconds/2, "5s").Should(gexec.Exit(0))
+		Eventually(kubectl.RunKubectlCommand("rollout", "status", "daemonset/nginx", "-w"), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 
 		By("Verifying nginx got deployed on new node")
 		var nodeNames []string
 		Eventually(func() []string {
 			nodeNames = GetNodeNamesForRunningPods(kubectl)
 			return nodeNames
-		}, "60s").Should(HaveLen(3))
+		}, kubectl.TimeoutInSeconds).Should(HaveLen(3))
 
 		_, err := GetNewVmId(runningWorkerVms, nodeNames)
 		Expect(err).ToNot(HaveOccurred())

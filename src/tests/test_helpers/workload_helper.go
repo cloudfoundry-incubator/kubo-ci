@@ -13,21 +13,21 @@ func DeploySmorgasbord(kubectl *KubectlRunner, iaas string) {
 	storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
 	smorgasbordSpec := PathFromRoot("specs/smorgasbord.yml")
 
-	Eventually(kubectl.RunKubectlCommand("apply", "-f", storageClassSpec), "120s").Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("apply", "-f", smorgasbordSpec), "120s").Should(gexec.Exit(0))
+	Eventually(kubectl.RunKubectlCommand("apply", "-f", storageClassSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+	Eventually(kubectl.RunKubectlCommand("apply", "-f", smorgasbordSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 	Eventually(kubectl.RunKubectlCommand("rollout", "status", "daemonset/fluentd-elasticsearch", "-w"), "900s").Should(gexec.Exit(0))
-	WaitForPodsToRun(kubectl, "5m")
+	WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*5)
 }
 
-func WaitForPodsToRun(kubectl *KubectlRunner, timeout string) {
+func WaitForPodsToRun(kubectl *KubectlRunner, timeout float64) {
 	waitForPods(kubectl, "status.phase!=Running,status.phase!=Succeeded", timeout)
 }
 
-func WaitForPodsToDie(kubectl *KubectlRunner, timeout string) {
+func WaitForPodsToDie(kubectl *KubectlRunner, timeout float64) {
 	waitForPods(kubectl, "status.phase!=Succeeded", timeout)
 }
 
-func waitForPods(kubectl *KubectlRunner, selector, timeout string) {
+func waitForPods(kubectl *KubectlRunner, selector string, timeout float64) {
 	Eventually(func() bool {
 		clientset, err := NewKubeClient()
 		if err != nil {
@@ -62,8 +62,8 @@ func DeleteSmorgasbord(kubectl *KubectlRunner, iaas string) {
 	storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
 	smorgasbordSpec := PathFromRoot("specs/smorgasbord.yml")
 
-	Eventually(kubectl.RunKubectlCommand("delete", "-f", smorgasbordSpec), "120s").Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("delete", "--all", "pvc"), "120s").Should(gexec.Exit(0))
-	Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), "120s").Should(gexec.Exit(0))
-	WaitForPodsToDie(kubectl, "5m")
+	Eventually(kubectl.RunKubectlCommand("delete", "-f", smorgasbordSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+	Eventually(kubectl.RunKubectlCommand("delete", "--all", "pvc"), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+	Eventually(kubectl.RunKubectlCommand("delete", "-f", storageClassSpec), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+	WaitForPodsToDie(kubectl, kubectl.TimeoutInSeconds*5)
 }

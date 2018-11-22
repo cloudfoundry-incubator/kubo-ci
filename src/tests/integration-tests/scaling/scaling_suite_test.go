@@ -14,15 +14,15 @@ func TestGeneric(t *testing.T) {
 	RunSpecs(t, "Scaling Suite")
 }
 
-var runner *test_helpers.KubectlRunner
+var kubectl *test_helpers.KubectlRunner
 
 var _ = BeforeSuite(func() {
-	runner = test_helpers.NewKubectlRunner()
-	runner.Setup()
+	kubectl = test_helpers.NewKubectlRunner()
+	kubectl.Setup()
 })
 
 var _ = AfterSuite(func() {
-	if runner != nil {
-		runner.Teardown()
+	if kubectl != nil {
+		kubectl.Teardown()
 	}
 })

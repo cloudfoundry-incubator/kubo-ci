@@ -38,7 +38,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.RunKubectlCommand("delete", "-f", nginxSpec).Wait("60s")
+		kubectl.RunKubectlCommand("delete", "-f", nginxSpec).Wait(kubectl.TimeoutInSeconds)
 		director.EnableResurrection(true)
 		kubectl.Teardown()
 	})
@@ -94,8 +94,8 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 func createTurbulenceIncident(request incident.Request, waitForIncident bool, msg string) {
 	By("Deploying a workload on the k8s cluster")
 	kubectl.RunKubectlCommandWithTimeout("create", "-f", nginxSpec)
-	WaitForPodsToRun(kubectl, "120s")
-	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), "120s").Should(gexec.Exit(0))
+	WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*2)
+	Eventually(kubectl.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w"), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 
 	By("Creating Turbulence Incident")
 	hellRaiser := TurbulenceClient(testconfig.Turbulence)
@@ -110,12 +110,12 @@ func createTurbulenceIncident(request incident.Request, waitForIncident bool, ms
 	Eventually(func() bool { return AllComponentsAreHealthy(kubectl) }, "600s", "20s").Should(BeTrue())
 
 	By("Checking that all master jobs are running")
-	Eventually(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVMType, VMRunningState) }, "60s", "2s").Should(HaveLen(numberOfMasters))
+	Eventually(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVMType, VMRunningState) }, kubectl.TimeoutInSeconds, "2s").Should(HaveLen(numberOfMasters))
 
 	By("Checking for the workload on the k8s cluster")
 	session := kubectl.RunKubectlCommand("get", "deployment", "nginx")
-	Eventually(session, "120s").Should(gexec.Exit(0))
+	Eventually(session, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 
 	By("Checking that master is back consistently")
-	Consistently(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVMType, VMRunningState) }, "60s", "2s").Should(HaveLen(numberOfMasters))
+	Consistently(func() []boshdir.VMInfo { return DeploymentVmsOfType(deployment, MasterVMType, VMRunningState) }, kubectl.TimeoutInSeconds, "2s").Should(HaveLen(numberOfMasters))
 }

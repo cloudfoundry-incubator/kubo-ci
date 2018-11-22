@@ -44,14 +44,14 @@ var _ = Describe("Azure file", func() {
 		})
 
 		AfterEach(func() {
-			kubectl.RunKubectlCommand("delete", "-f", PathFromRoot("specs/azure-file-pod.yml")).Wait("60s")
-			kubectl.RunKubectlCommand("delete", "-f", pvcSpec).Wait("60s")
-			kubectl.RunKubectlCommand("delete", "-f", storageClassSpec).Wait("60s")
+			kubectl.RunKubectlCommand("delete", "-f", PathFromRoot("specs/azure-file-pod.yml")).Wait(kubectl.TimeoutInSeconds)
+			kubectl.RunKubectlCommand("delete", "-f", pvcSpec).Wait(kubectl.TimeoutInSeconds)
+			kubectl.RunKubectlCommand("delete", "-f", storageClassSpec).Wait(kubectl.TimeoutInSeconds)
 		})
 
 		It("should attach an Azure file volume to a pod", func() {
 			kubectl.RunKubectlCommandWithTimeout("create", "-f", PathFromRoot("specs/azure-file-pod.yml"))
-			WaitForPodsToRun(kubectl, "120s")
+			WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*2)
 		})
 	})
 
