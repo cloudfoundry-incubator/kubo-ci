@@ -160,7 +160,6 @@ jobs:
       no_redact: true
       ops_files:
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
-      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
@@ -245,7 +244,6 @@ jobs:
 #       no_redact: true
 #       ops_files:
 #       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
-#       - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
 #       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
 #       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
 #       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml

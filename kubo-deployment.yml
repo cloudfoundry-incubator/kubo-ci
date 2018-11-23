@@ -680,7 +680,6 @@ jobs:
       ops_files:
       - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
-      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
@@ -1727,7 +1726,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       ops_files:
       - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
-      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
@@ -1956,7 +1954,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-ci/manifests/ops-files/etcd-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
       - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
-      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
@@ -2220,7 +2217,6 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       ops_files:
       - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
-      - git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml

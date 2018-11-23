@@ -1,7 +1,6 @@
 #! /usr/bin/env ruby
 
-ops_files = '-o git-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml\
- -o git-kubo-deployment/manifests/ops-files/rename.yml\
+ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
  -o git-kubo-deployment/manifests/ops-files/vm-types.yml\
  -o git-kubo-deployment/manifests/ops-files/misc/dev.yml \
  -o git-kubo-deployment/manifests/ops-files/enable-nfs.yml \
