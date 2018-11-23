@@ -75,7 +75,7 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 			runningWorkerVms = DeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
 			return runningWorkerVms
 		}
-		Eventually(getRunningWorkerVms, "10s", "1s").Should(HaveLen(3))
+		Eventually(getRunningWorkerVms, kubectl.TimeoutInSeconds, "1s").Should(HaveLen(3))
 
 		By("Deploying nginx on 3 nodes")
 		Eventually(kubectl.StartKubectlCommand("create", "-f", nginxDaemonSetSpec), kubectl.TimeoutInSeconds/2, "5s").Should(gexec.Exit(0))
