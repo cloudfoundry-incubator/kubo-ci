@@ -89,6 +89,13 @@ resources:
     uri: https://github.com/cloudfoundry-incubator/kubo-ci
     branch: master
 
+- name: git-bosh-deployment
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/bosh-deployment.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
 - name: slack-alert
   type: slack-notification
   source:
@@ -134,6 +141,7 @@ jobs:
       - claim-lock
     - get: git-kubo-ci
     - get: kubo-deployment
+    - get: git-bosh-deployment
     - get: kubo-lock
       trigger: true
       version: every

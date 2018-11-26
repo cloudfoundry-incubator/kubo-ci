@@ -988,6 +988,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: kubo-lock
       resource: kubo-lock-<%= env %>
       version: every
@@ -1324,6 +1325,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: git-kubo-ci-new
       resource: git-kubo-ci
     - get: kubo-lock
@@ -1639,6 +1641,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: git-kubo-deployment
       passed: [ 'claim-lock-two-cas' ]
     - get: kubo-lock
@@ -1859,6 +1862,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: slackers
     - get: git-kubo-ci
     - get: git-kubo-deployment
+    - get: git-bosh-deployment
     - get: kubo-lock
       resource: kubo-lock-<%= env %>
       version: every
@@ -2129,6 +2133,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: git-kubo-deployment
       passed: [ 'claim-lock-coredns-<%= env %>' ]
     - get: kubo-lock

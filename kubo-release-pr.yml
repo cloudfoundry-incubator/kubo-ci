@@ -80,6 +80,13 @@ resources:
     pre_release: true
     access_token: ((github-kubo-gitbot-access-token))
 
+- name: git-bosh-deployment
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/bosh-deployment.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
 - name: gcs-kubeconfig
   type: gcs
   source:
@@ -568,6 +575,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: git-kubo-deployment
       passed: [ 'claim-lock-<%= env %>' ]
     - get: kubo-lock
