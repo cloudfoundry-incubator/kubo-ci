@@ -8,6 +8,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   jq \
   git-core \
   netcat-openbsd  \
+  libcurl3  \
   make \
   python-pip \
   python-dev \

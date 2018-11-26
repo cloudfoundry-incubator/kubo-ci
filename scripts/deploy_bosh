@@ -104,6 +104,7 @@ generate_manifest_vsphere() {
   generate_manifest_generic "$bosh_env" \
     --vars-file "${bosh_env}/director-secrets.yml" \
     --ops-file "${ROOT}/git-bosh-deployment/vsphere/cpi.yml" \
+    --ops-file "${ROOT}/git-kubo-ci/manifests/ops-files/use-vcenter-compatible-cpi.yml" \
     --ops-file "${ROOT}/git-bosh-deployment/vsphere/resource-pool.yml"
 }
 
