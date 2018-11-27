@@ -257,7 +257,7 @@ jobs:
       params:
         file: kubeconfig/config
 
-- name: run-k8s-integration-tests
+- name: run-tests
   plan:
   - aggregate:
     - get: slackers
@@ -282,7 +282,7 @@ jobs:
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
       gcs-kubo-deployment-pre: kubo-deployment
-  - task: integration-tests
+  - task: run-tests
     tags: [((worker-tag))]
     file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
     params:
@@ -304,17 +304,17 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-lock
-      passed: [ 'run-k8s-integration-tests' ]
+      passed: [ 'run-tests' ]
     - get: kubo-deployment
-      passed: [ 'run-k8s-integration-tests' ]
+      passed: [ 'run-tests' ]
     - get: kubo-release
-      passed: [ 'run-k8s-integration-tests' ]
+      passed: [ 'run-tests' ]
     - get: gcs-bosh-state
-      passed: [ 'run-k8s-integration-tests' ]
+      passed: [ 'run-tests' ]
     - get: gcs-bosh-creds
-      passed: [ 'run-k8s-integration-tests' ]
+      passed: [ 'run-tests' ]
     - get: source-json
-      passed: [ 'run-k8s-integration-tests' ]
+      passed: [ 'run-tests' ]
       version: every
       trigger: true
   - task: unpack-kubo-deployment

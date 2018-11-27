@@ -6,8 +6,8 @@
   value: git-kubo-ci/manifests/vars-files/new-cidrs.yml
 
 - type: replace
-  path: /jobs/name=run-k8s-integration-tests/plan/task=integration-tests/params/ENABLE_CIDR_TESTS?
+  path: /jobs/name=run-tests/plan/task=run-tests/params/ENABLE_CIDR_TESTS?
   value: true
 - type: replace
-  path: /jobs/name=run-k8s-integration-tests/plan/task=integration-tests/params/CIDR_VARS_FILE?
+  path: /jobs/name=run-tests/plan/task=run-tests/params/CIDR_VARS_FILE?
   value: manifests/vars-files/new-cidrs.yml

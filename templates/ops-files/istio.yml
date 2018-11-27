@@ -1,0 +1,8 @@
+- type: remove
+  path: /jobs/name=run-tests/plan/task=run-tests/params
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/file
+  value: git-kubo-ci/tasks/run-istio-tests.yml
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/attempts?
+  value: 2
