@@ -61,8 +61,8 @@ ADD https://storage.googleapis.com/kubernetes-release/release/$KUBE_VERSION/bin/
 RUN chmod +x /usr/bin/kubectl
 
 # BOSH CLI
-RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-5.3.1-linux-amd64 -O bosh && \
-  echo "5017ea3be52a71c9c35ee015904f1e91f77cddc4a32f011e042cf4cdf33f7278  bosh" > bosh-shasum && \
+RUN wget https://github.com/cloudfoundry/bosh-cli/releases/download/v5.4.0/bosh-cli-5.4.0-linux-amd64 -O bosh && \
+  echo "ecc1b6464adf9a0ede464b8699525a473e05e7205357e4eb198599edf1064f57  bosh" > bosh-shasum && \
   shasum -a 256 -cw --status bosh-shasum && \
   install bosh /usr/local/bin
 
