@@ -25,7 +25,7 @@ WORKDIR /tmp/docker-build
 
 # Golang
 ENV GOLANG_VERSION=1.11
-RUN wget https://storage.googleapis.com/golang/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
+RUN wget -q https://storage.googleapis.com/golang/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
   tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz && rm go${GOLANG_VERSION}.linux-amd64.tar.gz
 ENV GOPATH /root/go
 RUN mkdir -p /root/go/bin
@@ -38,7 +38,7 @@ RUN go get github.com/onsi/gomega && \
 ENV GCLOUD_VERSION=224.0.0
 ENV GCLOUD_SHA1SUM=0a85de5c35c562f5d602ad20f567d45a214e91e5570ae95a93ced8361fa6d021
 
-RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz \
+RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz \
     -O gcloud_${GCLOUD_VERSION}_linux_amd64.tar.gz && \
     echo "${GCLOUD_SHA1SUM}  gcloud_${GCLOUD_VERSION}_linux_amd64.tar.gz" > gcloud_${GCLOUD_VERSION}_SHA1SUM && \
     shasum -a 256 -cw --status gcloud_${GCLOUD_VERSION}_SHA1SUM && \
@@ -52,7 +52,7 @@ RUN git clone https://github.com/postmodern/ruby-install.git /usr/local/ruby-ins
 RUN /usr/local/ruby-install/bin/ruby-install --system ruby 2.5.3
 
 # Credhub
-RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/1.7.7/credhub-linux-1.7.7.tgz \
+RUN wget -q https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/1.7.7/credhub-linux-1.7.7.tgz \
   -O credhub-linux-1.7.7.tgz && tar xvf credhub-linux-1.7.7.tgz && mv credhub /usr/bin
 
 # kubectl
@@ -61,7 +61,7 @@ ADD https://storage.googleapis.com/kubernetes-release/release/$KUBE_VERSION/bin/
 RUN chmod +x /usr/bin/kubectl
 
 # BOSH CLI
-RUN wget https://github.com/cloudfoundry/bosh-cli/releases/download/v5.4.0/bosh-cli-5.4.0-linux-amd64 -O bosh && \
+RUN wget -q https://github.com/cloudfoundry/bosh-cli/releases/download/v5.4.0/bosh-cli-5.4.0-linux-amd64 -O bosh && \
   echo "ecc1b6464adf9a0ede464b8699525a473e05e7205357e4eb198599edf1064f57  bosh" > bosh-shasum && \
   shasum -a 256 -cw --status bosh-shasum && \
   install bosh /usr/local/bin
@@ -80,13 +80,13 @@ RUN pip install awscli
 RUN pip install sshuttle
 
 # GOVC CLI
-RUN wget -O - -o /dev/null https://github.com/vmware/govmomi/releases/download/v0.17.1/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc && \
+RUN wget -q -O - -o /dev/null https://github.com/vmware/govmomi/releases/download/v0.17.1/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc && \
   chmod +x /usr/local/bin/govc
 
 RUN gem install bundler --no-ri --no-rdoc
 
 ARG SPRUCE_VERSION=v1.16.2
-RUN wget https://github.com/geofffranks/spruce/releases/download/${SPRUCE_VERSION}/spruce-linux-amd64 -O /usr/bin/spruce && \
+RUN wget -q https://github.com/geofffranks/spruce/releases/download/${SPRUCE_VERSION}/spruce-linux-amd64 -O /usr/bin/spruce && \
   chmod +x /usr/bin/spruce
 
 RUN git clone https://github.com/fsaintjacques/semver-tool && \
