@@ -29,7 +29,7 @@ iaas=$(bosh int $metadata_path --path=/iaas)
 BOSH_EXTRA_OPS=""
 # This means USE_TURBULENCE is set and not blank #Bashisms
 if [[ ! -z ${USE_TURBULENCE+x} ]] && [[ ! -z "${USE_TURBULENCE}" ]]; then
-  BOSH_EXTRA_OPS="--ops-file \"${ROOT}/git-bosh-deployment/turbulence.yml\""
+  BOSH_EXTRA_OPS="--ops-file \"${ROOT}/git-bosh-deployment/turbulence.yml\" --ops-file \"${ROOT}/git-kubo-ci/manifests/ops-files/use-dev-turbulence.yml\""
 fi
 
 BOSH_EXTRA_OPS="${BOSH_EXTRA_OPS} --ops-file \"${ROOT}/git-bosh-deployment/jumpbox-user.yml\""
