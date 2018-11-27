@@ -29,6 +29,13 @@ resources:
     branch: master
     paths: [ gaffer/gaffer.yml ]
 
+- name: git-bosh-deployment
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/bosh-deployment.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
 - name: git-kubo-deployment
   type: git
   source:
@@ -85,7 +92,7 @@ resources:
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    versioned_file: source.json
+    versioned_file: gaffer-env/source.json
 
 - name: gcs-load-balancer-vars
   type: gcs
@@ -130,6 +137,7 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-deployment
+    - get: git-bosh-deployment
     - get: gcs-kubo-deployment-tarball
       trigger: true
     - get: gcs-kubo-release-tarball
@@ -207,6 +215,8 @@ jobs:
   - task: upload-stemcell
     tags: ['gaffer']
     file: git-kubo-ci/tasks/upload-stemcell.yml
+    input_mapping:
+      gcs-source-json: source-json
     params:
       IAAS: gcp
   - put: cfcr-deployment
