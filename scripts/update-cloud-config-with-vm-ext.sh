@@ -9,23 +9,34 @@ export IAAS=$(bosh int "${LOCK_FILE}" --path=/iaas)
 export DEPLOYMENT_NAME="${DEPLOYMENT_NAME:-ci-service}"
 
 create_aws_vars_file() {
+local master_iam_instance_profile worker_iam_instance_profile master_target_pool tag
+
+master_iam_instance_profile=$(bosh int "${LOCK_FILE}" --path=/master_iam_instance_profile)
+worker_iam_instance_profile=$(bosh int "${LOCK_FILE}" --path=/worker_iam_instance_profile)
+master_target_pool=$(bosh int "${LOCK_FILE}" --path=/master_target_pool)
+kubernetes_cluster_tag=$(bosh int "${LOCK_FILE}" --path=/kubernetes_cluster_tag)
 
 cat <<EOF > "${CC_VARS_FILE}"
-master_iam_instance_profile: $(bosh int "${LOCK_FILE}" --path=/master_iam_instance_profile)
-worker_iam_instance_profile:  $(bosh int "${LOCK_FILE}" --path=/worker_iam_instance_profile)
-cfcr_master_target_pool: $(bosh int "${LOCK_FILE}" --path=/master_target_pool)
-kubernetes_cluster_tag: $(bosh int "${LOCK_FILE}" --path=/kubernetes_cluster_tag)
+master_iam_instance_profile: ${master_iam_instance_profile}
+worker_iam_instance_profile:  ${worker_iam_instance_profile}
+cfcr_master_target_pool: ${master_target_pool}
+kubernetes_cluster_tag: ${kubernetes_cluster_tag}
 deployment_name: "${DEPLOYMENT_NAME}"
 EOF
 }
 
 create_gcp_vars_file() {
+local backend_service master_service_account worker_service_account
+
+backend_service=$(bosh int "${LOCK_FILE}" --path=/cfcr_backend_service)
+master_service_account=$(bosh int "${LOCK_FILE}" --path=/service_account_master)
+worker_service_account=$(bosh int "${LOCK_FILE}" --path=/service_account_worker)
 
 cat <<EOF > "${CC_VARS_FILE}"
-cfcr_master_service_account_address: $(bosh int "${LOCK_FILE}" --path=/service_account_master)
-cfcr_worker_service_account_address: $(bosh int "${LOCK_FILE}" --path=/service_account_worker)
+cfcr_master_service_account_address: "${master_service_account}"
+cfcr_worker_service_account_address: "${worker_service_account}"
 deployment_name: "${DEPLOYMENT_NAME}"
-cfcr_backend_service: $(bosh int "${LOCK_FILE}" --path=/cfcr_backend_service)
+cfcr_backend_service: "${backend_service}"
 EOF
 }
 
