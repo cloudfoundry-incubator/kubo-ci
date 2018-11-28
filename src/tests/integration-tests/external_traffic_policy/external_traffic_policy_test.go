@@ -43,38 +43,43 @@ var _ = Describe("When deploying a loadbalancer", func() {
 
 	Context("with externalTrafficPolicy to local", func() {
 		It("shows a different source client IPs", func() {
-			if iaas != "gce" && iaas != "azure" {
-				Skip("Test only valid for GCE and Azure")
+			if iaas != "gce" && iaas != "azure" && iaas != "aws" {
+				Skip("Test only valid for public clouds")
 			}
 
+			By("deploying echoserver workload")
 			deployEchoserver := kubectl.StartKubectlCommand("create", "-f", echoserverLBSpec)
 			Eventually(deployEchoserver, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 			rolloutWatch := kubectl.StartKubectlCommand("rollout", "status", "deployment/echoserver", "-w")
 			Eventually(rolloutWatch, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 
+			By("retrieving the echoserver workload loadbalancer address")
 			loadbalancerAddress = ""
 			Eventually(func() string {
 				loadbalancerAddress = kubectl.GetLBAddress("echoserver", iaas)
 				return loadbalancerAddress
 			}, "240s", kubectl.TimeoutInSeconds).Should(Not(Equal("")))
 
+			By("getting the source IP from echoserver")
 			appURL := fmt.Sprintf("http://%s", loadbalancerAddress)
 			var ipAddress string
 			Eventually(func() error {
 				var err error
 				ipAddress, err = getSourceIPFromEchoserver(appURL)
 				return err
-			}, "90s", "15s").Should(Succeed())
+			}, kubectl.TimeoutInSeconds*5, "15s").Should(Succeed())
 			segments := strings.Split(ipAddress, ".")
 
+			By("enabling externalTrafficPolicy=local")
 			kubectl.RunKubectlCommandWithTimeout("patch", "svc/echoserver", "-p", "{\"spec\":{\"externalTrafficPolicy\":\"Local\"}}")
 			prefix := segments[0] + "." + segments[1] + "."
 
 			loadbalancerAddress = kubectl.GetLBAddress("echoserver", iaas)
 			appURL = fmt.Sprintf("http://%s", loadbalancerAddress)
-			// reset cache
+			By("reseting the cache")
 			kubectl.StartKubectlCommand("delete", "pods", "--all")
 
+			By(fmt.Sprintf("waiting for the source IP to have a different prefix from %s", prefix))
 			Eventually(func() string {
 				newPrefix, err := getSourceIPFromEchoserver(appURL)
 				if err != nil {
@@ -86,7 +91,7 @@ var _ = Describe("When deploying a loadbalancer", func() {
 	})
 
 	AfterEach(func() {
-		if iaas == "gce" || iaas == "azure" {
+		if iaas == "gce" || iaas == "azure" || iaas == "aws" {
 			kubectl.StartKubectlCommand("delete", "-f", echoserverLBSpec).Wait(kubectl.TimeoutInSeconds)
 		}
 	})
@@ -129,7 +134,7 @@ var _ = Describe("When using a NodePort service", func() {
 	})
 
 	AfterEach(func() {
-		if iaas == "vsphere" && iaas != "openstack" {
+		if iaas == "vsphere" || iaas == "openstack" {
 			kubectl.StartKubectlCommand("delete", "-f", echoserverNodePortSpec).Wait(kubectl.TimeoutInSeconds)
 		}
 	})
