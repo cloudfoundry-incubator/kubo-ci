@@ -519,6 +519,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: gcs-pr-deployment-tarball
       passed: [ 'destroy-k8s-upgrade-<%= env %>' ]
     - get: gcs-pr-release-tarball
@@ -804,6 +805,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: git-kubo-deployment
       passed: [ 'destroy-k8s-<%= env %>' ]
     - get: kubo-lock
