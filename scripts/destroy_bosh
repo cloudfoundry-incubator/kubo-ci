@@ -68,8 +68,8 @@ destroy_gcp() {
   service_account="$2"
 
   bosh clean-up --all -n
-  bosh delete-env "$(repo_directory)/bosh-deployment/bosh.yml" \
-    --ops-file "$(repo_directory)/bosh-deployment/gcp/cpi.yml" \
+  bosh delete-env "git-bosh-deployment/bosh.yml" \
+    --ops-file "git-bosh-deployment/gcp/cpi.yml" \
     --state "${bosh_env}/state.json" \
     --var-file gcp_credentials_json="${service_account}" \
     --vars-store "${bosh_env}/creds.yml" \
@@ -82,8 +82,8 @@ destroy_aws() {
   key_filename="$2"
 
   bosh clean-up --all -n
-  bosh delete-env "$(repo_directory)/bosh-deployment/bosh.yml" \
-    --ops-file "$(repo_directory)/bosh-deployment/aws/cpi.yml" \
+  bosh delete-env "git-bosh-deployment/bosh.yml" \
+    --ops-file "git-bosh-deployment/aws/cpi.yml" \
     --state "${bosh_env}/state.json" \
     --var-file private_key="${key_filename}" \
     --vars-store "${bosh_env}/creds.yml" \
@@ -97,8 +97,8 @@ destroy_vsphere() {
   bosh_env="$1"
 
   bosh clean-up --all -n
-  bosh delete-env "$(repo_directory)/bosh-deployment/bosh.yml" \
-      --ops-file "$(repo_directory)/bosh-deployment/vsphere/cpi.yml" \
+  bosh delete-env "git-bosh-deployment/bosh.yml" \
+      --ops-file "git-bosh-deployment/vsphere/cpi.yml" \
       --state "${bosh_env}/state.json" \
       --vars-store "${bosh_env}/creds.yml" \
       --vars-file "${bosh_env}/director.yml" \
@@ -112,8 +112,8 @@ destroy_openstack() {
   key_filename="$2"
 
   bosh clean-up --all -n
-  bosh delete-env "$(repo_directory)/bosh-deployment/bosh.yml" \
-    --ops-file "$(repo_directory)/bosh-deployment/openstack/cpi.yml" \
+  bosh delete-env "git-bosh-deployment/bosh.yml" \
+    --ops-file "git-bosh-deployment/openstack/cpi.yml" \
     --state "${bosh_env}/state.json" \
     --vars-store "${bosh_env}/creds.yml" \
     --vars-file "${bosh_env}/director.yml"  \
