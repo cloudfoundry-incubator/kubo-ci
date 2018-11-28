@@ -937,6 +937,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: git-kubo-deployment
       passed: <%= destroy_bosh_passed_reqs %>
     - get: git-kubo-release
@@ -1275,6 +1276,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'destroy-k8s-upgrade-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
@@ -1589,6 +1591,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'destroy-k8s-upgrade-multi-master-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
@@ -1805,6 +1808,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: git-kubo-deployment
       passed: [ 'destroy-k8s-two-cas' ]
     - get: git-kubo-release
@@ -2082,6 +2086,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: git-kubo-deployment
       passed: <%= destroy_bosh_bbr_passed_reqs %>
     - get: git-kubo-release
@@ -2341,6 +2346,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: git-kubo-deployment
       passed: ['destroy-k8s-coredns-<%= env %>']
     - get: git-kubo-release
