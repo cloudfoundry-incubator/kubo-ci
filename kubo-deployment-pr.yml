@@ -379,6 +379,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: git-kubo-deployment
       passed: [ 'destroy-k8s-<%= env %>' ]
     - get: kubo-lock

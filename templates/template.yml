@@ -337,6 +337,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+    - get: git-bosh-deployment
     - get: kubo-deployment
       passed: [ 'destroy-k8s' ]
     - get: kubo-release
