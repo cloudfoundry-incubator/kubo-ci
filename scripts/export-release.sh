@@ -16,5 +16,5 @@ do
   fi
   bosh -d compilation export-release "$release/$RELEASE_VERSION" "$STEMCELL_OS/$STEMCELL_VERSION"
 
-  mv *.tgz "compiled-releases/$release-$RELEASE_VERSION-$STEMCELL_OS-$STEMCELL_VERSION.tgz"
+  mv *.tgz "compiled-releases/"
 done

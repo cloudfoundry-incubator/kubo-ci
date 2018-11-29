@@ -16,8 +16,10 @@ do
   else
     version=$(bosh int git-kubo-deployment/manifests/cfcr.yml -o git-kubo-deployment/manifests/ops-files/non-precompiled-releases.yml "--path=/releases/name=$release/version")
   fi
-  sha1=$(sha1sum compiled-releases/$release*.tgz | awk '{print $1}')
-  url="https://storage.googleapis.com/kubo-precompiled-releases/$release-$version-$stemcell_os-$stemcell_version.tgz"
+  release_path=$(ls compiled-releases/$release-*.tgz)
+  sha1=$(sha1sum ${release_path} | awk '{print $1}')
+  url="https://storage.googleapis.com/kubo-precompiled-releases/$(basename ${release_path})"
+
 cat >> bump-precompiled-releases.yml <<EOF
 - type: replace
   path: /releases/name=$release
