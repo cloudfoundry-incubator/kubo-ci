@@ -17,7 +17,7 @@ do
     version=$(bosh int git-kubo-deployment/manifests/cfcr.yml -o git-kubo-deployment/manifests/ops-files/non-precompiled-releases.yml "--path=/releases/name=$release/version")
   fi
   sha1=$(sha1sum compiled-releases/$release*.tgz | awk '{print $1}')
-  url="https://storage.cloud.google.com/kubo-precompiled-releases/$release-$version-$stemcell_os-$stemcell_version.tgz"
+  url="https://storage.googleapis.com/kubo-precompiled-releases/$release-$version-$stemcell_os-$stemcell_version.tgz"
 cat >> bump-precompiled-releases.yml <<EOF
 - type: replace
   path: /releases/name=$release
