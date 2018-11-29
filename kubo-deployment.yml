@@ -469,6 +469,20 @@ resources:
     repository: bosh-backup-and-restore
     access_token: ((github-kubo-gitbot-access-token))
 
+# precompiling
+- name: gaffer-source-json
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: gaffer-env/source.json
+
+- name: compilation-deployment
+  type: bosh-deployment
+  source:
+    deployment: compilation
+    skip_check: true
+
 jobs:
 - name: run-unit-tests
   plan:
@@ -502,6 +516,7 @@ jobs:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
+    - get: gaffer-source-json
     - get: git-kubo-deployment
       passed: [ 'run-unit-tests' ]
       trigger: true
@@ -514,12 +529,30 @@ jobs:
   - task: build-kubo-release
     file: git-kubo-ci/tasks/build-kubo-release.yml
     on_failure: *on_failure_alert
-  - put: gcs-kubo-release-tarball-untested
+  - task: generate-compilation-manifest
+    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
     params:
-      file: kubo-release/kubo-release-*.tgz
+      RELEASE_LIST: "kubo"
+  - put: compilation-deployment
+    params:
+      manifest: compilation-manifest/manifest.yml
+      source_file: gaffer-source-json/source.json
+      releases:
+      - kubo-release/kubo-release-*.tgz
+    tags: ['gaffer']
+  - task: export
+    tags: ['gaffer']
+    file: git-kubo-ci/tasks/export-release.yml
+    params:
+      RELEASE_LIST: "kubo"
+    input_mapping:
+      gcs-source-json: gaffer-source-json
   - put: kubo-version
     params:
       pre: dev
+  - put: gcs-kubo-release-tarball-untested
+    params:
+      file: compiled-releases/kubo-*.tgz
 
 - name: package-kubo-deployment-tarball
   plan:
@@ -1959,7 +1992,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       no_redact: true
       ops_files:
       - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
-      - git-kubo-ci/manifests/ops-files/etcd-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
       - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
