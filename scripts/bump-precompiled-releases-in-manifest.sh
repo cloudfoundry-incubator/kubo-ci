@@ -34,14 +34,14 @@ bosh int git-kubo-deployment/manifests/cfcr.yml \
   -o bump-precompiled-releases.yml > git-kubo-deployment-output/manifests/cfcr.yml
 
 pushd git-kubo-deployment-output
-git config --global user.email "cfcr+cibot@pivotal.io"
-git config --global user.name "CFCR CI BOT"
+git config --global user.name "cfcr"
+git config --global user.email "cfcr@pivotal.io"
 
-if git diff-index --quiet HEAD; then
-    echo "No changes to commit."
-else
+if [ -n "$(git status --porcelain)" ]; then
     git add manifests/cfcr.yml
-    git commit -m "Bump $release to version $version"
+    git commit -m "Precompile $RELEASE_LIST against $stemcell_os/$stemcell_version"
+else
+    echo "No changes to commit."
 fi
 
 
