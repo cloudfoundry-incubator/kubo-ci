@@ -12,7 +12,7 @@ do
   if [[ "$release" == "kubo" ]]; then
     RELEASE_VERSION="$(cat kubo-version/version)"
   else
-    RELEASE_VERSION="$(bosh int git-kubo-deployment/manifests/cfcr.yml --path=/releases/name=${release}/version)"
+    RELEASE_VERSION="$(bosh int git-kubo-deployment/manifests/cfcr.yml -o git-kubo-deployment/manifests/ops-files/non-precompiled-releases.yml --path=/releases/name=${release}/version)"
   fi
   bosh -d compilation export-release "$release/$RELEASE_VERSION" "$STEMCELL_OS/$STEMCELL_VERSION"
 
