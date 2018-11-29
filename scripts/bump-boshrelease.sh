@@ -21,7 +21,7 @@ fi
 
 cat > update-$release-release.yml <<EOF
 - type: replace
-  path: /releases/name=$release
+  path: /0/value/name=$release
   value:
     name: $release
     version: $version
@@ -29,21 +29,16 @@ cat > update-$release-release.yml <<EOF
     url: $url
 EOF
 
-bosh int git-kubo-deployment/manifests/cfcr.yml \
-  -o update-$release-release.yml > git-kubo-deployment-output/manifests/cfcr.yml
+bosh int git-kubo-deployment/manifests/ops-files/non-precompiled-releases.yml \
+  -o update-$release-release.yml > git-kubo-deployment-output/manifests/ops-files/non-precompiled-releases.yml
 
 pushd git-kubo-deployment-output
-git config --global user.email "cfcr+cibot@pivotal.io"
-git config --global user.name "CFCR CI BOT"
+git config --global user.name "cfcr"
+git config --global user.email "cfcr@pivotal.io"
 
-set +e
-git diff-index --quiet HEAD
-set -e
-
-exit_status=$?
-if [ $exit_status -eq 1 ]; then
-    git add manifests/cfcr.yml
-    git commit -m "Bump $release to version $version"
+if [ -n "$(git status --porcelain)" ]; then
+    git add manifests/ops-files/non-precompiled-releases.yml
+    git commit -m "Bump $release to version $version in non-precompiled-releases ops-file"
 else
     echo "No changes to commit."
 fi
