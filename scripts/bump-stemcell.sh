@@ -21,5 +21,9 @@ git config --global user.name "cfcr"
 git config --global user.email "cfcr@pivotal.io"
 cd "${ROOT}/git-kubo-deployment-output"
 
-git add .
-git commit -m "Bumping stemcell to v${stemcell_version}"
+if [ -n "$(git status --porcelain)" ]; then
+  git add manifests/cfcr.yml
+  git commit -m "Bumping stemcell to v${stemcell_version}"
+else
+  echo "No changes to commit."
+fi
