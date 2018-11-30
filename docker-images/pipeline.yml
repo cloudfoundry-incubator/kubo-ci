@@ -1,5 +1,5 @@
 <%
-  tested_images=%w(test-runner vsphere-cleaner aws-maintenance kubo-ci)
+  tested_images=%w(test-runner vsphere-cleaner aws-maintenance kubo-ci nginx-bionic)
   untested_images=%w(ulimit cf-cleaner git-bosh api-proxy conformance)
 %>
 ---
@@ -40,6 +40,15 @@ resources:
     json_key: ((gcs-json-key))
     bucket: kubo-public
     versioned_file: vsphere-cleaner
+
+- name: nginx-bionic-version
+  type: semver
+  source:
+    driver: gcs
+    key: versions/nginx-bionic-version
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    initial_version: 1.0.0
 
 resource_types:
 - name: gcs
@@ -181,6 +190,46 @@ jobs:
        cache: true
        pull_repository: pcfkubo/aws-maintenance
        pull_tag: latest
+
+- name: build-nginx-bionic
+  plan:
+   - get: git-kubo-ci-nginx-bionic
+     trigger: true
+   - get: nginx-bionic-version
+     params:
+       bump: final
+   - put: nginx-bionic-latest
+     params:
+       build: git-kubo-ci-nginx-bionic/docker-images/nginx-bionic
+   - task: test-docker-image
+     config:
+       platform: linux
+       image_resource:
+         type: docker-image
+         source:
+           repository: pcfkubo/nginx-bionic
+           tag: latest
+       inputs:
+       - name: git-kubo-ci-nginx-bionic
+       run:
+        path: /bin/bash
+        args:
+        - -e
+        - -cx
+        - |
+          nginx  -g "daemon off;" &
+          sleep 1
+          if curl localhost:80; then echo "Nginx working";  else echo "Nginx not working"; fi
+          nginx -s stop
+   - put: nginx-bionic-stable
+     params:
+       cache: true
+       pull_repository: pcfkubo/nginx-bionic
+       pull_tag: latest
+       tag_file: nginx-bionic-version/version
+   - put: nginx-bionic-version
+     params:
+       bump: major
 
 - name: build-api-proxy
   plan:
