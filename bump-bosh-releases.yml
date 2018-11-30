@@ -1,4 +1,15 @@
 ---
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+- name: bosh-deployment
+  type: docker-image
+  source:
+    repository: cloudfoundry/bosh-deployment-resource
+
 resources:
 - name: git-kubo-ci
   type: git
@@ -20,11 +31,6 @@ resources:
     repository: cfcr-etcd-release
     access_token: ((github-token-key))
 
-- name: boshdns-release
-  type: bosh-io-release
-  source:
-    repository: cloudfoundry/bosh-dns-release
-
 - name: bpm-release
   type: bosh-io-release
   source:
@@ -37,29 +43,47 @@ resources:
     repository: docker-boshrelease
     access_token: ((github-token-key))
 
-jobs:
-- name: bump-boshdns-release
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: git-kubo-deployment
-    - get: boshdns-release
-      trigger: true
-  - task: bump-boshrelease
-    file: git-kubo-ci/tasks/bump-boshrelease.yml
-    input_mapping:
-      boshrelease: boshdns-release
-    params:
-      RELEASE_NAME: bosh-dns
-  - put: git-kubo-deployment
-    params:
-      repository: git-kubo-deployment-output
+- name: gcs-precompiled-cfcr-etcd-untested
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-precompiled-releases
+    regexp: cfcr-etcd-(.*).tgz
 
+- name: gcs-precompiled-docker-untested
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-precompiled-releases
+    regexp: docker-(.*).tgz
+
+- name: gcs-precompiled-bpm-untested
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-precompiled-releases
+    regexp: bpm-(.*).tgz
+
+- name: compilation-deployment
+  type: bosh-deployment
+  source:
+    deployment: compilation
+    skip_check: true
+
+- name: gcs-source-json
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: gaffer-env/source.json
+
+jobs:
 - name: bump-bpm-release
   plan:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-deployment
+    - get: gcs-source-json
     - get: bpm-release
       trigger: true
   - task: bump-boshrelease
@@ -68,6 +92,33 @@ jobs:
       boshrelease: bpm-release
     params:
       RELEASE_NAME: bpm
+  - task: generate-compilation-manifest
+    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-output
+    params:
+      RELEASE_LIST: "bpm"
+  - put: compilation-deployment
+    params:
+      manifest: compilation-manifest/manifest.yml
+      source_file: gcs-source-json/source.json
+    tags: ['gaffer']
+  - task: export
+    tags: ['gaffer']
+    file: git-kubo-ci/tasks/export-release.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-output
+    params:
+      RELEASE_LIST: "bpm"
+  - put: gcs-precompiled-bpm-untested
+    params:
+      file: compiled-releases/bpm-*.tgz
+  - task: bump-precompiled-releases-in-manifest
+    file: git-kubo-ci/tasks/bump-precompiled-releases-in-manifest.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-output
+    params:
+      RELEASE_LIST: "bpm"
   - put: git-kubo-deployment
     params:
       repository: git-kubo-deployment-output
@@ -77,6 +128,7 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-deployment
+    - get: gcs-source-json
     - get: git-cfcr-etcd-release
       trigger: true
   - task: bump-etcd-release
@@ -86,6 +138,33 @@ jobs:
     params:
       RELEASE_NAME: cfcr-etcd
       REPO_URL: https://github.com/cloudfoundry-incubator/cfcr-etcd-release
+  - task: generate-compilation-manifest
+    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-output
+    params:
+      RELEASE_LIST: "cfcr-etcd"
+  - put: compilation-deployment
+    params:
+      manifest: compilation-manifest/manifest.yml
+      source_file: gcs-source-json/source.json
+    tags: ['gaffer']
+  - task: export
+    tags: ['gaffer']
+    file: git-kubo-ci/tasks/export-release.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-output
+    params:
+      RELEASE_LIST: "cfcr-etcd"
+  - put: gcs-precompiled-cfcr-etcd-untested
+    params:
+      file: compiled-releases/cfcr-etcd-*.tgz
+  - task: bump-precompiled-releases-in-manifest
+    file: git-kubo-ci/tasks/bump-precompiled-releases-in-manifest.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-output
+    params:
+      RELEASE_LIST: "cfcr-etcd"
   - put: git-kubo-deployment
     params:
       repository: git-kubo-deployment-output
@@ -95,6 +174,7 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: git-kubo-deployment
+    - get: gcs-source-json
     - get: docker-boshrelease
       trigger: true
   - task: bump-kubo-docker
@@ -104,6 +184,33 @@ jobs:
     params:
       RELEASE_NAME: docker
       REPO_URL: https://github.com/cloudfoundry-incubator/docker-boshrelease
+  - task: generate-compilation-manifest
+    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-output
+    params:
+      RELEASE_LIST: "docker"
+  - put: compilation-deployment
+    params:
+      manifest: compilation-manifest/manifest.yml
+      source_file: gcs-source-json/source.json
+    tags: ['gaffer']
+  - task: export
+    tags: ['gaffer']
+    file: git-kubo-ci/tasks/export-release.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-output
+    params:
+      RELEASE_LIST: "docker"
+  - put: gcs-precompiled-docker-untested
+    params:
+      file: compiled-releases/docker-*.tgz
+  - task: bump-precompiled-releases-in-manifest
+    file: git-kubo-ci/tasks/bump-precompiled-releases-in-manifest.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-output
+    params:
+      RELEASE_LIST: "docker"
   - put: git-kubo-deployment
     params:
       repository: git-kubo-deployment-output
