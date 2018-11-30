@@ -15,7 +15,7 @@ main() {
   mkdir -p ~/.kube
   cp ${kubeconfig} ~/.kube/config
 
-  skipped_packages=""
+  skipped_packages=",${SKIP_PACKAGES}"
 
   if [[ "${ENABLE_MULTI_AZ_TESTS:-false}" == "false" ]]; then
     skipped_packages="$skipped_packages,multiaz"

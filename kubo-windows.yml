@@ -331,6 +331,7 @@ jobs:
       ENABLE_MULTI_AZ_TESTS: true
       ENABLE_OSS_ONLY_TESTS: true
       ENABLE_PERSISTENT_VOLUME_TESTS: true
+      SKIP_PACKAGES: persistent_volume,scaling
     tags:
     - vsphere-lb
   on_failure:
