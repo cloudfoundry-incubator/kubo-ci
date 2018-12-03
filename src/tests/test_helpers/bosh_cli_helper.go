@@ -2,11 +2,10 @@ package test_helpers
 
 import (
 	"fmt"
+	"net/url"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	testconfig "tests/config"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
@@ -74,13 +73,13 @@ func GetMasterIP(deployment boshdir.Deployment) string {
 	return vms[0].IPs[0]
 }
 
-func NewDirector(testconfig testconfig.Bosh) boshdir.Director {
-	uaa, err := buildUAA(testconfig)
+func NewDirector() boshdir.Director {
+	uaa, err := buildUAA()
 	if err != nil {
 		panic(err)
 	}
 
-	director, err := buildDirector(uaa, testconfig)
+	director, err := buildDirector(uaa)
 	if err != nil {
 		panic(err)
 	}
@@ -88,41 +87,64 @@ func NewDirector(testconfig testconfig.Bosh) boshdir.Director {
 	return director
 }
 
-func buildUaaUrl(testconfig testconfig.Bosh) string {
-	return buildDirectorUrl(testconfig) + ":8443"
+func getUAAUrl() string {
+	environmentURL, err := url.Parse(getBoshEnvironment())
+	Expect(err).NotTo(HaveOccurred())
+
+	return fmt.Sprintf("%s://%s:8443", environmentURL.Scheme, environmentURL.Hostname())
 }
 
-func buildDirectorUrl(testconfig testconfig.Bosh) string {
-	return fmt.Sprintf("https://%s", testconfig.Environment)
+func getBoshEnvironment() string {
+	return MustHaveEnv("BOSH_ENVIRONMENT")
 }
 
-func buildUAA(testconfig testconfig.Bosh) (boshuaa.UAA, error) {
+func getBoshClientSecret() string {
+	return MustHaveEnv("BOSH_CLIENT_SECRET")
+}
+
+func getBoshClient() string {
+	return MustHaveEnv("BOSH_CLIENT")
+}
+
+func getBoshCACert() string {
+	return MustHaveEnv("BOSH_CA_CERT")
+}
+
+func GetBoshDeployment() string {
+	return MustHaveEnv("BOSH_DEPLOYMENT")
+}
+
+func GetIaas() string {
+	return MustHaveEnv("IAAS")
+}
+
+func buildUAA() (boshuaa.UAA, error) {
 	logger := boshlog.NewLogger(boshlog.LevelError)
 	factory := boshuaa.NewFactory(logger)
 
-	config, err := boshuaa.NewConfigFromURL(buildUaaUrl(testconfig))
+	config, err := boshuaa.NewConfigFromURL(getUAAUrl())
 	if err != nil {
 		return nil, err
 	}
 
-	config.Client = testconfig.Client
-	config.ClientSecret = testconfig.ClientSecret
+	config.Client = getBoshClient()
+	config.ClientSecret = getBoshClientSecret()
 
-	config.CACert = testconfig.CaCert
+	config.CACert = getBoshCACert()
 
 	return factory.New(config)
 }
 
-func buildDirector(uaa boshuaa.UAA, testconfig testconfig.Bosh) (boshdir.Director, error) {
+func buildDirector(uaa boshuaa.UAA) (boshdir.Director, error) {
 	logger := boshlog.NewWriterLogger(boshlog.LevelInfo, GinkgoWriter, GinkgoWriter)
 	factory := boshdir.NewFactory(logger)
 
-	config, err := boshdir.NewConfigFromURL(buildDirectorUrl(testconfig))
+	config, err := boshdir.NewConfigFromURL(getBoshEnvironment())
 	if err != nil {
 		return nil, err
 	}
 
-	config.CACert = testconfig.CaCert
+	config.CACert = getBoshCACert()
 
 	config.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
 

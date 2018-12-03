@@ -22,12 +22,12 @@ var (
 	kubectl         *KubectlRunner
 )
 
-var _ = CRIFailureDescribe("A dockerd failure", func() {
+var _ = Describe("A dockerd failure", func() {
 
 	BeforeEach(func() {
 		var err error
-		director = NewDirector(testconfig.Bosh)
-		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
+		director = NewDirector()
+		deployment, err = director.FindDeployment(GetBoshDeployment())
 		Expect(err).NotTo(HaveOccurred())
 
 		countRunningWorkers := CountDeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
@@ -63,7 +63,7 @@ var _ = CRIFailureDescribe("A dockerd failure", func() {
 		killDockerd := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: testconfig.Bosh.Deployment,
+					Name: GetBoshDeployment(),
 				},
 				Group: &selector.NameRequest{
 					Name: WorkerVMType,
@@ -98,7 +98,7 @@ var _ = CRIFailureDescribe("A dockerd failure", func() {
 })
 
 func createTurbulenceIncident(request incident.Request, waitForIncident bool, msg string) {
-	hellRaiser := TurbulenceClient(testconfig.Turbulence)
+	hellRaiser := TurbulenceClient()
 	incident := hellRaiser.CreateIncident(request)
 	if waitForIncident {
 		incident.Wait()

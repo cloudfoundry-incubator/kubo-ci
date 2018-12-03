@@ -10,6 +10,24 @@ KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
 kubeconfig="gcs-kubeconfig/${KUBECONFIG_FILE}"
 export GOPATH="${ROOT}/git-kubo-ci"
 
+target_bosh_director() {
+  BOSH_DEPLOYMENT="${BOSH_DEPLOYMENT:ci-service}"
+  BOSH_ENVIRONMENT=$(bosh int source-json/source.json --path '/target')
+  BOSH_CLIENT=$(bosh int source-json/source.json --path '/client')
+  BOSH_CLIENT_SECRET=$(bosh int source-json/source.json --path '/client_secret')
+  BOSH_CA_CERT=$(bosh int source-json/source.json --path '/ca_cert')
+  export BOSH_DEPLOYMENT BOSH_ENVIRONMENT BOSH_CLIENT BOSH_CLIENT_SECRET BOSH_CA_CERT
+}
+
+target_turbulence_api() {
+  TURBULENCE_PORT=8080
+  TURBULENCE_USERNAME=turbulence
+  TURBULENCE_HOST=$(bosh int "${ROOT}/kubo-lock/metadata" --path=/internal_ip)
+  TURBULENCE_PASSWORD=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path /turbulence_api_password)
+  TURBULENCE_CA_CERT=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path=/turbulence_api_ca/ca)
+  export TURBULENCE_PORT TURBULENCE_USERNAME TURBULENCE_HOST TURBULENCE_PASSWORD TURBULENCE_CA_CERT
+}
+
 main() {
   if [[ ! -e "${kubeconfig}" ]]; then
     echo "Did not find kubeconfig at gcs-kubeconfig/${KUBECONFIG_FILE}!"
@@ -19,13 +37,28 @@ main() {
   mkdir -p ~/.kube
   cp ${kubeconfig} ~/.kube/config
 
-  source "${ROOT}/git-kubo-ci/scripts/lib/utils.sh"
-  create_environment_dir "${KUBO_ENVIRONMENT_DIR}"
+  skipped_packages=""
 
-  local tmpfile="$(mktemp)" && echo "CONFIG=${tmpfile}"
-  "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
+  if [[ "${ENABLE_TURBULENCE_MASTER_FAILURE_TESTS:-false}" == "false" ]]; then
+    skipped_packages="$skipped_packages,master_failure"
+  fi
 
-  CONFIG="${tmpfile}" ginkgo -failFast -progress -r "${ROOT}/git-kubo-ci/src/tests/turbulence-tests/"
+  if [[ "${ENABLE_TURBULENCE_WORKER_FAILURE_TESTS:-false}" == "false" ]]; then
+    skipped_packages="$skipped_packages,worker_failure"
+  fi
+
+  if [[ "${ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS:-false}" == "false" ]]; then
+    skipped_packages="$skipped_packages,persistence_failure"
+  fi
+
+  if [[ "${ENABLE_TURBULENCE_WORKER_DRAIN_TESTS:-false}" == "false" ]]; then
+    skipped_packages="$skipped_packages,worker_drain"
+  fi
+
+  target_bosh_director
+  target_turbulence_api
+
+  ginkgo -skipPackage "${skipped_packages}" -failFast -progress -r "${ROOT}/git-kubo-ci/src/tests/turbulence-tests/"
 }
 
 main

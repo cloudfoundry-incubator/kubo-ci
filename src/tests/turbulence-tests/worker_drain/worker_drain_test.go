@@ -3,7 +3,7 @@ package worker_drain
 import (
 	. "tests/test_helpers"
 
-	director "github.com/cloudfoundry/bosh-cli/director"
+	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cppforlife/turbulence/incident"
 	"github.com/cppforlife/turbulence/incident/selector"
 	"github.com/cppforlife/turbulence/tasks"
@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
+var _ = Describe("Worker drain scenarios", func() {
 
 	var (
 		deployment director.Deployment
@@ -20,19 +20,19 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 
 	BeforeEach(func() {
 		var err error
-		director := NewDirector(testconfig.Bosh)
-		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
+		director := NewDirector()
+		deployment, err = director.FindDeployment(GetBoshDeployment())
 		Expect(err).NotTo(HaveOccurred())
 
 		kubectl = NewKubectlRunner()
 		kubectl.Setup()
 
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
-		DeploySmorgasbord(kubectl, testconfig.Iaas)
+		DeploySmorgasbord(kubectl, GetIaas())
 	})
 
 	AfterEach(func() {
-		DeleteSmorgasbord(kubectl, testconfig.Iaas)
+		DeleteSmorgasbord(kubectl, GetIaas())
 		kubectl.Teardown()
 	})
 
@@ -40,11 +40,11 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 		vmInfos := DeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
 		blockedWorkerID := vmInfos[0].ID
 
-		hellRaiser := TurbulenceClient(testconfig.Turbulence)
+		hellRaiser := TurbulenceClient()
 		blockOneWorker := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: testconfig.Bosh.Deployment,
+					Name: GetBoshDeployment(),
 				},
 				Group: &selector.NameRequest{
 					Name: WorkerVMType,
@@ -62,8 +62,8 @@ var _ = WorkerDrainDescribe("Worker drain scenarios", func() {
 		}
 
 		By("Recreating all workers successfully")
-		dir := NewDirector(testconfig.Bosh)
-		deployment, err := dir.FindDeployment(testconfig.Bosh.Deployment)
+		dir := NewDirector()
+		deployment, err := dir.FindDeployment(GetBoshDeployment())
 		Expect(err).NotTo(HaveOccurred())
 		hellRaiser.CreateIncident(blockOneWorker)
 		err = deployment.Recreate(director.NewAllOrInstanceGroupOrInstanceSlug("worker", blockedWorkerID), director.RecreateOpts{Canaries: "0", MaxInFlight: "100%"})

@@ -23,10 +23,9 @@ main() {
 
   if [[ "$INTERNET_ACCESS" != "false" ]]; then
     tmpfile="$(mktemp)"
-    echo "CONFIG=${tmpfile}"
 
     "${ROOT}/git-kubo-ci/scripts/generate-test-config.sh" "${KUBO_ENVIRONMENT_DIR}" "${DEPLOYMENT_NAME}" > "${tmpfile}"
-    BOSH_DEPLOY_COMMAND="$ROOT/bosh-command/bosh-deploy.sh" CONFIG="${tmpfile}" ginkgo -r -v -progress "${ROOT}/git-kubo-ci/src/tests/upgrade-tests/"
+    BOSH_DEPLOY_COMMAND="$ROOT/bosh-command/bosh-deploy.sh" ginkgo -r -v -progress "${ROOT}/git-kubo-ci/src/tests/upgrade-tests/"
   else
     $ROOT/bosh-command/bosh-deploy.sh
   fi

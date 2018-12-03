@@ -916,6 +916,7 @@ jobs:
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
     params:
+      IAAS: <%= env.split('-')[0] %>
       ENABLE_TURBULENCE_WORKER_DRAIN_TESTS: true
       ENABLE_TURBULENCE_WORKER_FAILURE_TESTS: true
       ENABLE_TURBULENCE_MASTER_FAILURE_TESTS: true
@@ -1270,6 +1271,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
+      ENABLE_MULTI_AZ_TESTS: false
       DEPLOYMENT_NAME: ci-service
       <% if env =~ /^vsphere-proxy/ %>
       INTERNET_ACCESS: false
@@ -1588,6 +1590,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
+      ENABLE_MULTI_AZ_TESTS: true
       DEPLOYMENT_NAME: ci-service
     on_failure: *on_failure_alert
   - put: run-smoke-tests-errand

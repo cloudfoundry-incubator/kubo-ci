@@ -3,7 +3,6 @@ package upgrade_tests_test
 import (
 	"testing"
 
-	"tests/config"
 	"tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
@@ -12,7 +11,7 @@ import (
 
 var (
 	kubectl    *test_helpers.KubectlRunner
-	testconfig *config.Config
+	iaas      string
 )
 
 func TestUpgradeTests(t *testing.T) {
@@ -21,12 +20,9 @@ func TestUpgradeTests(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	var err error
-	testconfig, err = config.InitConfig()
-	Expect(err).NotTo(HaveOccurred())
-
 	kubectl = test_helpers.NewKubectlRunner()
 	kubectl.Setup()
+	iaas = test_helpers.GetIaas()
 })
 
 var _ = AfterSuite(func() {

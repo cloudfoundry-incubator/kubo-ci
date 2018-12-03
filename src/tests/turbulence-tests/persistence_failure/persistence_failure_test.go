@@ -18,7 +18,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
+var _ = Describe("Persistence failure scenarios", func() {
 
 	var (
 		deployment director.Deployment
@@ -27,8 +27,8 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 
 	BeforeEach(func() {
 		var err error
-		director := NewDirector(testconfig.Bosh)
-		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
+		director := NewDirector()
+		deployment, err = director.FindDeployment(GetBoshDeployment())
 		Expect(err).NotTo(HaveOccurred())
 
 		kubectl = NewKubectlRunner()
@@ -85,7 +85,7 @@ var _ = PersistenceFailureDescribe("Persistence failure scenarios", func() {
 			vmID, err := BoshIdByIp(deployment, redisVMIp)
 			Expect(err).NotTo(HaveOccurred())
 
-			hellRaiser := TurbulenceClient(testconfig.Turbulence)
+			hellRaiser := TurbulenceClient()
 			killRedisVM := incident.Request{
 				Selector: selector.Request{
 					ID: &selector.IDRequest{

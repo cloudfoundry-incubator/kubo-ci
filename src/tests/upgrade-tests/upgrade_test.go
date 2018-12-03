@@ -22,7 +22,7 @@ var requestLossThreshold, masterRequestLossThreshold float64
 var _ = Describe("Upgrade components", func() {
 	BeforeEach(func() {
 		nginxSpec = test_helpers.PathFromRoot("specs/nginx-lb.yml")
-		if testconfig.Iaas == "vsphere" {
+		if iaas == "vsphere" {
 			nginxSpec = test_helpers.PathFromRoot("specs/nginx-specified-nodeport.yml")
 		}
 		requestLossThreshold = 0.95
@@ -32,12 +32,12 @@ var _ = Describe("Upgrade components", func() {
 		deployNginx := kubectl.StartKubectlCommand("create", "-f", nginxSpec)
 		Eventually(deployNginx, "60s").Should(gexec.Exit(0))
 
-		test_helpers.DeploySmorgasbord(kubectl, testconfig.Iaas)
+		test_helpers.DeploySmorgasbord(kubectl, iaas)
 	})
 
 	AfterEach(func() {
 		kubectl.StartKubectlCommand("delete", "-f", nginxSpec).Wait("60s")
-		test_helpers.DeleteSmorgasbord(kubectl, testconfig.Iaas)
+		test_helpers.DeleteSmorgasbord(kubectl, iaas)
 	})
 
 	It("upgrades CFCR Release", func() {
@@ -47,8 +47,8 @@ var _ = Describe("Upgrade components", func() {
 })
 
 func getvSphereLoadBalancer() *exec.Cmd {
-	director := test_helpers.NewDirector(testconfig.Bosh)
-	deployment, err := director.FindDeployment(testconfig.Bosh.Deployment)
+	director := test_helpers.NewDirector()
+	deployment, err := director.FindDeployment(test_helpers.GetBoshDeployment())
 	Expect(err).NotTo(HaveOccurred())
 	content := []byte(`global
 maxconn 64000
@@ -87,12 +87,12 @@ balance roundrobin`)
 
 func upgradeAndMonitorAvailability(pathToScript string, component string, requestLossThreshold float64) {
 	By("Getting the LB address")
-	if testconfig.Iaas == "vsphere" {
+	if iaas == "vsphere" {
 		session := getvSphereLoadBalancer()
 		defer session.Process.Kill()
 	} else {
 		Eventually(func() string {
-			loadbalancerAddress = kubectl.GetLBAddress("nginx", testconfig.Iaas)
+			loadbalancerAddress = kubectl.GetLBAddress("nginx", iaas)
 			return loadbalancerAddress
 		}, "120s", "5s").Should(Not(Equal("")))
 
@@ -145,7 +145,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	masterTotalCount := 0
 	masterSuccessCount := 0
 	masterDoneChannel := make(chan bool)
-	if testconfig.UpgradeTests.IncludeMultiAZ {
+	if test_helpers.MustHaveEnv("ENABLE_MULTI_AZ_TESTS") == "true" {
 		By("Monitoring master availability")
 		masterCheck := func() error {
 			defer GinkgoRecover()
@@ -199,7 +199,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	By("Reporting the workload availability during the upgrade")
 	Expect(float64(successCount)/float64(totalCount)).To(BeNumerically(">=", requestLossThreshold), "workload was unavaible during the upgrade")
 
-	if testconfig.UpgradeTests.IncludeMultiAZ {
+	if test_helpers.MustHaveEnv("ENABLE_MULTI_AZ_TESTS") == "true" {
 		By("Reporting the master availability during the upgrade")
 		Expect(float64(masterSuccessCount)/float64(masterTotalCount)).To(BeNumerically(">=", masterRequestLossThreshold), "Kubernetes API was unavailable during the upgrade")
 	}
