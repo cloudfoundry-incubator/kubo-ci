@@ -41,26 +41,6 @@ func BoshIdByIp(deployment director.Deployment, externalIp string) (string, erro
 	return "", errors.New(fmt.Sprintf("Can't find vm id with ip %s", externalIp))
 }
 
-func GetReadyNodesBroken(nodes []Node) []string {
-	readyNodes := []string{}
-	for _, node := range nodes {
-		for _, condition := range node.Status.Conditions {
-			if condition.ConditionType == "Ready" && condition.Status == "True" {
-				readyNodes = append(readyNodes, node.Metadata.Name)
-				break
-			}
-		}
-	}
-	return readyNodes
-}
-
-func ExpectAllComponentsToBeHealthy(kubectl *KubectlRunner) {
-	components := GetComponentStatus(kubectl)
-	Expect(components).ToNot(BeEmpty())
-	for _, component := range components {
-		Expect(component.Conditions[0].Status).To(Equal("True"))
-	}
-}
 
 func AllComponentsAreHealthy(kubectl *KubectlRunner) bool {
 	components, err := GetComponentStatusOrError(kubectl)
@@ -104,23 +84,6 @@ type ComponentStatus struct {
 
 type ComponentStatusResponse struct {
 	Items []ComponentStatus `json:"items"`
-}
-
-func GetNodesBroken(kubectl *KubectlRunner) []Node {
-	nodes := NodesArray{}
-	bytes := kubectl.GetOutputBytes("get", "nodes", "-o", "json")
-	err := json.Unmarshal(bytes, &nodes)
-	Expect(err).ToNot(HaveOccurred())
-	return nodes.Items
-}
-
-func GetComponentStatus(kubectl *KubectlRunner) []ComponentStatus {
-	response := ComponentStatusResponse{}
-	bytes := kubectl.GetOutputBytes("get", "componentstatus", "-o", "json")
-	fmt.Println(string(bytes))
-	err := json.Unmarshal(bytes, &response)
-	Expect(err).ToNot(HaveOccurred())
-	return response.Items
 }
 
 func GetComponentStatusOrError(kubectl *KubectlRunner) ([]ComponentStatus, error) {
