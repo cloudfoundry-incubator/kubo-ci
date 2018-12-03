@@ -12,7 +12,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
+var _ = Describe("Worker failure scenarios", func() {
 
 	var (
 		deployment          director.Deployment
@@ -23,8 +23,8 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 
 	BeforeEach(func() {
 		var err error
-		director := NewDirector(testconfig.Bosh)
-		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
+		director := NewDirector()
+		deployment, err = director.FindDeployment(GetBoshDeployment())
 		Expect(err).NotTo(HaveOccurred())
 		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
 
@@ -42,11 +42,11 @@ var _ = WorkerFailureDescribe("Worker failure scenarios", func() {
 
 	Specify("K8s applications are scheduled on the resurrected node", func() {
 		By("Deleting the Worker VM")
-		hellRaiser := TurbulenceClient(testconfig.Turbulence)
+		hellRaiser := TurbulenceClient()
 		killOneWorker := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: testconfig.Bosh.Deployment,
+					Name: GetBoshDeployment(),
 				},
 				Group: &selector.NameRequest{
 					Name: WorkerVMType,

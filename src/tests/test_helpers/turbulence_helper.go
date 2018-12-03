@@ -3,7 +3,6 @@ package test_helpers
 import (
 	"errors"
 	"fmt"
-	testconfig "tests/config"
 
 	"encoding/json"
 
@@ -13,16 +12,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TurbulenceClient(testconfig testconfig.Turbulence) client.Turbulence {
-	config := client.Config{
-		Host: testconfig.Host,
-		Port: testconfig.Port,
-
-		Username: testconfig.Username,
-		Password: testconfig.Password,
-
-		CACert: testconfig.CaCert,
-	}
+func TurbulenceClient() client.Turbulence {
+	config := client.NewConfigFromEnv()
 	clientLogger := logger.NewLogger(logger.LevelNone)
 	return client.NewFactory(clientLogger).New(config)
 }

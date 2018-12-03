@@ -21,12 +21,12 @@ var (
 	director                      boshdir.Director
 )
 
-var _ = MasterFailureDescribe("A single master and etcd failure", func() {
+var _ = Describe("A single master and etcd failure", func() {
 
 	BeforeEach(func() {
 		var err error
-		director = NewDirector(testconfig.Bosh)
-		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
+		director = NewDirector()
+		deployment, err = director.FindDeployment(GetBoshDeployment())
 		Expect(err).NotTo(HaveOccurred())
 		numberOfMasters = len(DeploymentVmsOfType(deployment, MasterVMType, ""))
 		countRunningApiServerOnMaster = CountProcessesOnVmsOfType(deployment, MasterVMType, "kube-apiserver", VMRunningState)
@@ -47,7 +47,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		killOneMaster := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: testconfig.Bosh.Deployment,
+					Name: GetBoshDeployment(),
 				},
 				Group: &selector.NameRequest{
 					Name: MasterVMType,
@@ -71,7 +71,7 @@ var _ = MasterFailureDescribe("A single master and etcd failure", func() {
 		rebootOneMaster := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: testconfig.Bosh.Deployment,
+					Name: GetBoshDeployment(),
 				},
 				Group: &selector.NameRequest{
 					Name: MasterVMType,
@@ -98,7 +98,7 @@ func createTurbulenceIncident(request incident.Request, waitForIncident bool, ms
 	Eventually(kubectl.StartKubectlCommand("rollout", "status", "deployment/nginx", "-w"), kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 
 	By("Creating Turbulence Incident")
-	hellRaiser := TurbulenceClient(testconfig.Turbulence)
+	hellRaiser := TurbulenceClient()
 	incident := hellRaiser.CreateIncident(request)
 	if waitForIncident {
 		incident.Wait()

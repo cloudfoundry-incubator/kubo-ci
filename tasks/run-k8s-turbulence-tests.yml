@@ -21,3 +21,4 @@ inputs:
   - name: gcs-bosh-creds
   - name: kubo-lock
   - name: git-kubo-deployment
+  - name: source-json

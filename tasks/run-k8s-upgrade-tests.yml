@@ -9,6 +9,7 @@ run:
 params:
   DEPLOYMENT_NAME:
   INTERNET_ACCESS: true
+  ENABLE_MULTI_AZ_TESTS: false
 
 inputs:
 - name: git-kubo-ci

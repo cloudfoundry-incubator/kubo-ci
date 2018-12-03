@@ -16,26 +16,26 @@ var _ = Describe("Cluster upgrade", func() {
 
 	BeforeEach(func() {
 		var err error
-		director := NewDirector(testconfig.Bosh)
-		deployment, err = director.FindDeployment(testconfig.Bosh.Deployment)
+		director := NewDirector()
+		deployment, err = director.FindDeployment(GetBoshDeployment())
 		Expect(err).NotTo(HaveOccurred())
 
 		kubectl = NewKubectlRunner()
 		kubectl.Setup()
 
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
-		DeploySmorgasbord(kubectl, testconfig.Iaas)
+		DeploySmorgasbord(kubectl, GetIaas())
 	})
 
 	AfterEach(func() {
-		DeleteSmorgasbord(kubectl, testconfig.Iaas)
+		DeleteSmorgasbord(kubectl, GetIaas())
 		kubectl.Teardown()
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 	})
 
 	Specify("doesn't fail when deployment is recreated", func() {
-		dir := NewDirector(testconfig.Bosh)
-		deployment, err := dir.FindDeployment(testconfig.Bosh.Deployment)
+		dir := NewDirector()
+		deployment, err := dir.FindDeployment(GetBoshDeployment())
 		Expect(err).NotTo(HaveOccurred())
 		err = deployment.Recreate(director.AllOrInstanceGroupOrInstanceSlug{}, director.RecreateOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -44,8 +44,8 @@ var _ = Describe("Cluster upgrade", func() {
 	})
 
 	Specify("doesn't fail when deployment is restarted", func() {
-		dir := NewDirector(testconfig.Bosh)
-		deployment, err := dir.FindDeployment(testconfig.Bosh.Deployment)
+		dir := NewDirector()
+		deployment, err := dir.FindDeployment(GetBoshDeployment())
 		Expect(err).NotTo(HaveOccurred())
 		err = deployment.Restart(director.AllOrInstanceGroupOrInstanceSlug{}, director.RestartOpts{})
 		Expect(err).NotTo(HaveOccurred())

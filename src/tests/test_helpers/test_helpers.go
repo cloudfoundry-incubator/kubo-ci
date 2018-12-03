@@ -8,6 +8,6 @@ import (
 
 func MustHaveEnv(keyname string) string {
 	val := os.Getenv(keyname)
-	Expect(val).NotTo(BeEmpty(), "Need "+keyname+" for the test")
+	Expect(val).NotTo(BeEmpty(), "Environment variable '"+keyname+"' must be set")
 	return val
 }
