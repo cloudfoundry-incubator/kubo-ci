@@ -10,6 +10,7 @@ params:
   DEPLOYMENT_NAME:
   INTERNET_ACCESS: true
   ENABLE_MULTI_AZ_TESTS: false
+  IAAS:
 
 inputs:
 - name: git-kubo-ci

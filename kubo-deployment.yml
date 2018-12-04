@@ -1273,6 +1273,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     params:
       ENABLE_MULTI_AZ_TESTS: false
       DEPLOYMENT_NAME: ci-service
+      IAAS: <%= env.split('-')[0] %>
       <% if env =~ /^vsphere-proxy/ %>
       INTERNET_ACCESS: false
       <% end %>
@@ -1590,6 +1591,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
     params:
+      IAAS: <%= env.split('-')[0] %>
       ENABLE_MULTI_AZ_TESTS: true
       DEPLOYMENT_NAME: ci-service
     on_failure: *on_failure_alert
