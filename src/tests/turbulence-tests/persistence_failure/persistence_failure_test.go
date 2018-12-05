@@ -36,7 +36,7 @@ var _ = Describe("Persistence failure scenarios", func() {
 
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 
-		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
+		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", GetIaas()))
 		Eventually(kubectl.StartKubectlCommand("create", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
 		Eventually(kubectl.StartKubectlCommand("create", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
@@ -47,7 +47,7 @@ var _ = Describe("Persistence failure scenarios", func() {
 		UndeployGuestBook(kubectl)
 		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
 		Eventually(kubectl.StartKubectlCommand("delete", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
-		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", testconfig.Iaas))
+		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", GetIaas()))
 		Eventually(kubectl.StartKubectlCommand("delete", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		kubectl.Teardown()
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
