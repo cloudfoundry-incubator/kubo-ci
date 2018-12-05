@@ -11,7 +11,7 @@ kubeconfig="gcs-kubeconfig/${KUBECONFIG_FILE}"
 export GOPATH="${ROOT}/git-kubo-ci"
 
 target_bosh_director() {
-  BOSH_DEPLOYMENT="${BOSH_DEPLOYMENT:ci-service}"
+  BOSH_DEPLOYMENT="${DEPLOYMENT_NAME}"
   BOSH_ENVIRONMENT=$(bosh int source-json/source.json --path '/target')
   BOSH_CLIENT=$(bosh int source-json/source.json --path '/client')
   BOSH_CLIENT_SECRET=$(bosh int source-json/source.json --path '/client_secret')
