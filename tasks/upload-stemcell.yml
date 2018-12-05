@@ -8,7 +8,7 @@ image_resource:
 inputs:
 - name: git-kubo-ci
 - name: git-kubo-deployment
-- name: gcs-source-json
+- name: source-json
 
 run:
   path: git-kubo-ci/scripts/upload-stemcell.sh
