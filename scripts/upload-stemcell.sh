@@ -7,7 +7,7 @@ else
     source git-kubo-ci/scripts/set-bosh-env gcs-source-json/metadata
     jumpbox_ssh_key="$(mktemp)"
     bosh int --path=/jumpbox_ssh_key gcs-source-json/metadata > ${jumpbox_ssh_key}
-    proxy="ssh+socks5://jumpbox@$(bosh int --path=/jumpbox_url gcs-source-json/metadata):22?private-key=${jumpbox_ssh_key}"
+    proxy="ssh+socks5://jumpbox@$(bosh int --path=/jumpbox_url gcs-source-json/metadata)?private-key=${jumpbox_ssh_key}"
     export BOSH_ALL_PROXY="${proxy}"
     export CREDHUB_ALL_PROXY="${proxy}"
 fi
