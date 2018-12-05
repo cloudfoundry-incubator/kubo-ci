@@ -2501,6 +2501,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
+    - get: gaffer-source-json
     - get: kubo-version
       params:
         bump: final
