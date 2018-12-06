@@ -78,13 +78,6 @@ jobs:
       trigger: true
   - task: bump-stemcell
     file: git-kubo-ci/tasks/bump-stemcell.yml
-  - task: upload-stemcell
-    tags: ['gaffer']
-    file: git-kubo-ci/tasks/upload-stemcell.yml
-    input_mapping:
-      git-kubo-deployment: git-kubo-deployment-output
-    params:
-      IAAS: gcp
   - task: generate-compilation-manifest
     tags: ['gaffer']
     file: git-kubo-ci/tasks/generate-compilation-manifest.yml
@@ -94,6 +87,8 @@ jobs:
       RELEASE_LIST: "docker cfcr-etcd bpm"
   - put: compilation-deployment
     params:
+      stemcells:
+      - stemcell/stemcell.tgz
       manifest: compilation-manifest/manifest.yml
       source_file: gcs-source-json/source.json
     tags: ['gaffer']
