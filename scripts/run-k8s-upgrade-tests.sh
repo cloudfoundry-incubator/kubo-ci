@@ -3,8 +3,8 @@
 set -eu -o pipefail
 
 export ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
-export KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
 export GOPATH="${ROOT}/git-kubo-ci"
+export KUBECONFIG="${ROOT}/gcs-kubeconfig/config"
 
 target_bosh_director() {
   BOSH_DEPLOYMENT="${DEPLOYMENT_NAME}"
