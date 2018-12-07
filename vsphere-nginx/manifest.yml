@@ -57,12 +57,12 @@ instance_groups:
 
           server {
             listen 4000;
-            proxy_pass cessna_backend;
+            proxy_pass khaleesi_backend;
           }
-          upstream cessna_backend {
-            server 10.85.96.101:8443;
-            server 10.85.96.102:8443;
-            server 10.85.96.103:8443;
+          upstream khaleesi_backend {
+            server 10.87.35.101:8443;
+            server 10.87.35.102:8443;
+            server 10.87.35.103:8443;
           }
         }
 stemcells:
