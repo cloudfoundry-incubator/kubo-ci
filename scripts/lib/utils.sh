@@ -15,21 +15,3 @@ set_variables() {
   echo "cluster_name=$cluster_name" "api_url=$api_url"
 }
 
-create_environment_dir() {
-  KUBO_ENVIRONMENT_DIR="${1}"
-  mkdir -p "${KUBO_ENVIRONMENT_DIR}"
-  cp "${ROOT}/gcs-bosh-creds/creds.yml" "${KUBO_ENVIRONMENT_DIR}/"
-  cp "${ROOT}/kubo-lock/metadata" "${KUBO_ENVIRONMENT_DIR}/director.yml"
-}
-
-setup_env() {
-  KUBO_ENVIRONMENT_DIR="${1}"
-
-  create_environment_dir "${KUBO_ENVIRONMENT_DIR}"
-
-  "${ROOT}/git-kubo-ci/scripts/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
-  "${ROOT}/git-kubo-deployment/bin/credhub_login" "${KUBO_ENVIRONMENT_DIR}"
-  eval "$(set_variables)"
-  "${ROOT}/git-kubo-deployment/bin/set_kubeconfig" "${cluster_name}" "${api_url}"
-}
-
