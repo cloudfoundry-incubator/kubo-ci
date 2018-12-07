@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -o pipefail -eux
+
+main() {
+  VARFILE="$1"
+  if [[ -n ${BOSH_ALL_PROXY} ]]; then
+    export CREDHUB_PROXY=${BOSH_ALL_PROXY}
+  fi
+  credhub_admin_secret=$(bosh int "${VARFILE}" --path "/credhub_admin_client_secret")
+  credhub_api_url="https://$(bosh int "${VARFILE}" --path "/internal_ip"):8844"
+  credhub login --client-name credhub-admin --client-secret "${credhub_admin_secret}" \
+    -s "${credhub_api_url}" \
+    --ca-cert <(bosh int "${VARFILE}" --path="/credhub_tls/ca") \
+    --ca-cert <(bosh int "${VARFILE}" --path="/uaa_ssl/ca") 1>/dev/null
+}
+
+main "$@"
