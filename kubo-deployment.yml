@@ -555,9 +555,11 @@ jobs:
     input_mapping:
       gcs-source-json: gaffer-source-json
   - put: kubo-version
+    attempts: 10
     params:
       pre: dev
   - put: gcs-kubo-release-tarball-untested
+    attempts: 10
     params:
       file: compiled-releases/kubo-*.tgz
 
