@@ -9,30 +9,35 @@ import (
 	"github.com/cppforlife/turbulence/tasks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"os"
 )
 
 var _ = Describe("Worker drain scenarios", func() {
 
 	var (
-		deployment director.Deployment
-		kubectl    *KubectlRunner
+		deployment     director.Deployment
+		err            error
+		deploymentName string
+		kubectl        *KubectlRunner
+		iaas           string
 	)
 
 	BeforeEach(func() {
-		var err error
 		director := NewDirector()
-		deployment, err = director.FindDeployment(GetBoshDeployment())
+		iaas = os.Getenv("IAAS")
+		deploymentName = os.Getenv("BOSH_DEPLOYMENT")
+		deployment, err = director.FindDeployment(deploymentName)
 		Expect(err).NotTo(HaveOccurred())
 
 		kubectl = NewKubectlRunner()
 		kubectl.Setup()
 
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
-		DeploySmorgasbord(kubectl, GetIaas())
+		DeploySmorgasbord(kubectl, iaas)
 	})
 
 	AfterEach(func() {
-		DeleteSmorgasbord(kubectl, GetIaas())
+		DeleteSmorgasbord(kubectl, iaas)
 		kubectl.Teardown()
 	})
 
@@ -44,7 +49,7 @@ var _ = Describe("Worker drain scenarios", func() {
 		blockOneWorker := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: GetBoshDeployment(),
+					Name: deploymentName,
 				},
 				Group: &selector.NameRequest{
 					Name: WorkerVMType,
@@ -63,7 +68,7 @@ var _ = Describe("Worker drain scenarios", func() {
 
 		By("Recreating all workers successfully")
 		dir := NewDirector()
-		deployment, err := dir.FindDeployment(GetBoshDeployment())
+		deployment, err := dir.FindDeployment(deploymentName)
 		Expect(err).NotTo(HaveOccurred())
 		hellRaiser.CreateIncident(blockOneWorker)
 		err = deployment.Recreate(director.NewAllOrInstanceGroupOrInstanceSlug("worker", blockedWorkerID), director.RecreateOpts{Canaries: "0", MaxInFlight: "100%"})

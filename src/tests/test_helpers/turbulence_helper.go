@@ -41,7 +41,6 @@ func BoshIdByIp(deployment director.Deployment, externalIp string) (string, erro
 	return "", errors.New(fmt.Sprintf("Can't find vm id with ip %s", externalIp))
 }
 
-
 func AllComponentsAreHealthy(kubectl *KubectlRunner) bool {
 	components, err := GetComponentStatusOrError(kubectl)
 	if err != nil {

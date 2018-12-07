@@ -4,9 +4,8 @@ import (
 	. "tests/test_helpers"
 
 	"fmt"
-
 	"math/rand"
-
+	"os"
 	"strconv"
 
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -22,13 +21,15 @@ var _ = Describe("Persistence failure scenarios", func() {
 
 	var (
 		deployment director.Deployment
+		err        error
 		kubectl    *KubectlRunner
+		iaas       string
 	)
 
 	BeforeEach(func() {
-		var err error
+		iaas = os.Getenv("IAAS")
 		director := NewDirector()
-		deployment, err = director.FindDeployment(GetBoshDeployment())
+		deployment, err = director.FindDeployment(os.Getenv("BOSH_DEPLOYMENT"))
 		Expect(err).NotTo(HaveOccurred())
 
 		kubectl = NewKubectlRunner()
@@ -36,7 +37,7 @@ var _ = Describe("Persistence failure scenarios", func() {
 
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
 
-		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", GetIaas()))
+		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
 		Eventually(kubectl.StartKubectlCommand("create", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
 		Eventually(kubectl.StartKubectlCommand("create", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
@@ -47,7 +48,7 @@ var _ = Describe("Persistence failure scenarios", func() {
 		UndeployGuestBook(kubectl)
 		pvcSpec := PathFromRoot("specs/persistent-volume-claim.yml")
 		Eventually(kubectl.StartKubectlCommand("delete", "-f", pvcSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
-		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", GetIaas()))
+		storageClassSpec := PathFromRoot(fmt.Sprintf("specs/storage-class-%s.yml", iaas))
 		Eventually(kubectl.StartKubectlCommand("delete", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		kubectl.Teardown()
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())

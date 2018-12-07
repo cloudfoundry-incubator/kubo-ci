@@ -10,12 +10,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"os"
 )
 
 var _ = Describe("Worker failure scenarios", func() {
 
 	var (
 		deployment          director.Deployment
+		deploymentName      string
 		countRunningWorkers func() int
 		kubectl             *KubectlRunner
 		nginxDaemonSetSpec  = PathFromRoot("specs/nginx-daemonset.yml")
@@ -24,7 +26,8 @@ var _ = Describe("Worker failure scenarios", func() {
 	BeforeEach(func() {
 		var err error
 		director := NewDirector()
-		deployment, err = director.FindDeployment(GetBoshDeployment())
+		deploymentName = os.Getenv("BOSH_DEPLOYMENT")
+		deployment, err = director.FindDeployment(deploymentName)
 		Expect(err).NotTo(HaveOccurred())
 		countRunningWorkers = CountDeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
 
@@ -46,7 +49,7 @@ var _ = Describe("Worker failure scenarios", func() {
 		killOneWorker := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: GetBoshDeployment(),
+					Name: deploymentName,
 				},
 				Group: &selector.NameRequest{
 					Name: WorkerVMType,
@@ -91,5 +94,4 @@ var _ = Describe("Worker failure scenarios", func() {
 		_, err := GetNewVmId(runningWorkerVms, nodeNames)
 		Expect(err).ToNot(HaveOccurred())
 	})
-
 })

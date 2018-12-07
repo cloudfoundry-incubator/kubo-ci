@@ -3,11 +3,17 @@ package test_helpers
 import (
 	"os"
 
-	. "github.com/onsi/gomega"
+	"fmt"
+	. "github.com/onsi/ginkgo"
 )
 
-func MustHaveEnv(keyname string) string {
-	val := os.Getenv(keyname)
-	Expect(val).NotTo(BeEmpty(), "Environment variable '"+keyname+"' must be set")
-	return val
+func CheckRequiredEnvs(envs []string) {
+	for _, env := range envs {
+		_, present := os.LookupEnv(env)
+
+		if present == false {
+			fmt.Fprintf(GinkgoWriter, "Environment Variable %s must be set", envs)
+			os.Exit(1)
+		}
+	}
 }
