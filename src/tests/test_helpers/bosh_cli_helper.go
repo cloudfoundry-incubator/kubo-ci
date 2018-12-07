@@ -10,12 +10,13 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"os"
 )
 
 const (
-	WorkerVMType    = "worker"
-	MasterVMType    = "master"
-	VMRunningState  = "running"
+	WorkerVMType   = "worker"
+	MasterVMType   = "master"
+	VMRunningState = "running"
 )
 
 func CountDeploymentVmsOfType(deployment boshdir.Deployment, jobName, processState string) func() int {
@@ -77,34 +78,10 @@ func NewDirector() boshdir.Director {
 }
 
 func getUAAUrl() string {
-	environmentURL, err := url.Parse(getBoshEnvironment())
+	environmentURL, err := url.Parse(os.Getenv("BOSH_ENVIRONMENT"))
 	Expect(err).NotTo(HaveOccurred())
 
 	return fmt.Sprintf("%s://%s:8443", environmentURL.Scheme, environmentURL.Hostname())
-}
-
-func getBoshEnvironment() string {
-	return MustHaveEnv("BOSH_ENVIRONMENT")
-}
-
-func getBoshClientSecret() string {
-	return MustHaveEnv("BOSH_CLIENT_SECRET")
-}
-
-func getBoshClient() string {
-	return MustHaveEnv("BOSH_CLIENT")
-}
-
-func getBoshCACert() string {
-	return MustHaveEnv("BOSH_CA_CERT")
-}
-
-func GetBoshDeployment() string {
-	return MustHaveEnv("BOSH_DEPLOYMENT")
-}
-
-func GetIaas() string {
-	return MustHaveEnv("IAAS")
 }
 
 func buildUAA() (boshuaa.UAA, error) {
@@ -116,10 +93,9 @@ func buildUAA() (boshuaa.UAA, error) {
 		return nil, err
 	}
 
-	config.Client = getBoshClient()
-	config.ClientSecret = getBoshClientSecret()
-
-	config.CACert = getBoshCACert()
+	config.Client = os.Getenv("BOSH_CLIENT")
+	config.ClientSecret = os.Getenv("BOSH_CLIENT_SECRET")
+	config.CACert = os.Getenv("BOSH_CA_CERT")
 
 	return factory.New(config)
 }
@@ -128,13 +104,12 @@ func buildDirector(uaa boshuaa.UAA) (boshdir.Director, error) {
 	logger := boshlog.NewWriterLogger(boshlog.LevelInfo, GinkgoWriter, GinkgoWriter)
 	factory := boshdir.NewFactory(logger)
 
-	config, err := boshdir.NewConfigFromURL(getBoshEnvironment())
+	config, err := boshdir.NewConfigFromURL(os.Getenv("BOSH_ENVIRONMENT"))
 	if err != nil {
 		return nil, err
 	}
 
-	config.CACert = getBoshCACert()
-
+	config.CACert = os.Getenv("BOSH_CA_CERT")
 	config.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
 
 	return factory.New(config, boshdir.NewNoopTaskReporter(), boshdir.NewNoopFileReporter())

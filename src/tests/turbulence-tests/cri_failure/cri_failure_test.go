@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	"os"
 )
 
 var (
@@ -23,11 +24,15 @@ var (
 )
 
 var _ = Describe("A dockerd failure", func() {
+	var (
+		err            error
+		deploymentName string
+	)
 
 	BeforeEach(func() {
-		var err error
 		director = NewDirector()
-		deployment, err = director.FindDeployment(GetBoshDeployment())
+		deploymentName = os.Getenv("BOSH_DEPLOYMENT")
+		deployment, err = director.FindDeployment(deploymentName)
 		Expect(err).NotTo(HaveOccurred())
 
 		countRunningWorkers := CountDeploymentVmsOfType(deployment, WorkerVMType, VMRunningState)
@@ -63,7 +68,7 @@ var _ = Describe("A dockerd failure", func() {
 		killDockerd := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: GetBoshDeployment(),
+					Name: deploymentName,
 				},
 				Group: &selector.NameRequest{
 					Name: WorkerVMType,

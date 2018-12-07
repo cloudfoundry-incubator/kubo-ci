@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"os"
 )
 
 var (
@@ -22,11 +23,14 @@ var (
 )
 
 var _ = Describe("A single master and etcd failure", func() {
-
+	var (
+		err            error
+		deploymentName string
+	)
 	BeforeEach(func() {
-		var err error
 		director = NewDirector()
-		deployment, err = director.FindDeployment(GetBoshDeployment())
+		deploymentName = os.Getenv("BOSH_DEPLOYMENT")
+		deployment, err = director.FindDeployment(deploymentName)
 		Expect(err).NotTo(HaveOccurred())
 		numberOfMasters = len(DeploymentVmsOfType(deployment, MasterVMType, ""))
 		countRunningApiServerOnMaster = CountProcessesOnVmsOfType(deployment, MasterVMType, "kube-apiserver", VMRunningState)
@@ -47,7 +51,7 @@ var _ = Describe("A single master and etcd failure", func() {
 		killOneMaster := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: GetBoshDeployment(),
+					Name: deploymentName,
 				},
 				Group: &selector.NameRequest{
 					Name: MasterVMType,
@@ -71,7 +75,7 @@ var _ = Describe("A single master and etcd failure", func() {
 		rebootOneMaster := incident.Request{
 			Selector: selector.Request{
 				Deployment: &selector.NameRequest{
-					Name: GetBoshDeployment(),
+					Name: deploymentName,
 				},
 				Group: &selector.NameRequest{
 					Name: MasterVMType,

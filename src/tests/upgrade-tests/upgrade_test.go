@@ -48,7 +48,7 @@ var _ = Describe("Upgrade components", func() {
 
 func getvSphereLoadBalancer() *exec.Cmd {
 	director := test_helpers.NewDirector()
-	deployment, err := director.FindDeployment(test_helpers.GetBoshDeployment())
+	deployment, err := director.FindDeployment(os.Getenv("BOSH_DEPLOYMENT"))
 	Expect(err).NotTo(HaveOccurred())
 	content := []byte(`global
 maxconn 64000
@@ -145,7 +145,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	masterTotalCount := 0
 	masterSuccessCount := 0
 	masterDoneChannel := make(chan bool)
-	if test_helpers.MustHaveEnv("ENABLE_MULTI_AZ_TESTS") == "true" {
+	if os.Getenv("ENABLE_MULTI_AZ_TESTS") == "true" {
 		By("Monitoring master availability")
 		masterCheck := func() error {
 			defer GinkgoRecover()
@@ -199,7 +199,7 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 	By("Reporting the workload availability during the upgrade")
 	Expect(float64(successCount)/float64(totalCount)).To(BeNumerically(">=", requestLossThreshold), "workload was unavaible during the upgrade")
 
-	if test_helpers.MustHaveEnv("ENABLE_MULTI_AZ_TESTS") == "true" {
+	if os.Getenv("ENABLE_MULTI_AZ_TESTS") == "true" {
 		By("Reporting the master availability during the upgrade")
 		Expect(float64(masterSuccessCount)/float64(masterTotalCount)).To(BeNumerically(">=", masterRequestLossThreshold), "Kubernetes API was unavailable during the upgrade")
 	}
