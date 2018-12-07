@@ -1,0 +1,16 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+    tag: stable
+
+run:
+  path: git-kubo-ci/scripts/destroy-k8s-instance-long-lived-director.sh
+
+inputs:
+  - name: git-kubo-ci
+  - name: kubo-lock
+
+params:
+  VARFILE: kubo-lock/metadata
