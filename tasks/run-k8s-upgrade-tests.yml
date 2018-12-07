@@ -23,3 +23,4 @@ inputs:
 - name: bosh-command
 - name: gcs-load-balancer-vars
 - name: director_uuid
+- name: source-json
