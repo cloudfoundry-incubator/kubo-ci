@@ -12,6 +12,14 @@ main() {
     echo "Did not find kubeconfig at gcs-kubeconfig/config!"
     exit 1
   fi
+  if [[ -n "$USE_SSHUTTLE" ]]; then
+    bosh int kubo-lock/metadata --path=/jumpbox_key > ssh.key
+    chmod 0600 ssh.key
+    cidr="$(bosh int kubo-lock/metadata --path=/internal_cidr)"
+    jumpbox_url="$(bosh int kubo-lock/metadata --path=/jumpbox_url)"
+    sshuttle -r "jumpbox@${jumpbox_url}" "${cidr}" -e "ssh -i ssh.key" --daemon
+    trap 'kill -9 $(cat sshuttle.pid)' EXIT
+  fi
   mkdir -p ~/.kube
   cp ${kubeconfig} ~/.kube/config
 
