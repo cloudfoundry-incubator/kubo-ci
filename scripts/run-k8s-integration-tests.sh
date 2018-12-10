@@ -13,7 +13,7 @@ main() {
     exit 1
   fi
   if [[ -n "$USE_SSHUTTLE" ]]; then
-    bosh int kubo-lock/metadata --path=/jumpbox_key > ssh.key
+    bosh int kubo-lock/metadata --path=/jumpbox_ssh_key > ssh.key
     chmod 0600 ssh.key
     cidr="$(bosh int kubo-lock/metadata --path=/internal_cidr)"
     jumpbox_url="$(bosh int kubo-lock/metadata --path=/jumpbox_url)"
