@@ -22,7 +22,7 @@ var _ = Describe("Deploy workload", func() {
 		Eventually(func() string {
 			loadbalancerAddress = kubectl.GetLBAddress("nginx", iaas)
 			return loadbalancerAddress
-		}, "240s", "5s").Should(Not(Equal("")))
+		}, "600s", "5s").Should(Not(Equal("")))
 
 		appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
 
