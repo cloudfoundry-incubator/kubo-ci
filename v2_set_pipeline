@@ -6,25 +6,32 @@ ci_dir="$(cd "$(dirname "$0")"; pwd)/templates"
 
 print_usage() {
   echo "Usage:"
-  echo "    $0 <pipeline name> [branch name] "
+  echo "    $0 <iaas> <pipeline name> [branch name] "
+  echo ""
+  echo "    valid iaas names:"
+  for name in "${ci_dir}"/iaas/ops-files/*.yml; do
+    local iaas_name
+    iaas_name="$(basename "${name}")"
+    echo "        - ${iaas_name%.yml}"
+  done
   echo ""
   echo "    valid pipeline names:"
-  for name in "${ci_dir}"/configs/*.yml; do
+  for name in "${ci_dir}"/ops-files/*.yml; do
     local pipeline_name
     pipeline_name="$(basename "${name}")"
     echo "        - ${pipeline_name%.yml}"
   done
   echo
-  echo 'Use following command to set all pipelines'
-  echo 'find configs/* -maxdepth 0 -name \*.yml -exec ./set_pipeline $(basename {}) \;'
+  echo 'Use following command to set all gcp pipelines'
+  echo 'find ops-files/* -maxdepth 0 -name \*.yml -exec ./set_pipeline gcp $(basename {}) \;'
 }
 
 extract_pipeline_name() {
   local pipeline_name="$1"
 
-  local pipeline_filename="${ci_dir}/configs/${pipeline_name}.yml"
+  local pipeline_filename="${ci_dir}/ops-files/${pipeline_name}.yml"
   if [ ! -f "${pipeline_filename}" ]; then
-    pipeline_filename="${ci_dir}/configs/${pipeline_name}"
+    pipeline_filename="${ci_dir}/ops-files/${pipeline_name}"
     if [ ! -f "${pipeline_filename}" ]; then
       echo "Unknown pipeline name ${pipeline_name}"
       print_usage
@@ -36,29 +43,52 @@ extract_pipeline_name() {
   echo -n "${pipeline_name%.*}"
 }
 
+extract_iaas_name() {
+  local iaas_name="$1"
+
+  local iaas_filename="${ci_dir}/iaas/ops-files/${iaas_name}.yml"
+  if [ ! -f "${iaas_filename}" ]; then
+    iaas_filename="${ci_dir}/iaas/ops-files/${iaas_name}"
+    if [ ! -f "${iaas_filename}" ]; then
+      echo "Unknown iaas name ${iaas_name}"
+      print_usage
+      exit 1
+    fi
+  fi
+
+  iaas_name=$(basename "${iaas_filename}")
+  echo -n "${iaas_name%.*}"
+}
+
 main() {
-  local pipeline_name pipeline_config env
-  if [ "$#" == "0" ]; then
+  local pipeline_name pipeline_config iaas
+  if [ "$#" != "2" ]; then
     print_usage
     exit 1
   fi
-  pipeline_name=$(extract_pipeline_name "${1}")
+  iaas_name=$(extract_iaas_name "${1}")
+  pipeline_name=$(extract_pipeline_name "${2}")
 
-  local pipeline_properties="${ci_dir}/configs/${pipeline_name}.yml"
 
-  env=$(bosh int "${pipeline_properties}" --path /worker-tag)
-  pipeline_config=$(bosh int "$ci_dir"/template.yml --ops-file "$ci_dir"/ops-files/"$env".yml)
+  pipeline_config=$(cat "$ci_dir"/template.yml)
   local pipeline_ops_file="${ci_dir}/ops-files/${pipeline_name}.yml"
+  local iaas_ops_file="${ci_dir}/iaas/ops-files/${iaas_name}.yml"
+  local iaas_vars_file="${ci_dir}/iaas/vars-files/${iaas_name}.yml"
   if [ -f "${pipeline_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${pipeline_ops_file}")
+  fi
+  if [ -f "${iaas_ops_file}" ]; then
+    pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_ops_file}")
+  fi
+  if [ -f "${iaas_vars_file}" ]; then
+    pipeline_config=$(bosh int <(echo "${pipeline_config}") --vars-file "${iaas_vars_file}")
   fi
 
   fly --target kubo sync > /dev/null
 
   fly --target kubo set-pipeline \
     --config <(echo "${pipeline_config}") \
-    --pipeline "${pipeline_name}" \
-    --load-vars-from "${pipeline_properties}"
+    --pipeline "${pipeline_name}"
 }
 
 pushd "${ci_dir}" > /dev/null
