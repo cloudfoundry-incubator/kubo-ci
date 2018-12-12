@@ -1,13 +1,23 @@
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/change-cidrs.yml
+
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/-
   value: git-kubo-ci/manifests/vars-files/new-cidrs.yml
 
 - type: replace
-  path: /jobs/name=run-tests/plan/task=run-tests/params/ENABLE_CIDR_TESTS?
+  path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_CIDR_TESTS?
   value: true
+
 - type: replace
-  path: /jobs/name=run-tests/plan/task=run-tests/params/CIDR_VARS_FILE?
+  path: /jobs/name=run-tests/plan/task=run-tests/params?/CIDR_VARS_FILE?
   value: manifests/vars-files/new-cidrs.yml
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/file?
+  value: git-kubo-ci/tasks/run-k8s-integration-tests.yml
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_PERSISTENT_VOLUME_TESTS?
+  value: true

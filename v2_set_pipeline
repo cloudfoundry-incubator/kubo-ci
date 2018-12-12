@@ -73,12 +73,16 @@ main() {
   pipeline_config=$(cat "$ci_dir"/template.yml)
   local pipeline_ops_file="${ci_dir}/ops-files/${pipeline_name}.yml"
   local iaas_ops_file="${ci_dir}/iaas/ops-files/${iaas_name}.yml"
+  local iaas_specific_pipeline_ops_file="${ci_dir}/iaas-specific-pipeline-ops-files/${iaas_name}-${pipeline_name}.yml"
   local iaas_vars_file="${ci_dir}/iaas/vars-files/${iaas_name}.yml"
   if [ -f "${pipeline_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${pipeline_ops_file}")
   fi
   if [ -f "${iaas_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_ops_file}")
+  fi
+  if [ -f "${iaas_specific_pipeline_ops_file}" ]; then
+    pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_specific_pipeline_ops_file}")
   fi
   if [ -f "${iaas_vars_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --vars-file "${iaas_vars_file}")

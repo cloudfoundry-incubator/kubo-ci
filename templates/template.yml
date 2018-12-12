@@ -195,12 +195,6 @@ jobs:
   - task: run-tests
     privileged: true
     tags: [((worker-tag))]
-    file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
-    params:
-      ENABLE_PERSISTENT_VOLUME_TESTS: true
-      ENABLE_MULTI_AZ_TESTS: false
-      ENABLE_K8S_LBS_TESTS: true
-      USE_SSHUTTLE: true
     on_failure: &on_failure_alert
       do:
       - task: configure-slack-notification
