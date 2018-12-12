@@ -3,7 +3,7 @@
 set -exu -o pipefail
 
 main() {
-    ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}/../..")" && pwd)
+    ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
     source "${ROOT}/git-kubo-ci/scripts/set-bosh-env" "${VARFILE}"
     deployment_name="$(bosh int "${VARFILE}" --path "/deployment_name")"
 
