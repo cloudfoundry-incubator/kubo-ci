@@ -193,12 +193,14 @@ jobs:
     input_mapping:
       gcs-kubo-deployment-pre: kubo-deployment
   - task: run-tests
+    privileged: true
     tags: [((worker-tag))]
     file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
     params:
       ENABLE_PERSISTENT_VOLUME_TESTS: true
       ENABLE_MULTI_AZ_TESTS: false
       ENABLE_K8S_LBS_TESTS: true
+      USE_SSHUTTLE: true
     on_failure: &on_failure_alert
       do:
       - task: configure-slack-notification
@@ -228,4 +230,7 @@ jobs:
   - task: destroy-k8s
     tags: [((worker-tag))]
     file: git-kubo-ci/tasks/destroy-k8s-instance-long-lived-director.yml
+  - put: kubo-lock
+    params:
+      release: kubo-lock
 
