@@ -13,7 +13,7 @@ main() {
     ${ROOT}/git-kubo-ci/scripts/credhub-login "${VARFILE}"
 
     # don't delete leading & trailing slash. This is to scope to the deployment creds we want to delete
-    credhub find -n "/${DEPLOYMENT_NAME}/" --output-json | jq -r .credentials[].name | xargs -L 1 credhub delete -n
+    credhub find -n "/${deployment_name}/" --output-json | jq -r .credentials[].name | xargs -L 1 credhub delete -n
 }
 
 main
