@@ -15,6 +15,30 @@ resources:
     uri: https://github.com/cloudfoundry-incubator/kubo-ci
     branch: master
 
+- name: gcp-lifecycle-trigger
+  type: pool-trigger
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    pool: gcp-lifecycle
+    private_key: ((git-ssh-key.private_key))
+
+- name: gcp-lifecycle
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+    pool: gcp-lifecycle
+
+- name: gcp-pool
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+    pool: gcp
+
 <% pools.each do |pool| %>
 - name: kubo-lock-<%= pool %>-lifecycle-trigger
   type: pool-trigger
@@ -71,3 +95,23 @@ jobs:
   - put: kubo-lock-<%= pool %>-lifecycle
     params: { remove: kubo-lock-<%= pool %>-lifecycle }
 <% end %>
+
+- name: gcp-destroy-k8s
+  plan:
+  - get: gcp-lifecycle-trigger
+    version: every
+    trigger: true
+  - aggregate:
+    - put: gcp-lifecycle
+      params:
+        acquire: true
+    - get: git-kubo-ci
+  - task: destroy-k8s
+    tags: [((worker-tag))]
+    file: git-kubo-ci/tasks/destroy-k8s-instance-long-lived-director.yml
+    input_mapping:
+      kubo-lock: gcp-lifecycle
+  - put: gcp-pool
+    params: { add: gcp-lifecycle }
+  - put: gcp-lifecycle
+    params: { remove: gcp-lifecycle }
