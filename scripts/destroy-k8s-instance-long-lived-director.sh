@@ -9,10 +9,13 @@ main() {
     source ${ROOT}/git-kubo-ci/scripts/credhub-login "${VARFILE}"
     ${ROOT}/git-kubo-ci/scripts/set_kubeconfig_long_lived_director
 
+    # Deployment might be deleted already or broken
+    set +e
     kubectl delete ns --all
     kubectl delete pvc --all
     kubectl delete pv --all
     kubectl delete svc --all
+    set -e
 
     set +x
     bosh -d "${deployment_name}" -n delete-deployment --force
