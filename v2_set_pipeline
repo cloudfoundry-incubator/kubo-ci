@@ -5,32 +5,32 @@ set -e -o pipefail
 ci_dir="$(cd "$(dirname "$0")"; pwd)/templates"
 
 print_usage() {
-  echo "Usage:"
-  echo "    $0 <iaas> <pipeline name> [testcase] "
-  echo ""
-  echo "    valid iaas names:"
+  echo "Usage:" >&2
+  echo "    $0 <iaas> <pipeline name> [testcase] " >&2
+  echo "" >&2
+  echo "    valid iaas names:" >&2
   for name in "${ci_dir}"/iaas/*.yml; do
     local iaas_name
     iaas_name="$(basename "${name}")"
-    echo "        - ${iaas_name%.yml}"
+    echo "        - ${iaas_name%.yml}" >&2
   done
-  echo ""
-  echo "    valid pipeline names:"
+  echo "" >&2
+  echo "    valid pipeline names:" >&2
   for name in "${ci_dir}"/ops-files/*.yml; do
     local pipeline_name
     pipeline_name="$(basename "${name}")"
-    echo "        - ${pipeline_name%.yml}"
+    echo "        - ${pipeline_name%.yml}" >&2
   done
-  echo ""
-  echo "    valid testcases names:"
+  echo "" >&2
+  echo "    valid testcases names:" >&2
   for name in "${ci_dir}"/iaas-testcase-ops-files/*.yml; do
     local testcase_name
     testcase_name="$(basename "${name}")"
-    echo "        - ${testcase_name%.yml}"
+    echo "        - ${testcase_name%.yml}" >&2
   done
-  echo
-  echo 'Use following command to set all gcp pipelines'
-  echo 'find ops-files/* -maxdepth 0 -name \*.yml -exec ./set_pipeline gcp $(basename {}) \;'
+  echo >&2
+  echo 'Use following command to set all gcp pipelines' >&2
+  echo 'find ops-files/* -maxdepth 0 -name \*.yml -exec ./set_pipeline gcp $(basename {}) \;' >&2
 }
 
 extract_pipeline_name() {
@@ -40,7 +40,7 @@ extract_pipeline_name() {
   if [ ! -f "${pipeline_filename}" ]; then
     pipeline_filename="${ci_dir}/ops-files/${pipeline_name}"
     if [ ! -f "${pipeline_filename}" ]; then
-      echo "Unknown pipeline name ${pipeline_name}"
+      echo "Unknown pipeline name ${pipeline_name}" >&2
       print_usage
       exit 1
     fi
