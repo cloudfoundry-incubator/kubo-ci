@@ -5,7 +5,3 @@
 - type: replace
   path: /jobs/name=run-tests/plan/task=run-tests/params/ENABLE_K8S_LBS_TESTS?
   value: true
-
-- type: replace
-  path: /jobs/name=run-tests/plan/task=run-tests/params/USE_SSHUTTLE?
-  value: true

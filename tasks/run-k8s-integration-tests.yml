@@ -16,7 +16,6 @@ params:
   CIDR_VARS_FILE: manifests/vars-files/default-cidrs.yml
   KUBECONFIG_FILE: config
   HPA_TIMEOUT: 210s
-  USE_SSHUTTLE:
 
 inputs:
   - name: git-kubo-ci
