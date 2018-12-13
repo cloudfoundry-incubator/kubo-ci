@@ -69,7 +69,7 @@ extract_iaas_name() {
 
 main() {
   local pipeline_name pipeline_config iaas_name testcase
-  if [ "$#" -gt "3" ] || [ "$#" == "0" ] ; then
+  if [ "$#" -gt "3" ] || [ "$#" == "0" ]  || [ "$#" == "1" ]; then
     print_usage
     exit 1
   fi
