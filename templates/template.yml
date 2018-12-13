@@ -217,10 +217,6 @@ jobs:
       passed: [ 'run-tests' ]
     - get: kubo-release
       passed: [ 'run-tests' ]
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: kubo-deployment
   - task: destroy-k8s
     tags: [((worker-tag))]
     file: git-kubo-ci/tasks/destroy-k8s-instance-long-lived-director.yml
