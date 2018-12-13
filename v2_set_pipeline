@@ -9,7 +9,7 @@ print_usage() {
   echo "    $0 <iaas> <pipeline name> [testcase] "
   echo ""
   echo "    valid iaas names:"
-  for name in "${ci_dir}"/iaas/ops-files/*.yml; do
+  for name in "${ci_dir}"/iaas/*.yml; do
     local iaas_name
     iaas_name="$(basename "${name}")"
     echo "        - ${iaas_name%.yml}"
@@ -50,36 +50,19 @@ extract_pipeline_name() {
   echo -n "${pipeline_name%.*}"
 }
 
-extract_iaas_name() {
-  local iaas_name="$1"
-
-  local iaas_filename="${ci_dir}/iaas/ops-files/${iaas_name}.yml"
-  if [ ! -f "${iaas_filename}" ]; then
-    iaas_filename="${ci_dir}/iaas/ops-files/${iaas_name}"
-    if [ ! -f "${iaas_filename}" ]; then
-      echo "Unknown iaas name ${iaas_name}"
-      print_usage
-      exit 1
-    fi
-  fi
-
-  iaas_name=$(basename "${iaas_filename}")
-  echo -n "${iaas_name%.*}"
-}
-
 main() {
   local pipeline_name pipeline_config iaas_name testcase
   if [ "$#" -gt "3" ] || [ "$#" == "0" ]  || [ "$#" == "1" ]; then
     print_usage
     exit 1
   fi
-  iaas_name=$(extract_iaas_name "${1}")
+  iaas_name=${1}
   pipeline_name=$(extract_pipeline_name "${2}")
   testcase="${3}"
 
   pipeline_config=$(cat "$ci_dir"/template.yml)
   local pipeline_ops_file="${ci_dir}/ops-files/${pipeline_name}.yml"
-  local iaas_ops_file="${ci_dir}/iaas/ops-files/${iaas_name}.yml"
+  local iaas_ops_file="${ci_dir}/iaas/${iaas_name}.yml"
   local iaas_testcase_ops_file="${ci_dir}/iaas-testcase-ops-files/${iaas_name}-${testcase}.yml"
   local iaas_vars_file="${ci_dir}/iaas/vars-files/${iaas_name}.yml"
   if [ -f "${pipeline_ops_file}" ]; then
@@ -91,15 +74,13 @@ main() {
   if [ -f "${iaas_testcase_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_testcase_ops_file}")
   fi
-  if [ -f "${iaas_vars_file}" ]; then
-    pipeline_config=$(bosh int <(echo "${pipeline_config}") --vars-file "${iaas_vars_file}")
-  fi
 
   fly --target kubo sync > /dev/null
 
   fly --target kubo set-pipeline \
     --config <(echo "${pipeline_config}") \
-    --pipeline "${pipeline_name}"
+    --pipeline "${iaas_name}-${pipeline_name}" \
+    -v iaas="${iaas_name}"
 }
 
 pushd "${ci_dir}" > /dev/null
