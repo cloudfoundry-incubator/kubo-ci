@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"time"
 
 	. "tests/test_helpers"
 
@@ -73,6 +74,7 @@ var _ = Describe("Guestbook storage", func() {
 			By("Un-deploying the application and re-deploying the data is still available from the persisted source")
 
 			UndeployGuestBook(kubectl)
+			time.Sleep(30 * time.Second)
 			DeployGuestBook(kubectl)
 
 			By("Getting the value from application")
