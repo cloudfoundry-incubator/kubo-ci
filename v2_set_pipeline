@@ -1,12 +1,12 @@
 #!/bin/bash
 
-set -eu -o pipefail
+set -e -o pipefail
 
 ci_dir="$(cd "$(dirname "$0")"; pwd)/templates"
 
 print_usage() {
   echo "Usage:"
-  echo "    $0 <iaas> <pipeline name> [branch name] "
+  echo "    $0 <iaas> <pipeline name> [testcase] "
   echo ""
   echo "    valid iaas names:"
   for name in "${ci_dir}"/iaas/ops-files/*.yml; do
@@ -20,6 +20,13 @@ print_usage() {
     local pipeline_name
     pipeline_name="$(basename "${name}")"
     echo "        - ${pipeline_name%.yml}"
+  done
+  echo ""
+  echo "    valid testcases names:"
+  for name in "${ci_dir}"/iaas-testcase-ops-files/*.yml; do
+    local testcase_name
+    testcase_name="$(basename "${name}")"
+    echo "        - ${testcase_name%.yml}"
   done
   echo
   echo 'Use following command to set all gcp pipelines'
@@ -61,19 +68,19 @@ extract_iaas_name() {
 }
 
 main() {
-  local pipeline_name pipeline_config iaas
-  if [ "$#" != "2" ]; then
+  local pipeline_name pipeline_config iaas_name testcase
+  if [ "$#" -gt "3" ] || [ "$#" == "0" ] ; then
     print_usage
     exit 1
   fi
   iaas_name=$(extract_iaas_name "${1}")
   pipeline_name=$(extract_pipeline_name "${2}")
-
+  testcase="${3}"
 
   pipeline_config=$(cat "$ci_dir"/template.yml)
   local pipeline_ops_file="${ci_dir}/ops-files/${pipeline_name}.yml"
   local iaas_ops_file="${ci_dir}/iaas/ops-files/${iaas_name}.yml"
-  local iaas_specific_pipeline_ops_file="${ci_dir}/iaas-specific-pipeline-ops-files/${iaas_name}-${pipeline_name}.yml"
+  local iaas_testcase_ops_file="${ci_dir}/iaas-testcase-ops-files/${iaas_name}-${testcase}.yml"
   local iaas_vars_file="${ci_dir}/iaas/vars-files/${iaas_name}.yml"
   if [ -f "${pipeline_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${pipeline_ops_file}")
@@ -81,8 +88,8 @@ main() {
   if [ -f "${iaas_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_ops_file}")
   fi
-  if [ -f "${iaas_specific_pipeline_ops_file}" ]; then
-    pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_specific_pipeline_ops_file}")
+  if [ -f "${iaas_testcase_ops_file}" ]; then
+    pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_testcase_ops_file}")
   fi
   if [ -f "${iaas_vars_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --vars-file "${iaas_vars_file}")
