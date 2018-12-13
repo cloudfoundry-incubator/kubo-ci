@@ -15,9 +15,5 @@
   value: manifests/vars-files/new-cidrs.yml
 
 - type: replace
-  path: /jobs/name=run-tests/plan/task=run-tests/file?
-  value: git-kubo-ci/tasks/run-k8s-integration-tests.yml
-
-- type: replace
   path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_PERSISTENT_VOLUME_TESTS?
   value: true
