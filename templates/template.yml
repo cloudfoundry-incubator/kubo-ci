@@ -116,7 +116,6 @@ jobs:
     input_mapping:
       gcs-kubo-deployment-pre: kubo-deployment
   - task: upload-stemcell
-    tags: [((worker-tag))]
     file: git-kubo-ci/tasks/upload-stemcell.yml
     params:
       IAAS: ((iaas))
@@ -152,21 +151,18 @@ jobs:
           text: |
             Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: update-kubeconfig
-    tags: [((worker-tag))]
     file: git-kubo-ci/tasks/update-kubeconfig-long-lived-director.yml
   - put: run-apply-addons-errand
     params:
       name: apply-addons
       keep_alive: true
       source_file: kubo-lock/metadata
-    tags: [((worker-tag))]
     on_failure: *on_failure_alert
   - put: run-smoke-tests-errand
     params:
       name: smoke-tests
       keep_alive: true
       source_file: kubo-lock/metadata
-    tags: [((worker-tag))]
     on_failure: *on_failure_alert
   - aggregate:
     - put: gcs-kubeconfig
@@ -194,7 +190,6 @@ jobs:
       gcs-kubo-deployment-pre: kubo-deployment
   - task: run-tests
     privileged: true
-    tags: [((worker-tag))]
     on_failure: &on_failure_alert
       do:
       - task: configure-slack-notification
@@ -218,7 +213,6 @@ jobs:
     - get: kubo-release
       passed: [ 'run-tests' ]
   - task: destroy-k8s
-    tags: [((worker-tag))]
     file: git-kubo-ci/tasks/destroy-k8s-instance-long-lived-director.yml
   - put: kubo-lock
     params:
