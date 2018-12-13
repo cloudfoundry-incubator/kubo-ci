@@ -17,7 +17,7 @@ var _ = Describe("Deploy workload", func() {
 		deployNginx := kubectl.StartKubectlCommand("create", "-f", nginxLBSpec)
 		Eventually(deployNginx, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		rolloutWatch := kubectl.StartKubectlCommand("rollout", "status", "deployment/nginx", "-w")
-		Eventually(rolloutWatch, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
+		Eventually(rolloutWatch, kubectl.TimeoutInSeconds*3).Should(gexec.Exit(0))
 		loadbalancerAddress = ""
 		Eventually(func() string {
 			loadbalancerAddress = kubectl.GetLBAddress("nginx", iaas)
