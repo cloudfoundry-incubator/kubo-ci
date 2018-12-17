@@ -13,4 +13,3 @@ inputs:
   - name: git-kubo-ci
   - name: git-turbulence-release
   - name: kubo-lock
-  - name: source-json
