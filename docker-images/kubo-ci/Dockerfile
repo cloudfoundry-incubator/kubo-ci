@@ -19,7 +19,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   zip \
   vim \
   haproxy \
+  libssl-dev \
+  libssl-doc \
   iptables # required for sshuttle
+  # libssl required for Ruby
 
 WORKDIR /tmp/docker-build
 
