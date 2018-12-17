@@ -9,8 +9,9 @@ resources:
 - name: git-kubo-ci
   type: git
   source:
-    uri: https://github.com/cloudfoundry-incubator/kubo-ci
+    uri: git@github.com:cloudfoundry-incubator/kubo-ci
     branch: master
+    private_key: ((git-ssh-key.private_key))
 
 - name: git-kubo-release
   type: git
