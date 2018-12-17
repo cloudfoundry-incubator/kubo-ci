@@ -9,7 +9,7 @@ export BOSH_DEPLOYMENT BOSH_ENVIRONMENT BOSH_CLIENT BOSH_CLIENT_SECRET BOSH_CA_C
 
 bosh -n -d turbulence deploy ./git-turbulence-release/manifests/example.yml \
   -v turbulence_api_ip="10.100.0.10" \
-  -v director_ip=$(bosh int "${ROOT}/kubo-lock/metadata" --path=/internal_ip) \
+  -v director_ip=$(bosh int "kubo-lock/metadata" --path=/internal_ip) \
   -v director_client=${BOSH_CLIENT} \
   -v director_client_secret=${BOSH_CLIENT_SECRET} \
   --vars-store /tmp/turbulence.yml

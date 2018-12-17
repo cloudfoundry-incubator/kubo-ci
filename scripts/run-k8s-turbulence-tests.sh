@@ -11,11 +11,16 @@ kubeconfig="gcs-kubeconfig/${KUBECONFIG_FILE}"
 export GOPATH="${ROOT}/git-kubo-ci"
 
 target_bosh_director() {
+  source="source-json/source.json"
+  if [[ ! -f source-json/source.json ]]; then
+    source="kubo-lock/metadata"
+    DEPLOYMENT_NAME="$(bosh int kubo-locks/metadata --path=/deployment_name)"
+  fi
   BOSH_DEPLOYMENT="${DEPLOYMENT_NAME}"
-  BOSH_ENVIRONMENT=$(bosh int source-json/source.json --path '/target')
-  BOSH_CLIENT=$(bosh int source-json/source.json --path '/client')
-  BOSH_CLIENT_SECRET=$(bosh int source-json/source.json --path '/client_secret')
-  BOSH_CA_CERT=$(bosh int source-json/source.json --path '/ca_cert')
+  BOSH_ENVIRONMENT=$(bosh int "${source}" --path '/target')
+  BOSH_CLIENT=$(bosh int "${source}" --path '/client')
+  BOSH_CLIENT_SECRET=$(bosh int "${source}" --path '/client_secret')
+  BOSH_CA_CERT=$(bosh int "${source}" --path '/ca_cert')
   export BOSH_DEPLOYMENT BOSH_ENVIRONMENT BOSH_CLIENT BOSH_CLIENT_SECRET BOSH_CA_CERT
 }
 
