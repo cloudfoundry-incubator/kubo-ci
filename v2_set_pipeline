@@ -64,7 +64,6 @@ main() {
   local pipeline_ops_file="${ci_dir}/ops-files/${pipeline_name}.yml"
   local iaas_ops_file="${ci_dir}/iaas/${iaas_name}.yml"
   local iaas_testcase_ops_file="${ci_dir}/iaas-testcase-ops-files/${iaas_name}-${testcase}.yml"
-  local iaas_vars_file="${ci_dir}/iaas/vars-files/${iaas_name}.yml"
   if [ -f "${pipeline_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${pipeline_ops_file}")
   fi
