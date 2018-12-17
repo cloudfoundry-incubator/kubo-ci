@@ -1,0 +1,14 @@
+- type: replace
+  path: /instances/name=worker/networks
+  value:
+  - name: default-((deployment_name))
+
+- type: replace
+  path: /instances/name=apply-addons/networks
+  value:
+  - name: default-((deployment_name))
+
+- type: replace
+  path: /instances/name=master/networks
+  value:
+  - name: default-((deployment_name))
