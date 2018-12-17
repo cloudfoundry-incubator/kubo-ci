@@ -116,7 +116,7 @@ instance_groups:
     max_in_flight: 1
   vm_type: large
 - azs: [z1, z2, z3]
-  instances: 2
+  instances: 5
   jobs:
   - name: worker
     release: concourse
