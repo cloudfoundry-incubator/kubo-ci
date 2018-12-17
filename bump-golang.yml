@@ -52,13 +52,6 @@ resources:
     uri: https://github.com/bosh-packages/golang-release
     branch: master
 
-- name: git-golang-release
-  type: github-release
-  source:
-    owner: bosh-packages
-    repository: golang-release
-    access_token: ((github-token-key))
-
 - name: golang-version
   type: gcs
   source:
@@ -75,10 +68,8 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: git-golang-release
+    - get: golang-release
       trigger: true
-      params:
-        include_source_tarball: true
     - get: golang-version
   - task: get-latest-version
     config:
@@ -92,7 +83,7 @@ jobs:
         path: git-kubo-ci/scripts/bump-golang-component-version.sh
       inputs:
         - name: git-kubo-ci
-        - name: git-golang-release
+        - name: golang-release
         - name: golang-version
       outputs:
         - name: modified-golang-version
