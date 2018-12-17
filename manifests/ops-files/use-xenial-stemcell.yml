@@ -1,0 +1,3 @@
+- type: replace
+  path: /stemcells/0/os
+  value: ubuntu-xenial
