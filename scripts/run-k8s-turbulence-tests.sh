@@ -15,7 +15,7 @@ target_bosh_director() {
     source="source-json/source.json"
   else
     source="kubo-lock/metadata"
-    DEPLOYMENT_NAME="$(bosh int kubo-locks/metadata --path=/deployment_name)"
+    DEPLOYMENT_NAME="$(bosh int kubo-lock/metadata --path=/deployment_name)"
   fi
   BOSH_DEPLOYMENT="${DEPLOYMENT_NAME}"
   BOSH_ENVIRONMENT=$(bosh int "${source}" --path '/target')
