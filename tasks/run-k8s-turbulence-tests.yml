@@ -20,6 +20,8 @@ inputs:
   - name: git-kubo-ci
   - name: gcs-kubeconfig
   - name: gcs-bosh-creds
+    optional: true
   - name: kubo-lock
   - name: git-kubo-deployment
   - name: source-json
+    optional: true
