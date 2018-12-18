@@ -13,6 +13,9 @@ BOSH_CLIENT_SECRET=$(bosh int kubo-lock/metadata --path '/client_secret')
 BOSH_CA_CERT=$(bosh int kubo-lock/metadata --path '/ca_cert')
 export BOSH_DEPLOYMENT BOSH_ENVIRONMENT BOSH_CLIENT BOSH_CLIENT_SECRET BOSH_CA_CERT
 
+echo "${BOSH_CA_CERT}" > bosh_ca.tmp
+trap 'rm bosh_ca.tmp' EXIT
+
 bosh -n -d turbulence deploy ./git-turbulence-release/manifests/example.yml \
   -o git-kubo-ci/manifests/ops-files/use-dev-turbulence.yml \
   -o git-kubo-ci/manifests/ops-files/use-xenial-stemcell.yml \
@@ -20,4 +23,6 @@ bosh -n -d turbulence deploy ./git-turbulence-release/manifests/example.yml \
   -v director_ip=$(bosh int "kubo-lock/metadata" --path=/internal_ip) \
   -v director_client=${BOSH_CLIENT} \
   -v director_client_secret=${BOSH_CLIENT_SECRET} \
+  --var-file director_ssl.ca=bosh_ca.tmp \
   --vars-store /tmp/turbulence.yml
+
