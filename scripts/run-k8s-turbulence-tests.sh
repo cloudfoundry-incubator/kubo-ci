@@ -11,8 +11,9 @@ kubeconfig="gcs-kubeconfig/${KUBECONFIG_FILE}"
 export GOPATH="${ROOT}/git-kubo-ci"
 
 target_bosh_director() {
-  source="source-json/source.json"
-  if [[ ! -f source-json/source.json ]]; then
+  if [[ -f source-json/source.json ]]; then
+    source="source-json/source.json"
+  else
     source="kubo-lock/metadata"
     DEPLOYMENT_NAME="$(bosh int kubo-locks/metadata --path=/deployment_name)"
   fi
