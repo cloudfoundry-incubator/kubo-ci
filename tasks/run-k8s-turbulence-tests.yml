@@ -25,3 +25,5 @@ inputs:
   - name: git-kubo-deployment
   - name: source-json
     optional: true
+  - name: turbulence 
+    optional: true
