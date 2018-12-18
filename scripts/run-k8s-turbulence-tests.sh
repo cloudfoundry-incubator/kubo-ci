@@ -29,8 +29,13 @@ target_turbulence_api() {
   TURBULENCE_PORT=8080
   TURBULENCE_USERNAME=turbulence
   TURBULENCE_HOST=$(bosh int "${ROOT}/kubo-lock/metadata" --path=/internal_ip)
-  TURBULENCE_PASSWORD=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path /turbulence_api_password)
-  TURBULENCE_CA_CERT=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path=/turbulence_api_ca/ca)
+  if [[ -f turbulence/creds.yml  ]]; then
+    TURBULENCE_PASSWORD=$(bosh int "${ROOT}/turbulence/creds.yml" --path /turbulence_api_password)
+    TURBULENCE_CA_CERT=$(bosh int "${ROOT}/turbulence/creds.yml" --path=/turbulence_api_ca/ca)
+  else
+    TURBULENCE_PASSWORD=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path /turbulence_api_password)
+    TURBULENCE_CA_CERT=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path=/turbulence_api_ca/ca)
+  fi
   export TURBULENCE_PORT TURBULENCE_USERNAME TURBULENCE_HOST TURBULENCE_PASSWORD TURBULENCE_CA_CERT
 }
 

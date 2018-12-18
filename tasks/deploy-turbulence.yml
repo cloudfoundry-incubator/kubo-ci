@@ -13,3 +13,6 @@ inputs:
   - name: git-kubo-ci
   - name: git-turbulence-release
   - name: kubo-lock
+
+outputs:
+  - name: turbulence
