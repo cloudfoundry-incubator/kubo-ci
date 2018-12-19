@@ -55,8 +55,8 @@ RUN git clone https://github.com/postmodern/ruby-install.git /usr/local/ruby-ins
 RUN /usr/local/ruby-install/bin/ruby-install --system ruby 2.5.3
 
 # Credhub
-RUN wget -q https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/1.7.7/credhub-linux-1.7.7.tgz \
-  -O credhub-linux-1.7.7.tgz && tar xvf credhub-linux-1.7.7.tgz && mv credhub /usr/bin
+RUN wget -q https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/2.2.0/credhub-linux-2.2.0.tgz \
+  -O credhub-linux-2.2.0.tgz && tar xvf credhub-linux-2.2.0.tgz && mv credhub /usr/bin
 
 # kubectl
 ENV KUBE_VERSION="v1.12.4"
