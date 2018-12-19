@@ -29,12 +29,14 @@ target_turbulence_api() {
   TURBULENCE_PORT=8080
   TURBULENCE_USERNAME=turbulence
   TURBULENCE_HOST=$(bosh int "${ROOT}/kubo-lock/metadata" --path=/internal_ip)
-  if [[ -f turbulence/creds.yml  ]]; then
-    TURBULENCE_PASSWORD=$(bosh int "${ROOT}/turbulence/creds.yml" --path /turbulence_api_password)
-    TURBULENCE_CA_CERT=$(bosh int "${ROOT}/turbulence/creds.yml" --path=/turbulence_api_ca/ca)
-  else
+  if [[ -d gcs-bosh-creds ]]; then
     TURBULENCE_PASSWORD=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path /turbulence_api_password)
     TURBULENCE_CA_CERT=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path=/turbulence_api_ca/ca)
+  else
+    # TODO change the name to use the real deployment name
+    bosh manifest -d turbulence > manifest.yml
+    TURBULENCE_PASSWORD=$(bosh int manifest.yml --path=/instance_group/jobs=turbulence_api/properties/password)
+    TURBULENCE_CA_CERT=$(bosh int manifest.yml --path=/instance_group/jobs=turbulence_api/properties/cert/ca)
   fi
   export TURBULENCE_PORT TURBULENCE_USERNAME TURBULENCE_HOST TURBULENCE_PASSWORD TURBULENCE_CA_CERT
 }
