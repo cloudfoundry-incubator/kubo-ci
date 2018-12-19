@@ -41,11 +41,24 @@ target_turbulence_api() {
   export TURBULENCE_PORT TURBULENCE_USERNAME TURBULENCE_HOST TURBULENCE_PASSWORD TURBULENCE_CA_CERT
 }
 
+create_shuttle() {
+    bosh int kubo-lock/metadata --path=/jumpbox_ssh_key > ssh.key
+    chmod 0600 ssh.key
+    cidr="$(bosh int kubo-lock/metadata --path=/internal_cidr)"
+    jumpbox_url="$(bosh int kubo-lock/metadata --path=/jumpbox_url)"
+    sshuttle -r "jumpbox@${jumpbox_url}" "${cidr}" -e "ssh -i ssh.key -o StrictHostKeyChecking=no -o ServerAliveInterval=300 -o ServerAliveCountMax=10" --daemon
+}
+
 main() {
   if [[ ! -e "${kubeconfig}" ]]; then
     echo "Did not find kubeconfig at gcs-kubeconfig/${KUBECONFIG_FILE}!"
     exit 1
   fi
+  if bosh int kubo-lock/metadata --path=/jumpbox_ssh_key &>/dev/null ; then
+    create_shuttle
+    trap 'kill -9 $(cat sshuttle.pid)' EXIT
+  fi
+
 
   mkdir -p ~/.kube
   cp ${kubeconfig} ~/.kube/config
