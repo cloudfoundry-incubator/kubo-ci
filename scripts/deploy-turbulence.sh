@@ -23,6 +23,5 @@ bosh -n -d turbulence deploy ./git-turbulence-release/manifests/example.yml \
   -v director_ip=$(bosh int "kubo-lock/metadata" --path=/internal_ip) \
   -v director_client=${BOSH_CLIENT} \
   -v director_client_secret=${BOSH_CLIENT_SECRET} \
-  --var-file director_ssl.ca=bosh_ca.tmp \
-  --vars-store /turbulence/creds.yml
+  --var-file director_ssl.ca=bosh_ca.tmp
 
