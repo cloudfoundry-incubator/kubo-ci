@@ -5,7 +5,6 @@ set -eu -o pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
 DEPLOYMENT_NAME="${DEPLOYMENT_NAME:="ci-service"}"
-KUBO_ENVIRONMENT_DIR="${ROOT}/environment"
 
 kubeconfig="gcs-kubeconfig/${KUBECONFIG_FILE}"
 export GOPATH="${ROOT}/git-kubo-ci"
@@ -35,8 +34,8 @@ target_turbulence_api() {
   else
     # TODO change the name to use the real deployment name
     bosh manifest -d turbulence > manifest.yml
-    TURBULENCE_PASSWORD=$(bosh int manifest.yml --path=/instance_group/jobs=turbulence_api/properties/password)
-    TURBULENCE_CA_CERT=$(bosh int manifest.yml --path=/instance_group/jobs=turbulence_api/properties/cert/ca)
+    TURBULENCE_PASSWORD=$(bosh int manifest.yml --path=/instance_groups/name=api/jobs/name=turbulence_api/properties/password)
+    TURBULENCE_CA_CERT=$(bosh int manifest.yml --path=/instance_groups/name=api/jobs/name=turbulence_api/properties/cert/ca)
   fi
   export TURBULENCE_PORT TURBULENCE_USERNAME TURBULENCE_HOST TURBULENCE_PASSWORD TURBULENCE_CA_CERT
 }
@@ -59,9 +58,8 @@ main() {
     trap 'kill -9 $(cat sshuttle.pid)' EXIT
   fi
 
-
   mkdir -p ~/.kube
-  cp ${kubeconfig} ~/.kube/config
+  cp "${kubeconfig}" ~/.kube/config
 
   skipped_packages=""
 
@@ -83,15 +81,6 @@ main() {
 
   target_bosh_director
   target_turbulence_api
-
-  if bosh int kubo-lock/metadata --path=/jumpbox_ssh_key &>/dev/null ; then
-    bosh int kubo-lock/metadata --path=/jumpbox_ssh_key > ssh.key
-    chmod 0600 ssh.key
-    cidr="$(bosh int kubo-lock/metadata --path=/internal_cidr)"
-    jumpbox_url="$(bosh int kubo-lock/metadata --path=/jumpbox_url)"
-    sshuttle -r "jumpbox@${jumpbox_url}" "${cidr}" -e "ssh -i ssh.key -o StrictHostKeyChecking=no -o ServerAliveInterval=300 -o ServerAliveCountMax=10" --daemon
-    trap 'kill -9 $(cat sshuttle.pid)' EXIT
-  fi
 
   ginkgo -skipPackage "${skipped_packages}" -failFast -progress -r "${ROOT}/git-kubo-ci/src/tests/turbulence-tests/"
 }
