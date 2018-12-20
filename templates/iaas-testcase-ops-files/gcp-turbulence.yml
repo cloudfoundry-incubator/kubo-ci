@@ -1,0 +1,48 @@
+- type: replace
+  path: /resources/-
+  value:
+    name: git-turbulence-release
+    type: git
+    source:
+      uri: https://github.com/cppforlife/turbulence-release
+      branch: master
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/file?
+  value: git-kubo-ci/tasks/run-k8s-turbulence-tests.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/-
+  value:
+    task: deploy-turbulence
+    file: git-kubo-ci/tasks/deploy-turbulence.yml
+    privileged: true
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: git-turbulence-release
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/params?/IAAS?
+  value: ((iaas))
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/params?/TURBULENCE_HOST?
+  value: "10.0.255.0"
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_TURBULENCE_WORKER_FAILURE_TESTS?
+  value: true
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_TURBULENCE_MASTER_FAILURE_TESTS?
+  value: true
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_TURBULENCE_WORKER_DRAIN_TESTS?
+  value: true
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_TURBULENCE_PERSISTENCE_FAILURE_TESTS?
+  value: true
