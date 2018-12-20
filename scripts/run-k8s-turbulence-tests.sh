@@ -25,10 +25,15 @@ target_turbulence_api() {
   TURBULENCE_USERNAME=turbulence
   TURBULENCE_HOST=$(bosh int "${ROOT}/kubo-lock/metadata" --path=/internal_ip)
   if [[ -d gcs-bosh-creds ]]; then
+    TURBULENCE_HOST=$(bosh int "${ROOT}/kubo-lock/metadata" --path=/internal_ip)
     TURBULENCE_PASSWORD=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path /turbulence_api_password)
     TURBULENCE_CA_CERT=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path=/turbulence_api_ca/ca)
   else
     source "${ROOT}/git-kubo-ci/scripts/credhub-login" "${ROOT}/kubo-lock/metadata"
+    if [[ -z "${TURBULENCE_HOST}" ]]; then
+      echo "TURBULENCE_HOST environment variable must be set"
+      exit 1
+    fi
     cluster="$(bosh int "${ROOT}/kubo-lock/metadata" --path=/director_name)"
     TURBULENCE_PASSWORD=$(credhub get -n ${cluster}/turbulence/turbulence_api_password --quiet)
     TURBULENCE_CA_CERT=$(credhub get -n ${cluster}/turbulence/turbulence_api_ca --key ca)
