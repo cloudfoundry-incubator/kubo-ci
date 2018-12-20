@@ -16,12 +16,8 @@ target_bosh_director() {
     source="kubo-lock/metadata"
     DEPLOYMENT_NAME="$(bosh int kubo-lock/metadata --path=/deployment_name)"
   fi
-  BOSH_DEPLOYMENT="${DEPLOYMENT_NAME}"
-  BOSH_ENVIRONMENT=$(bosh int "${source}" --path '/target')
-  BOSH_CLIENT=$(bosh int "${source}" --path '/client')
-  BOSH_CLIENT_SECRET=$(bosh int "${source}" --path '/client_secret')
-  BOSH_CA_CERT=$(bosh int "${source}" --path '/ca_cert')
-  export BOSH_DEPLOYMENT BOSH_ENVIRONMENT BOSH_CLIENT BOSH_CLIENT_SECRET BOSH_CA_CERT
+  export BOSH_DEPLOYMENT="${DEPLOYMENT_NAME}"
+  source "${ROOT}/git-kubo-ci/scripts/set-bosh-env" ${source}
 }
 
 target_turbulence_api() {
@@ -32,8 +28,7 @@ target_turbulence_api() {
     TURBULENCE_PASSWORD=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path /turbulence_api_password)
     TURBULENCE_CA_CERT=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path=/turbulence_api_ca/ca)
   else
-    # TODO change the name to use the real deployment name
-    source "${ROOT}/credhub-login" "${ROOT}/kubo-lock/metadata"
+    source "${ROOT}/git-kubo-ci/scripts/credhub-login" "${ROOT}/kubo-lock/metadata"
     TURBULENCE_PASSWORD=$(credhub get -n /turbulence/turbulence_api_password --quiet)
     TURBULENCE_CA_CERT=$(credhub get -n /turbulence/turbulence_api_ca --key ca)
   fi
@@ -53,6 +48,7 @@ main() {
     echo "Did not find kubeconfig at gcs-kubeconfig/${KUBECONFIG_FILE}!"
     exit 1
   fi
+
   if bosh int kubo-lock/metadata --path=/jumpbox_ssh_key &>/dev/null ; then
     create_shuttle
     trap 'kill -9 $(cat sshuttle.pid)' EXIT
