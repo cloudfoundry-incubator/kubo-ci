@@ -33,9 +33,9 @@ target_turbulence_api() {
     TURBULENCE_CA_CERT=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path=/turbulence_api_ca/ca)
   else
     # TODO change the name to use the real deployment name
-    bosh manifest -d turbulence > manifest.yml
-    TURBULENCE_PASSWORD=$(bosh int manifest.yml --path=/instance_groups/name=api/jobs/name=turbulence_api/properties/password)
-    TURBULENCE_CA_CERT=$(bosh int manifest.yml --path=/instance_groups/name=api/jobs/name=turbulence_api/properties/cert/ca)
+    source "${ROOT}/credhub-login" "${ROOT}/kubo-lock/metadata"
+    TURBULENCE_PASSWORD=$(credhub get -n /turbulence/turbulence_api_password --quiet)
+    TURBULENCE_CA_CERT=$(credhub get -n /turbulence/turbulence_api_ca --key ca)
   fi
   export TURBULENCE_PORT TURBULENCE_USERNAME TURBULENCE_HOST TURBULENCE_PASSWORD TURBULENCE_CA_CERT
 }
