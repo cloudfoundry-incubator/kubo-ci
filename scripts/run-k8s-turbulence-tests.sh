@@ -23,7 +23,6 @@ target_bosh_director() {
 target_turbulence_api() {
   TURBULENCE_PORT=8080
   TURBULENCE_USERNAME=turbulence
-  TURBULENCE_HOST=$(bosh int "${ROOT}/kubo-lock/metadata" --path=/internal_ip)
   if [[ -d gcs-bosh-creds ]]; then
     TURBULENCE_HOST=$(bosh int "${ROOT}/kubo-lock/metadata" --path=/internal_ip)
     TURBULENCE_PASSWORD=$(bosh int "${ROOT}/gcs-bosh-creds/creds.yml" --path /turbulence_api_password)
