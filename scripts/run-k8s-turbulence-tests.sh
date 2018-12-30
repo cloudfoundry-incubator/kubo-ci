@@ -5,8 +5,6 @@ set -eu -o pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
 DEPLOYMENT_NAME="${DEPLOYMENT_NAME:="ci-service"}"
-
-kubeconfig="gcs-kubeconfig/${KUBECONFIG_FILE}"
 export GOPATH="${ROOT}/git-kubo-ci"
 
 target_bosh_director() {
@@ -49,8 +47,8 @@ create_shuttle() {
 }
 
 main() {
-  if [[ ! -e "${kubeconfig}" ]]; then
-    echo "Did not find kubeconfig at gcs-kubeconfig/${KUBECONFIG_FILE}!"
+  if [[ ! -e "${KUBECONFIG_PATH}" ]]; then
+    echo "Did not find kubeconfig at ${KUBECONFIG_PATH}!"
     exit 1
   fi
 
@@ -59,13 +57,10 @@ main() {
     trap 'kill -9 $(cat sshuttle.pid)' EXIT
   fi
 
-  mkdir -p ~/.kube
-  cp "${kubeconfig}" ~/.kube/config
-
   skipped_packages=""
 
   if [[ "${ENABLE_TURBULENCE_MASTER_FAILURE_TESTS:-false}" == "false" ]]; then
-    skipped_packages="$skipped_packages,master_failure"
+    skipped_packages="master_failure"
   fi
 
   if [[ "${ENABLE_TURBULENCE_WORKER_FAILURE_TESTS:-false}" == "false" ]]; then
