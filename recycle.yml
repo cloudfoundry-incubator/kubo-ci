@@ -1,5 +1,6 @@
 <%
-  pools = %w(aws-lb gcp-lb openstack-lb openstack vsphere-lb vsphere-proxy)
+  old_pools = %w(aws-lb gcp-lb openstack-lb openstack vsphere-lb vsphere-proxy)
+  pools = %w(gcp)
 %>
 
 resource_types:
@@ -15,31 +16,33 @@ resources:
     uri: https://github.com/cloudfoundry-incubator/kubo-ci
     branch: master
 
-- name: gcp-lifecycle-trigger
+<% pools.each do |pool| %>
+- name: <%= pool %>-lifecycle-trigger
   type: pool-trigger
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
-    pool: gcp-lifecycle
+    pool: <%= pool %>-lifecycle
     private_key: ((git-ssh-key.private_key))
 
-- name: gcp-lifecycle
+- name: <%= pool %>-lifecycle
   type: pool
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key.private_key))
-    pool: gcp-lifecycle
+    pool: <%= pool %>-lifecycle
 
-- name: gcp-pool
+- name: <%= pool %>-pool
   type: pool
   source:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key.private_key))
-    pool: gcp
+    pool: <%= pool %>
+<% end %>
 
-<% pools.each do |pool| %>
+<% old_pools.each do |pool| %>
 - name: kubo-lock-<%= pool %>-lifecycle-trigger
   type: pool-trigger
   source:
@@ -66,7 +69,7 @@ resources:
 <% end %>
 
 jobs:
-<% pools.each do |pool| %>
+<% old_pools.each do |pool| %>
 <% env = pool.gsub(/-.*/, '') %>
 - name: claim-lock-<%= pool %>
   plan:
@@ -96,15 +99,22 @@ jobs:
     params: { remove: kubo-lock-<%= pool %>-lifecycle }
 <% end %>
 
-- name: gcp-destroy-k8s
+<% pools.each do |pool| %>
+- name: claim-lock-<%= pool %>
   plan:
-  - get: gcp-lifecycle-trigger
-    version: every
+  - get: <%= pool %>-lifecycle-trigger
     trigger: true
+    version: every
+  - put: <%= pool %>-lifecycle
+    params: { acquire: true }
+
+- name: cleanup-<%= pool %>
+  plan:
   - aggregate:
-    - put: gcp-lifecycle
-      params:
-        acquire: true
+    - get: <%= pool %>-lifecycle
+      passed: [ claim-lock-<%= pool %> ]
+      version: every
+      trigger: true
     - get: git-kubo-ci
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance-long-lived-director.yml
@@ -114,3 +124,4 @@ jobs:
     params: { add: gcp-lifecycle }
   - put: gcp-lifecycle
     params: { remove: gcp-lifecycle }
+<% end %>
