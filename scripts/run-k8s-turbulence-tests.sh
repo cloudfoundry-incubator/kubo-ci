@@ -51,6 +51,7 @@ main() {
     echo "Did not find kubeconfig at ${KUBECONFIG}!"
     exit 1
   fi
+  mkdir -p ~/.kube/
   cp "${KUBECONFIG}" ~/.kube/config
 
   if bosh int kubo-lock/metadata --path=/jumpbox_ssh_key &>/dev/null ; then
