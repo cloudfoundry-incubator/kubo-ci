@@ -152,6 +152,9 @@ jobs:
             Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: update-kubeconfig
     file: git-kubo-ci/tasks/update-kubeconfig-long-lived-director.yml
+  - put: gcs-kubeconfig
+    params:
+      file: kubeconfig/config
   - put: run-apply-addons-errand
     params:
       name: apply-addons
@@ -164,10 +167,6 @@ jobs:
       keep_alive: true
       source_file: kubo-lock/metadata
     on_failure: *on_failure_alert
-  - aggregate:
-    - put: gcs-kubeconfig
-      params:
-        file: kubeconfig/config
 
 - name: run-tests
   plan:
