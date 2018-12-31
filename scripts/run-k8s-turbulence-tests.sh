@@ -47,12 +47,12 @@ create_shuttle() {
 }
 
 main() {
-  if [[ ! -e "${KUBECONFIG}" ]]; then
-    echo "Did not find kubeconfig at ${KUBECONFIG}!"
+  if [[ ! -e "${KUBECONFIG_PATH}" ]]; then
+    echo "Did not find kubeconfig at ${KUBECONFIG_PATH}!"
     exit 1
   fi
   mkdir -p ~/.kube/
-  cp "${KUBECONFIG}" ~/.kube/config
+  cp "${KUBECONFIG_PATH}" ~/.kube/config
 
   if bosh int kubo-lock/metadata --path=/jumpbox_ssh_key &>/dev/null ; then
     create_shuttle
