@@ -18,7 +18,6 @@ trap 'rm bosh_ca.tmp' EXIT
 
 bosh -n -d turbulence deploy ./git-turbulence-release/manifests/example.yml \
   -o git-kubo-ci/manifests/ops-files/use-dev-turbulence.yml \
-  -o git-kubo-ci/manifests/ops-files/use-xenial-stemcell.yml \
   -v turbulence_api_ip="10.0.255.0" \
   -v director_ip=$(bosh int "kubo-lock/metadata" --path=/internal_ip) \
   -v director_client=${BOSH_CLIENT} \
