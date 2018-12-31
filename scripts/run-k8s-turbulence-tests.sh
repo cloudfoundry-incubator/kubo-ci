@@ -47,8 +47,8 @@ create_shuttle() {
 }
 
 main() {
-  if [[ ! -e "${KUBECONFIG_PATH}" ]]; then
-    echo "Did not find kubeconfig at ${KUBECONFIG_PATH}!"
+  if [[ ! -e "${KUBECONFIG}" ]]; then
+    echo "Did not find kubeconfig at ${KUBECONFIG}!"
     exit 1
   fi
 
