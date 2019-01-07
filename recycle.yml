@@ -1,6 +1,6 @@
 <%
   old_pools = %w(aws-lb gcp-lb openstack-lb openstack vsphere-lb vsphere-proxy)
-  pools = %w(gcp)
+  pools = %w(gcp azure)
 %>
 
 resource_types:
@@ -119,9 +119,9 @@ jobs:
   - task: destroy-k8s
     file: git-kubo-ci/tasks/destroy-k8s-instance-long-lived-director.yml
     input_mapping:
-      kubo-lock: gcp-lifecycle
-  - put: gcp-pool
-    params: { add: gcp-lifecycle }
-  - put: gcp-lifecycle
-    params: { remove: gcp-lifecycle }
+      kubo-lock: <%= pool %>-lifecycle
+  - put: <%= pool %>-pool
+    params: { add: <%= pool %>-lifecycle }
+  - put: <%= pool %>-lifecycle
+    params: { remove: <%= pool %>-lifecycle }
 <% end %>
