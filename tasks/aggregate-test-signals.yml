@@ -1,0 +1,41 @@
+config:
+  platform: linux
+  inputs:
+  - name: gcs-istio-shipables
+  - name: gcs-bbr-shipables
+  - name: gcs-cidr-shipables
+  image_resource:
+    type: docker-image
+    source:
+      repository: pcfkubo/kubo-ci
+      tag: stable
+  params:
+    SHIPABLE_SIGNALS: "istio cidr bbr"
+  run:
+    path: /bin/bash
+    args:
+    - -e
+    - -cx
+    - |
+      for shipable_signal in $SHIPABLE_SIGNALS; do
+        new_signal_version="$(tail -1 gcs-${shipable_signal}-shipables/${shipable_signal})"
+        is_shipable=true
+        for signal in $SHIPABLE_SIGNALS ; do
+          if ! grep -q "$new_signal_version" "gcs-${signal}-shipables/$signal"; then
+            echo "Version \`$new_signal_version\` is not shipable yet"
+            echo "Kubo Release has not passed $signal pipeline"
+            is_shipable=false
+            break
+          else
+            echo "Version \`$new_signal_version\` passed $signal pipeline"
+          fi
+        done
+        if $is_shipable ; then
+          echo "Found shipable version $new_signal_version"
+          exit 0
+        fi
+      done
+      echo "Failed to find a shipable tarball"
+      exit 1
+
+
