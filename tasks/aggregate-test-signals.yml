@@ -15,4 +15,4 @@ params:
   SHIPABLE_SIGNALS: "istio cidr bbr"
 
 run:
-  path: /scripts/aggregate-test-signals.sh
+  path: git-kubo-ci/scripts/aggregate-test-signals.sh
