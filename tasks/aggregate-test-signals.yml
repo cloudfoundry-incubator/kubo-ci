@@ -12,8 +12,5 @@ inputs:
 - name: gcs-bbr-shipables
 - name: gcs-cidr-shipables
 
-params:
-  SHIPABLE_SIGNALS: "istio cidr bbr"
-
 run:
   path: git-kubo-ci/scripts/aggregate-test-signals.sh
