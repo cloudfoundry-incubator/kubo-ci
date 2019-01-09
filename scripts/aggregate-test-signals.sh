@@ -1,10 +1,12 @@
 #!/bin/bash
 set -eux
 
-for shipable_signal in ./gcs-*-shipables/*; do
+for shipable in ./gcs-*-shipables/*; do
+  shipable_signal="$(basename $shipable)"
   new_signal_version="$(tail -1 gcs-${shipable_signal}-shipables/${shipable_signal})"
   is_shipable=true
-  for signal in ./gcs-*-shipables/*; do
+  for ship_signal in ./gcs-*-shipables/*; do
+    signal="$(basename $ship_signal)"
     if ! grep -q "$new_signal_version" "gcs-${signal}-shipables/$signal"; then
       echo "Version \`$new_signal_version\` is not shipable yet"
       echo "Kubo Release has not passed $signal pipeline"

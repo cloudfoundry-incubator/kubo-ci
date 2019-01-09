@@ -12,34 +12,34 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
 
-- name: gcs-istio-shipables
+- name: gcs-gcp-vanilla-istio-shipables
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    versioned_file: shipables/istio
+    versioned_file: shipables/gcp-vanilla-istio
 
-- name: gcs-bbr-shipables
+- name: gcs-gcp-vanilla-turbulence-shipables
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    versioned_file: shipables/bbr
+    versioned_file: shipables/gcp-vanilla-turbulence
 
-- name: gcs-cidr-shipables
+- name: gcs-gcp-custom-cidrs-integration-shipables
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    versioned_file: shipables/cidr
+    versioned_file: shipables/gcp-custom-cidrs-integration
 
 jobs:
 - name: signal-aggregator
   plan:
   - get: git-kubo-ci
-  - get: gcs-istio-shipables
-  - get: gcs-bbr-shipables
-  - get: gcs-cidr-shipables
+  - get: gcs-gcp-vanilla-turbulence-shipables
+  - get: gcs-gcp-custom-cidrs-integration-shipables
+  - get: gcs-gcp-vanilla-istio-shipables
   - task: aggregate-test-signals
     file: git-kubo-ci/tasks/aggregate-test-signals.yml
 

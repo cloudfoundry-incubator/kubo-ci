@@ -8,9 +8,9 @@ image_resource:
 
 inputs:
 - name: git-kubo-ci
-- name: gcs-istio-shipables
-- name: gcs-bbr-shipables
-- name: gcs-cidr-shipables
+- name: gcs-gcp-vanilla-turbulence-shipables
+- name: gcs-gcp-custom-cidrs-integration-shipables
+- name: gcs-gcp-vanilla-istio-shipables
 
 run:
   path: git-kubo-ci/scripts/aggregate-test-signals.sh
