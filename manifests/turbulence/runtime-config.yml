@@ -1,9 +1,9 @@
 ---
 releases:
-- name: turbulence
-  url: "https://storage.googleapis.com/kubo-pipeline-store/turbulence-release-0.10.0%2Bdev.1.tgz"
-  sha1: "0321099d5399da2c002459c4d5817a273c6ae3c7"
-  version: "0.10.0+dev.1"
+- name: "turbulence"
+  version: "0.10.0"
+  url: "https://bosh.io/d/github.com/cppforlife/turbulence-release?v=0.10.0"
+  sha1: "259344312796e23500b2836a15140f8f09ad99ee"
 
 addons:
 - name: turbulence_agent
