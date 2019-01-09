@@ -6,7 +6,7 @@ ci_dir="$(cd "$(dirname "$0")"; pwd)/templates"
 
 print_usage() {
   echo "Usage:" >&2
-  echo "    $0 <iaas> <pipeline name> [testcase] " >&2
+  echo "    $0 <iaas> <deployment_configuration> [testcase] " >&2
   echo "" >&2
   echo "    valid iaas names:" >&2
   for name in "${ci_dir}"/iaas/*.yml; do
@@ -15,60 +15,78 @@ print_usage() {
     echo "        - ${iaas_name%.yml}" >&2
   done
   echo "" >&2
-  echo "    valid pipeline names:" >&2
-  for name in "${ci_dir}"/ops-files/*.yml; do
-    local pipeline_name
-    pipeline_name="$(basename "${name}")"
-    echo "        - ${pipeline_name%.yml}" >&2
+  echo "    valid deployment_configuration names:" >&2
+  for name in "${ci_dir}"/deployment_configurations/*.yml; do
+    local deployment_configuration
+    deployment_configuration="$(basename "${name}")"
+    echo "        - ${deployment_configuration%.yml}" >&2
   done
   echo "" >&2
   echo "    valid testcases names:" >&2
-  for name in "${ci_dir}"/iaas-testcase-ops-files/*.yml; do
+  for name in "${ci_dir}"/testcases/*.yml; do
     local testcase_name
     testcase_name="$(basename "${name}")"
     echo "        - ${testcase_name%.yml}" >&2
   done
-  echo >&2
-  echo 'Use following command to set all gcp pipelines' >&2
-  echo 'find ops-files/* -maxdepth 0 -name \*.yml -exec ./set_pipeline gcp $(basename {}) \;' >&2
 }
 
-extract_pipeline_name() {
-  local pipeline_name="$1"
+extract_deployment_configuration() {
+  local deployment_configuration="$1"
 
-  local pipeline_filename="${ci_dir}/ops-files/${pipeline_name}.yml"
+  local pipeline_filename="${ci_dir}/deployment-configurations/${deployment_configuration}.yml"
   if [ ! -f "${pipeline_filename}" ]; then
-    pipeline_filename="${ci_dir}/ops-files/${pipeline_name}"
+    pipeline_filename="${ci_dir}/deployment-configurations/${deployment_configuration}"
     if [ ! -f "${pipeline_filename}" ]; then
-      echo "Unknown pipeline name ${pipeline_name}" >&2
+      echo "Unknown deployment configuration name: ${deployment_configuration}" >&2
       print_usage
       exit 1
     fi
   fi
 
-  pipeline_name=$(basename "${pipeline_filename}")
-  echo -n "${pipeline_name%.*}"
+  deployment_configuration=$(basename "${pipeline_filename}")
+  echo -n "${deployment_configuration%.*}"
+}
+
+extract_testcase() {
+  local testcase="$1"
+
+  local pipeline_filename="${ci_dir}/testcases/${testcase}.yml"
+  if [ ! -f "${pipeline_filename}" ]; then
+    pipeline_filename="${ci_dir}/testcases/${testcase}"
+    if [ ! -f "${pipeline_filename}" ]; then
+      echo "Unknown testcase name: ${testcase}" >&2
+      print_usage
+      exit 1
+    fi
+  fi
+
+  testcase=$(basename "${pipeline_filename}")
+  echo -n "${testcase%.*}"
 }
 
 main() {
-  local pipeline_name pipeline_config iaas_name testcase
+  local deployment_configuration pipeline_config iaas_name testcase
   if [ "$#" -gt "3" ] || [ "$#" == "0" ]  || [ "$#" == "1" ]; then
     print_usage
     exit 1
   fi
   iaas_name=${1}
-  pipeline_name=$(extract_pipeline_name "${2}")
-  testcase="${3}"
+  deployment_configuration=$(extract_deployment_configuration "${2}")
+  testcase=$(extract_testcase "${3}")
 
   pipeline_config=$(cat "$ci_dir"/template.yml)
-  local pipeline_ops_file="${ci_dir}/ops-files/${pipeline_name}.yml"
+  local deployment_configuration_ops_file="${ci_dir}/deployment-configurations/${deployment_configuration}.yml"
   local iaas_ops_file="${ci_dir}/iaas/${iaas_name}.yml"
+  local testcase_ops_file="${ci_dir}/testcases/${testcase}.yml"
   local iaas_testcase_ops_file="${ci_dir}/iaas-testcase-ops-files/${iaas_name}-${testcase}.yml"
-  if [ -f "${pipeline_ops_file}" ]; then
-    pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${pipeline_ops_file}")
+  if [ -f "${deployment_configuration_ops_file}" ]; then
+    pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${deployment_configuration_ops_file}")
   fi
   if [ -f "${iaas_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_ops_file}")
+  fi
+  if [ -f "${testcase_ops_file}" ]; then
+    pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${testcase_ops_file}")
   fi
   if [ -f "${iaas_testcase_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_testcase_ops_file}")
@@ -78,7 +96,7 @@ main() {
 
   fly --target kubo set-pipeline \
     --config <(echo "${pipeline_config}") \
-    --pipeline "${iaas_name}-${pipeline_name}" \
+    --pipeline "${iaas_name}-${deployment_configuration}-${testcase}" \
     -v iaas="${iaas_name}"
 }
 

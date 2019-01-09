@@ -1,11 +1,3 @@
 - type: replace
-  path: /jobs/name=run-tests/plan/task=run-tests/file?
-  value: git-kubo-ci/tasks/run-k8s-integration-tests.yml
-
-- type: replace
   path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_MULTI_AZ_TESTS?
   value: false
-
-- type: replace
-  path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_K8S_LBS_TESTS?
-  value: true
