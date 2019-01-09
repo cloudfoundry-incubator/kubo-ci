@@ -55,14 +55,14 @@ var _ = Describe("A dockerd failure", func() {
 			return kubectl.GetPodStatusBySelector(kubectl.Namespace(), "run=busybox")
 		}, "120s").Should(Equal("Running"))
 
-		By("Getting the workload's kubernetes hostname")
+		By("Getting the workload's node/bosh.id")
 		session := kubectl.StartKubectlCommand("get", "pod", "-l", "run=busybox", "-o", "jsonpath={.items[0].spec.nodeName}")
 		Eventually(session, "10s").Should(gexec.Exit(0))
 		nodeName := string(session.Out.Contents())
 
-		session = kubectl.StartKubectlCommand("get", "nodes", nodeName, "-o", "jsonpath={.metadata.labels.kubernetes\\.io\\/hostname}")
+		session = kubectl.StartKubectlCommand("get", "nodes", nodeName, "-o", "jsonpath={.metadata.labels['bosh\\.id']}")
 		Eventually(session, "10s").Should(gexec.Exit(0))
-		hostname := string(session.Out.Contents())
+		boshID := string(session.Out.Contents())
 
 		By("Killing dockerd")
 		killDockerd := incident.Request{
@@ -74,7 +74,7 @@ var _ = Describe("A dockerd failure", func() {
 					Name: WorkerVMType,
 				},
 				ID: &selector.IDRequest{
-					Values: []string{hostname},
+					Values: []string{boshID},
 				},
 			},
 			Tasks: tasks.OptionsSlice{
