@@ -1,0 +1,19 @@
+- type: replace
+  path: /resources/name=gcs-shipable-version?
+  value:
+    name: gcs-shipable-version
+    type: gcs
+    source:
+      json_key: ((gcs-json-key))
+      bucket: kubo-pipeline-store
+      versioned_file: shipables/((pipeline-name))
+
+- type: replace
+  path: /resources/name=gcs-shipable-version-output?
+  value:
+    name: gcs-shipable-version-output
+    type: gcs
+    source:
+      json_key: ((gcs-json-key))
+      bucket: kubo-pipeline-store
+      versioned_file: shipables/((pipeline-name))
