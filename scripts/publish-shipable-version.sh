@@ -1,6 +1,6 @@
 #!/bin/bash
-set -eux
+set -exu -o pipefail
 
-cp gcs-shipable-version/* gcs-shipable-version-output
+signal="$(basename $(find gcs-shipable-version ! -name 'url' ! -name 'generation' -type f))"
+cp gcs-shipable-version/$signal gcs-shipable-version-output/shipable
 echo | cat kubo-version/number - >> gcs-shipable-version-output/shipable
-exit 1
