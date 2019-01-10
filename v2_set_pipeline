@@ -16,7 +16,7 @@ print_usage() {
   done
   echo "" >&2
   echo "    valid deployment_configuration names:" >&2
-  for name in "${ci_dir}"/deployment_configurations/*.yml; do
+  for name in "${ci_dir}"/deployment-configurations/*.yml; do
     local deployment_configuration
     deployment_configuration="$(basename "${name}")"
     echo "        - ${deployment_configuration%.yml}" >&2
