@@ -1,0 +1,64 @@
+- type: replace
+  path: /resources/-
+  value:
+    name: old-kubo-deployment-tarball
+    type: github-release
+    source:
+      owner: cloudfoundry-incubator
+      repository: kubo-deployment
+      pre_release: true
+      access_token: ((github-kubo-gitbot-access-token))
+
+
+- type: replace
+  path: /resources/-
+  value:
+    name: old-kubo-release-tarball
+    type: github-release
+    source:
+      owner: cloudfoundry-incubator
+      repository: kubo-release
+      pre_release: true
+      access_token: ((github-kubo-gitbot-access-token))
+
+- type: replace
+  path: /jobs/name=claim-lock/plan/0:before
+  value:
+    get: old-kubo-deployment-tarball
+
+- type: replace
+  path: /jobs/name=claim-lock/plan/0:before
+  value:
+    get: old-kubo-release-tarball
+    params:
+      globs:
+      - "kubo-release*"
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/0:before
+  value:
+    get: old-kubo-deployment-tarball
+    passed: [ 'claim-lock' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/0:before
+  value:
+    get: old-kubo-release-tarball
+    passed: [ 'claim-lock' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/get=kubo-deployment
+  value:
+    get: git-kubo-deployment
+    resource: kubo-deployment
+    passed: [ 'claim-lock' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=unpack-kubo-deployment/input_mapping?
+  value:
+    gcs-kubo-deployment-pre: old-kubo-deployment-tarball
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/releases
+  value:
+  - old-kubo-release-tarball/*.tgz

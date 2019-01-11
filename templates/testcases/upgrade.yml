@@ -1,0 +1,50 @@
+- type: replace
+  path: /jobs/name=run-tests/plan/0/aggregate/0:before
+  value:
+    get: old-kubo-deployment-tarball
+    passed: [ 'deploy-k8s' ]
+
+- type: replace
+  path: /jobs/name=run-tests/plan/0/aggregate/0:before
+  value:
+    get: old-kubo-release-tarball
+    passed: [ 'deploy-k8s' ]
+
+- type: replace
+  path: /jobs/name=run-tests/plan/0:after
+  value:
+    task: upload-stemcell
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: ((iaas))
+    input_mapping:
+      source-json: kubo-lock
+
+- type: replace
+  path: /jobs/name=run-tests/plan/1:after
+  value:
+    task: create-bosh-upgrade-deployment
+    params:
+      IAAS: ((iaas))
+      ENABLE_MULTI_AZ_TESTS: true
+    file: git-kubo-ci/tasks/create-bosh-deploy-command.yml
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/file?
+  value:
+    git-kubo-ci/tasks/run-k8s-upgrade-tests.yml
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/params?
+  value:
+    IAAS: ((iaas))
+    ENABLE_MULTI_AZ_TESTS: true
+
+- type: replace
+  path: /jobs/name=run-tests/plan/-
+  value:
+    put: run-smoke-tests-errand
+    params:
+      name: smoke-tests
+      keep_alive: true
+      source_file: kubo-lock/metadata
