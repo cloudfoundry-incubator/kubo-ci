@@ -5,14 +5,14 @@ import (
 	"net"
 	. "tests/test_helpers"
 
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gopkg.in/yaml.v2"
 	"k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	client_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"os"
 )
 
 type CIDRConfig struct {

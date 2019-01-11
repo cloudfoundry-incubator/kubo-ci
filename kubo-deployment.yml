@@ -10,7 +10,7 @@
   conformance_test_envs = envs - %w(vsphere-proxy)
   proxy_envs = %w(vsphere-proxy)
   bbr_test_envs = %w(gcp-lb)
-  kube-dns_test_envs = %w(gcp-lb)
+  kube_dns_test_envs = %w(gcp-lb)
 %>
 ---
 groups:
@@ -39,7 +39,7 @@ groups:
   - destroy-k8s-bbr-<%= env %>
   - destroy-bosh-bbr-<%= env %>
 <% end %>
-<% kube-dns_test_envs.each do |env| %>
+<% kube_dns_test_envs.each do |env| %>
   - claim-lock-kube-dns-<%= env %>
   - install-bosh-kube-dns-<%= env %>
   - deploy-k8s-kube-dns-<%= env %>
@@ -94,7 +94,7 @@ groups:
   - destroy-k8s-bbr-<%= env %>
   - destroy-bosh-bbr-<%= env %>
   <% end %>
-  <% if kube-dns_test_envs.include? env %>
+  <% if kube_dns_test_envs.include? env %>
   - claim-lock-kube-dns-<%= env %>
   - install-bosh-kube-dns-<%= env %>
   - deploy-k8s-kube-dns-<%= env %>
@@ -177,7 +177,7 @@ groups:
   <% end %>
 - name: kube-dns
   jobs:
-  <% kube-dns_test_envs.each do |env| %>
+  <% kube_dns_test_envs.each do |env| %>
     - claim-lock-kube-dns-<%= env %>
     - install-bosh-kube-dns-<%= env %>
     - deploy-k8s-kube-dns-<%= env %>
@@ -2160,7 +2160,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     params: { release: kubo-lock-<%= env %> }
 <% end %>
 
-<% kube-dns_test_envs.each do |env| %>
+<% kube_dns_test_envs.each do |env| %>
 - name: claim-lock-kube-dns-<%= env %>
   max_in_flight: 1
   plan:
@@ -2425,7 +2425,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
   passed_requirements += upgrade_test_envs.map {|env| "destroy-bosh-upgrade-#{env}" unless env == 'openstack'}.compact
   passed_requirements += bbr_test_envs.map {|env| "destroy-bosh-bbr-#{env}"}.compact
   passed_requirements += multi_master_upgrade_test_envs.map {|env| "destroy-bosh-upgrade-multi-master-#{env}" }.compact
-  passed_requirements += kube-dns_test_envs.map { |env| "destroy-bosh-kube-dns-#{env}" }.compact
+  passed_requirements += kube_dns_test_envs.map { |env| "destroy-bosh-kube-dns-#{env}" }.compact
 %>
 
 - name: upload-kubo-deployment
