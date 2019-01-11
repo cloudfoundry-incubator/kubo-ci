@@ -23,7 +23,7 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
 
-<% arr = %w(gcp-pod-security-policy-integration azure-vanilla-integration gcp-custom-cidrs-integration gcp-vanilla-istio gcp-vanilla-turbulence) %> 
+<% arr = %w(gcp-pod-security-policy-integration azure-vanilla-integration gcp-custom-cidrs-integration gcp-vanilla-istio gcp-vanilla-turbulence gcp-vanilla-conformance) %> 
 <% arr.each do |pipeline| %>
 - name: gcs-<%= pipeline %>-shipables
   type: gcs
