@@ -17,11 +17,8 @@ for shipable in ./gcs-*-shipables; do
     fi
   done
   if $is_shipable ; then
-    echo "Found shipable version $new_signal_version"
+    echo "Found shipable version $new_signal_version" > "${SLACK_MESSAGE_FILE}"
     exit 0
   fi
 done
-echo "Failed to find a shipable tarball"
-exit 1
-
-
+echo "Failed to find a shipable tarball" > "${SLACK_MESSAGE_FILE}"
