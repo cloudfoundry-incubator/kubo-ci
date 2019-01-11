@@ -8,7 +8,7 @@ image_resource:
 
 inputs:
 - name: git-kubo-ci
-- name: kubo-version
+- name: kubo-release
 - name: gcs-shipable-version
 
 outputs:
