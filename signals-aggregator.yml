@@ -4,7 +4,18 @@ resource_types:
   source:
     repository: frodenas/gcs-resource
 
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
 resources:
+- name: slack-alert
+  type: slack-notification
+  source:
+    url: ((build-alert-slack-url))
+
 - name: git-kubo-ci
   type: git
   source:
@@ -12,34 +23,48 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
 
-- name: gcs-gcp-vanilla-istio-shipables
+<% arr = %w(gcp-pod-security-policy-integration azure-vanilla-integration gcp-custom-cidrs-integration gcp-vanilla-istio gcp-vanilla-turbulence) %> 
+<% arr.each do |pipeline| %>
+- name: gcs-<%= pipeline %>-shipables
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    versioned_file: shipables/gcp-vanilla-istio
-
-- name: gcs-gcp-vanilla-turbulence-shipables
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
-    versioned_file: shipables/gcp-vanilla-turbulence
-
-- name: gcs-gcp-custom-cidrs-integration-shipables
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
-    versioned_file: shipables/gcp-custom-cidrs-integration
+    versioned_file: shipables/<%= pipeline %>
+<% end %>
 
 jobs:
 - name: signal-aggregator
   plan:
-  - get: git-kubo-ci
-  - get: gcs-gcp-vanilla-turbulence-shipables
-  - get: gcs-gcp-custom-cidrs-integration-shipables
-  - get: gcs-gcp-vanilla-istio-shipables
+  - aggregate:
+    - get: git-kubo-ci
+    <% arr.each do |pipeline|%>
+    - get: gcs-<%= pipeline %>-shipables
+      trigger: true
+      version: every
+    <% end %>
   - task: aggregate-test-signals
-    file: git-kubo-ci/tasks/aggregate-test-signals.yml
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      params:
+        SLACK_MESSAGE_FILE: "slack/message"
+      outputs:
+      - name: slack
+      inputs:
+      - name: git-kubo-ci
+      <% arr.each do |pipeline| %>
+      - name: gcs-<%= pipeline %>-shipables
+      <% end %>
+      run:
+        path: git-kubo-ci/scripts/aggregate-test-signals.sh
+  - put: slack-alert
+    params:
+      attachments_file: slack-notification/attachments
+      text_file: "slack/message"
+
 

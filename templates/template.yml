@@ -42,28 +42,28 @@ resources:
   source:
     bucket: kubo-pipeline-store
     json_key: ((gcs-json-key))
-    versioned_file: shipables/fake
+    versioned_file: shipables/((pipeline-name))
 
 - name: gcs-shipable-version-output
   type: gcs
   source:
     bucket: kubo-pipeline-store
     json_key: ((gcs-json-key))
-    versioned_file: shipables/fake
+    versioned_file: shipables/((pipeline-name))
 
 - name: kubo-release
   type: gcs
   source:
-    bucket: kubo-public
     json_key: ((gcs-json-key))
-    versioned_file: kubo-release-latest.tgz
+    bucket: kubo-pipeline-store
+    regexp: dev-builds/kubo-(\d.*).tgz
 
 - name: kubo-deployment
   type: gcs
   source:
-    bucket: kubo-public
     json_key: ((gcs-json-key))
-    versioned_file: kubo-deployment-latest.tgz
+    bucket: kubo-pipeline-store
+    regexp: dev-builds/kubo-deployment-(.*).tgz
 
 - name: kubo-lock
   type: pool
@@ -202,14 +202,14 @@ jobs:
     - get: git-kubo-ci
     - get: kubo-lock
       passed: [ 'deploy-k8s' ]
+      version: every
+      trigger: true
     - get: kubo-deployment
       passed: [ 'deploy-k8s' ]
     - get: kubo-release
       passed: [ 'deploy-k8s' ]
     - get: gcs-kubeconfig
       passed: [ "deploy-k8s" ]
-      version: every
-      trigger: true
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
@@ -248,14 +248,19 @@ jobs:
 
 - name: publish-version
   plan:
-  - get: git-kubo-ci
-  - get: gcs-shipable-version
-  - get: kubo-deployment
-    passed: [ 'destroy-k8s' ]
-  - get: kubo-release
-    passed: [ 'destroy-k8s' ]
-  - get: kubo-version
-    passed: [ 'destroy-k8s' ]
+  - aggregate:
+    - get: git-kubo-ci
+    - get: gcs-shipable-version
+    - get: kubo-lock
+      passed: [ 'run-tests' ]
+      version: every
+      trigger: true
+    - get: kubo-deployment
+      passed: [ 'run-tests' ]
+    - get: kubo-release
+      passed: [ 'run-tests' ]
+    - get: kubo-version
+      passed: [ 'run-tests' ]
   - task: publish-version
     file: git-kubo-ci/tasks/publish-shipable-version.yml
   - put: gcs-shipable-version-output

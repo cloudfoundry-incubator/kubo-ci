@@ -92,14 +92,13 @@ main() {
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_testcase_ops_file}")
   fi
 
-  pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${ci_dir}/change-shipable.yml" -v pipeline-name="${iaas_name}-${deployment_configuration}-${testcase}")
-
   fly --target kubo sync > /dev/null
 
   fly --target kubo set-pipeline \
     --config <(echo "${pipeline_config}") \
     --pipeline "${iaas_name}-${deployment_configuration}-${testcase}" \
-    -v iaas="${iaas_name}"
+    -v iaas="${iaas_name}" \
+    -v pipeline-name="${iaas_name}-${deployment_configuration}-${testcase}"
 }
 
 pushd "${ci_dir}" > /dev/null
