@@ -10,7 +10,7 @@
   conformance_test_envs = envs - %w(vsphere-proxy)
   proxy_envs = %w(vsphere-proxy)
   bbr_test_envs = %w(gcp-lb)
-  coredns_test_envs = %w(gcp-lb)
+  kube-dns_test_envs = %w(gcp-lb)
 %>
 ---
 groups:
@@ -39,13 +39,13 @@ groups:
   - destroy-k8s-bbr-<%= env %>
   - destroy-bosh-bbr-<%= env %>
 <% end %>
-<% coredns_test_envs.each do |env| %>
-  - claim-lock-coredns-<%= env %>
-  - install-bosh-coredns-<%= env %>
-  - deploy-k8s-coredns-<%= env %>
-  - run-k8s-integration-tests-coredns-<%= env %>
-  - destroy-k8s-coredns-<%= env %>
-  - destroy-bosh-coredns-<%= env %>
+<% kube-dns_test_envs.each do |env| %>
+  - claim-lock-kube-dns-<%= env %>
+  - install-bosh-kube-dns-<%= env %>
+  - deploy-k8s-kube-dns-<%= env %>
+  - run-k8s-integration-tests-kube-dns-<%= env %>
+  - destroy-k8s-kube-dns-<%= env %>
+  - destroy-bosh-kube-dns-<%= env %>
 <% end %>
 <% upgrade_test_envs.each do |env| %>
   - claim-lock-upgrade-<%= env %>
@@ -94,13 +94,13 @@ groups:
   - destroy-k8s-bbr-<%= env %>
   - destroy-bosh-bbr-<%= env %>
   <% end %>
-  <% if coredns_test_envs.include? env %>
-  - claim-lock-coredns-<%= env %>
-  - install-bosh-coredns-<%= env %>
-  - deploy-k8s-coredns-<%= env %>
-  - run-k8s-integration-tests-coredns-<%= env %>
-  - destroy-k8s-coredns-<%= env %>
-  - destroy-bosh-coredns-<%= env %>
+  <% if kube-dns_test_envs.include? env %>
+  - claim-lock-kube-dns-<%= env %>
+  - install-bosh-kube-dns-<%= env %>
+  - deploy-k8s-kube-dns-<%= env %>
+  - run-k8s-integration-tests-kube-dns-<%= env %>
+  - destroy-k8s-kube-dns-<%= env %>
+  - destroy-bosh-kube-dns-<%= env %>
   <% end %>
   <% if conformance_test_envs.include? env %>
   - run-k8s-conformance-tests-<%= env %>
@@ -175,15 +175,15 @@ groups:
     - destroy-k8s-bbr-<%= env %>
     - destroy-bosh-bbr-<%= env %>
   <% end %>
-- name: coredns
+- name: kube-dns
   jobs:
-  <% coredns_test_envs.each do |env| %>
-    - claim-lock-coredns-<%= env %>
-    - install-bosh-coredns-<%= env %>
-    - deploy-k8s-coredns-<%= env %>
-    - run-k8s-integration-tests-coredns-<%= env %>
-    - destroy-k8s-coredns-<%= env %>
-    - destroy-bosh-coredns-<%= env %>
+  <% kube-dns_test_envs.each do |env| %>
+    - claim-lock-kube-dns-<%= env %>
+    - install-bosh-kube-dns-<%= env %>
+    - deploy-k8s-kube-dns-<%= env %>
+    - run-k8s-integration-tests-kube-dns-<%= env %>
+    - destroy-k8s-kube-dns-<%= env %>
+    - destroy-bosh-kube-dns-<%= env %>
   <% end %>
 
 resource_types:
@@ -2160,8 +2160,8 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     params: { release: kubo-lock-<%= env %> }
 <% end %>
 
-<% coredns_test_envs.each do |env| %>
-- name: claim-lock-coredns-<%= env %>
+<% kube-dns_test_envs.each do |env| %>
+- name: claim-lock-kube-dns-<%= env %>
   max_in_flight: 1
   plan:
   - aggregate:
@@ -2179,27 +2179,27 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
   - put: kubo-lock-<%= env %>
     params: { acquire: true }
 
-- name: install-bosh-coredns-<%= env %>
+- name: install-bosh-kube-dns-<%= env %>
   plan:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
     - get: git-bosh-deployment
     - get: git-kubo-deployment
-      passed: [ 'claim-lock-coredns-<%= env %>' ]
+      passed: [ 'claim-lock-kube-dns-<%= env %>' ]
     - get: kubo-lock
       resource: kubo-lock-<%= env %>
       version: every
       trigger: true
-      passed: [ 'claim-lock-coredns-<%= env %>' ]
+      passed: [ 'claim-lock-kube-dns-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'claim-lock-coredns-<%= env %>' ]
+      passed: [ 'claim-lock-kube-dns-<%= env %>' ]
     - get: git-kubo-release
-      passed: [ 'claim-lock-coredns-<%= env %>' ]
+      passed: [ 'claim-lock-kube-dns-<%= env %>' ]
     - get: kubo-version
-      passed: [ 'claim-lock-coredns-<%= env %>' ]
+      passed: [ 'claim-lock-kube-dns-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'claim-lock-coredns-<%= env %>' ]
+      passed: [ 'claim-lock-kube-dns-<%= env %>' ]
   - task: install
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/install-bosh.yml
@@ -2232,7 +2232,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
 
-- name: deploy-k8s-coredns-<%= env %>
+- name: deploy-k8s-kube-dns-<%= env %>
   plan:
   - aggregate:
     - get: slackers
@@ -2241,25 +2241,25 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       resource: kubo-lock-gcp-lb
       version: every
       trigger: true
-      passed: [ 'install-bosh-coredns-<%= env %>' ]
+      passed: [ 'install-bosh-kube-dns-<%= env %>' ]
     - get: git-kubo-deployment
-      passed: [ 'install-bosh-coredns-<%= env %>' ]
+      passed: [ 'install-bosh-kube-dns-<%= env %>' ]
     - get: git-kubo-release
-      passed: [ 'install-bosh-coredns-<%= env %>' ]
+      passed: [ 'install-bosh-kube-dns-<%= env %>' ]
     - get: kubo-version
-      passed: [ 'install-bosh-coredns-<%= env %>' ]
+      passed: [ 'install-bosh-kube-dns-<%= env %>' ]
     - get: gcs-bosh-state
-      passed: [ 'install-bosh-coredns-<%= env %>' ]
+      passed: [ 'install-bosh-kube-dns-<%= env %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'install-bosh-coredns-<%= env %>' ]
+      passed: [ 'install-bosh-kube-dns-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'install-bosh-coredns-<%= env %>' ]
+      passed: [ 'install-bosh-kube-dns-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'install-bosh-coredns-<%= env %>' ]
+      passed: [ 'install-bosh-kube-dns-<%= env %>' ]
     - get: source-json
-      passed: [ 'install-bosh-coredns-<%= env %>' ]
+      passed: [ 'install-bosh-kube-dns-<%= env %>' ]
     - get: gcs-load-balancer-vars
-      passed: [ 'install-bosh-coredns-<%= env %>' ]
+      passed: [ 'install-bosh-kube-dns-<%= env %>' ]
   - task: upload-stemcell
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/upload-stemcell.yml
@@ -2278,7 +2278,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
       - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
-      - git-kubo-deployment/manifests/ops-files/use-coredns.yml
+      - git-kubo-deployment/manifests/ops-files/use-kube-dns.yml
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
@@ -2317,7 +2317,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     params:
       file: kubeconfig/config
 
-- name: run-k8s-integration-tests-coredns-<%= env %>
+- name: run-k8s-integration-tests-kube-dns-<%= env %>
   plan:
   - aggregate:
     - get: slackers
@@ -2325,25 +2325,25 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     - get: kubo-lock-gcp-lb
       version: every
       trigger: true
-      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
+      passed: [ 'deploy-k8s-kube-dns-<%= env %>' ]
     - get: git-kubo-deployment
-      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
+      passed: [ 'deploy-k8s-kube-dns-<%= env %>' ]
     - get: gcs-bosh-state
-      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
+      passed: [ 'deploy-k8s-kube-dns-<%= env %>' ]
     - get: gcs-bosh-creds
-      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
+      passed: [ 'deploy-k8s-kube-dns-<%= env %>' ]
     - get: kubo-version
-      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
+      passed: [ 'deploy-k8s-kube-dns-<%= env %>' ]
     - get: git-kubo-release
-      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
+      passed: [ 'deploy-k8s-kube-dns-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
+      passed: [ 'deploy-k8s-kube-dns-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
+      passed: [ 'deploy-k8s-kube-dns-<%= env %>' ]
     - get: source-json
-      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
+      passed: [ 'deploy-k8s-kube-dns-<%= env %>' ]
     - get: gcs-kubeconfig
-      passed: [ 'deploy-k8s-coredns-<%= env %>' ]
+      passed: [ 'deploy-k8s-kube-dns-<%= env %>' ]
   - task: integration-tests
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/run-k8s-integration-tests.yml
@@ -2356,7 +2356,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
       ENABLE_MULTI_AZ_TESTS: true
       ENABLE_K8S_LBS_TESTS: true
 
-- name: destroy-k8s-coredns-<%= env %>
+- name: destroy-k8s-kube-dns-<%= env %>
   plan:
   - aggregate:
     - get: slackers
@@ -2364,53 +2364,53 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
     - get: kubo-lock-<%= env %>
       version: every
       trigger: true
-      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+      passed: ['run-k8s-integration-tests-kube-dns-<%= env %>']
     - get: kubo-version
-      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+      passed: ['run-k8s-integration-tests-kube-dns-<%= env %>']
     - get: git-kubo-deployment
-      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+      passed: ['run-k8s-integration-tests-kube-dns-<%= env %>']
     - get: git-kubo-release
-      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+      passed: ['run-k8s-integration-tests-kube-dns-<%= env %>']
     - get: gcs-bosh-state
-      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+      passed: ['run-k8s-integration-tests-kube-dns-<%= env %>']
     - get: gcs-bosh-creds
-      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+      passed: ['run-k8s-integration-tests-kube-dns-<%= env %>']
     - get: source-json
-      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+      passed: ['run-k8s-integration-tests-kube-dns-<%= env %>']
     - get: gcs-kubo-release-tarball-untested
-      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+      passed: ['run-k8s-integration-tests-kube-dns-<%= env %>']
     - get: gcs-kubo-deployment-tarball-untested
-      passed: ['run-k8s-integration-tests-coredns-<%= env %>']
+      passed: ['run-k8s-integration-tests-kube-dns-<%= env %>']
   - task: destroy-k8s
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-k8s-instance.yml
     input_mapping: {kubo-lock: kubo-lock-<%= env %>}
     on_failure: *on_failure_alert
 
-- name: destroy-bosh-coredns-<%= env %>
+- name: destroy-bosh-kube-dns-<%= env %>
   plan:
   - aggregate:
     - get: slackers
     - get: git-kubo-ci
     - get: git-bosh-deployment
     - get: git-kubo-deployment
-      passed: ['destroy-k8s-coredns-<%= env %>']
+      passed: ['destroy-k8s-kube-dns-<%= env %>']
     - get: git-kubo-release
-      passed: ['destroy-k8s-coredns-<%= env %>']
+      passed: ['destroy-k8s-kube-dns-<%= env %>']
     - get: kubo-lock-<%= env %>
       version: every
       trigger: true
-      passed: ['destroy-k8s-coredns-<%= env %>']
+      passed: ['destroy-k8s-kube-dns-<%= env %>']
     - get: kubo-version
-      passed: ['destroy-k8s-coredns-<%= env %>']
+      passed: ['destroy-k8s-kube-dns-<%= env %>']
     - get: gcs-bosh-state
-      passed: ['destroy-k8s-coredns-<%= env %>']
+      passed: ['destroy-k8s-kube-dns-<%= env %>']
     - get: gcs-bosh-creds
-      passed: ['destroy-k8s-coredns-<%= env %>']
+      passed: ['destroy-k8s-kube-dns-<%= env %>']
     - get: gcs-kubo-release-tarball-untested
-      passed: ['destroy-k8s-coredns-<%= env %>']
+      passed: ['destroy-k8s-kube-dns-<%= env %>']
     - get: gcs-kubo-deployment-tarball-untested
-      passed: ['destroy-k8s-coredns-<%= env %>']
+      passed: ['destroy-k8s-kube-dns-<%= env %>']
   - task: destroy
     tags: [<%= env %>]
     file: git-kubo-ci/tasks/destroy-bosh.yml
@@ -2425,7 +2425,7 @@ destroy_bosh_bbr_passed_reqs = [ "destroy-k8s-bbr-#{env}" ]
   passed_requirements += upgrade_test_envs.map {|env| "destroy-bosh-upgrade-#{env}" unless env == 'openstack'}.compact
   passed_requirements += bbr_test_envs.map {|env| "destroy-bosh-bbr-#{env}"}.compact
   passed_requirements += multi_master_upgrade_test_envs.map {|env| "destroy-bosh-upgrade-multi-master-#{env}" }.compact
-  passed_requirements += coredns_test_envs.map { |env| "destroy-bosh-coredns-#{env}" }.compact
+  passed_requirements += kube-dns_test_envs.map { |env| "destroy-bosh-kube-dns-#{env}" }.compact
 %>
 
 - name: upload-kubo-deployment

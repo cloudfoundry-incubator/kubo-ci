@@ -74,7 +74,7 @@ var _ = Describe("Custom CIDRs", func() {
 			Expect(subnet.Contains(net.ParseIP(svc.Spec.ClusterIP))).To(BeTrue())
 		})
 
-		It("configures Kube-DNS to the provided IP", func() {
+		It("configures DNS to the provided IP", func() {
 			service, err := k8s.CoreV1().Services("kube-system").Get("kube-dns", meta_v1.GetOptions{})
 
 			Expect(err).NotTo(HaveOccurred())
