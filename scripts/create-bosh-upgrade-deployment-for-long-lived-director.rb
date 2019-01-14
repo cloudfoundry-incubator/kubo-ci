@@ -5,7 +5,7 @@ ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
  -o git-kubo-deployment/manifests/ops-files/enable-nfs.yml \
  -o git-kubo-deployment/manifests/ops-files/add-hostname-to-master-certificate.yml '
 vars_files = '-l kubo-lock/metadata '
-vars = "-v deployment_name=#{ENV['DEPLOYMENT_NAME']} "
+vars = ""
 
 
 if ENV['ENABLE_MULTI_AZ_TESTS'] != 'false'

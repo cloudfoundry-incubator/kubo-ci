@@ -14,7 +14,6 @@ outputs:
 
 params:
   ADDONS_SPEC: "git-kubo-ci/specs/guestbook.yml"
-  DEPLOYMENT_NAME: ci-service
   CFCR_MANIFEST_PATH: git-kubo-deployment/manifests/cfcr.yml
   BOSH_DEPLOY_COMMAND: "bosh-command/bosh-deploy.sh"
   ENABLE_MULTI_AZ_TESTS:
