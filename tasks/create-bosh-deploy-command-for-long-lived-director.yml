@@ -8,6 +8,7 @@ image_resource:
 inputs:
 - name: git-kubo-deployment
 - name: git-kubo-ci
+- name: kubo-lock
 
 outputs:
 - name: bosh-command
