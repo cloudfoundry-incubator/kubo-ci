@@ -158,6 +158,7 @@ jobs:
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
+      - git-kubo-ci/manifests/ops-files/increase-logging-level.yml
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
