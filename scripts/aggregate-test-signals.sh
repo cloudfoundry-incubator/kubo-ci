@@ -4,7 +4,7 @@ set -eux
 first=$(find ./gcs-*-shipables/ -name '*shipable' | head -1)
 
 for shipable in ./gcs-*-shipables/*shipable; do
-  result=/tmp/temp_$shipable
+  result=/tmp/temp_$(basename "$shipable")
   comm -12 "$first" "$shipable" > "$result"
   first=$result
 done
