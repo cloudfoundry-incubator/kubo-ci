@@ -251,16 +251,14 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: gcs-shipable-version
-    - get: kubo-lock
-      passed: [ 'run-tests' ]
-      version: every
-      trigger: true
     - get: kubo-deployment
       passed: [ 'run-tests' ]
     - get: kubo-release
       passed: [ 'run-tests' ]
     - get: kubo-version
       passed: [ 'run-tests' ]
+      version: every
+      trigger: true
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
