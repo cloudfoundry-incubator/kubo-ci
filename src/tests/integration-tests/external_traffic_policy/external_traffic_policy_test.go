@@ -58,7 +58,7 @@ var _ = Describe("When deploying a loadbalancer", func() {
 			Eventually(func() string {
 				loadbalancerAddress = kubectl.GetLBAddress("echoserver", iaas)
 				return loadbalancerAddress
-			}, "640s", kubectl.TimeoutInSeconds).Should(Not(Equal("")))
+			}, 8*kubectl.TimeoutInSeconds, kubectl.TimeoutInSeconds).Should(Not(Equal("")))
 
 			By("getting the source IP from echoserver")
 			appURL := fmt.Sprintf("http://%s", loadbalancerAddress)
