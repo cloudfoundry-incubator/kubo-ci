@@ -32,13 +32,18 @@
 - type: replace
   path: /jobs/name=run-tests/plan/task=run-tests/file?
   value:
-    git-kubo-ci/tasks/run-k8s-upgrade-tests.yml
+    git-kubo-ci/tasks/run-k8s-upgrade-tests-for-long-lived-director.yml
 
 - type: replace
   path: /jobs/name=run-tests/plan/task=run-tests/params?
   value:
     IAAS: ((iaas))
     ENABLE_MULTI_AZ_TESTS: true
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/input_mapping?
+  value:
+    gcs-kubo-release-tarball: kubo-release
 
 - type: replace
   path: /jobs/name=run-tests/plan/-
