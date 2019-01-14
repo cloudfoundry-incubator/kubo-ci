@@ -11,13 +11,14 @@
     passed: [ 'deploy-k8s' ]
 
 - type: replace
-  path: /jobs/name=run-tests/plan/0:after
+  path: /jobs/name=run-tests/plan/1:after
   value:
     task: upload-stemcell
     file: git-kubo-ci/tasks/upload-stemcell.yml
     params:
       IAAS: ((iaas))
     input_mapping:
+      git-kubo-deployment: kubo-deployment
       source-json: kubo-lock
 
 - type: replace
@@ -27,7 +28,7 @@
     params:
       IAAS: ((iaas))
       ENABLE_MULTI_AZ_TESTS: true
-    file: git-kubo-ci/tasks/create-bosh-deploy-command.yml
+    file: git-kubo-ci/tasks/create-bosh-deploy-command-for-long-lived-director.yml
 
 - type: replace
   path: /jobs/name=run-tests/plan/task=run-tests/file?
