@@ -246,12 +246,14 @@ jobs:
     - get: gcs-shipable-version
     - get: kubo-deployment
       passed: [ 'run-tests' ]
+      version: every
+      trigger: true
     - get: kubo-release
-      passed: [ 'run-tests' ]
-    - get: kubo-version
       passed: [ 'run-tests' ]
       version: every
       trigger: true
+    - get: kubo-version
+      passed: [ 'run-tests' ]
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
@@ -260,4 +262,4 @@ jobs:
     file: git-kubo-ci/tasks/publish-shipable-version.yml
   - put: gcs-shipable-version
     params:
-      file: gcs-shipable-version/shipable
+      file: gcs-shipable-version-output/shipable
