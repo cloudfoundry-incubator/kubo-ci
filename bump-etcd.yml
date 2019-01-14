@@ -10,7 +10,7 @@ resources:
 - name: etcd-release
   type: github-release-with-version-filtering
   source:
-    owner: coreos
+    owner: etcd-io
     repository: etcd
     version_filter: "< 3.4.0"
     access_token: ((github-token-key))
