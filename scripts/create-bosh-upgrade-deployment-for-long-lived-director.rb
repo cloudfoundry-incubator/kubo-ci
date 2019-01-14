@@ -39,7 +39,7 @@ if ENV['IAAS'] =~ /^aws/
 end
 
 cmd = ['bosh -n -d',
-       File.read("kubo-lock/name"),
+       File.read("kubo-lock/name").chomp,
        'deploy',
        '--no-redact',
        ENV['CFCR_MANIFEST_PATH'],
