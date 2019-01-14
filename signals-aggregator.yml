@@ -29,14 +29,23 @@ resources:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     versioned_file: shipables/shipable_version
-<% arr = %w(gcp-pod-security-policy-integration azure-vanilla-integration gcp-custom-cidrs-integration gcp-vanilla-istio gcp-vanilla-turbulence gcp-vanilla-conformance azure-two-cas-integration azure-kube-dns-integration) %> 
+<% arr = %w(
+gcp-pod-security-policy-integration
+azure-vanilla-integration
+gcp-custom-cidrs-integration
+gcp-vanilla-istio
+gcp-vanilla-turbulence
+gcp-vanilla-conformance
+azure-two-cas-integration
+azure-kube-dns-integration
+) %> 
 <% arr.each do |pipeline| %>
 - name: gcs-<%= pipeline %>-shipables
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    versioned_file: shipables/<%= pipeline %>
+    versioned_file: shipables/<%= pipeline %>-shipable
 <% end %>
 
 jobs:
