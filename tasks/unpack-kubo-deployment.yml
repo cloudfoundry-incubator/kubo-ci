@@ -10,6 +10,7 @@ run:
   - -exc
   - |
     tar -xzf  gcs-kubo-deployment-pre/kubo-deployment*.tgz -C git-kubo-deployment/
+    shopt -s dotglob # unpack hidden files, so we can mark version as shipable
     mv git-kubo-deployment/kubo-deployment*/* git-kubo-deployment/
 inputs:
 - name: gcs-kubo-deployment-pre
