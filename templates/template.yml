@@ -49,7 +49,7 @@ resources:
   source:
     bucket: kubo-pipeline-store
     json_key: ((gcs-json-key))
-    versioned_file: shipables/((pipeline-name))
+    versioned_file: shipables/((pipeline-name))-shipable
 
 - name: kubo-release
   type: gcs
@@ -117,7 +117,6 @@ jobs:
   - get: kubo-deployment
     trigger: true
   - get: kubo-release
-    trigger: true
   - put: kubo-lock
     params: { acquire: true }
 
@@ -261,6 +260,10 @@ jobs:
       passed: [ 'run-tests' ]
     - get: kubo-version
       passed: [ 'run-tests' ]
+  - task: unpack-kubo-deployment
+    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-deployment
   - task: publish-version
     file: git-kubo-ci/tasks/publish-shipable-version.yml
   - put: gcs-shipable-version-output
