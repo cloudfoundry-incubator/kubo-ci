@@ -3,9 +3,11 @@
 ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
  -o git-kubo-deployment/manifests/ops-files/misc/dev.yml \
  -o git-kubo-deployment/manifests/ops-files/enable-nfs.yml \
+ -o git-kubo-deployment/manifests/ops-files/addons-spec.yml \
  -o git-kubo-deployment/manifests/ops-files/add-hostname-to-master-certificate.yml '
 vars_files = '-l kubo-lock/metadata '
-vars = ""
+var_files = '-v addons-spec=git-kubo-ci/specs/guestbook.yml '
+vars = "" 
 
 if ENV['ENABLE_MULTI_AZ_TESTS'] != 'false'
   ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
@@ -45,6 +47,7 @@ cmd = ['bosh -n -d',
        ENV['CFCR_MANIFEST_PATH'],
        ops_files,
        vars_files,
+       var_files,
        vars].join(' ')
 puts "command: #{cmd}"
 File.write(ENV['BOSH_DEPLOY_COMMAND'], "#!/usr/bin/env bash\n" + cmd)
