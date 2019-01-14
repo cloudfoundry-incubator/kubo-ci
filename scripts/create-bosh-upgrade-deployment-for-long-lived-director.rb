@@ -7,7 +7,6 @@ ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
 vars_files = '-l kubo-lock/metadata '
 vars = ""
 
-
 if ENV['ENABLE_MULTI_AZ_TESTS'] != 'false'
   ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
 else
@@ -40,7 +39,7 @@ if ENV['IAAS'] =~ /^aws/
 end
 
 cmd = ['bosh -n -d',
-       ENV['DEPLOYMENT_NAME'],
+       File.read("kubo-lock/name"),
        'deploy',
        '--no-redact',
        ENV['CFCR_MANIFEST_PATH'],
