@@ -42,13 +42,6 @@ resources:
   source:
     bucket: kubo-pipeline-store
     json_key: ((gcs-json-key))
-    versioned_file: shipables/((pipeline-name))
-
-- name: gcs-shipable-version-output
-  type: gcs
-  source:
-    bucket: kubo-pipeline-store
-    json_key: ((gcs-json-key))
     versioned_file: shipables/((pipeline-name))-shipable
 
 - name: kubo-release
@@ -265,6 +258,6 @@ jobs:
       gcs-kubo-deployment-pre: kubo-deployment
   - task: publish-version
     file: git-kubo-ci/tasks/publish-shipable-version.yml
-  - put: gcs-shipable-version-output
+  - put: gcs-shipable-version
     params:
-      file: gcs-shipable-version-output/shipable
+      file: gcs-shipable-version/shipable
