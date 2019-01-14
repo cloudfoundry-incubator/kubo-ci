@@ -4,7 +4,7 @@ ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
  -o git-kubo-deployment/manifests/ops-files/vm-types.yml\
  -o git-kubo-deployment/manifests/ops-files/misc/dev.yml \
  -o git-kubo-deployment/manifests/ops-files/enable-nfs.yml \
- -o git-kubo-ci/manifests/ops-files/add-api-server-endpoint.yml '
+ -o git-kubo-deployment/manifests/ops-files/add-hostname-to-master-certificate.yml '
 vars_files = '-l kubo-lock/metadata '
 vars = "-v deployment_name=#{ENV['DEPLOYMENT_NAME']} -v worker_vm_type=worker -v master_vm_type=master -v apply_addons_vm_type=minimal"
 
