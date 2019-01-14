@@ -10,7 +10,7 @@ run:
   - -exc
   - |
     tar -xzf  gcs-kubo-deployment-pre/kubo-deployment*.tgz -C git-kubo-deployment/
-    mv git-kubo-deployment/kubo-deployment/* git-kubo-deployment/
+    mv git-kubo-deployment/kubo-deployment*/* git-kubo-deployment/
 inputs:
 - name: gcs-kubo-deployment-pre
 outputs:
