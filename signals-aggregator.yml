@@ -23,6 +23,12 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
 
+- name: gcs-shipables
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: shipables/shipable_version
 <% arr = %w(gcp-pod-security-policy-integration azure-vanilla-integration gcp-custom-cidrs-integration gcp-vanilla-istio gcp-vanilla-turbulence gcp-vanilla-conformance azure-two-cas-integration azure-kube-dns-integration) %> 
 <% arr.each do |pipeline| %>
 - name: gcs-<%= pipeline %>-shipables
@@ -53,8 +59,10 @@ jobs:
           tag: stable
       params:
         SLACK_MESSAGE_FILE: "slack/message"
+        SHIPABLE_VERSION_FILE: "shipable_version/version"
       outputs:
       - name: slack
+      - name: shipable_version/version
       inputs:
       - name: git-kubo-ci
       <% arr.each do |pipeline| %>
@@ -62,9 +70,14 @@ jobs:
       <% end %>
       run:
         path: git-kubo-ci/scripts/aggregate-test-signals.sh
-  - put: slack-alert
-    params:
-      attachments_file: slack-notification/attachments
-      text_file: "slack/message"
+    on_success:
+      put: gcs-shipables
+      params:
+        file: shipable_version/version
+    ensure:
+      put: slack-alert
+      params:
+        attachments_file: slack-notification/attachments
+        text_file: "slack/message"
 
 
