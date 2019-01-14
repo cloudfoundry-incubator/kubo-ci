@@ -16,3 +16,4 @@ if [ -n "$new_signal_version" ] ; then
   exit 0
 fi
 echo "Failed to find a shipable tarball" > "${SLACK_MESSAGE_FILE}"
+exit 1
