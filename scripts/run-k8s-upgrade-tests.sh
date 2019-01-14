@@ -4,6 +4,7 @@ set -eu -o pipefail
 
 export ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 export GOPATH="${ROOT}/git-kubo-ci"
+export KUBECONFIG="${ROOT}/gcs-kubeconfig/config"
 
 target_bosh_director() {
   if [[ -f source-json/source.json ]]; then

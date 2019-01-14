@@ -17,4 +17,5 @@ inputs:
 - name: git-kubo-deployment
 - name: kubo-lock
 - name: gcs-kubo-release-tarball
+- name: gcs-kubeconfig
 - name: bosh-command
