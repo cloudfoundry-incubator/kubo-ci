@@ -18,7 +18,6 @@
     params:
       IAAS: ((iaas))
     input_mapping:
-      git-kubo-deployment: kubo-deployment
       source-json: kubo-lock
 
 - type: replace
