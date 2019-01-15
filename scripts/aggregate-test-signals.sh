@@ -11,7 +11,9 @@ done
 
 new_signal_version=$(tail -1 "$result")
 if [ -n "$new_signal_version" ] ; then
-  echo "Found shipable version $new_signal_version" > "${SLACK_MESSAGE_FILE}"
+  release_sha=$(echo "$new_signal_version" | awk -F' ' '{print $1}')
+  deployment_sha=$(echo "$new_signal_version" | awk -F' ' '{print $2}')
+  echo "Ready to :ship: <https://github.com/cloudfoundry-incubator/kubo-release/tree/${release_sha}|${release_sha}> <https://github.com/cloudfoundry-incubator/kubo-deployment/tree/${deployment_sha}/|${deployment_sha}>" > "${SLACK_MESSAGE_FILE}"
   echo "${new_signal_version}" > "${SHIPABLE_VERSION_FILE}"
   exit 0
 fi

@@ -71,7 +71,7 @@ jobs:
         SHIPABLE_VERSION_FILE: "shipable_version/version"
       outputs:
       - name: slack
-      - name: shipable_version/version
+      - name: shipable_version
       inputs:
       - name: git-kubo-ci
       <% arr.each do |pipeline| %>
