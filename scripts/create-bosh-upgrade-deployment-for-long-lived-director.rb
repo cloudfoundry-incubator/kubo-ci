@@ -4,10 +4,14 @@ ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
  -o git-kubo-deployment/manifests/ops-files/misc/dev.yml \
  -o git-kubo-deployment/manifests/ops-files/enable-nfs.yml \
  -o git-kubo-deployment/manifests/ops-files/addons-spec.yml \
- -o git-kubo-deployment/manifests/ops-files/add-hostname-to-master-certificate.yml '
-vars_files = '-l kubo-lock/metadata '
-var_files = '-v addons-spec=git-kubo-ci/specs/guestbook.yml '
-vars = "" 
+ -o git-kubo-deployment/manifests/ops-files/add-hostname-to-master-certificate.yml \
+ -o git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml \
+ -o git-kubo-deployment/manifests/ops-files/use-persistent-disk-for-workers.yml \
+ -o git-kubo-ci/manifests/ops-files/add-hpa-properties.yml \
+ -o git-kubo-ci/manifests/ops-files/increase-logging-level.yml'
+vars_file = '-l kubo-lock/metadata '
+var_file = '--var-file=addons-spec=git-kubo-ci/specs/guestbook.yml '
+var = ""
 
 if ENV['ENABLE_MULTI_AZ_TESTS'] != 'false'
   ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
@@ -46,9 +50,9 @@ cmd = ['bosh -n -d',
        '--no-redact',
        ENV['CFCR_MANIFEST_PATH'],
        ops_files,
-       vars_files,
-       var_files,
-       vars].join(' ')
+       vars_file,
+       var_file,
+       var].join(' ')
 puts "command: #{cmd}"
 File.write(ENV['BOSH_DEPLOY_COMMAND'], "#!/usr/bin/env bash\n" + cmd)
 system("chmod +x #{ENV['BOSH_DEPLOY_COMMAND']}")
