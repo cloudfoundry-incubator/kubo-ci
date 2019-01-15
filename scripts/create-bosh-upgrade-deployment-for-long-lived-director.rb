@@ -1,7 +1,7 @@
 #! /usr/bin/env ruby
 
 ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
- -o git-kubo-deployment/manifests/ops-files/misc/dev.yml \
+ -o git-kubo-ci/manifests/ops-files/set-kubo-release-version.yml \
  -o git-kubo-deployment/manifests/ops-files/enable-nfs.yml \
  -o git-kubo-deployment/manifests/ops-files/addons-spec.yml \
  -o git-kubo-deployment/manifests/ops-files/add-hostname-to-master-certificate.yml \
@@ -11,7 +11,7 @@ ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
  -o git-kubo-ci/manifests/ops-files/increase-logging-level.yml'
 vars_file = '-l kubo-lock/metadata '
 var_file = '--var-file=addons-spec=git-kubo-ci/specs/guestbook.yml '
-var = ""
+var = "-v kubo_version=#{File.read("kubo-version/version").chomp}"
 
 if ENV['ENABLE_MULTI_AZ_TESTS'] != 'false'
   ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
