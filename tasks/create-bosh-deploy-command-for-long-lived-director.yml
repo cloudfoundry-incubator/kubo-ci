@@ -9,6 +9,7 @@ inputs:
 - name: git-kubo-deployment
 - name: git-kubo-ci
 - name: kubo-lock
+- name: kubo-version
 
 outputs:
 - name: bosh-command
