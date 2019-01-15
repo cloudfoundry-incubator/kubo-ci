@@ -130,12 +130,12 @@ func upgradeAndMonitorAvailability(pathToScript string, component string, reques
 				result, err := f(appURL)
 				totalCount++
 				if err != nil {
-					fmt.Fprintf(os.Stdout, "\nFailed to get response from %s: %v", appURL, err)
+					fmt.Fprintf(os.Stdout, "\nFailed to get response from workload loadbalancer address %s: %v", appURL, err)
 				}
 				if result == 200 {
 					successCount++
 				} else {
-					fmt.Fprintf(os.Stdout, "\nFailed to get 200 StatusCode from %s. Instead received StatusCode %v", appURL, result)
+					fmt.Fprintf(os.Stdout, "\nFailed to get 200 StatusCode from workload loadbalancer address %s. Instead received StatusCode %v", appURL, result)
 				}
 				time.Sleep(500 * time.Millisecond)
 			}
