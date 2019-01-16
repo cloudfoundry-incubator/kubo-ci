@@ -138,9 +138,10 @@ jobs:
           release_sha="$(awk -F' ' '{print $1}' release-candidate-signal/shipable_version)"
           deployment_sha="$(awk -F' ' '{print $2}' release-candidate-signal/shipable_version)"
           git --git-dir="git-kubo-release-develop/.git" checkout $release_sha
-          cp -R git-kubo-release-develop/ git-kubo-release-output
+          shopt -s dotglob
+          cp -R git-kubo-release-develop/* git-kubo-release-output
           git --git-dir="git-kubo-deployment-develop/.git" checkout $deployment_sha
-          cp -R git-kubo-deployment-develop/ git-kubo-deployment-output
+          cp -R git-kubo-deployment-develop/* git-kubo-deployment-output
   - put: git-kubo-release-master
     params:
       repository: git-kubo-release-output
