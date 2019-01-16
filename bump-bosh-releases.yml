@@ -24,12 +24,10 @@ resources:
     branch: develop
     private_key: ((git-ssh-key.private_key))
 
-- name: git-cfcr-etcd-release
-  type: github-release
+- name: cfcr-etcd-release
+  type: bosh-io-release
   source:
-    owner: cloudfoundry-incubator
-    repository: cfcr-etcd-release
-    access_token: ((github-token-key))
+    repository: cloudfoundry-incubator/cfcr-etcd-release
 
 - name: bpm-release
   type: bosh-io-release
@@ -37,11 +35,9 @@ resources:
     repository: cloudfoundry-incubator/bpm-release
 
 - name: docker-boshrelease
-  type: github-release
+  type: bosh-io-release
   source:
-    owner: cloudfoundry-incubator
-    repository: docker-boshrelease
-    access_token: ((github-token-key))
+    repository: cloudfoundry-incubator/docker-boshrelease
 
 - name: gcs-precompiled-cfcr-etcd-untested
   type: gcs
@@ -129,15 +125,14 @@ jobs:
     - get: git-kubo-ci
     - get: git-kubo-deployment
     - get: gcs-source-json
-    - get: git-cfcr-etcd-release
+    - get: cfcr-etcd-release
       trigger: true
   - task: bump-etcd-release
     file: git-kubo-ci/tasks/bump-boshrelease.yml
     input_mapping:
-       boshrelease: git-cfcr-etcd-release
+       boshrelease: cfcr-etcd-release
     params:
       RELEASE_NAME: cfcr-etcd
-      REPO_URL: https://github.com/cloudfoundry-incubator/cfcr-etcd-release
   - task: generate-compilation-manifest
     file: git-kubo-ci/tasks/generate-compilation-manifest.yml
     input_mapping:
@@ -183,7 +178,6 @@ jobs:
       boshrelease: docker-boshrelease
     params:
       RELEASE_NAME: docker
-      REPO_URL: https://github.com/cloudfoundry-incubator/docker-boshrelease
   - task: generate-compilation-manifest
     file: git-kubo-ci/tasks/generate-compilation-manifest.yml
     input_mapping:
