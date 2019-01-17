@@ -97,6 +97,7 @@ instance_groups:
       tsa:
         worker_key: ((worker-key))
         host_public_key: ((tsa-host-key.public_key))
+        log_level: debug
   - name: baggageclaim
     release: concourse
     provides:
@@ -147,9 +148,9 @@ instance_groups:
 name: kubo-ci
 releases:
 - name: concourse
-  sha1: 470a6fdd7cb82fc723d7d78930c7d261ca4a6cb4
-  url: https://bosh.io/d/github.com/concourse/concourse?v=4.2.1
-  version: 4.2.1
+  version: "4.2.2"
+  url: "https://bosh.io/d/github.com/concourse/concourse-bosh-release?v=4.2.2"
+  sha1: "4107747823b7056c58620c34457746dcedb98cc5"
 - name: garden-runc
   sha1: 2a7c813e7e4d862e19334addf022916fb6b91eb0
   url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.16.3
