@@ -22,7 +22,7 @@ var _ = Describe("Deploy workload", func() {
 		Eventually(func() string {
 			loadbalancerAddress = runner.GetLBAddress("nginx", iaas)
 			return loadbalancerAddress
-		}, "240s", "5s").Should(Not(Equal("")))
+		}, "900s", "5s").Should(Not(Equal("")))
 
 		appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
 
