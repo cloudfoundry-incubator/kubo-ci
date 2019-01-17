@@ -1,5 +1,10 @@
 #! /usr/bin/env ruby
 
+`tar -xzf kubo-release/kubo-*.tgz ./release.MF`
+
+require 'yaml'
+version = YAML.load_file('release.MF')["version"]
+
 ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
  -o git-kubo-ci/manifests/ops-files/set-kubo-release-version.yml \
  -o git-kubo-deployment/manifests/ops-files/enable-nfs.yml \
@@ -11,7 +16,7 @@ ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
  -o git-kubo-ci/manifests/ops-files/increase-logging-level.yml'
 vars_file = '-l kubo-lock/metadata '
 var_file = '--var-file=addons-spec=git-kubo-ci/specs/guestbook.yml '
-var = "-v kubo_version=#{File.read("kubo-version/version").chomp}"
+var = "-v kubo_version=#{version}"
 
 if ENV['ENABLE_MULTI_AZ_TESTS'] != 'false'
   ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
