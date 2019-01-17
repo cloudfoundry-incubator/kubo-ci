@@ -1,9 +1,13 @@
 #!/bin/bash
-./v2_set_pipeline gcp vanilla istio
-./v2_set_pipeline gcp custom-cidrs integration
+./v2_set_pipeline azure kube-dns integration
+./v2_set_pipeline azure vanilla integration
+./v2_set_pipeline azure vanilla turbulence
+
 ./v2_set_pipeline gcp pod-security-policy integration
+./v2_set_pipeline gcp custom-cidrs integration
+./v2_set_pipeline gcp vanilla istio
 ./v2_set_pipeline gcp vanilla turbulence
 ./v2_set_pipeline gcp vanilla conformance
+./v2_set_pipeline gcp kube-dns integration
+./v2_set_pipeline gcp two-cas no-test
 ./v2_set_pipeline gcp old-release upgrade
-./v2_set_pipeline azure vanilla integration
-./v2_set_pipeline azure kube-dns integration
