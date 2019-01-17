@@ -29,14 +29,6 @@ resources:
     uri: https://github.com/cloudfoundry-incubator/kubo-ci
     branch: master
 
-- name: kubo-version
-  type: semver
-  source:
-    driver: gcs
-    key: versions/kubo-version
-    json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
-
 - name: gcs-shipable-version
   type: gcs
   source:
@@ -106,7 +98,6 @@ jobs:
 - name: claim-lock
   max_in_flight: 1
   plan:
-  - get: kubo-version
   - get: kubo-deployment
     trigger: true
   - get: kubo-release
@@ -125,8 +116,6 @@ jobs:
       version: every
       trigger: true
     - get: kubo-deployment
-      passed: [ 'claim-lock' ]
-    - get: kubo-version
       passed: [ 'claim-lock' ]
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
@@ -192,8 +181,6 @@ jobs:
 - name: run-tests
   plan:
   - aggregate:
-    - get: kubo-version
-      passed: [ 'deploy-k8s' ]
     - get: slackers
     - get: git-kubo-ci
     - get: kubo-lock
@@ -226,8 +213,6 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: kubo-version
-      passed: [ 'run-tests' ]
     - get: kubo-lock
       passed: [ 'run-tests' ]
       version: every
@@ -255,8 +240,6 @@ jobs:
       passed: [ 'run-tests' ]
       version: every
       trigger: true
-    - get: kubo-version
-      passed: [ 'run-tests' ]
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
