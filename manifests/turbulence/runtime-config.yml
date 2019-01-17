@@ -20,4 +20,4 @@ addons:
           password: ((turbulence_api_password))
           agent_listen_port: 8081
           cert:
-            ca: ((turbulence_api_ca))
+            ca: ((turbulence_api_ca.ca))
