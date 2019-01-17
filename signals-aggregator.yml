@@ -31,14 +31,15 @@ resources:
     versioned_file: shipables/shipable_version
 <% arr = %w(
 gcp-pod-security-policy-integration
-azure-vanilla-integration
 gcp-custom-cidrs-integration
 gcp-vanilla-istio
 gcp-vanilla-turbulence
 gcp-vanilla-conformance
 gcp-old-release-upgrade
-azure-two-cas-integration
+gcp-two-cas-no-test
+azure-vanilla-integration
 azure-kube-dns-integration
+azure-vanilla-turbulence
 ) %>
 <% arr.each do |pipeline| %>
 - name: gcs-<%= pipeline %>-shipables
