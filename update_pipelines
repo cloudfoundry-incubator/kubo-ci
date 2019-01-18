@@ -1,5 +1,6 @@
 #!/bin/bash
 ./v2_set_pipeline azure kube-dns integration
+./v2_set_pipeline azure vanilla conformance
 ./v2_set_pipeline azure vanilla integration
 ./v2_set_pipeline azure vanilla turbulence
 
