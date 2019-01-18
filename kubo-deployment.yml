@@ -4,10 +4,10 @@
   env_list = envs + additional_envs
   enable_failure_alert = true
 
-  upgrade_test_envs = %w(gcp-lb vsphere-proxy)
+  upgrade_test_envs = %w(vsphere-proxy)
   multi_az_envs = %w(aws-lb gcp-lb vsphere-lb)
-  multi_master_upgrade_test_envs = %w(aws-lb gcp-lb vsphere-lb)
-  conformance_test_envs = envs - %w(vsphere-proxy)
+  multi_master_upgrade_test_envs = %w(aws-lb vsphere-lb)
+  conformance_test_envs = envs - %w(gcp-lb vsphere-proxy)
   proxy_envs = %w(vsphere-proxy)
   bbr_test_envs = %w(gcp-lb)
 %>
