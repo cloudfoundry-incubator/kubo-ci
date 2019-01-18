@@ -26,7 +26,7 @@ pr_kubo_ci() {
   if [ "$existing_conformance_k8s_version" == "$version" ] && [ "$existing_ci_k8s_version" == "$version" ]; then
       echo "Kubernetes version already up-to-date."
   else
-      generate_pull_request "k8s" "$tag" "kubo-ci"
+      generate_pull_request "k8s" "$tag" "kubo-ci" "master"
   fi
   popd
 }
