@@ -9,7 +9,7 @@ generate_pull_request() {
   local component=$1
   local tag=$2
   local repo=$3
-  local base_branch=${4:-develop}
+  local base_branch=$4
 
   mkdir -p ~/.ssh
   cat > ~/.ssh/config <<EOF
