@@ -13,7 +13,7 @@ ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
  -o git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml \
  -o git-kubo-deployment/manifests/ops-files/use-persistent-disk-for-workers.yml \
  -o git-kubo-ci/manifests/ops-files/add-hpa-properties.yml \
- -o git-kubo-ci/manifests/ops-files/increase-logging-level.yml'
+ -o git-kubo-ci/manifests/ops-files/increase-logging-level.yml '
 vars_file = '-l kubo-lock/metadata '
 var_file = '--var-file=addons-spec=git-kubo-ci/specs/guestbook.yml '
 var = "-v kubo_version=#{version}"
