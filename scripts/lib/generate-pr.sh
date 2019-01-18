@@ -1,7 +1,7 @@
 create_pr_payload() {
   title="$1 upgrade $2"
   body="This is an auto generated PR created for $1 upgrade to $2"
-  echo '{"title":"'"$title"'","body":"'"$body"'","head":"'"$3"'","base":"$4"}'
+  echo '{"title":"'"$title"'","body":"'"$body"'","head":"'"$3"'","base":'"$4"'}'
 }
 
 # Needs to be called from the directory where PR needs to be generated
