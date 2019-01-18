@@ -16,7 +16,7 @@ ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
  -o git-kubo-ci/manifests/ops-files/increase-logging-level.yml '
 vars_file = '-l kubo-lock/metadata '
 var_file = '--var-file=addons-spec=git-kubo-ci/specs/guestbook.yml '
-var = "-v kubo_version=#{version}"
+var = "-v kubo_version=#{version} -v disk_size=10240 "
 
 if ENV['ENABLE_MULTI_AZ_TESTS'] != 'false'
   ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
