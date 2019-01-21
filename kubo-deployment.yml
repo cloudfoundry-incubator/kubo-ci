@@ -1631,7 +1631,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: github-etcd-release
       trigger: true
     - get: git-kubo-drats
-      trigger: true
     - get: git-kubo-release
       passed: [ 'package-kubo-deployment-tarball' ]
     - get: git-kubo-deployment
@@ -1658,7 +1657,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     - get: github-etcd-release
       passed: [ 'claim-lock-bbr-<%= env %>' ]
     - get: git-kubo-drats
-      passed: [ 'claim-lock-bbr-<%= env %>' ]
     - get: gcs-kubo-release-tarball-untested
       passed: [ 'claim-lock-bbr-<%= env %>' ]
     - get: git-kubo-release
@@ -1797,7 +1795,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       trigger: true
       passed: [ 'deploy-k8s-bbr-<%= env %>' ]
     - get: git-kubo-drats
-      passed: [ 'deploy-k8s-bbr-<%= env %>' ]
     - get: source-json
       passed: [ 'deploy-k8s-bbr-<%= env %>' ]
     - get: gcs-kubeconfig
