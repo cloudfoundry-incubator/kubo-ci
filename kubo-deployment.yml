@@ -1112,7 +1112,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       no_redact: true
       ops_files:
       - git-kubo-ci/manifests/ops-files/add-api-server-endpoint.yml
-      - unpacked-old-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/vm-types.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
       <% if env =~ /^gcp/ %>
@@ -1442,7 +1441,6 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-ci/manifests/ops-files/add-api-server-endpoint.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/vm-types.yml
-      - unpacked-old-kubo-deployment/manifests/ops-files/use-runtime-config-bosh-dns.yml
       <% if env =~ /^gcp/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
