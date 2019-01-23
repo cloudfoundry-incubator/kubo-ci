@@ -224,7 +224,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-disaster-recovery-acceptance-tests.git
-    branch: wip-bbr-160512406
+    branch: master
     private_key: ((git-ssh-key.private_key))
 
 - name: github-etcd-release
