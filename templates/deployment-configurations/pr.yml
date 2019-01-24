@@ -1,0 +1,10 @@
+
+- type: replace
+  path: /resources/name=kubo-release/source?
+  value:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: release-pr/kubo-release.tgz
+
+- type: remove
+  path: /jobs/name=claim-lock/plan/get=kubo-deployment/trigger
