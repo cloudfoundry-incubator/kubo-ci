@@ -17,7 +17,6 @@ func TestGeneric(t *testing.T) {
 var kubectl *test_helpers.KubectlRunner
 
 var _ = BeforeSuite(func() {
-	test_helpers.CheckRequiredEnvs([]string{"HPA_TIMEOUT"})
 	kubectl = test_helpers.NewKubectlRunner()
 	kubectl.Setup()
 })
