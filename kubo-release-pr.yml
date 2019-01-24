@@ -69,6 +69,8 @@ jobs:
   - aggregate:
     - get: git-kubo-ci
     - get: kubo-version
+      params:
+        pre: dev
     - get: git-kubo-release
       passed: [ 'run-unit-tests' ]
       trigger: true
@@ -82,3 +84,6 @@ jobs:
   - put: gcs-pr-release-tarball
     params:
       file: kubo-release/kubo-release-*.tgz
+  - put: kubo-version
+    params:
+      pre: dev
