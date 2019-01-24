@@ -6,17 +6,13 @@ base_dir=$PWD
 pushd git-kubo-release
 
 blob_names=("k8s.gcr.io_kubernetes-dashboard-amd64"
-            "gcr.io_google_containers_metrics-server-amd64"
-            "k8s.gcr.io_heapster-amd64")
+            "k8s.gcr.io_metrics-server-amd64")
 releases=("kubernetes-dashboard-release"
-          "metrics-server-release"
-          "heapster-release")
+          "metrics-server-release")
 urls=("k8s.gcr.io/kubernetes-dashboard-amd64"
-      "gcr.io/google_containers/metrics-server-amd64"
-      "k8s.gcr.io/heapster-amd64")
+      "k8s.gcr.io/metrics-server-amd64")
 names=("kubernetes-dashboard-amd64"
-       "metrics-server-amd64"
-       "heapster-amd64")
+       "metrics-server-amd64")
 
 for i in ${!blob_names[@]}; do
     existing_spec_version=$(bosh blobs --column path | grep "${blob_names[i]}" | grep -o -E 'v([0-9]+\.)+[0-9]+')
