@@ -19,7 +19,7 @@ names=("kubernetes-dashboard-amd64"
        "coredns")
 
 for i in ${!blob_names[@]}; do
-    existing_spec_version=$(bosh blobs --column path | grep "${blob_names[i]}" | grep -o -E 'v([0-9]+\.)+[0-9]+')
+    existing_spec_version=$(bosh blobs --column path | grep "${blob_names[i]}" | grep -o -E 'v?([0-9]+\.)+[0-9]+')
     fetched_spec_version=$(cat "$base_dir/${releases[i]}/tag")
     if [[ $existing_spec_version != $fetched_spec_version ]]; then
         cat <<EOF > "$base_dir/spec-to-update/spec.env"
