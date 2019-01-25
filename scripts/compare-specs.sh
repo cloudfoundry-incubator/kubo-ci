@@ -13,7 +13,7 @@ releases=("kubernetes-dashboard-release"
           "coredns-release")
 urls=("k8s.gcr.io/kubernetes-dashboard-amd64"
       "k8s.gcr.io/metrics-server-amd64"
-      "k8s.gcr.io/coredns")
+      "coredns/coredns")
 names=("kubernetes-dashboard-amd64"
        "metrics-server-amd64"
        "coredns")

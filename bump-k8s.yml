@@ -16,13 +16,6 @@ resources:
     version_filter: "< 1.14.0"
     access_token: ((github-token-key))
 
-- name: heapster-release
-  type: github-release
-  source:
-    owner: kubernetes
-    repository: heapster
-    access_token: ((github-token-key))
-
 - name: kubernetes-dashboard-release
   type: github-release
   source:
@@ -35,6 +28,14 @@ resources:
   source:
     owner: kubernetes-incubator
     repository: metrics-server
+    access_token: ((github-token-key))
+
+- name: coredns-release
+  type: github-release
+  source:
+    owner: coredns
+    repository: coredns
+    tag_filter: v?(1.*)
     access_token: ((github-token-key))
 
 - name: git-kubernetes
@@ -100,11 +101,11 @@ jobs:
 - name: bump-metrics-addons
   plan:
   - aggregate:
-    - get: heapster-release
-      trigger: true
     - get: kubernetes-dashboard-release
       trigger: true
     - get: metrics-server-release
+      trigger: true
+    - get: coredns-release
       trigger: true
     - get: git-kubo-ci
     - get: git-kubo-release
