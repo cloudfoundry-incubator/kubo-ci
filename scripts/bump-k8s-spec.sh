@@ -15,6 +15,10 @@ source spec-to-update/spec.env
 tag=$(cat "$PWD/$SPEC_RELEASE_DIR/tag")
 version=$(cat "$PWD/$SPEC_RELEASE_DIR/version")
 
+if [[ $SPEC_BLOB_NAME == "coredns_coredns" ]]; then
+  tag=$(echo $tag | sed 's/v//')
+fi
+
 cp -r git-kubo-release/. git-kubo-release-output
 pushd git-kubo-release-output
 
