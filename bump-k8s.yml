@@ -16,6 +16,13 @@ resources:
     version_filter: "< 1.14.0"
     access_token: ((github-token-key))
 
+- name: kube-dns-release
+  type: github-release
+  source:
+    owner: kubernetes
+    repository: dns
+    access_token: ((github-token-key))
+
 - name: kubernetes-dashboard-release
   type: github-release
   source:
@@ -104,6 +111,8 @@ jobs:
     - get: kubernetes-dashboard-release
       trigger: true
     - get: metrics-server-release
+      trigger: true
+    - get: kube-dns-release
       trigger: true
     - get: coredns-release
       trigger: true
