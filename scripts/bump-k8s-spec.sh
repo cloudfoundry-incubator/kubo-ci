@@ -25,7 +25,7 @@ pushd git-kubo-release-output
 bosh remove-blob "$( bosh blobs --column path | grep "${SPEC_BLOB_NAME}" )"
 scripts/download_container_images "$SPEC_IMAGE_URL:$tag"
 sed -E -i -e "/${SPEC_IMAGE_NAME}:/s/v([0-9]+\.)+[0-9]+/${tag}/" scripts/download_container_images
-find ./jobs/apply-specs/templates/specs/ -type f -exec sed -E -i -e "/${SPEC_IMAGE_NAME}:/s/v([0-9]+\.)+[0-9]+/${tag}/" {} \;
+find ./jobs/apply-specs/templates/specs/ -type f -exec sed -E -i -e "/${SPEC_IMAGE_NAME}:/s/v?([0-9]+\.)+[0-9]+/${tag}/" {} \;
 
 set +x
 cat <<EOF > "config/private.yml"
