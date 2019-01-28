@@ -110,7 +110,6 @@ bump_spec() {
     tag=$(echo $tag | sed 's/v//')
   fi
 
-  cp -r git-kubo-release/. git-kubo-release-output
   pushd git-kubo-release-output
 
   local old_blob
@@ -141,6 +140,7 @@ EOF
 main() {
   start_docker
   base_dir=$PWD
+  cp -r git-kubo-release/. git-kubo-release-output
   pushd git-kubo-release
 
   message="No new versions found to update."
