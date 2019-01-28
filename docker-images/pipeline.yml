@@ -1,6 +1,6 @@
 <%
   tested_images=%w(test-runner vsphere-cleaner aws-maintenance kubo-ci nginx-bionic)
-  untested_images=%w(ulimit cf-cleaner git-bosh api-proxy conformance)
+  untested_images=%w(ulimit git-bosh api-proxy conformance)
 %>
 ---
 resources:
@@ -149,14 +149,6 @@ jobs:
       cache: true
       pull_repository: pcfkubo/test-runner
       pull_tag: latest
-
-- name: build-cf-cleaner
-  plan:
-  - get: git-kubo-ci-cf-cleaner
-    trigger: true
-  - put: cf-cleaner-stable
-    params:
-      build: git-kubo-ci-cf-cleaner/docker-images/cf-cleaner
 
 - name: build-git-bosh
   plan:
