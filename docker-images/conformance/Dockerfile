@@ -1,4 +1,4 @@
-FROM golang:1.10.3 as builder
+FROM golang:1 as builder
 MAINTAINER cfcr@pivotal.io
 
 RUN apt-get update \
