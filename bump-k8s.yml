@@ -118,8 +118,6 @@ jobs:
       trigger: true
     - get: git-kubo-ci
     - get: git-kubo-release
-  - task: compare-specs
-    file: git-kubo-ci/tasks/bump/compare-specs.yml
   - task: bump-spec
     privileged: true
     file: git-kubo-ci/tasks/bump/bump-k8s-spec.yml
