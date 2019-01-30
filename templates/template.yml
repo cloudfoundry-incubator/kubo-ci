@@ -41,14 +41,14 @@ resources:
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    regexp: dev-builds/kubo-(\d.*)-(.*).tgz
+    regexp: dev-builds/kubo-0.28.0-(.*)-(.*).tgz
 
 - name: kubo-deployment
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    regexp: dev-builds/kubo-deployment-(.*).tgz
+    regexp: dev-builds/kubo-deployment-0.28.0-(.*).tgz
 
 - name: kubo-lock
   type: pool
