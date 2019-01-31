@@ -3,7 +3,10 @@
 files = Dir.glob("gcs-*-shipables").flat_map{|d| Dir.glob(d+"/*shipable")}
 overlap = File.read(files.first).split("\n")
 
-files.each { |f| overlap = File.read(f).split("\n") & overlap }
+files.each do |f| 
+  overlap = File.read(f).split("\n") & overlap
+  puts "After checking #{f} good versions are: #{overlap.last}"
+end
 
 if overlap.any?
   release_sha, deployment_sha = overlap.last.split
@@ -12,6 +15,8 @@ if overlap.any?
   File.write(ENV["SHIPABLE_VERSION_FILE"], overlap.last)
 
 else
+  puts 'No good versions yet'
   File.write(ENV["SLACK_MESSAGE_FILE"], "No shippable version found")
   exit 1
 end
+puts "Good versions are: #{release_sha}, #{deployment_sha}"
