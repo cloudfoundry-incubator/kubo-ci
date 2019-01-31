@@ -1,13 +1,13 @@
 <%
-  envs = %w(aws-lb gcp-lb vsphere-lb vsphere-proxy)
+  envs = %w(aws-lb vsphere-lb vsphere-proxy)
   additional_envs = %w()
   env_list = envs + additional_envs
   enable_failure_alert = true
 
   upgrade_test_envs = %w(vsphere-proxy)
-  multi_az_envs = %w(aws-lb gcp-lb vsphere-lb)
+  multi_az_envs = %w(aws-lb vsphere-lb)
   multi_master_upgrade_test_envs = %w(aws-lb vsphere-lb)
-  conformance_test_envs = envs - %w(gcp-lb vsphere-proxy)
+  conformance_test_envs = envs - %w(vsphere-proxy)
   proxy_envs = %w(vsphere-proxy)
   bbr_test_envs = %w(gcp-lb)
 %>
@@ -293,7 +293,7 @@ resources:
     deployment: ci-service
     skip_check: true
 
-<% env_list.each do |env| %>
+<% (env_list + bbr_test_envs).each do |env| %>
 - name: kubo-lock-<%= env %>
   type: pool
   source:
