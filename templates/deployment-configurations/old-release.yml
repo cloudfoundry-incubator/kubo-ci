@@ -59,18 +59,6 @@
     gcs-kubo-deployment-pre: old-kubo-deployment-tarball
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files
-  value:
-  - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
-  - git-kubo-deployment/manifests/ops-files/rename.yml
-  - git-kubo-deployment/manifests/ops-files/add-hostname-to-master-certificate.yml
-  - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
-  - git-kubo-deployment/manifests/ops-files/addons-spec.yml
-  - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
-  - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
-  - git-kubo-ci/manifests/ops-files/increase-logging-level.yml
-
-- type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/releases
   value:
   - old-kubo-release-tarball/*.tgz
