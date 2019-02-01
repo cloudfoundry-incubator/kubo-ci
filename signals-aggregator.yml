@@ -30,19 +30,21 @@ resources:
     bucket: kubo-pipeline-store
     versioned_file: shipables/shipable_version
 <% arr = %w(
+aws-vanilla-integration
 azure-kube-dns-integration
+azure-old-release-upgrade
+azure-vanilla-conformance
 azure-vanilla-integration
 azure-vanilla-turbulence
-azure-vanilla-conformance
-gcp-vanilla-conformance
-gcp-vanilla-integration
-gcp-vanilla-istio
-gcp-vanilla-turbulence
 gcp-custom-cidrs-integration
 gcp-kube-dns-integration
 gcp-old-release-upgrade
 gcp-pod-security-policy-integration
 gcp-two-cas-no-test
+gcp-vanilla-conformance
+gcp-vanilla-integration
+gcp-vanilla-istio
+gcp-vanilla-turbulence
 ) %>
 <% arr.each do |pipeline| %>
 - name: gcs-<%= pipeline %>-shipables
