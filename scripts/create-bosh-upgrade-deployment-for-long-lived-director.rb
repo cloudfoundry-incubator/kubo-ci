@@ -49,6 +49,13 @@ if ENV['IAAS'] =~ /^aws/
   ops_files << '-o git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml '
 end
 
+if ENV['IAAS'] =~ /^azure/
+  ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/azure/cloud-provider.yml '
+  ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/azure/use-cifs.yml '
+  ops_files << '-o git-kubo-ci/manifests/ops-files/iaas/azure/use-environment-subnet.yml '
+  ops_files << '-o git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml '
+end
+
 cmd = ['bosh -n -d',
        File.read("kubo-lock/name").chomp,
        'deploy',
