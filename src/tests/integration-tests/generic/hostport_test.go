@@ -40,10 +40,14 @@ var _ = Describe("When deploying a pod with service", func() {
 			hostIP, err := kubectl.GetOutput("get", "pod", "-l", "app=nginx-hostport",
 				"-o", "jsonpath='{@.items[0].status.hostIP}'")
 			Expect(err).NotTo(HaveOccurred())
-			url := fmt.Sprintf("http://%s:40801", hostIP)
+			url := fmt.Sprintf("http://%s:40801", hostIP[0])
 			session := kubectl.StartKubectlCommand("run", "curl-hostport",
 				"--image=tutum/curl", "--restart=Never", "--", "curl", url)
 			Eventually(session, "10s").Should(gexec.Exit(0))
+
+			Eventually(func() ([]string, error) {
+				return kubectl.GetOutput("get", "pod/curl-hostport", "-o", "jsonpath='{.status.phase}'")
+			}, "30s").Should(ConsistOf("Succeeded"))
 		})
 	})
 })

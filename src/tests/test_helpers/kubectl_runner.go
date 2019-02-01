@@ -18,6 +18,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+const outputCutset = `"'`
+
 type KubectlRunner struct {
 	configPath       string
 	namespace        string
@@ -112,7 +114,7 @@ func (kubectl *KubectlRunner) GetOutputBytes(kubectlArgs ...string) []byte {
 	session := kubectl.StartKubectlCommand(kubectlArgs...)
 	Eventually(session, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 	output := session.Out.Contents()
-	return bytes.Trim(output, `"`)
+	return bytes.Trim(output, outputCutset)
 }
 
 func (kubectl *KubectlRunner) GetOutputBytesOrError(kubectlArgs ...string) ([]byte, error) {
@@ -122,7 +124,7 @@ func (kubectl *KubectlRunner) GetOutputBytesOrError(kubectlArgs ...string) ([]by
 		return []byte{}, fmt.Errorf("kubectl command exitted with non zero exit code: %d", session.ExitCode())
 	}
 	output := session.Out.Contents()
-	return bytes.Trim(output, `"`), nil
+	return bytes.Trim(output, outputCutset), nil
 }
 
 func (kubectl *KubectlRunner) GetOutputBytesInNamespace(namespace string, kubectlArgs ...string) []byte {
@@ -134,7 +136,7 @@ func (kubectl *KubectlRunner) GetOutputBytesInNamespace(namespace string, kubect
 		return session.ExitCode()
 	}, kubectl.TimeoutInSeconds, "30s").Should(Equal(0))
 	output := session.Out.Contents()
-	return bytes.Trim(output, `"`)
+	return bytes.Trim(output, outputCutset)
 }
 
 func (kubectl *KubectlRunner) GetNodePort(service string) (string, error) {
