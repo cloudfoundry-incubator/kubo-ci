@@ -32,13 +32,16 @@ type FileSystem interface {
 
 	WriteFileString(path, content string) error
 	WriteFile(path string, content []byte) error
-	ConvergeFileContents(path string, content []byte) (written bool, err error)
+	WriteFileQuietly(path string, content []byte) error
+	ConvergeFileContents(path string, content []byte, opts ...ConvergeFileContentsOpts) (written bool, err error)
 
 	ReadFileString(path string) (content string, err error)
 	ReadFile(path string) (content []byte, err error)
+	ReadFileWithOpts(path string, opts ReadOpts) (content []byte, err error)
 
 	FileExists(path string) bool
 	Stat(path string) (os.FileInfo, error)
+	StatWithOpts(path string, opts StatOpts) (os.FileInfo, error)
 	Lstat(path string) (os.FileInfo, error)
 
 	Rename(oldPath, newPath string) error
@@ -48,13 +51,6 @@ type FileSystem interface {
 	// to make newPath a symlink to the file at oldPath.
 	Symlink(oldPath, newPath string) error
 
-	// deprecated - The fake_file_system version of this method behaves differently
-	// 				than the os_file_system.  It doesn't traverse all intermediate directories
-	// 				of symlinkPath and only attempts to follow the specific file.
-	//              This method used to be called ReadLink(path) (string,error),
-	//              which was misleading. This method errors when the target exists,
-	//			    unlike the os.Readlink method (lower case l). This method should
-	//              probably just go away.
 	ReadAndFollowLink(symlinkPath string) (targetPath string, err error)
 	Readlink(symlinkPath string) (targetPath string, err error)
 

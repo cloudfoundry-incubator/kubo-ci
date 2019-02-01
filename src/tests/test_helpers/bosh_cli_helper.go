@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"os"
@@ -101,7 +102,7 @@ func buildUAA() (boshuaa.UAA, error) {
 }
 
 func buildDirector(uaa boshuaa.UAA) (boshdir.Director, error) {
-	logger := boshlog.NewWriterLogger(boshlog.LevelInfo, GinkgoWriter, GinkgoWriter)
+	logger := boshlog.NewWriterLogger(boshlog.LevelInfo, GinkgoWriter)
 	factory := boshdir.NewFactory(logger)
 
 	config, err := boshdir.NewConfigFromURL(os.Getenv("BOSH_ENVIRONMENT"))
@@ -112,5 +113,5 @@ func buildDirector(uaa boshuaa.UAA) (boshdir.Director, error) {
 	config.CACert = os.Getenv("BOSH_CA_CERT")
 	config.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
 
-	return factory.New(config, boshdir.NewNoopTaskReporter(), boshdir.NewNoopFileReporter())
+	return factory.New(config, cmdconf.FSConfig{}, boshdir.NewNoopTaskReporter(), boshdir.NewNoopFileReporter())
 }

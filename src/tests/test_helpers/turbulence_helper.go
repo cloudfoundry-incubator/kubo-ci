@@ -8,7 +8,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/cppforlife/turbulence/client"
+	"github.com/bosh-turbulence/turbulence/client"
 	. "github.com/onsi/gomega"
 )
 

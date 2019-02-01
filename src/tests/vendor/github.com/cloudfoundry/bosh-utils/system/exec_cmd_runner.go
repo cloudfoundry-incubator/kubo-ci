@@ -1,7 +1,6 @@
 package system
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
@@ -19,7 +18,7 @@ func NewExecCmdRunner(logger boshlog.Logger) CmdRunner {
 }
 
 func (r execCmdRunner) RunComplexCommand(cmd Command) (string, string, int, error) {
-	process := NewExecProcess(r.buildComplexCommand(cmd), cmd.KeepAttached, r.logger)
+	process := NewExecProcess(r.buildComplexCommand(cmd), cmd.KeepAttached, cmd.Quiet, r.logger)
 
 	err := process.Start()
 	if err != nil {
@@ -32,7 +31,7 @@ func (r execCmdRunner) RunComplexCommand(cmd Command) (string, string, int, erro
 }
 
 func (r execCmdRunner) RunComplexCommandAsync(cmd Command) (Process, error) {
-	process := NewExecProcess(r.buildComplexCommand(cmd), cmd.KeepAttached, r.logger)
+	process := NewExecProcess(r.buildComplexCommand(cmd), cmd.KeepAttached, cmd.Quiet, r.logger)
 
 	err := process.Start()
 	if err != nil {
@@ -44,6 +43,10 @@ func (r execCmdRunner) RunComplexCommandAsync(cmd Command) (Process, error) {
 
 func (r execCmdRunner) RunCommand(cmdName string, args ...string) (string, string, int, error) {
 	return r.RunComplexCommand(Command{Name: cmdName, Args: args})
+}
+
+func (r execCmdRunner) RunCommandQuietly(cmdName string, args ...string) (string, string, int, error) {
+	return r.RunComplexCommand(Command{Name: cmdName, Args: args, Quiet: true})
 }
 
 func (r execCmdRunner) RunCommandWithInput(input, cmdName string, args ...string) (string, string, int, error) {
@@ -77,8 +80,7 @@ func (r execCmdRunner) buildComplexCommand(cmd Command) *exec.Cmd {
 
 	execCmd.Dir = cmd.WorkingDir
 
-	env := []string{}
-
+	var env []string
 	if !cmd.UseIsolatedEnv {
 		env = os.Environ()
 	}
@@ -86,10 +88,7 @@ func (r execCmdRunner) buildComplexCommand(cmd Command) *exec.Cmd {
 		panic("UseIsolatedEnv is not supported on Windows")
 	}
 
-	for name, value := range cmd.Env {
-		env = append(env, fmt.Sprintf("%s=%s", name, value))
-	}
-	execCmd.Env = env
+	execCmd.Env = mergeEnv(env, cmd.Env)
 
 	return execCmd
 }

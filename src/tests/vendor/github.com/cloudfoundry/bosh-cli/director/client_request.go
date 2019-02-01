@@ -9,21 +9,21 @@ import (
 	"net/http/httputil"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
+	"github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type ClientRequest struct {
 	endpoint     string
 	contextId    string
-	httpClient   boshhttp.HTTPClient
+	httpClient   *httpclient.HTTPClient
 	fileReporter FileReporter
 	logger       boshlog.Logger
 }
 
 func NewClientRequest(
 	endpoint string,
-	httpClient boshhttp.HTTPClient,
+	httpClient *httpclient.HTTPClient,
 	fileReporter FileReporter,
 	logger boshlog.Logger,
 ) ClientRequest {
@@ -34,6 +34,7 @@ func NewClientRequest(
 		logger:       logger,
 	}
 }
+
 func (r ClientRequest) WithContext(contextId string) ClientRequest {
 	// returns a copy of the ClientRequest
 	r.contextId = contextId
@@ -153,7 +154,9 @@ func (r ClientRequest) RawPut(path string, payload []byte, f func(*http.Request)
 func (r ClientRequest) RawDelete(path string) ([]byte, *http.Response, error) {
 	url := fmt.Sprintf("%s%s", r.endpoint, path)
 
-	resp, err := r.httpClient.Delete(url)
+	wrapperFunc := r.setContextIDHeader(nil)
+
+	resp, err := r.httpClient.DeleteCustomized(url, wrapperFunc)
 	if err != nil {
 		return nil, nil, bosherr.WrapErrorf(err, "Performing request DELETE '%s'", url)
 	}
@@ -232,7 +235,7 @@ func (r ClientRequest) readResponse(resp *http.Response, out io.Writer) ([]byte,
 
 	if not200 && not201 && not204 && not206 && not302 {
 		msg := "Director responded with non-successful status code '%d' response '%s'"
-		return nil, resp, bosherr.Errorf(msg, resp.StatusCode, respBody)
+		return respBody, resp, bosherr.Errorf(msg, resp.StatusCode, respBody)
 	}
 
 	if out != nil {

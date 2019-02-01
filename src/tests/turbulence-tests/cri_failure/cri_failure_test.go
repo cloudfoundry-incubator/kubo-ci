@@ -6,9 +6,9 @@ import (
 	. "tests/test_helpers"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	"github.com/cppforlife/turbulence/incident"
-	"github.com/cppforlife/turbulence/incident/selector"
-	"github.com/cppforlife/turbulence/tasks"
+	"github.com/bosh-turbulence/turbulence/incident"
+	"github.com/bosh-turbulence/turbulence/incident/selector"
+	"github.com/bosh-turbulence/turbulence/tasks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"

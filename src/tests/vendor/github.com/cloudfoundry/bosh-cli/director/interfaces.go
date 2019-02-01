@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/bosh-cli/ui"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 )
 
@@ -28,6 +29,8 @@ type Director interface {
 
 	Deployments() ([]Deployment, error)
 	FindDeployment(string) (Deployment, error)
+	ListDeployments() ([]DeploymentResp, error)
+	ListDeploymentConfigs(name string) (DeploymentConfigs, error)
 
 	Releases() ([]Release, error)
 	HasRelease(name, version string, stemcell OSVersionSlug) (bool, error)
@@ -39,9 +42,19 @@ type Director interface {
 
 	Stemcells() ([]Stemcell, error)
 	HasStemcell(name, version string) (bool, error)
+	StemcellNeedsUpload(StemcellInfo) (bool, bool, error)
 	FindStemcell(StemcellSlug) (Stemcell, error)
 	UploadStemcellURL(url, sha1 string, fix bool) error
 	UploadStemcellFile(file UploadFile, fix bool) error
+
+	LatestConfig(configType string, name string) (Config, error)
+	LatestConfigByID(configID string) (Config, error)
+	ListConfigs(limit int, filter ConfigsFilter) ([]Config, error)
+	UpdateConfig(configType string, name string, expectedLatestId string, content []byte) (Config, error)
+	DeleteConfig(configType string, name string) (bool, error)
+	DeleteConfigByID(configID string) (bool, error)
+	DiffConfig(configType string, name string, manifest []byte) (ConfigDiff, error)
+	DiffConfigByIDOrContent(fromID string, fromContent []byte, toID string, toContent []byte) (ConfigDiff, error)
 
 	LatestCloudConfig() (CloudConfig, error)
 	UpdateCloudConfig([]byte) error
@@ -59,9 +72,14 @@ type Director interface {
 	OrphanDisks() ([]OrphanDisk, error)
 	OrphanDisk(string) error
 
+	FindOrphanNetwork(string) (OrphanNetwork, error)
+	OrphanNetworks() ([]OrphanNetwork, error)
+
 	EnableResurrection(bool) error
 	CleanUp(bool) error
 	DownloadResourceUnchecked(blobstoreID string, out io.Writer) error
+
+	OrphanedVMs() ([]OrphanedVM, error)
 }
 
 var _ Director = &DirectorImpl{}
@@ -71,17 +89,31 @@ type UploadFile interface {
 	Stat() (os.FileInfo, error)
 }
 
+type ReleaseMetadata struct {
+	Name    string `yaml:"name"`
+	Version string `yaml:"version"`
+	// other fields ignored
+}
+
 //go:generate counterfeiter . ReleaseArchive
 
 type ReleaseArchive interface {
-	Info() (string, string, error)
+	Info() (ReleaseMetadata, error)
 	File() (UploadFile, error)
+}
+
+type StemcellMetadata struct {
+	Name            string         `yaml:"name"`
+	OS              string         `yaml:"operating_system"`
+	Version         string         `yaml:"version"`
+	CloudProperties biproperty.Map `yaml:"cloud_properties"`
+	// other fields ignored
 }
 
 //go:generate counterfeiter . StemcellArchive
 
 type StemcellArchive interface {
-	Info() (string, string, error)
+	Info() (StemcellMetadata, error)
 	File() (UploadFile, error)
 }
 
@@ -101,7 +133,7 @@ type Deployment interface {
 	Diff([]byte, bool) (DeploymentDiff, error)
 
 	Releases() ([]Release, error)
-	ExportRelease(ReleaseSlug, OSVersionSlug) (ExportReleaseResult, error)
+	ExportRelease(ReleaseSlug, OSVersionSlug, []string) (ExportReleaseResult, error)
 
 	Teams() ([]string, error)
 
@@ -142,7 +174,7 @@ type Deployment interface {
 	Update(manifest []byte, opts UpdateOpts) error
 	Delete(force bool) error
 
-	AttachDisk(slug InstanceSlug, diskCID string) error
+	AttachDisk(slug InstanceSlug, diskCID string, diskProperties string) error
 }
 
 type StartOpts struct {
@@ -175,13 +207,14 @@ type RecreateOpts struct {
 }
 
 type UpdateOpts struct {
-	Recreate    bool
-	Fix         bool
-	SkipDrain   SkipDrains
-	Canaries    string
-	MaxInFlight string
-	DryRun      bool
-	Diff        DeploymentDiff
+	Recreate                bool
+	RecreatePersistentDisks bool
+	Fix                     bool
+	SkipDrain               SkipDrains
+	Canaries                string
+	MaxInFlight             string
+	DryRun                  bool
+	Diff                    DeploymentDiff
 }
 
 //go:generate counterfeiter . ReleaseSeries
@@ -268,6 +301,25 @@ type OrphanDisk interface {
 	OrphanedAt() time.Time
 
 	Delete() error
+}
+
+//go:generate counterfeiter . OrphanNetwork
+
+type OrphanNetwork interface {
+	Name() string
+	Type() string
+	OrphanedAt() time.Time
+	CreatedAt() time.Time
+	Delete() error
+}
+
+type OrphanedVM struct {
+	CID            string
+	DeploymentName string
+	InstanceName   string
+	AZName         string
+	IPAddresses    []string
+	OrphanedAt     time.Time
 }
 
 type EventsFilter struct {
