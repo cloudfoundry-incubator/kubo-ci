@@ -121,7 +121,7 @@ func (kubectl *KubectlRunner) GetOutputBytesOrError(kubectlArgs ...string) ([]by
 	session := kubectl.StartKubectlCommand(kubectlArgs...)
 	Eventually(session, kubectl.TimeoutInSeconds).Should(gexec.Exit())
 	if session.ExitCode() != 0 {
-		return []byte{}, fmt.Errorf("kubectl command exitted with non zero exit code: %d", session.ExitCode())
+		return []byte{}, fmt.Errorf("kubectl command exited with non zero exit code: %d", session.ExitCode())
 	}
 	output := session.Out.Contents()
 	return bytes.Trim(output, outputCutset), nil
