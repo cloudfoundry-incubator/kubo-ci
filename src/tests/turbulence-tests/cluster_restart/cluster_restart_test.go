@@ -1,12 +1,14 @@
 package cluster_restart_test
 
 import (
+	"tests/test_helpers"
 	. "tests/test_helpers"
+
+	"os"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"os"
 )
 
 var _ = Describe("Cluster upgrade", func() {
@@ -16,6 +18,7 @@ var _ = Describe("Cluster upgrade", func() {
 		err            error
 		kubectl        *KubectlRunner
 		iaas           string
+		nginxSpec      string
 	)
 
 	BeforeEach(func() {
@@ -29,10 +32,15 @@ var _ = Describe("Cluster upgrade", func() {
 		kubectl.Setup()
 
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
+		nginxSpec = test_helpers.PathFromRoot("specs/nginx-lb.yml")
+		if iaas == "vsphere" {
+			nginxSpec = test_helpers.PathFromRoot("specs/nginx-specified-nodeport.yml")
+		}
 		DeploySmorgasbord(kubectl, iaas)
 	})
 
 	AfterEach(func() {
+		kubectl.StartKubectlCommand("delete", "-f", nginxSpec).Wait("60s")
 		DeleteSmorgasbord(kubectl, iaas)
 		kubectl.Teardown()
 		Expect(AllBoshWorkersHaveJoinedK8s(deployment, kubectl)).To(BeTrue())
