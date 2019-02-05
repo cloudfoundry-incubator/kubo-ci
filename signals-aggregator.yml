@@ -31,6 +31,9 @@ resources:
     versioned_file: shipables/shipable_version
 <% arr = %w(
 aws-vanilla-integration
+aws-old-release-upgrade
+aws-vanilla-conformance
+aws-vanilla-turbulence
 azure-kube-dns-integration
 azure-old-release-upgrade
 azure-vanilla-conformance
