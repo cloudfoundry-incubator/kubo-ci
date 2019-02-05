@@ -12,8 +12,9 @@ import (
 
 var _ = Describe("Internal load balancers", func() {
 	It("exposes routes via LBs", func() {
-		if iaas != "gce" {
-			Skip("Test only valid for GCE")
+		switch iaas {
+		case "vsphere", "openstack", "azure":
+			Skip("Test only valid for GCE and AWS")
 		}
 		deployNginx := kubectl.StartKubectlCommand("create", "-f", internalNginxLBSpec)
 		Eventually(deployNginx, kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
