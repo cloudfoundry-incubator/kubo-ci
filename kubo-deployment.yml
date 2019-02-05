@@ -1726,6 +1726,9 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'install-bosh-bbr-<%= env %>' ]
     - get: gcs-load-balancer-vars
       passed: [ 'install-bosh-bbr-<%= env %>' ]
+  - task: get_director_uuid
+    tags: ['<%= env %>']
+    file: git-kubo-ci/tasks/get_director_uuid.yml
   - task: upload-stemcell
     tags: ['<%= env %>']
     file: git-kubo-ci/tasks/upload-stemcell.yml
@@ -1739,19 +1742,20 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       ops_files:
       - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
-      - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
-      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
       - git-kubo-deployment/manifests/ops-files/enable-bbr.yml
-      - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
-      - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
+      - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
+      - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - git-kubo-ci/manifests/ops-files/increase-logging-level.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml
       var_files:
         addons-spec: "git-kubo-ci/specs/guestbook.yml"
       vars_files:
       - gcs-load-balancer-vars/load-balancer-vars.yml
       - kubo-lock/metadata
+      - director_uuid/var.yml
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
       - github-etcd-release/*.tgz
