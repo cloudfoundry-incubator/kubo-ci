@@ -1,6 +1,6 @@
 <%
-  old_pools = %w(aws-lb gcp-lb openstack-lb openstack vsphere-lb vsphere-proxy)
-  pools = %w(gcp azure)
+  old_pools = %w(vsphere-lb vsphere-proxy)
+  pools = %w(gcp azure aws)
 %>
 
 resource_types:
