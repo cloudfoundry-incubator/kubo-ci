@@ -36,6 +36,7 @@ var _ = Describe("Cluster upgrade", func() {
 		if iaas == "vsphere" {
 			nginxSpec = test_helpers.PathFromRoot("specs/nginx-specified-nodeport.yml")
 		}
+		kubectl.StartKubectlCommand("apply", "-f", nginxSpec).Wait("60s")
 		DeploySmorgasbord(kubectl, iaas)
 	})
 
