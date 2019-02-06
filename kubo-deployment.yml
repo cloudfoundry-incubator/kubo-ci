@@ -1115,6 +1115,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       - git-kubo-ci/manifests/ops-files/add-api-server-endpoint.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/vm-types.yml
       - unpacked-old-kubo-deployment/manifests/ops-files/rename.yml
+      - unpacked-old-kubo-deployment/manifests/ops-files/use-persistent-disk-for-workers.yml
       <% if env =~ /^gcp/ %>
       - unpacked-old-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
       - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
@@ -1153,6 +1154,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
         master_vm_type: master
         worker_vm_type: worker
         apply_addons_vm_type: minimal
+        disk_size: 10120
     tags: [<%= env %>]
     on_failure: *on_failure_alert
   - task: update-kubeconfig
