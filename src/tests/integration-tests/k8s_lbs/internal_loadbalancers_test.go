@@ -3,8 +3,6 @@ package k8s_lbs_test
 import (
 	"fmt"
 
-	"tests/test_helpers"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -29,8 +27,20 @@ var _ = Describe("Internal load balancers", func() {
 
 		appUrl := fmt.Sprintf("http://%s", loadbalancerAddress)
 
-		session := kubectl.StartKubectlCommandInNamespace("default", "run", "test-master-cert-via-curl-"+test_helpers.GenerateRandomUUID(), "--image=tutum/curl", "--restart=Never", "-ti", "--rm", "--", "curl", appUrl)
-		Eventually(session, "5m").Should(gexec.Exit(0))
+		Eventually(func() int {
+			session := kubectl.StartKubectlCommand("run",
+				"test-master-cert-via-curl",
+				"--generator=run-pod/v1",
+				"--image=tutum/curl",
+				"--restart=Never",
+				"-ti",
+				"--rm",
+				"--",
+				"curl",
+				appUrl)
+			session.Wait(kubectl.TimeoutInSeconds)
+			return session.ExitCode()
+		}, 5*kubectl.TimeoutInSeconds, "5s").Should(Equal(0))
 	})
 
 	AfterEach(func() {
