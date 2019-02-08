@@ -238,11 +238,4 @@ jobs:
       repository: git-kubo-deployment-master
   - put: kubo-version
     params:
-      bump: patch
-
-- name: bump-minor-version
-  plan:
-  - get: kubo-version
-  - put: kubo-version
-    params:
       bump: minor
