@@ -2,77 +2,13 @@
 set -e -o pipefail
 set -x
 
-bin_dir=$(dirname "${BASH_SOURCE[0]}")
-CONCOURSE_DIR="$(cd "$bin_dir/.."; pwd)"
-
-print_usage() {
-  echo "Usage: $0 <iaas>"
-}
-
-deploy() {
-  manifest_template="$1"
-
-  manifest_file=$(mktemp)
-
-  concourse_secrets_lpass_note_id=$(bosh int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/concourse_secrets_lpass_note_id')
-  creds_note_id=$(bosh int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/private_note_id')
-  creds_attachment_id=$(bosh int "$CONCOURSE_DIR/$IAAS/director.yml" --path='/private_attachment_id')
-  private_yml=$(echo y | lpass show "$creds_note_id" --attach="$creds_attachment_id")
-
-  BOSH_CLIENT=admin
-  BOSH_CLIENT_SECRET=$(bosh int <(echo "$private_yml") --path /admin_password)
-  BOSH_CA_CERT=$(bosh int <(echo "$private_yml") --path /default_ca/ca)
-  BOSH_ENVIRONMENT=$(bosh int "$CONCOURSE_DIR/$IAAS/director.yml" --path /internal_ip)
-  export BOSH_CLIENT BOSH_CLIENT_SECRET BOSH_CA_CERT BOSH_ENVIRONMENT
+concourse_secrets_lpass_note_id=$(bosh int "gcp/director.yml" --path='/concourse_secrets_lpass_note_id')
+creds_note_id=$(bosh int "gcp/director.yml" --path='/private_note_id')
+creds_attachment_id=$(bosh int "gcp/director.yml" --path='/private_attachment_id')
+private_yml=$(echo y | lpass show "$creds_note_id" --attach="$creds_attachment_id")
 
 
-    cat <<EOF > bosh-env-master
-export BOSH_CLIENT=admin
-export BOSH_CLIENT_SECRET="${BOSH_CLIENT_SECRET}"
-export BOSH_CA_CERT="${BOSH_CA_CERT}"
-export BOSH_ENVIRONMENT="${BOSH_ENVIRONMENT}"
-EOF
+bosh int <(lpass show --note "$concourse_secrets_lpass_note_id") > "private.yml"
+bosh int <(lpass show --note "$creds_note_id") >> "private.yml"
 
-  bosh upload-stemcell "https://boshstemcell.com/$IAAS"
 
-  bosh interpolate "$manifest_template"  \
-      --vars-file "$CONCOURSE_DIR/$IAAS/director.yml" \
-      --vars-file <(echo "$private_yml") \
-      --vars-file <(bosh int <(lpass show --note "$concourse_secrets_lpass_note_id")) \
-      > "$manifest_file"
-
-  echo "Updating cloud config..."
-
-  bosh -n update-cloud-config "$CONCOURSE_DIR/$IAAS/cloud-config.yml"  \
-      --vars-file "$CONCOURSE_DIR/$IAAS/director.yml"
-
-  echo "Deploying concourse..."
-
-  deployment_name="$(bosh int "$manifest_file" --path /name)"
-
-  echo ${deployment_name}
-
-  bosh deploy "$manifest_file" \
-      -d "$deployment_name" \
-      --vars-file <(echo "$private_yml")
-
-  rm "$manifest_file"
-}
-
-IAAS="$1"
-
-if [ -z "$IAAS" ]; then
-  print_usage
-  exit 1
-fi
-
-set -u
-
-if [ -f "$CONCOURSE_DIR/$IAAS/concourse.yml" ]; then
-  deploy "$CONCOURSE_DIR/$IAAS/concourse.yml"
-elif [ -f "$CONCOURSE_DIR/$IAAS/workers.yml" ]; then
-  deploy "$CONCOURSE_DIR/$IAAS/workers.yml"
-else
-  echo "ERROR: Expected to find either [$CONCOURSE_DIR/$IAAS/concourse.yml] or [$CONCOURSE_DIR/$IAAS/workers.yml]"
-  exit 1
-fi

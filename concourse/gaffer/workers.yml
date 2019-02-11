@@ -13,7 +13,7 @@ releases:
 
 stemcells:
 - alias: trusty
-  os: ubuntu-trusty
+  os: ubuntu-xenial
   version: latest
 
 instance_groups:
@@ -31,8 +31,8 @@ instance_groups:
       - gaffer
       tsa:
         host: ci.kubo.sh
-        host_public_key: ((tsa-host-key.public_key))
-        worker_key: ((worker-key))
+        host_public_key: ((tsa_host_key.public_key))
+        worker_key: ((worker_key))
         registration_mode: forward
       garden:
         forward_address: 127.0.0.1:7777

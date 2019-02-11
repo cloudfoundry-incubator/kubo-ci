@@ -4,7 +4,7 @@ set -o pipefail -eux
 
 main() {
   VARFILE="$1"
-  if [[ -n ${BOSH_ALL_PROXY} ]]; then
+  if [[ -n ${BOSH_ALL_PROXY:-} ]]; then
     export CREDHUB_PROXY=${BOSH_ALL_PROXY}
   fi
   credhub_admin_secret=$(bosh int "${VARFILE}" --path "/credhub_admin_client_secret")
