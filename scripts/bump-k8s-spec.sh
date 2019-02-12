@@ -4,27 +4,15 @@ set -eu -o pipefail
 
 blob_names=("k8s.gcr.io_kubernetes-dashboard-amd64"
             "k8s.gcr.io_metrics-server-amd64"
-            "k8s.gcr.io_k8s-dns-kube-dns-amd64"
-            "k8s.gcr.io_k8s-dns-dnsmasq-nanny-amd64"
-            "k8s.gcr.io_k8s-dns-sidecar-amd64"
             "coredns_coredns")
 releases=("kubernetes-dashboard-release"
           "metrics-server-release"
-          "kube-dns-release"
-          "kube-dns-release"
-          "kube-dns-release"
           "coredns-release")
 urls=("k8s.gcr.io/kubernetes-dashboard-amd64"
       "k8s.gcr.io/metrics-server-amd64"
-      "k8s.gcr.io/k8s-dns-kube-dns-amd64"
-      "k8s.gcr.io/k8s-dns-dnsmasq-nanny-amd64"
-      "k8s.gcr.io/k8s-dns-sidecar-amd64"
       "coredns/coredns")
 names=("kubernetes-dashboard-amd64"
        "metrics-server-amd64"
-       "k8s-dns-kube-dns-amd64"
-       "k8s-dns-dnsmasq-nanny-amd64"
-       "k8s-dns-sidecar-amd64"
        "coredns")
 
 sanitize_cgroups() {
