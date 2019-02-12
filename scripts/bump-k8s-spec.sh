@@ -68,7 +68,7 @@ start_docker() {
 
   local mtu=$(cat /sys/class/net/$(ip route get 8.8.8.8|awk '{ print $5 }')/mtu)
 
-  dockerd --data-root /scratch/docker --mtu "${mtu}" 2>&1 &
+  dockerd --data-root /scratch/docker --mtu "${mtu}" 2>/tmp/dockerd.log &
   echo $! > /tmp/docker.pid
 
   trap stop_docker EXIT
