@@ -16,13 +16,6 @@ resources:
     version_filter: "< 1.14.0"
     access_token: ((github-token-key))
 
-- name: kube-dns-release
-  type: github-release
-  source:
-    owner: kubernetes
-    repository: dns
-    access_token: ((github-token-key))
-
 - name: kubernetes-dashboard-release
   type: github-release
   source:
@@ -70,9 +63,9 @@ groups:
   jobs:
   - bump-k8s
 
-- name: bump-metrics-addons
+- name: bump-images-dependencies
   jobs:
-  - bump-metrics-addons
+  - bump-images-dependencies
 
 jobs:
 - name: bump-k8s
@@ -105,14 +98,12 @@ jobs:
         GIT_SSH_KEY: |
           ((git-ssh-key.private_key))
 
-- name: bump-metrics-addons
+- name: bump-images-dependencies
   plan:
   - aggregate:
     - get: kubernetes-dashboard-release
       trigger: true
     - get: metrics-server-release
-      trigger: true
-    - get: kube-dns-release
       trigger: true
     - get: coredns-release
       trigger: true
