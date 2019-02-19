@@ -71,10 +71,10 @@ resources:
     paths:
     - 'slackers'
 
-- name: slack-alert
-  type: slack-notification
-  source:
-    url: ((build-alert-slack-url))
+#- name: slack-alert
+#  type: slack-notification
+#  source:
+#    url: ((build-alert-slack-url))
 
 - name: gcs-kubeconfig
   type: gcs
@@ -152,14 +152,14 @@ jobs:
       - kubo-release/*.tgz
       source_file: kubo-lock/metadata
     on_failure: &on_failure_alert
-      do:
-      - task: configure-slack-notification
-        file: git-kubo-ci/tasks/configure-slack-notification-without-git-release.yml
-      - put: slack-alert
-        params:
-          attachments_file: slack-notification/attachments
-          text: |
-            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+    #  do:
+    #  - task: configure-slack-notification
+    #    file: git-kubo-ci/tasks/configure-slack-notification-without-git-release.yml
+    #  - put: slack-alert
+    #    params:
+    #      attachments_file: slack-notification/attachments
+    #      text: |
+    #        Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: update-kubeconfig
     file: git-kubo-ci/tasks/update-kubeconfig-long-lived-director.yml
   - put: gcs-kubeconfig
@@ -200,14 +200,14 @@ jobs:
   - task: run-tests
     privileged: true
     on_failure: &on_failure_alert
-      do:
-      - task: configure-slack-notification
-        file: git-kubo-ci/tasks/configure-slack-notification-without-git-release.yml
-      - put: slack-alert
-        params:
-          attachments_file: slack-notification/attachments
-          text: |
-            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+#      do:
+#      - task: configure-slack-notification
+#        file: git-kubo-ci/tasks/configure-slack-notification-without-git-release.yml
+#      - put: slack-alert
+#        params:
+#          attachments_file: slack-notification/attachments
+#          text: |
+#            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-k8s
   plan:

@@ -98,7 +98,7 @@ main() {
     --config <(echo "${pipeline_config}") \
     --pipeline "${iaas_name}_${deployment_configuration}_${testcase}" \
     -v iaas="${iaas_name}" \
-    -v pipeline-name="${iaas_name}-${deployment_configuration}-${testcase}"
+    -v pipeline-name="${iaas_name}_${deployment_configuration}_${testcase}"
 }
 
 pushd "${ci_dir}" > /dev/null

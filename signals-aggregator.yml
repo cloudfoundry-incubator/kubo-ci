@@ -29,22 +29,22 @@ resources:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     versioned_file: shipables/shipable_version
+#aws_vanilla_integration
+#aws_old-release_upgrade
+#aws_vanilla_conformance
+#aws_vanilla_turbulence
+#azure_vanilla_conformance
+#azure_vanilla_integration
+#azure_vanilla_turbulence
+#gcp_old-release_upgrade
 <% arr = %w(
-aws-vanilla-integration
-aws-old-release-upgrade
-aws-vanilla-conformance
-aws-vanilla-turbulence
-azure-vanilla-conformance
-azure-vanilla-integration
-azure-vanilla-turbulence
-gcp-custom-cidrs-integration
-gcp-old-release-upgrade
-gcp-pod-security-policy-integration
-gcp-two-cas-no-test
-gcp-vanilla-conformance
-gcp-vanilla-integration
-gcp-vanilla-istio
-gcp-vanilla-turbulence
+gcp_custom-cidrs_integration
+gcp_pod-security-policy_integration
+gcp_two-cas_no-test
+gcp_vanilla_conformance
+gcp_vanilla_integration
+gcp_vanilla_istio
+gcp_vanilla_turbulence
 ) %>
 <% arr.each do |pipeline| %>
 - name: gcs-<%= pipeline %>-shipables
