@@ -56,7 +56,7 @@ resources:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key.private_key))
-    pool: ((iaas))
+    pool: ((locks))
 
 - name: cfcr-deployment
   type: bosh-deployment

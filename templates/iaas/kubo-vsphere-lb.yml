@@ -1,0 +1,332 @@
+###########################################################
+# Resources
+###########################################################
+- type: replace
+  path: /resources/-
+  value:
+    name: git-bosh-deployment
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry/bosh-deployment.git
+      branch: master
+      private_key: ((git-ssh-key.private_key))
+
+- type: replace
+  path: /resources/-
+  value:
+    name: gcs-bosh-state
+    type: gcs
+    source:
+      json_key: ((gcs-json-key))
+      bucket: kubo-pipeline-store
+      versioned_file: bosh/state.json
+
+- type: replace
+  path: /resources/-
+  value:
+    name: gcs-bosh-creds
+    type: gcs
+    source:
+      json_key: ((gcs-json-key))
+      bucket: kubo-pipeline-store
+      versioned_file: bosh/creds.yml
+
+- type: replace
+  path: /resources/-
+  value:
+    name: gcs-load-balancer-vars
+    type: gcs
+    source:
+      json_key: ((gcs-json-key))
+      bucket: kubo-pipeline-store
+      versioned_file: load-balancer-vars.yml
+
+- type: replace
+  path: /resources/-
+  value:
+    name: source-json
+    type: gcs
+    source:
+      json_key: ((gcs-json-key))
+      bucket: kubo-pipeline-store
+      versioned_file: source.json
+
+###########################################################
+# Install Bosh Job
+# Insert job before the deploy k8s job.
+###########################################################
+- type: replace
+  path: /jobs/name=deploy-k8s:before
+  value:
+    name: install-bosh
+    plan:
+    - aggregate:
+      - get: slackers
+      - get: git-kubo-ci
+      - get: git-bosh-deployment
+      - get: kubo-lock
+        resource: kubo-lock
+        version: every
+        trigger: true
+        passed: [ 'claim-lock' ]
+      - get: kubo-release
+        passed: [ 'claim-lock' ]
+      - get: kubo-deployment
+        passed: [ 'claim-lock' ]
+    - task: unpack-tgz
+      file: git-kubo-ci/tasks/unpack-tgz.yml
+      input_mapping:
+        source_tarball: kubo-deployment
+      output_mapping:
+        unpacked_dir: unpacked-kubo-deployment
+      params:
+        SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+        COLLAPSE_DIR: kubo-deployment
+    - task: install
+      tags: [ 'vsphere-lb' ]
+      file: git-kubo-ci/tasks/install-bosh.yml
+      params:
+        USE_TURBULENCE: 1
+        CLOUD_CONFIG_OPS_FILE: vsphere-lb-k8s-cloud-config-multiaz.yml
+    - aggregate:
+      - put: gcs-bosh-creds
+        attempts: 10
+        params:
+          file: bosh-creds/creds.yml
+      - put: gcs-bosh-state
+        attempts: 10
+        params:
+          file: bosh-state/state.json
+    - task: configure-bosh-for-turbulence
+      tags: [ 'vsphere-lb' ]
+      file: git-kubo-ci/tasks/configure-bosh.yml
+    - task: generate-load-balancer-vars
+      file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
+    - task: generate-source-json
+      file: git-kubo-ci/tasks/generate-source-json.yml
+    - aggregate:
+      - put: gcs-load-balancer-vars
+        attempts: 10
+        params:
+          file: load-balancer-vars/vars.yml
+      - put: source-json
+        attempts: 10
+        params:
+          file: source-json/source.json
+    - task: update-cloud-config-with-vm-ext
+      tags: [ 'vsphere-lb' ]
+      file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
+      input_mapping:
+        git-kubo-deployment: unpacked-kubo-deployment
+    - task: merge-metadata
+      input_mapping:
+        source-json: source-json
+        kubo-lock: kubo-lock
+      file: git-kubo-ci/tasks/merge-metadata.yml
+    - task: upload-stemcell
+      file: git-kubo-ci/tasks/upload-stemcell.yml
+      params:
+        IAAS: ((iaas))
+      input_mapping:
+        git-kubo-deployment: unpacked-kubo-deployment
+        source-json: merged-kubo-lock
+
+###########################################################
+# Update deploy-k8s aggregates to require successful
+# install-bosh job. Also require bosh-state, bosh-creds
+# and load-balancer-vars from gcs
+###########################################################
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/1/passed
+  value: [ 'install-bosh' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/3/passed
+  value: [ 'install-bosh' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/4/passed
+  value: [ 'install-bosh' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: source-json
+    passed: [ 'install-bosh' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: gcs-bosh-state
+    passed: [ 'install-bosh' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: gcs-bosh-creds
+    passed: [ 'install-bosh' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: gcs-load-balancer-vars
+    passed: [ 'install-bosh' ]
+
+# Remove upload-stemcell task from deploy-k8s. This happens in install-bosh
+- type: remove
+  path: /jobs/name=deploy-k8s/plan/task=upload-stemcell
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment:before
+  value:
+    task: merge-metadata
+    input_mapping:
+      source-json: source-json
+      kubo-lock: kubo-lock
+    file: git-kubo-ci/tasks/merge-metadata.yml
+
+# Add necessary vsphere iaas ops-files
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value:  git-kubo-deployment/manifests/ops-files/iaas/vsphere/set-working-dir-no-rp.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/vm-types.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml
+
+# cfcr-deployment requires metadata, state.json, creds.yml and load-balancer-vars.yml
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/0
+  value: merged-kubo-lock/metadata
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/-
+  value: gcs-bosh-state/state.json
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/-
+  value: gcs-bosh-creds/creds.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/-
+  value: gcs-load-balancer-vars/load-balancer-vars.yml
+
+# Set vm_type for master, worker, and apply_addons
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/master_vm_type?
+  value: master
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/worker_vm_type?
+  value: worker
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/apply_addons_vm_type?
+  value: minimal
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/source_file?
+  value: merged-kubo-lock/metadata
+
+# update-kubeconfig, run-apply-addons-errand, and run-smoke-tests-errands rely
+# on metadata
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=update-kubeconfig/file
+  value: git-kubo-ci/tasks/update-kubeconfig.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=update-kubeconfig/input_mapping?/kubo-lock?
+  value: merged-kubo-lock
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=run-apply-addons-errand/params/source_file
+  value: merged-kubo-lock/metadata
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=run-smoke-tests-errand/params/source_file
+  value: merged-kubo-lock/metadata
+
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/0/aggregate/-
+  value:
+    get: source-json
+    passed: [ 'deploy-k8s' ]
+
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/task=destroy-k8s:before
+  value:
+    task: merge-metadata
+    input_mapping:
+      source-json: source-json
+      kubo-lock: kubo-lock
+    file: git-kubo-ci/tasks/merge-metadata.yml
+
+###########################################################
+# Destroy Bosh Job
+###########################################################
+- type: replace
+  path: /jobs/name=destroy-k8s:after
+  value:
+    name: destroy-bosh
+    plan:
+    - aggregate:
+      - get: slackers
+      - get: git-kubo-ci
+      - get: git-bosh-deployment
+      - get: source-json
+      - get: kubo-lock
+        version: every
+        trigger: true
+        passed: [ 'destroy-k8s' ]
+      - get: kubo-release
+        passed: [ 'destroy-k8s' ]
+      - get: kubo-deployment
+        passed: [ 'destroy-k8s' ]
+    - task: merge-metadata
+      input_mapping:
+        source-json: source-json
+        kubo-lock: kubo-lock
+      file: git-kubo-ci/tasks/merge-metadata.yml
+    - task: destroy
+      tags: [ 'vsphere-lb' ]
+      file: git-kubo-ci/tasks/destroy-bosh.yml
+      input_mapping: {kubo-lock: kubo-lock}
+    - put: kubo-lock
+      params: { release: kubo-lock }
+
+# Tag all tasks
+- type: replace
+  path: /jobs/name=install-bosh/plan/task=upload-stemcell/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=update-kubeconfig/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=run-apply-addons-errand/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=run-smoke-tests-errand/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/task=destroy-k8s/tags?
+  value: [ 'vsphere-lb' ]

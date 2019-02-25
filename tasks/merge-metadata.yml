@@ -1,0 +1,24 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+
+inputs:
+- name: git-kubo-ci
+- name: source-json
+- name: kubo-lock
+
+outputs:
+- name: merged-kubo-lock
+
+run:
+  path: /bin/sh
+  args:
+    - -c
+    - |
+      set -eu
+      cp -r kubo-lock/metadata merged-kubo-lock/metadata
+      git-kubo-ci/scripts/json2yaml.py source-json/source.json >> merged-kubo-lock/metadata
+      echo "deployment: ci-service\ndeployment_name: ci-service" >> merged-kubo-lock/metadata

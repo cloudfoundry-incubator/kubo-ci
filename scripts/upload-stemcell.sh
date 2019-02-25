@@ -31,3 +31,8 @@ if (( $(echo "${stemcell_version} > 250.17" |bc -l) )); then
 else
   bosh upload-stemcell --name="bosh-${IAAS}-${VM}-${stemcell_line}-go_agent" --version="${stemcell_version}" "https://s3.amazonaws.com/bosh-core-stemcells/${IAAS}/bosh-stemcell-${stemcell_version}-${IAAS}-${VM}-${stemcell_line}-go_agent.tgz"
 fi
+
+if [[ -d alternate-stemcell ]]; then
+  files=( alternate-stemcell/bosh-stemcell-*.tgz )
+  bosh upload-stemcell "${files[0]}"
+fi

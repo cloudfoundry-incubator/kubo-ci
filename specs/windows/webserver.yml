@@ -11,11 +11,11 @@ spec:
   tolerations:
   - key: "windows"
     operator: "Equal"
-    value: "1803"
+    value: "2019"
     effect: "NoSchedule"
   restartPolicy: Always
   containers:
-  - image: microsoft/windowsservercore:1803
+  - image: mcr.microsoft.com/windows/servercore:ltsc2019
     name: webserver
     ports:
     - name: http

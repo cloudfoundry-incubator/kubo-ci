@@ -17,4 +17,3 @@ inputs:
 - name: git-kubo-ci
 - name: source-json
 - name: kubo-lock
-- name: git-kubo-deployment
