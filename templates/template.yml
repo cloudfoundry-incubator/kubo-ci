@@ -27,28 +27,28 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/kubo-ci
-    branch: master
+    branch: windows-stemcell
 
-- name: gcs-shipable-version
-  type: gcs
-  source:
-    bucket: kubo-pipeline-store
-    json_key: ((gcs-json-key))
-    versioned_file: shipables/((pipeline-name))-shipable
+# - name: gcs-shipable-version
+#   type: gcs
+#   source:
+#     bucket: kubo-pipeline-store
+#     json_key: ((gcs-json-key))
+#     versioned_file: shipables/((pipeline-name))-shipable
 
 - name: kubo-release
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    regexp: dev-builds/kubo-(\d.*)-(.*).tgz
+    regexp: dev-windows-builds/kubo-release-(.*).tgz
 
 - name: kubo-deployment
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    regexp: dev-builds/kubo-deployment-(.*).tgz
+    regexp: dev-windows-builds/kubo-deployment-(.*).tgz
 
 - name: kubo-lock
   type: pool
@@ -148,6 +148,8 @@ jobs:
       - kubo-lock/metadata
       vars:
         disk_size: 10240
+        worker_vm_type: small-highmem
+        windows-rdp-password: squirtle
       releases:
       - kubo-release/*.tgz
       source_file: kubo-lock/metadata
@@ -227,25 +229,25 @@ jobs:
     params:
       release: kubo-lock
 
-- name: publish-version
-  plan:
-  - aggregate:
-    - get: git-kubo-ci
-    - get: gcs-shipable-version
-    - get: kubo-deployment
-      passed: [ 'run-tests' ]
-      version: every
-      trigger: true
-    - get: kubo-release
-      passed: [ 'run-tests' ]
-      version: every
-      trigger: true
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: kubo-deployment
-  - task: publish-version
-    file: git-kubo-ci/tasks/publish-shipable-version.yml
-  - put: gcs-shipable-version
-    params:
-      file: gcs-shipable-version-output/shipable
+# - name: publish-version
+#   plan:
+#   - aggregate:
+#     - get: git-kubo-ci
+#     - get: gcs-shipable-version
+#     - get: kubo-deployment
+#       passed: [ 'run-tests' ]
+#       version: every
+#       trigger: true
+#     - get: kubo-release
+#       passed: [ 'run-tests' ]
+#       version: every
+#       trigger: true
+#   - task: unpack-kubo-deployment
+#     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+#     input_mapping:
+#       gcs-kubo-deployment-pre: kubo-deployment
+#   - task: publish-version
+#     file: git-kubo-ci/tasks/publish-shipable-version.yml
+#   - put: gcs-shipable-version
+#     params:
+#       file: gcs-shipable-version-output/shipable
