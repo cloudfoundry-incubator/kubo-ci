@@ -78,12 +78,15 @@ var _ = Describe("Api Extensions", func() {
 	AfterEach(func() {
 		kubectl.RunKubectlCommandWithTimeout("delete", "-f", apiServiceSpec)
 		kubectl.RunKubectlCommandWithTimeout("delete", "-f", serviceAccountSpec)
+
 		session := kubectl.StartKubectlCommandInNamespace(systemNamespace, "delete", "-f", authDelegatorSpec)
-		session.Wait("5s")
+		session.Wait(kubectl.TimeoutInSeconds)
 		fmt.Fprintf(GinkgoWriter, "AuthDelegatorSpec delete exit code %d\n", session.ExitCode())
+
 		session = kubectl.StartKubectlCommandInNamespace(systemNamespace, "delete", "-f", authReaderSpec)
-		session.Wait("5s")
+		session.Wait(kubectl.TimeoutInSeconds)
 		fmt.Fprintf(GinkgoWriter, "AuthReaderSpec delete exit code %d\n", session.ExitCode())
+
 		kubectl.RunKubectlCommandWithTimeout("delete", "-f", replicationControllerSpec)
 		kubectl.RunKubectlCommandWithTimeout("delete", "-f", serviceSpec)
 		kubectl.Teardown()
