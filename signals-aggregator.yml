@@ -29,6 +29,7 @@ resources:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     versioned_file: shipables/shipable_version
+#azure_vanilla_turbulence
 <% arr = %w(
 aws_vanilla_integration
 aws_old-release_upgrade
@@ -36,7 +37,6 @@ aws_vanilla_conformance
 aws_vanilla_turbulence
 azure_vanilla_conformance
 azure_vanilla_integration
-azure_vanilla_turbulence
 gcp_old-release_upgrade
 gcp_custom-cidrs_integration
 gcp_pod-security-policy_integration
