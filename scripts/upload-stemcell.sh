@@ -24,4 +24,10 @@ fi
 
 stemcell_version="$(bosh int --path=/stemcells/0/version git-kubo-deployment/manifests/cfcr.yml)"
 stemcell_line="$(bosh int --path=/stemcells/0/os git-kubo-deployment/manifests/cfcr.yml)"
-bosh upload-stemcell --name="bosh-${IAAS}-${VM}-${stemcell_line}-go_agent" --version="${stemcell_version}" "https://s3.amazonaws.com/bosh-core-stemcells/${IAAS}/bosh-stemcell-${stemcell_version}-${IAAS}-${VM}-${stemcell_line}-go_agent.tgz"
+
+# 250.17 starts using a new directory structure for stemcells...
+if [[ "$(echo ${stemcell_version} '<' "250.17" | bc -l)" -eq 1 ]]; then
+  bosh upload-stemcell --name="bosh-${IAAS}-${VM}-${stemcell_line}-go_agent" --version="${stemcell_version}" "https://s3.amazonaws.com/bosh-core-stemcells/${IAAS}/bosh-stemcell-${stemcell_version}-${IAAS}-${VM}-${stemcell_line}-go_agent.tgz"
+else
+  bosh upload-stemcell --name="bosh-${IAAS}-${VM}-${stemcell_line}-go_agent" --version="${stemcell_version}" "https://s3.amazonaws.com/bosh-core-stemcells/${stemcell_version}/bosh-stemcell-${stemcell_version}-${IAAS}-${VM}-${stemcell_line}-go_agent.tgz"
+fi
