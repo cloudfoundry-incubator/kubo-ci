@@ -6,7 +6,7 @@ image_resource:
     tag: stable
 
 run:
-  path: git-kubo-ci/scripts/update-cloud-config-with-vm-ext2.sh
+  path: git-kubo-ci/scripts/update-cloud-config-with-vm-ext-v2.sh
 
 inputs:
 - name: source-json
