@@ -1,0 +1,149 @@
+- type: replace
+  path: /resources/-
+  value:
+    name: git-bosh-deployment
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry/bosh-deployment.git
+      branch: master
+      private_key: ((git-ssh-key.private_key))
+
+- type: replace
+  path: /resources/-
+  value:
+    name: gcs-bosh-state
+    type: gcs
+    source:
+      json_key: ((gcs-json-key))
+      bucket: kubo-pipeline-store
+      versioned_file: bosh/state.json
+
+- type: replace
+  path: /resources/-
+  value:
+    name: gcs-bosh-creds
+    type: gcs
+    source:
+      json_key: ((gcs-json-key))
+      bucket: kubo-pipeline-store
+      versioned_file: bosh/creds.yml
+
+- type: replace
+  path: /resources/-
+  value:
+    name: gcs-load-balancer-vars
+    type: gcs
+    source:
+      json_key: ((gcs-json-key))
+      bucket: kubo-pipeline-store
+      versioned_file: load-balancer-vars.yml
+
+- type: replace
+  path: /resources/-
+  value:
+    name: source-json
+    type: gcs
+    source:
+      json_key: ((gcs-json-key))
+      bucket: kubo-pipeline-store
+      versioned_file: source.json
+
+# Add back in a provision bosh job
+- type: replace
+  path: /jobs/-
+  value:
+    name: install-bosh
+    plan:
+    - aggregate:
+      - get: slackers
+      - get: git-kubo-ci
+      - get: git-bosh-deployment
+      - get: kubo-lock
+        resource: kubo-lock
+        version: every
+        trigger: true
+        passed: [ 'claim-lock' ]
+      - get: kubo-release
+        passed: [ 'claim-lock' ]
+      - get: kubo-deployment
+        passed: [ 'claim-lock' ]
+    - task: install
+      tags: [vsphere-lb]
+      file: git-kubo-ci/tasks/install-bosh.yml
+      params:
+        USE_TURBULENCE: 1
+        CLOUD_CONFIG_OPS_FILE: vsphere-lb-k8s-cloud-config-multiaz.yml
+    - aggregate:
+      - put: gcs-bosh-creds
+        attempts: 10
+        params:
+          file: bosh-creds/creds.yml
+      - put: gcs-bosh-state
+        attempts: 10
+        params:
+          file: bosh-state/state.json
+    - task: configure-bosh-for-turbulence
+      tags: ['vsphere-lb']
+      file: git-kubo-ci/tasks/configure-bosh.yml
+    - task: generate-load-balancer-vars
+      file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
+    - task: generate-source-json
+      file: git-kubo-ci/tasks/generate-source-json.yml
+    - aggregate:
+      - put: gcs-load-balancer-vars
+        attempts: 10
+        params:
+          file: load-balancer-vars/vars.yml
+      - put: source-json
+        attempts: 10
+        params:
+          file: source-json/source.json
+    # - task: update-cloud-config-with-vm-ext
+    #   tags: ['vsphere-lb']
+    #   file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
+
+# - type: replace
+#   path: /jobs/name=deploy-k8s/plan/0/aggregate/1/
+#   value:
+#     get: kubo-release
+#     passed: [install-bosh]
+
+- type: replace
+  path: /jobs/-
+  value:
+    name: destroy-bosh
+    plan:
+    - aggregate:
+      - get: slackers
+      - get: git-kubo-ci
+      - get: git-bosh-deployment
+      - get: kubo-lock
+        version: every
+        trigger: true
+        passed: [destroy-k8s]
+      - get: kubo-release
+        passed: [destroy-k8s]
+      - get: kubo-deployment
+        passed: [destroy-k8s]
+    - task: destroy
+      tags: [vsphere-lb]
+      file: git-kubo-ci/tasks/destroy-bosh.yml
+      input_mapping: {kubo-lock: kubo-lock}
+    - put: kubo-lock
+      params: { release: kubo-lock }
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value:  git-kubo-deployment/manifests/ops-files/iaas/vsphere/master-static-ip.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value:  git-kubo-deployment/manifests/ops-files/iaas/vsphere/set-working-dir-no-rp.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
