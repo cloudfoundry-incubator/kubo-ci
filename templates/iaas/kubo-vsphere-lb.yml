@@ -50,7 +50,7 @@
 
 # Add back in a provision bosh job
 - type: replace
-  path: /jobs/-
+  path: /jobs/name=deploy-k8s:before
   value:
     name: install-bosh
     plan:
@@ -98,18 +98,24 @@
         attempts: 10
         params:
           file: source-json/source.json
-    # - task: update-cloud-config-with-vm-ext
-    #   tags: ['vsphere-lb']
-    #   file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext.yml
-
-# - type: replace
-#   path: /jobs/name=deploy-k8s/plan/0/aggregate/1/
-#   value:
-#     get: kubo-release
-#     passed: [install-bosh]
+    - task: update-cloud-config-with-vm-ext
+      tags: ['vsphere-lb']
+      file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext-v2.yml
 
 - type: replace
-  path: /jobs/-
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/1/passed
+  value: [ 'install-bosh' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/3/passed
+  value: [ 'install-bosh' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/4/passed
+  value: [ 'install-bosh' ]
+
+- type: replace
+  path: /jobs/name=destroy-k8s:after
   value:
     name: destroy-bosh
     plan:
