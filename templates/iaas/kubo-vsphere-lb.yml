@@ -126,6 +126,12 @@
   value: [ 'install-bosh' ]
 
 - type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: source-json
+    passed: [ 'install-bosh' ]
+
+- type: replace
   path: /jobs/name=deploy-k8s/plan/task=upload-stemcell:before
   value:
     task: merge-metadata
@@ -133,6 +139,10 @@
       source-json: source-json
       kubo-lock: kubo-lock
     file: git-kubo-ci/tasks/merge-metadata.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=upload-stemcell/input_mapping/source-json
+  value: merged-kubo-lock
 
 - type: replace
   path: /jobs/name=destroy-k8s:after

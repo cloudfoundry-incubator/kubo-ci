@@ -10,9 +10,13 @@ inputs:
 - name: source-json
 - name: kubo-lock
 
+outputs:
+- name: merged-kubo-lock
+
 run:
   path: /bin/sh
   args:
     - -c
     - |
-      git-kubo-ci/scripts/json2yaml.py source-json/source.json >> kubo-lock/metadata
+      cp -r kubo-lock merged-kubo-lock &&
+      git-kubo-ci/scripts/json2yaml.py source-json/source.json >> merged-kubo-lock/metadata
