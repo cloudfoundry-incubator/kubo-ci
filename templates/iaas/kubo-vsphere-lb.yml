@@ -67,6 +67,15 @@
         passed: [ 'claim-lock' ]
       - get: kubo-deployment
         passed: [ 'claim-lock' ]
+    - task: unpack-tgz
+      file: git-kubo-ci/tasks/unpack-tgz.yml
+      input_mapping:
+        source_tarball: kubo-deployment
+      output_mapping:
+        unpacked_dir: unpacked-kubo-deployment
+      params:
+        SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+        COLLAPSE_DIR: kubo-deployment
     - task: install
       tags: [vsphere-lb]
       file: git-kubo-ci/tasks/install-bosh.yml
@@ -101,6 +110,8 @@
     - task: update-cloud-config-with-vm-ext
       tags: ['vsphere-lb']
       file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext-v2.yml
+      input_mapping:
+        kubo-deployment: unpacked-kubo-deployment
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/0/aggregate/1/passed
