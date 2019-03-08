@@ -1,5 +1,5 @@
 - type: replace
-  path: /resource-types/-
+  path: /resource_types/-
   value:
     name: pivnet
     type: docker-image
@@ -13,9 +13,14 @@
     name: windows-stemcell
     type: pivnet
     source:
-      api_token: {{pivnet-api-token}}
+      api_token: ((pivnet-api-token))
       product_slug: stemcells-windows-server-internal
-      product_version: 1803.7
+      product_version: "1803.7"
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: windows-stemcell
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/task=upload-stemcell/input_mapping/alternate-stemcell?

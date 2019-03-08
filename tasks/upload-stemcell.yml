@@ -10,6 +10,7 @@ inputs:
 - name: git-kubo-deployment
 - name: source-json
 - name: alternate-stemcell
+  optional: true
 
 run:
   path: git-kubo-ci/scripts/upload-stemcell.sh
