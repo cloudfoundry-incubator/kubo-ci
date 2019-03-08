@@ -145,6 +145,37 @@
   value: merged-kubo-lock
 
 - type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/0
+  value: merged-kubo-lock/metadata
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/source_file
+  value: merged-kubo-lock/metadata
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=run-apply-addon-errand/params/source_file
+  value: merged-kubo-lock/metadata
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=run-smoke-tests-errand/params/source_file
+  value: merged-kubo-lock/metadata
+
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/0/aggregate/-
+  value:
+    get: source-json
+    passed: [ 'deploy-k8s' ]
+
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/task=destroy-k8s:before
+  value:
+    task: merge-metadata
+    input_mapping:
+      source-json: source-json
+      kubo-lock: kubo-lock
+    file: git-kubo-ci/tasks/merge-metadata.yml
+
+- type: replace
   path: /jobs/name=destroy-k8s:after
   value:
     name: destroy-bosh

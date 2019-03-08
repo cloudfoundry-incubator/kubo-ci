@@ -21,6 +21,7 @@
   path: /jobs/name=deploy-k8s/plan/0/aggregate/-
   value:
     get: windows-stemcell
+    tags: ['vsphere-lb']
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/task=upload-stemcell/input_mapping/alternate-stemcell?
