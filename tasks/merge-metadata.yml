@@ -19,4 +19,5 @@ run:
     - -c
     - |
       cp -r kubo-lock/* merged-kubo-lock/ &&
-      git-kubo-ci/scripts/json2yaml.py source-json/source.json >> merged-kubo-lock/metadata
+      git-kubo-ci/scripts/json2yaml.py source-json/source.json >> merged-kubo-lock/metadata &&
+      echo "deployment: ci-service" >> merged-kubo-lock/metadata
