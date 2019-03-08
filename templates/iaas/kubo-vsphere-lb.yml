@@ -149,10 +149,6 @@
   value: merged-kubo-lock/metadata
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/deployment?
-  value: ci-service
-
-- type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/source_file
   value: merged-kubo-lock/metadata
 
