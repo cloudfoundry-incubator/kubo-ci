@@ -1,4 +1,27 @@
 - type: replace
+  path: /resource-types/-
+  value:
+    name: pivnet
+    type: docker-image
+    source:
+      repository: pivotalcf/pivnet-resource
+      tag: latest-final
+
+- type: replace
+  path: /resources/-
+  value:
+    name: windows-stemcell
+    type: pivnet
+    source:
+      api_token: {{pivnet-api-token}}
+      product_slug: stemcells-windows-server-internal
+      product_version: 1803.7
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=upload-stemcell/input_mapping/alternate-stemcell?
+  value: windows-stemcell
+
+- type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/use-hostgw.yml
 
