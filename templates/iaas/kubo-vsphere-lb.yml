@@ -77,7 +77,7 @@
         SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
         COLLAPSE_DIR: kubo-deployment
     - task: install
-      tags: [vsphere-lb]
+      tags: [ 'vsphere-lb' ]
       file: git-kubo-ci/tasks/install-bosh.yml
       params:
         USE_TURBULENCE: 1
@@ -92,7 +92,7 @@
         params:
           file: bosh-state/state.json
     - task: configure-bosh-for-turbulence
-      tags: ['vsphere-lb']
+      tags: [ 'vsphere-lb' ]
       file: git-kubo-ci/tasks/configure-bosh.yml
     - task: generate-load-balancer-vars
       file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
@@ -108,7 +108,7 @@
         params:
           file: source-json/source.json
     - task: update-cloud-config-with-vm-ext
-      tags: ['vsphere-lb']
+      tags: [ 'vsphere-lb' ]
       file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext-v2.yml
       input_mapping:
         kubo-deployment: unpacked-kubo-deployment
@@ -156,13 +156,13 @@
       - get: kubo-lock
         version: every
         trigger: true
-        passed: [destroy-k8s]
+        passed: [ 'destroy-k8s' ]
       - get: kubo-release
-        passed: [destroy-k8s]
+        passed: [ 'destroy-k8s' ]
       - get: kubo-deployment
-        passed: [destroy-k8s]
+        passed: [ 'destroy-k8s' ]
     - task: destroy
-      tags: [vsphere-lb]
+      tags: [ 'vsphere-lb' ]
       file: git-kubo-ci/tasks/destroy-bosh.yml
       input_mapping: {kubo-lock: kubo-lock}
     - put: kubo-lock
@@ -183,3 +183,32 @@
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
+
+# Tag all tasks
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=upload-stemcell/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=update-kubeconfig/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=run-apply-addons-errand/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=run-smoke-tests-errand/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/task=destroy-k8s/tags?
+  value: [ 'vsphere-lb' ]
