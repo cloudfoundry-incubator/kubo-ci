@@ -64,6 +64,15 @@ extract_testcase() {
   echo -n "${testcase%.*}"
 }
 
+canonicalize_iaas_name() {
+  local iaas=$1
+  if [[ ${iaas} == *"vsphere"* ]]; then
+    iaas="vsphere"
+  fi
+
+  echo -n "${iaas}"
+}
+
 main() {
   local deployment_configuration pipeline_config iaas_name testcase
   if [ "$#" -gt "3" ] || [ "$#" == "0" ]  || [ "$#" == "1" ]; then
@@ -97,7 +106,8 @@ main() {
   fly --target kubo set-pipeline \
     --config <(echo "${pipeline_config}") \
     --pipeline "${iaas_name}_${deployment_configuration}_${testcase}" \
-    -v iaas="${iaas_name}" \
+    -v locks="${iaas_name}" \
+    -v iaas="$(canonicalize_iaas_name "${iaas_name}")" \
     -v pipeline-name="${iaas_name}_${deployment_configuration}_${testcase}"
 }
 
