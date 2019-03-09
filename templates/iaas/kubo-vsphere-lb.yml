@@ -168,10 +168,15 @@
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/-
-  value:
-    - gcs-bosh-state
-    - gcs-bosh-creds
-    - gcs-load-balancer-vars
+  value: gcs-bosh-state
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/-
+  value: gcs-bosh-creds
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/-
+  value: gcs-load-balancer-vars
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/source_file
