@@ -132,6 +132,24 @@
     passed: [ 'install-bosh' ]
 
 - type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: gcs-bosh-state
+    passed: [ 'install-bosh' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: gcs-bosh-creds
+    passed: [ 'install-bosh' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: gcs-load-balancer-vars
+    passed: [ 'install-bosh' ]
+
+- type: replace
   path: /jobs/name=deploy-k8s/plan/task=upload-stemcell:before
   value:
     task: merge-metadata
@@ -147,6 +165,13 @@
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/0
   value: merged-kubo-lock/metadata
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/-
+  value:
+    - gcs-bosh-state
+    - gcs-bosh-creds
+    - gcs-load-balancer-vars
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/source_file

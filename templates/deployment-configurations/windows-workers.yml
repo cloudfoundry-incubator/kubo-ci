@@ -64,6 +64,12 @@
   value: git-kubo-deployment/manifests/ops-files/iaas/aws/windows/cloud-provider.yml
 
 - type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/vars/-
+  value:
+    worker_vm_type: small-highmem
+    windows-rdp-password: squirtle
+
+- type: replace
   path: /resources/name=kubo-deployment/source/regexp
   value: "dev-windows-builds/kubo-deployment-(.*).tgz"
 
