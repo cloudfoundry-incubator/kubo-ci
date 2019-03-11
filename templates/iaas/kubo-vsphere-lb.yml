@@ -168,15 +168,27 @@
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/-
-  value: gcs-bosh-state
+  value: gcs-bosh-state/state.json
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/-
-  value: gcs-bosh-creds
+  value: gcs-bosh-creds/creds.yml
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars_files/-
-  value: gcs-load-balancer-vars
+  value: gcs-load-balancer-vars/load-balancer-vars.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/master_vm_type?
+  value: master
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/worker_vm_type?
+  value: worker
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/apply_addons_vm_type?
+  value: minimal
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/source_file
@@ -244,6 +256,10 @@
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/vm-types.yml
 
 # Tag all tasks
 - type: replace

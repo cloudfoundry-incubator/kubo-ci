@@ -88,6 +88,7 @@ main() {
   local iaas_ops_file="${ci_dir}/iaas/${iaas_name}.yml"
   local testcase_ops_file="${ci_dir}/testcases/${testcase}.yml"
   local iaas_testcase_ops_file="${ci_dir}/iaas-testcase-ops-files/${iaas_name}-${testcase}.yml"
+  local iaas_deployment_configuration_ops_file="${ci_dir}/iaas-deployment-configuration-ops-files/${iaas_name}-${deployment_configuration}.yml"
   if [ -f "${deployment_configuration_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${deployment_configuration_ops_file}")
   fi
@@ -96,6 +97,9 @@ main() {
   fi
   if [ -f "${testcase_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${testcase_ops_file}")
+  fi
+  if [ -f "${iaas_deployment_configuration_ops_file}" ]; then
+    pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_deployment_configuration_ops_file}")
   fi
   if [ -f "${iaas_testcase_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_testcase_ops_file}")
