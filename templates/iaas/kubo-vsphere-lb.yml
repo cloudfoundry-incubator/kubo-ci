@@ -112,6 +112,21 @@
       file: git-kubo-ci/tasks/update-cloud-config-with-vm-ext-v2.yml
       input_mapping:
         kubo-deployment: unpacked-kubo-deployment
+    - task: upload-stemcell
+      file: git-kubo-ci/tasks/upload-stemcell.yml
+      params:
+        IAAS: ((iaas))
+      input_mapping:
+        source-json: kubo-lock
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment:before
+  value:
+    task: merge-metadata
+    input_mapping:
+      source-json: source-json
+      kubo-lock: kubo-lock
+    file: git-kubo-ci/tasks/merge-metadata.yml
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/0/aggregate/1/passed
@@ -149,8 +164,11 @@
     get: gcs-load-balancer-vars
     passed: [ 'install-bosh' ]
 
+- type: remove
+  path: /jobs/name=deploy-k8s/plan/task=upload-stemcell
+
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/task=upload-stemcell:before
+  path: /jobs/name=install-bosh/plan/task=upload-stemcell:before
   value:
     task: merge-metadata
     input_mapping:
@@ -159,7 +177,7 @@
     file: git-kubo-ci/tasks/merge-metadata.yml
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/task=upload-stemcell/input_mapping/source-json
+  path: /jobs/name=install-bosh/plan/task=upload-stemcell/input_mapping/source-json
   value: merged-kubo-lock
 
 - type: replace
@@ -247,15 +265,7 @@
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value:  git-kubo-deployment/manifests/ops-files/iaas/vsphere/master-static-ip.yml
-
-- type: replace
-  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value:  git-kubo-deployment/manifests/ops-files/iaas/vsphere/set-working-dir-no-rp.yml
-
-- type: replace
-  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
@@ -263,7 +273,7 @@
 
 # Tag all tasks
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/task=upload-stemcell/tags?
+  path: /jobs/name=install-bosh/plan/task=upload-stemcell/tags?
   value: [ 'vsphere-lb' ]
 
 - type: replace
