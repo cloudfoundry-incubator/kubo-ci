@@ -18,16 +18,6 @@
       product_version: "1803.7"
 
 - type: replace
-  path: /jobs/name=install-bosh/plan/0/aggregate/-
-  value:
-    get: windows-stemcell
-    tags: ['vsphere-lb']
-
-- type: replace
-  path: /jobs/name=install-bosh/plan/task=upload-stemcell/input_mapping/alternate-stemcell?
-  value: windows-stemcell
-
-- type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/use-hostgw.yml
 
@@ -74,6 +64,10 @@
 - type: replace
   path: /resources/name=kubo-deployment/source/regexp
   value: "dev-windows-builds/kubo-deployment-(.*).tgz"
+
+# TODO: REMOVE THIS BEFORE PUSHING
+- type: remove
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/get=kubo-deployment/passed
 
 - type: replace
   path: /resources/name=git-kubo-ci/source/branch

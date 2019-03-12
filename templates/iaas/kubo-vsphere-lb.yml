@@ -80,7 +80,7 @@
       tags: [ 'vsphere-lb' ]
       file: git-kubo-ci/tasks/install-bosh.yml
       params:
-        USE_TURBULENCE: 1
+        # USE_TURBULENCE: 1
         CLOUD_CONFIG_OPS_FILE: vsphere-lb-k8s-cloud-config-multiaz.yml
     - aggregate:
       - put: gcs-bosh-creds
@@ -91,9 +91,9 @@
         attempts: 10
         params:
           file: bosh-state/state.json
-    - task: configure-bosh-for-turbulence
-      tags: [ 'vsphere-lb' ]
-      file: git-kubo-ci/tasks/configure-bosh.yml
+    # - task: configure-bosh-for-turbulence
+    #   tags: [ 'vsphere-lb' ]
+    #   file: git-kubo-ci/tasks/configure-bosh.yml
     - task: generate-load-balancer-vars
       file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
     - task: generate-source-json
@@ -117,6 +117,7 @@
       params:
         IAAS: ((iaas))
       input_mapping:
+        git-kubo-deployment: unpacked-kubo-deployment
         source-json: kubo-lock
 
 - type: replace
@@ -136,9 +137,10 @@
   path: /jobs/name=deploy-k8s/plan/0/aggregate/3/passed
   value: [ 'install-bosh' ]
 
-- type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/4/passed
-  value: [ 'install-bosh' ]
+# TODO: DON'T LEAVE THIS COMMENTED OUT
+# - type: replace
+#   path: /jobs/name=deploy-k8s/plan/0/aggregate/4/passed
+#   value: [ 'install-bosh' ]
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/0/aggregate/-
