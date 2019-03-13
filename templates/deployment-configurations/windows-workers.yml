@@ -21,6 +21,7 @@
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/use-hostgw.yml
 
+## This ops-file must come before all of the other windows ops-files
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/windows/add-worker.yml
@@ -50,16 +51,12 @@
   value: git-kubo-deployment/manifests/ops-files/windows/change-windows-stemcell.yml
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/iaas/aws/windows/cloud-provider.yml
-
-- type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/worker_vm_type?
   value: small-highmem
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows-rdp-password?
-  value: squirtle
+  value: Ponies!23
 
 - type: replace
   path: /resources/name=kubo-deployment/source/regexp
