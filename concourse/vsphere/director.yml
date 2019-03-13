@@ -11,9 +11,9 @@ vcenter_disks: thunderbay_disks
 network_name: thunderbay
 internal_cidr: 10.74.42.0/25
 internal_gw: 10.74.42.1
-internal_ip: 10.74.42.5
+internal_ip: 10.74.42.6
 reserved_ips:
-- 10.74.42.0-10.74.42.5
+- 10.74.42.0-10.74.42.6
 - 10.74.42.10-10.74.42.127
 
 director_name: thunder-bosh
