@@ -15,7 +15,7 @@
     source:
       api_token: ((pivnet-api-token))
       product_slug: stemcells-windows-server-internal
-      product_version: "1803.7"
+      product_version: "2019.1"
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
@@ -43,12 +43,16 @@
   value: git-kubo-deployment/manifests/ops-files/windows/vm-types.yml
 
 - type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/windows/use-overlay.yml
+
+- type: replace
   path: /jobs/name=run-tests/plan/task=run-tests/file?
   value: git-kubo-ci/tasks/run-k8s-integration-tests.yml
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/worker_vm_type?
-  value: small-highmem
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows_worker_vm_type?
+  value: worker
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows-rdp-password?
