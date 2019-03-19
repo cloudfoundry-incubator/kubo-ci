@@ -1,0 +1,103 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: testpod-sa
+
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: testpod-psp
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default'
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName:  'docker/default'
+    apparmor.security.beta.kubernetes.io/defaultProfileName:  'runtime/default'
+spec:
+  privileged: true
+  allowPrivilegeEscalation: true
+  allowedCapabilities:
+  - '*'
+  volumes:
+  - '*'
+  hostNetwork: true
+  hostPorts:
+  - min: 0
+    max: 65535
+  hostIPC: true
+  hostPID: true
+  runAsUser:
+    rule: 'RunAsAny'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: psp:testpod-psp
+rules:
+- apiGroups:
+  - extensions
+  resourceNames:
+  - testpod-psp
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: psp:testpod-psp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: psp:testpod-psp
+subjects:
+- kind: ServiceAccount
+  name: testpod-sa
+
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: emptydir-pod
+spec:
+  serviceAccountName: testpod-sa
+
+  volumes:
+  - name: simple-vol
+    emptyDir: {}
+  - name: search-vol
+    hostPath:
+      path: /var/vcap/data/kubelet
+
+  initContainers:
+  - name: writing-container
+    volumeMounts:
+    - name: simple-vol
+      mountPath: /var/simple
+
+    image: alpine
+    command: ["/bin/sh"]
+    args: ["-c", "touch /var/simple/find_me.txt"]
+
+  containers:
+  - name: shell-container
+    volumeMounts:
+    - name: simple-vol
+      mountPath: /var/simple
+    - name: search-vol
+      mountPath: /var/search
+    image: alpine
+    tty: true
+    stdin: true
+    command: ["/bin/sh"]
+
