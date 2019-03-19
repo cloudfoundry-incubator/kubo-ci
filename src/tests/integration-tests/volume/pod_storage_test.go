@@ -1,4 +1,4 @@
-package persistent_volume_test
+package volume_test
 
 import (
 	"fmt"

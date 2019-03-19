@@ -30,7 +30,7 @@ main() {
   fi
 
   if [[ "${ENABLE_PERSISTENT_VOLUME_TESTS:-false}" == "false" ]]; then
-    skipped_packages="$skipped_packages,persistent_volume"
+    skipped_packages="$skipped_packages,volume"
   fi
 
   if [[ "${ENABLE_K8S_LBS_TESTS:-false}" == "false" ]]; then

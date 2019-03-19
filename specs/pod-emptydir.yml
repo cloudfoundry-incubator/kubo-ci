@@ -101,4 +101,3 @@ spec:
     stdin: true
     command: ["/bin/sh"]
 
-    # ["-c", "[ $(find /var/search -name find_me.txt | wc -l) -eq '1' ]"]
