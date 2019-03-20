@@ -43,10 +43,6 @@
   value: git-kubo-deployment/manifests/ops-files/windows/vm-types.yml
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/windows/use-overlay.yml
-
-- type: replace
   path: /jobs/name=run-tests/plan/task=run-tests/file?
   value: git-kubo-ci/tasks/run-k8s-integration-tests.yml
 
@@ -63,8 +59,8 @@
   value: "dev-windows-builds/kubo-deployment-(.*).tgz"
 
 # TODO: REMOVE THIS BEFORE PUSHING
-- type: remove
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/get=kubo-deployment/passed
+# - type: remove
+#   path: /jobs/name=deploy-k8s/plan/0/aggregate/get=kubo-deployment/passed
 
 - type: replace
   path: /resources/name=git-kubo-ci/source/branch

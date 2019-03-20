@@ -145,9 +145,9 @@
   path: /jobs/name=deploy-k8s/plan/0/aggregate/3/passed
   value: [ 'install-bosh' ]
 
-# - type: replace
-#   path: /jobs/name=deploy-k8s/plan/0/aggregate/4/passed
-#   value: [ 'install-bosh' ]
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/4/passed
+  value: [ 'install-bosh' ]
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/0/aggregate/-
