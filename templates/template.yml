@@ -41,7 +41,7 @@ resources:
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    regexp: dev-builds/kubo-(\d.*)-(.*).tgz
+    regexp: dev-builds/kubo-(\d+\.\d+\.\d+(-dev\.\d+)*).*\.tgz
 
 - name: kubo-deployment
   type: gcs
