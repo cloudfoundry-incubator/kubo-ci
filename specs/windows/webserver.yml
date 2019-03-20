@@ -15,7 +15,7 @@ spec:
     effect: "NoSchedule"
   restartPolicy: Always
   containers:
-  - image: microsoft/windowsservercore:ltsc2019
+  - image: mcr.microsoft.com/windows/servercore:ltsc2019
     name: webserver
     ports:
     - name: http
