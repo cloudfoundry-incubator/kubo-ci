@@ -9,6 +9,8 @@ run:
 params:
   REPO_URL:
   RELEASE_NAME:
+  OPSFILE:
+  MODE:
 inputs:
   - name: git-kubo-ci
   - name: git-kubo-deployment

@@ -39,6 +39,17 @@ resources:
   source:
     repository: cloudfoundry-incubator/docker-boshrelease
 
+- name: windows-tools-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry/windows-tools-release
+
+- name: windows-utilities-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/windows-utilities-release
+
+
 - name: gcs-precompiled-cfcr-etcd-untested
   type: gcs
   source:
@@ -205,6 +216,46 @@ jobs:
       git-kubo-deployment: git-kubo-deployment-output
     params:
       RELEASE_LIST: "docker"
+  - put: git-kubo-deployment
+    params:
+      repository: git-kubo-deployment-output
+
+- name: bump-windows-tools-release
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+    - get: gcs-source-json
+    - get: windows-tools-release
+      trigger: true
+  - task: bump-windows-tools-release
+    file: git-kubo-ci/tasks/bump-boshrelease.yml
+    input_mapping:
+       boshrelease: windows-tools-release
+    params:
+      RELEASE_NAME: windows-tools
+      MODE: name
+      OPSFILE: windows/add-worker.yml
+  - put: git-kubo-deployment
+    params:
+      repository: git-kubo-deployment-output
+
+- name: bump-windows-utilities-release
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-deployment
+    - get: gcs-source-json
+    - get: windows-utilities-release
+      trigger: true
+  - task: bump-windows-utilities-release
+    file: git-kubo-ci/tasks/bump-boshrelease.yml
+    input_mapping:
+       boshrelease: windows-utilities-release
+    params:
+      RELEASE_NAME: windows-utilities
+      MODE: name
+      OPSFILE: windows/enable-rdp.yml
   - put: git-kubo-deployment
     params:
       repository: git-kubo-deployment-output
