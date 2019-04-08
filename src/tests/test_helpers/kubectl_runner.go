@@ -187,7 +187,7 @@ func (kubectl *KubectlRunner) GetPodStatusBySelector(namespace string, selector 
 func (kubectl *KubectlRunner) getPodStatus(namespace string, selector ...string) string {
 	args := []string{"describe", "pod"}
 	args = append(args, selector...)
-	output := kubectl.RunKubectlCommandWithRetry(namespace, args, kubectl.TimeoutInSeconds*2)
+	output := kubectl.RunKubectlCommandWithRetry(namespace, kubectl.TimeoutInSeconds*2, args...)
 
 	re := regexp.MustCompile(`Status:\s+(\w+)`)
 	matches := re.FindStringSubmatch(output)
@@ -199,7 +199,7 @@ func (kubectl *KubectlRunner) getPodStatus(namespace string, selector ...string)
 // the command will retry every 10s
 // Expect the command output to be not empty
 // Expect the command to exit 0
-func (kubectl *KubectlRunner) RunKubectlCommandWithRetry(namespace string, args []string, timout float64) string {
+func (kubectl *KubectlRunner) RunKubectlCommandWithRetry(namespace string, timeout float64, args ...string) string {
 	var session *gexec.Session
 
 	Eventually(func() string {
@@ -207,7 +207,7 @@ func (kubectl *KubectlRunner) RunKubectlCommandWithRetry(namespace string, args 
 		Eventually(session, "10s").Should(gexec.Exit(0))
 
 		return string(session.Out.Contents())
-	}, timout).ShouldNot(BeEmpty())
+	}, timeout).ShouldNot(BeEmpty())
 
 	return string(session.Out.Contents())
 }
