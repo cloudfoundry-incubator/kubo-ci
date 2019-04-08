@@ -205,7 +205,7 @@ func (kubectl *KubectlRunner) RunKubectlCommandWithRetry(namespace string, timeo
 	var session *gexec.Session
 
 	Eventually(func() string {
-		kubectl.StartKubectlCommandInNamespace(namespace, args...)
+		session = kubectl.StartKubectlCommandInNamespace(namespace, args...)
 		Eventually(session, "10s").Should(gexec.Exit(0))
 
 		return string(session.Out.Contents())
