@@ -34,7 +34,8 @@ var _ = Describe("a pod emptyDir volume should be mounted under /var/vcap/data/k
 		It("should appear on the host under a /var/vcap/data/kubelet subdirectory", func() {
 			WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*3)
 
-			kubectl.RunKubectlCommandWithRetry(kubectl.Namespace(), kubectl.TimeoutInSeconds*3, "exec", "emptydir-pod", "--", "sh", "-c", "[ $(find /var/search -name find_me.txt | wc -l) -eq '1' ]")
+			args := []string{"exec", "emptydir-pod", "--", "sh", "-c", "[ $(find /var/search -name find_me.txt | wc -l) -eq '1' ]"}
+			kubectl.RunKubectlCommandWithRetry(kubectl.Namespace(), args, kubectl.TimeoutInSeconds*3)
 		})
 	})
 })
