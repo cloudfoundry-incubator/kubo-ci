@@ -201,6 +201,7 @@ func (kubectl *KubectlRunner) getPodStatus(namespace string, selector ...string)
 // the command will retry every 10s
 // Expect the command output to be not empty
 // Expect the command to exit 0
+// return the command output
 func (kubectl *KubectlRunner) RunKubectlCommandWithRetry(namespace string, timeout float64, args ...string) string {
 	var session *gexec.Session
 
