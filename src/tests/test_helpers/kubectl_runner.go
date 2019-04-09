@@ -213,20 +213,6 @@ func (kubectl *KubectlRunner) RunKubectlCommandWithRetry(namespace string, timeo
 	return string(session.Out.Contents())
 }
 
-// RunKubectlCommandToDeleteResourceWithPathToFile will run kubectl command with retries, until the timeout reaches
-// the command will retry every 10s
-// Expect the command exit code to be 0
-func (kubectl *KubectlRunner) RunKubectlCommandToDeleteResourceWithPathToFile(namespace string, timeout float64, file string) {
-	var session *gexec.Session
-
-	Eventually(func() int {
-		session = kubectl.StartKubectlCommandInNamespace(namespace, "delete", "-f", file)
-		Eventually(session, "10s").Should(gexec.Exit(0))
-
-		return session.ExitCode()
-	}, timeout).Should(Equal(0))
-}
-
 func (kubectl *KubectlRunner) GetLBAddress(service, iaas string) string {
 	var jsonPathForLoadBalancer string
 

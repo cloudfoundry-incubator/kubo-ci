@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("a pod emptyDir volume should be mounted under /var/vcap/data/kubelet", func() {
@@ -22,11 +23,11 @@ var _ = Describe("a pod emptyDir volume should be mounted under /var/vcap/data/k
 		podSpecPath := PathFromRoot("specs/pod-emptydir.yml")
 
 		BeforeEach(func() {
-			kubectl.RunKubectlCommandWithTimeout("apply", "-f", podSpecPath)
+			Eventually(kubectl.StartKubectlCommand("apply", "-f", podSpecPath), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
 		})
 
 		AfterEach(func() {
-			kubectl.RunKubectlCommandToDeleteResourceWithPathToFile(kubectl.Namespace(), kubectl.TimeoutInSeconds*3, podSpecPath)
+			Eventually(kubectl.StartKubectlCommand("delete", "-f", podSpecPath), kubectl.TimeoutInSeconds*3).Should(gexec.Exit())
 		})
 
 		It("should appear on the host under a /var/vcap/data/kubelet subdirectory", func() {
