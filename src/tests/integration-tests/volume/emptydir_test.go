@@ -5,7 +5,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -28,13 +27,14 @@ var _ = Describe("a pod emptyDir volume should be mounted under /var/vcap/data/k
 		})
 
 		AfterEach(func() {
-			Eventually(kubectl.StartKubectlCommand("delete", "-f", podSpecPath), kubectl.TimeoutInSeconds).Should(gexec.Exit())
+			Eventually(kubectl.StartKubectlCommand("delete", "-f", podSpecPath), kubectl.TimeoutInSeconds*3).Should(gexec.Exit())
 		})
 
 		It("should appear on the host under a /var/vcap/data/kubelet subdirectory", func() {
 			WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*3)
 
-			Eventually(kubectl.StartKubectlCommand("exec", "emptydir-pod", "--", "sh", "-c", "[ $(find /var/search -name find_me.txt | wc -l) -eq '1' ]"), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
+			output := kubectl.RunKubectlCommandWithRetry(kubectl.Namespace(), kubectl.TimeoutInSeconds*3, "exec", "emptydir-pod", "--", "sh", "-c", "find /var/search -name find_me.txt")
+			Expect(output).Should(ContainSubstring("simple-vol/find_me.txt"))
 		})
 	})
 })
