@@ -6,6 +6,18 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
 export GOPATH="${ROOT}/git-kubo-ci"
 kubeconfig="gcs-kubeconfig/${KUBECONFIG_FILE}"
+DEPLOYMENT_NAME="${DEPLOYMENT_NAME:="ci-service"}"
+
+target_bosh_director() {
+  if [[ -f source-json/source.json ]]; then
+    source="source-json/source.json"
+  else
+    source="kubo-lock/metadata"
+    DEPLOYMENT_NAME="$(bosh int kubo-lock/metadata --path=/deployment_name)"
+  fi
+  export DEPLOYMENT_NAME="${DEPLOYMENT_NAME}"
+  source "${ROOT}/git-kubo-ci/scripts/set-bosh-env" ${source}
+}
 
 main() {
   if [[ ! -e "${kubeconfig}" ]]; then
@@ -44,6 +56,8 @@ main() {
   if [[ "$skipped_packages" != "" ]]; then
     skipped_packages="$(echo $skipped_packages | cut -c 2-)"
   fi
+
+  target_bosh_director
 
   ginkgo -keepGoing -r -progress -flakeAttempts=2 -skipPackage "${skipped_packages}" "${ROOT}/git-kubo-ci/src/tests/integration-tests/"
 }
