@@ -4,30 +4,14 @@ import (
 	"fmt"
 	"tests/test_helpers"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Etcd cert on worker", func() {
 	var (
-		deployment boshdir.Deployment
-		workers    []boshdir.VMInfo
-		masters    []boshdir.VMInfo
-		master     boshdir.VMInfo
-		directory  string
-		err        error
-		director   boshdir.Director
+		directory string
 	)
-
-	director = test_helpers.NewDirector()
-	deployment, err = director.FindDeployment(deploymentName)
-	Expect(err).NotTo(HaveOccurred())
-	workers = test_helpers.DeploymentVmsOfType(deployment, test_helpers.WorkerVMType, "")
-
-	masters = test_helpers.DeploymentVmsOfType(deployment, test_helpers.MasterVMType, "")
-	Expect(len(masters) > 0).To(BeTrue())
-	master = masters[0]
 
 	Context("For directorys under /coreos.com/network/", func() {
 		directory = "/coreos.com/network/"
