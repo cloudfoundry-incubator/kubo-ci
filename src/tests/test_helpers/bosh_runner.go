@@ -21,6 +21,7 @@ func RunEtcdCommandFromWorker(deployment, workerID string, args ...string) strin
 		"--ca-file", "/var/vcap/jobs/flanneld/config/etcd-ca.crt",
 	}
 	remoteArgs = append(remoteArgs, args...)
+	fmt.Println(fmt.Sprintf("sudo su -c '%s'", strings.Join(remoteArgs, " ")))
 	s := RunSSHWithDeployment(deployment, "worker/"+workerID, fmt.Sprintf("sudo su -c '%s'", strings.Join(remoteArgs, " ")))
 	Eventually(s, "20s", "1s").Should(gexec.Exit())
 	ss := string(s.Out.Contents())
@@ -31,9 +32,9 @@ func RunEtcdCommandFromMasterWithFullPrivilege(deployment, masterID string, args
 	remoteArgs := []string{
 		"/var/vcap/packages/etcdctl/etcdctl",
 		fmt.Sprintf("--endpoints https://%s:2379", EtcdHostname),
-		"--cert-file", "/var/vcap/jobs/etcd/config/etcdctl-ca.crt",
+		"--cert-file", "/var/vcap/jobs/etcd/config/etcdctl.crt",
 		"--key-file", "/var/vcap/jobs/etcd/config/etcdctl.key",
-		"--ca-file", "/var/vcap/jobs/etcd/config/etcdctl.crt",
+		"--ca-file", "/var/vcap/jobs/etcd/config/etcdctl-ca.crt",
 	}
 	remoteArgs = append(remoteArgs, args...)
 	s := RunSSHWithDeployment(deployment, "master/"+masterID, fmt.Sprintf("sudo su -c '%s'", strings.Join(remoteArgs, " ")))
