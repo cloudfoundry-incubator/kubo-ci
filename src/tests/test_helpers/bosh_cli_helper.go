@@ -85,10 +85,11 @@ func getUAAUrl() string {
 	if environmentURL.Scheme == "" {
 		environmentURL.Scheme = "https"
 	}
-	if environmentURL.Hostname == "" {
-		environmentURL.Hostname = os.Getenv("BOSH_ENVIRONMENT")
+	hostname := environmentURL.Hostname()
+	if hostname == "" {
+		hostname = os.Getenv("BOSH_ENVIRONMENT")
 	}
-	return fmt.Sprintf("%s://%s:8443", environmentURL.Scheme, environmentURL.Hostname())
+	return fmt.Sprintf("%s://%s:8443", environmentURL.Scheme, hostname)
 }
 
 func buildUAA() (boshuaa.UAA, error) {
