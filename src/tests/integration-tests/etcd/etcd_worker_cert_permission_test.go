@@ -17,8 +17,10 @@ var _ = Describe("Etcd cert on worker", func() {
 		master     boshdir.VMInfo
 		directory  string
 		err        error
+		director   boshdir.Director
 	)
 
+	director = test_helpers.NewDirector()
 	deployment, err = director.FindDeployment(deploymentName)
 	Expect(err).NotTo(HaveOccurred())
 	workers = test_helpers.DeploymentVmsOfType(deployment, test_helpers.WorkerVMType, "")

@@ -5,7 +5,6 @@ import (
 	"testing"
 	"tests/test_helpers"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -17,7 +16,6 @@ func TestEtcd(t *testing.T) {
 
 var (
 	deploymentName string
-	director       boshdir.Director
 )
 
 var _ = BeforeSuite(func() {
@@ -29,5 +27,4 @@ var _ = BeforeSuite(func() {
 		"BOSH_CA_CERT"})
 
 	deploymentName = os.Getenv("BOSH_DEPLOYMENT")
-	director = test_helpers.NewDirector()
 })
