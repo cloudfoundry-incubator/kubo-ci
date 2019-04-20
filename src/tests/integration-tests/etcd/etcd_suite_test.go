@@ -26,13 +26,13 @@ var (
 
 var _ = BeforeSuite(func() {
 	test_helpers.CheckRequiredEnvs([]string{
-		"BOSH_DEPLOYMENT",
+		"DEPLOYMENT_NAME",
 		"BOSH_ENVIRONMENT",
 		"BOSH_CLIENT",
 		"BOSH_CLIENT_SECRET",
 		"BOSH_CA_CERT"})
 
-	deploymentName = os.Getenv("BOSH_DEPLOYMENT")
+	deploymentName = os.Getenv("DEPLOYMENT_NAME")
 
 	director = test_helpers.NewDirector()
 	deployment, err := director.FindDeployment(deploymentName)
