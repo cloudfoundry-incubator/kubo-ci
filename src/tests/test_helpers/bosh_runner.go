@@ -21,7 +21,6 @@ func RunEtcdCommandFromWorker(deployment, workerID string, args ...string) strin
 		"--ca-file", "/var/vcap/jobs/flanneld/config/etcd-ca.crt",
 	}
 	remoteArgs = append(remoteArgs, args...)
-	fmt.Println(fmt.Sprintf("sudo su -c '%s'", strings.Join(remoteArgs, " ")))
 	s := RunSSHWithDeployment(deployment, "worker/"+workerID, fmt.Sprintf("sudo su -c '%s'", strings.Join(remoteArgs, " ")))
 	Eventually(s, "20s", "1s").Should(gexec.Exit())
 	ss := string(s.Out.Contents())
