@@ -14,7 +14,9 @@ var _ = Describe("Etcd cert on worker", func() {
 	)
 
 	Context("For directorys under /coreos.com/network/", func() {
-		directory = "/coreos.com/network/"
+		BeforeEach(func() {
+			directory = "/coreos.com/network/"
+		})
 
 		AfterEach(func() {
 			for _, vm := range workers {
@@ -44,7 +46,9 @@ var _ = Describe("Etcd cert on worker", func() {
 	})
 
 	Context("For directorys under /", func() {
-		directory = "/"
+		BeforeEach(func() {
+			directory = "/"
+		})
 
 		AfterEach(func() {
 			for _, vm := range workers {
