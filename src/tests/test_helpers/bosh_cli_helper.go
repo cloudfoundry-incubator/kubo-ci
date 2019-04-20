@@ -7,11 +7,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	"os"
+
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"os"
 )
 
 const (
@@ -81,7 +82,12 @@ func NewDirector() boshdir.Director {
 func getUAAUrl() string {
 	environmentURL, err := url.Parse(os.Getenv("BOSH_ENVIRONMENT"))
 	Expect(err).NotTo(HaveOccurred())
-
+	if environmentURL.Scheme == "" {
+		environmentURL.Scheme = "https"
+	}
+	if environmentURL.Hostname == "" {
+		environmentURL.Hostname = os.Getenv("BOSH_ENVIRONMENT")
+	}
 	return fmt.Sprintf("%s://%s:8443", environmentURL.Scheme, environmentURL.Hostname())
 }
 
