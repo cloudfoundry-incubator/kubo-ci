@@ -3,6 +3,7 @@
 ./v2_set_pipeline aws vanilla conformance
 ./v2_set_pipeline aws vanilla integration
 ./v2_set_pipeline aws vanilla turbulence
+./v2_set_pipeline aws vanilla security
 
 ./v2_set_pipeline azure vanilla conformance
 ./v2_set_pipeline azure vanilla integration
