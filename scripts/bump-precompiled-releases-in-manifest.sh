@@ -28,6 +28,9 @@ cat >> bump-precompiled-releases.yml <<EOF
     version: $version
     sha1: $sha1
     url: $url
+    stemcell:
+      os: $stemcell_os
+      version: $stemcell_version
 EOF
 
 done
