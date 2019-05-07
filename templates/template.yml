@@ -101,6 +101,9 @@ jobs:
   - get: kubo-deployment
     trigger: true
   - get: kubo-release
+  - get: git-kubo-ci
+  - task: check-version-match
+    file: git-kubo-ci/tasks/check-version-match.yml
   - put: kubo-lock
     params: { acquire: true }
 
