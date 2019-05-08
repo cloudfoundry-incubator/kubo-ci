@@ -27,9 +27,30 @@
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/windows/add-worker.yml
 
-# - type: replace
-#   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-#   value: git-kubo-deployment/manifests/ops-files/windows/version.yml
+- type: replace
+  path: /jobs/name=claim-lock/plan/-
+  value:
+    get: kubo-release-windows
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: kubo-release-windows
+    passed: ['claim-lock']
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: windows-stemcell
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=upload-stemcell/input_mapping/alternate-stemcell?
+  value:
+    windows-stemcell
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/windows/version.yml
 
 - type: replace
   path: /jobs/name=claim-lock/plan/-
@@ -65,8 +86,24 @@
   value: git-kubo-deployment/manifests/ops-files/windows/vm-types.yml
 
 - type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/windows/use-overlay.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/iaas/gcp/windows/cloud-provider.yml
+
+# - type: replace
+#   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+#   value: git-kubo-deployment/manifests/ops-files/iaas/gcp/windows/ephemeral-disk.yml
+
+# - type: replace
+#   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+#   value: git-kubo-deployment/manifests/ops-files/windows/increase-disk.yml
+
+- type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows_worker_vm_type?
-  value: worker
+  value: small-highmem
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows-rdp-password?
