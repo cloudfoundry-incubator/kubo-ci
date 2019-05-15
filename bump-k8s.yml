@@ -48,7 +48,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-ci.git
-    branch: master
+    branch: auto-bump-windows-binaries
     private_key: ((git-ssh-key.private_key))
 
 - name: git-kubo-release
@@ -58,11 +58,20 @@ resources:
     branch: develop
     private_key: ((git-ssh-key.private_key))
 
+- name: git-kubo-release-windows
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-release-windows.git
+    branch: develop
+    private_key: ((git-ssh-key.private_key))
+
 groups:
 - name: bump-k8s
   jobs:
   - bump-k8s
-
+- name: bump-k8s-windows
+  jobs:
+  - bump-k8s-windows
 - name: bump-images-dependencies
   jobs:
   - bump-images-dependencies
@@ -92,6 +101,37 @@ jobs:
         - name: k8s-release
         - name: git-kubernetes
       params:
+        ACCESS_KEY_ID: ((gcs-access-key-id))
+        SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+        CFCR_USER_TOKEN: ((cfcr-git-user-token))
+        GIT_SSH_KEY: |
+          ((git-ssh-key.private_key))
+
+- name: bump-k8s-windows
+  plan:
+  - aggregate:
+    - get: git-kubo-ci
+    - get: git-kubo-release-windows
+    - get: git-kubernetes
+    - get: k8s-release
+      trigger: true
+  - task: bump-k8s-windows
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      run:
+        path: git-kubo-ci/scripts/bump-k8s.sh
+      inputs:
+        - name: git-kubo-ci
+        - name: git-kubo-release-windows
+        - name: k8s-release
+        - name: git-kubernetes
+      params:
+        BASE_OS: windows
         ACCESS_KEY_ID: ((gcs-access-key-id))
         SECRET_ACCESS_KEY: ((gcs-secret-access-key))
         CFCR_USER_TOKEN: ((cfcr-git-user-token))
