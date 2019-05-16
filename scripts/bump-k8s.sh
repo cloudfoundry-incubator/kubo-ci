@@ -31,12 +31,15 @@ pr_kubo_ci() {
   popd
 }
 
-pr_kubo_release() {
+pr_release() {
   version="$1"
   tag="$2"
+  release_name="$3"
 
-  cp -r git-kubo-release/. git-kubo-release-output
-  pushd git-kubo-release-output
+  git_release_name="git-${release_name}"
+
+  cp -r "${git_release_name}/." "${git_release_name}-output"
+  pushd "${git_release_name}-output"
 
   ./scripts/download_k8s_binaries $version
 
@@ -48,7 +51,7 @@ blobstore:
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
     bosh upload-blobs
-    generate_pull_request "kubernetes" "$tag" "kubo-release" "develop"
+    generate_pull_request "kubernetes" "$tag" "${release_name}" "develop"
   else
     echo "Kubernetes version is already up-to-date"
   fi
@@ -59,5 +62,10 @@ EOF
 tag=$(cat "$PWD/k8s-release/tag")
 version=$(cat "$PWD/k8s-release/version")
 
-pr_kubo_release "$version" "$tag"
+if [ "${BASE_OS:-}" == "windows" ]; then
+  pr_release "$version" "$tag" "kubo-release-windows"
+else
+  pr_release "$version" "$tag" "kubo-release"
+fi
+
 pr_kubo_ci "$version" "$tag"
