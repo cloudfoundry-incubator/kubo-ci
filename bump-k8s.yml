@@ -116,13 +116,28 @@ jobs:
           - name: k8s-release
           - name: git-kubernetes
         params:
-          BASE_OS: windows
+          REPO: windows
           ACCESS_KEY_ID: ((gcs-access-key-id))
           SECRET_ACCESS_KEY: ((gcs-secret-access-key))
           CFCR_USER_TOKEN: ((cfcr-git-user-token))
           GIT_SSH_KEY: |
             ((git-ssh-key.private_key))
-
+    - task: bump-k8s-ci
+      config:
+        <<: *config
+        run:
+          path: git-kubo-ci/scripts/bump-k8s.sh
+        inputs:
+          - name: git-kubo-ci
+          - name: k8s-release
+          - name: git-kubernetes
+        params:
+          REPO: ci
+          ACCESS_KEY_ID: ((gcs-access-key-id))
+          SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+          CFCR_USER_TOKEN: ((cfcr-git-user-token))
+          GIT_SSH_KEY: |
+            ((git-ssh-key.private_key))
 - name: bump-images-dependencies
   plan:
   - aggregate:
