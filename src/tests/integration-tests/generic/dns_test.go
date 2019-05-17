@@ -12,9 +12,13 @@ var _ = Describe("Kubernetes DNS", func() {
 	It("Should be able to resolve the internal service DNS name", func() {
 		kubectl := NewKubectlRunner()
 
-		podName := kubectl.GetResourceNameBySelector("kube-system", "pod", "k8s-app=metrics-server")
+		Eventually(
+			kubectl.StartKubectlCommand("run", "dashboard-lookup", "--image=tutum/dnsutils",
+				"--", "nslookup", "kubernetes-dashboard.kube-system.svc.cluster.local"),
+		).Should(gexec.Exit(0))
 
-		session := kubectl.StartKubectlCommandInNamespace("kube-system", "exec", podName, "--", "nslookup", "kubernetes-dashboard.kube-system.svc.cluster.local")
-		Eventually(session, "10s").Should(gexec.Exit(0))
+		Eventually(func() ([]string, error) {
+			return kubectl.GetOutput("get", "pod", "-l", "job-name=dashboard-lookup", "-o", "jsonpath='{.items[0].status.phase}")
+		}, "30s").Should(ConsistOf("Succeeded"))
 	})
 })
