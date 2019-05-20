@@ -20,12 +20,24 @@
     source:
       json_key: ((gcs-json-key))
       bucket: kubo-pipeline-store
-      regexp: dev-windows-builds/kubo-windows-(\d+\.\d+\.\d+(-dev\.\d+)*).*\.tgz
+      regexp: gcp-windows-builds/kubo-release-(.*).tgz
+      # regexp: dev-windows-builds/kubo-(\d+\.\d+\.\d+(-dev\.\d+)*).*\.tgz
+
+## May only be necessary for vsphere environments. Should confirm with windows
+## team when they provide support for other iaas's. 
+# - type: replace
+#   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+#   value: git-kubo-deployment/manifests/ops-files/use-hostgw.yml
 
 ## This ops-file must come before all of the other windows ops-files
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/windows/add-worker.yml
+
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/windows/version.yml
 
 - type: replace
   path: /jobs/name=claim-lock/plan/-
@@ -91,7 +103,15 @@
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/iaas/gcp/windows/cloud-provider.yml
+  value: git-kubo-deployment/manifests/ops-files/windows/use-vm-extensions.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/iaas/((iaas))/windows/cloud-provider.yml
+
+# - type: replace
+#   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+#   value: git-kubo-deployment/manifests/ops-files/iaas/gcp/windows/add-service-key-worker.yml
 
 # - type: replace
 #   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
