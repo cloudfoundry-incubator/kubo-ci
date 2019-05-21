@@ -19,6 +19,9 @@
   value: 0
 
 - type: remove
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/get=kubo-release-windows
+
+- type: remove
   path: /jobs/name=install-bosh/plan/task=configure-bosh-for-turbulence?
 
 - type: replace
