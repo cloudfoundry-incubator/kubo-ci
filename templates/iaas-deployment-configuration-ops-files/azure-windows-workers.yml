@@ -1,0 +1,21 @@
+- type: replace
+  path: /resources/name=windows-stemcell/type?
+  value: bosh-io-stemcell
+
+- type: replace
+  path: /resources/name=windows-stemcell/source?
+  value:
+    name: bosh-azure-hyperv-windows2019-go_agent
+    version: 2019.3
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/windows/use-overlay.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/windows/use-vm-extensions.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/iaas/azure/windows/cloud-provider.yml
