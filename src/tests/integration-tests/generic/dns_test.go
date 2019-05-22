@@ -9,16 +9,28 @@ import (
 )
 
 var _ = Describe("Kubernetes DNS", func() {
+	var (
+		busyboxSpec     string
+		kubectl *KubectlRunner
+	)
+
+	BeforeEach(func() {
+		busyboxSpec = PathFromRoot("specs/busybox.yml")
+		kubectl = NewKubectlRunner()
+	})
+
+	AfterEach(func(){
+		kubectl.RunKubectlCommandWithTimeout("delete", "-n", "kube-system", "-f", busyboxSpec)
+	})
+
 	It("Should be able to resolve the internal service DNS name", func() {
-		kubectl := NewKubectlRunner()
 
-		Eventually(
-			kubectl.StartKubectlCommand("run", "dashboard-lookup", "--image=tutum/dnsutils",
-				"--", "nslookup", "kubernetes-dashboard.kube-system.svc.cluster.local"),
-		).Should(gexec.Exit(0))
+		Eventually(kubectl.StartKubectlCommandInNamespace("kube-system", "apply", "-f", busyboxSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit(0))
+		Eventually(func() string {
+			return kubectl.GetPodStatus("kube-system", "busybox")
+		}, kubectl.TimeoutInSeconds).Should(Equal("Running"))
 
-		Eventually(func() ([]string, error) {
-			return kubectl.GetOutput("get", "pod", "-l", "job-name=dashboard-lookup", "-o", "jsonpath='{.items[0].status.phase}")
-		}, "30s").Should(ConsistOf("Succeeded"))
+		session := kubectl.StartKubectlCommandInNamespace("kube-system", "exec", "busybox", "--", "nslookup", "kubernetes-dashboard.kube-system.svc.cluster.local")
+		Eventually(session, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 	})
 })
