@@ -50,7 +50,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 				"-o", "jsonpath='{.spec.ports[0].nodePort}'")
 			url := fmt.Sprintf("http://%s:%s", hostIP, nodePort)
 
-			Eventually(curl(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
+			Eventually(curl(url), "60s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
 		})
 
 		It("should be reachable by ClusterIP", func() {
