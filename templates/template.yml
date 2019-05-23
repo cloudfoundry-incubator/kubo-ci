@@ -120,7 +120,7 @@ jobs:
       version: every
       trigger: true
     - get: kubo-deployment
-      # passed: [ 'claim-lock' ]
+      passed: [ 'claim-lock' ]
   - task: unpack-kubo-deployment
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
