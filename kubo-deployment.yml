@@ -538,6 +538,7 @@ jobs:
       no_redact: true
       ops_files:
       - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
+      - git-kubo-ci/manifests/ops-files/kubernetes-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/misc/bootstrap.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
       - git-kubo-deployment/manifests/ops-files/addons-spec.yml
