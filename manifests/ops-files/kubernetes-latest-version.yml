@@ -1,0 +1,9 @@
+- type: remove
+  path: /releases/name=kubernetes
+
+- type: replace
+  path: /releases/-
+  value:
+    name: kubernetes
+    version: latest
+

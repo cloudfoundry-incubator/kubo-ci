@@ -25,6 +25,11 @@ main() {
 
   bosh upload-release "$release_tarball"
 
+  local kubernetes_release_tarball
+  kubernetes_release_tarball=$(find "${ROOT}/gcs-kubernetes-release-tarball/" -name "*kubernetes-*.tgz" | head -n1)
+
+  bosh upload-release "$kubernetes_release_tarball"
+
   if [[ "$INTERNET_ACCESS" != "false" ]]; then
     BOSH_DEPLOY_COMMAND="$ROOT/bosh-command/bosh-deploy.sh" ginkgo -r -v -progress "${ROOT}/git-kubo-ci/src/tests/upgrade-tests/"
   else

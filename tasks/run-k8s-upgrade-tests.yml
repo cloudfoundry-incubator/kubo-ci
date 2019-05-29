@@ -18,6 +18,7 @@ inputs:
 - name: kubo-lock
 - name: gcs-bosh-state
 - name: gcs-kubo-release-tarball
+- name: gcs-kubernetes-release-tarball
 - name: gcs-kubeconfig
 - name: bosh-command
 - name: gcs-load-balancer-vars

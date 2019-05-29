@@ -50,6 +50,13 @@ resources:
     bucket: kubo-pipeline-store
     regexp: dev-builds/kubo-deployment-(.*).tgz
 
+- name: kubernetes-release
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    regexp: dev-builds/kubernetes-release-(.*).tgz
+
 - name: kubo-lock
   type: pool
   source:
@@ -101,6 +108,7 @@ jobs:
   - get: kubo-deployment
     trigger: true
   - get: kubo-release
+  - get: kubernetes-release
   - get: git-kubo-ci
   # Update this to match kubo-deployment kubo and kubo-windows
   # - task: check-version-match
@@ -112,6 +120,8 @@ jobs:
   plan:
   - in_parallel:
     - get: slackers
+    - get: kubernetes-release
+      passed: [ 'claim-lock' ]
     - get: kubo-release
       passed: [ 'claim-lock' ]
     - get: git-kubo-ci
@@ -138,6 +148,7 @@ jobs:
       no_redact: true
       ops_files:
       - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
+      - git-kubo-ci/manifests/ops-files/kubernetes-latest-version.yml
       - git-kubo-deployment/manifests/ops-files/rename.yml
       - git-kubo-deployment/manifests/ops-files/add-hostname-to-master-certificate.yml
       - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
@@ -193,6 +204,8 @@ jobs:
       trigger: true
     - get: kubo-deployment
       passed: [ 'deploy-k8s' ]
+    - get: kubernetes-release
+      passed: [ 'deploy-k8s' ]
     - get: kubo-release
       passed: [ 'deploy-k8s' ]
     - get: gcs-kubeconfig
@@ -223,6 +236,8 @@ jobs:
       trigger: true
     - get: kubo-deployment
       passed: [ 'run-tests' ]
+    - get: kubernetes-release
+      passed: [ 'run-tests' ]
     - get: kubo-release
       passed: [ 'run-tests' ]
   - task: destroy-k8s
@@ -237,6 +252,10 @@ jobs:
     - get: git-kubo-ci
     - get: gcs-shipable-version
     - get: kubo-deployment
+      passed: [ 'run-tests' ]
+      version: every
+      trigger: true
+    - get: kubernetes-release
       passed: [ 'run-tests' ]
       version: every
       trigger: true
