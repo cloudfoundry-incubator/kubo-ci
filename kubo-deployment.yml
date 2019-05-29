@@ -583,6 +583,7 @@ jobs:
       <% end %>
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
+      - gcs-kubernetes-release-tarball-untested/*.tgz
       source_file: source-json/source.json
       vars:
         deployment_name: ci-service
@@ -1409,6 +1410,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
     file: git-kubo-ci/tasks/run-k8s-upgrade-tests.yml
     input_mapping:
       gcs-kubo-release-tarball: gcs-kubo-release-tarball-untested
+      gcs-kubernetes-release-tarball: gcs-kubernetes-release-tarball-untested
     params:
       IAAS: <%= env.split('-')[0] %>
       ENABLE_MULTI_AZ_TESTS: true
@@ -1621,6 +1623,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       releases:
       - gcs-kubo-release-tarball-untested/*.tgz
       - github-etcd-release/*.tgz
+      - gcs-kubernetes-release-tarball-untested/*.tgz
       source_file: source-json/source.json
       vars:
         deployment_name: ci-service

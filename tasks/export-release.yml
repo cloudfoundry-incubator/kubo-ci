@@ -11,6 +11,8 @@ inputs:
 - name: git-kubo-deployment
 - name: kubo-version
   optional: true
+- name: kubernetes-version
+  optional: true
 - name: gcs-source-json
 - name: compilation-deployment
 
