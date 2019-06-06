@@ -11,17 +11,16 @@
   path: /resources/-
   value:
     name: windows-stemcell
-    type: pivnet
-    source:
-      api_token: ((pivnet-api-token))
-      product_slug: stemcells-windows-server-internal
-      product_version: "2019.1"
 
-## May only be necessary for vsphere environments. Should confirm with windows
-## team when they provide support for other iaas's. 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/use-hostgw.yml
+  path: /resources/-
+  value:
+    name: kubo-release-windows
+    type: gcs
+    source:
+      json_key: ((gcs-json-key))
+      bucket: kubo-pipeline-store
+      regexp: dev-windows-builds/kubo-(\d+\.\d+\.\d+(-dev\.\d+)*).*\.tgz
 
 ## This ops-file must come before all of the other windows ops-files
 - type: replace
@@ -30,11 +29,32 @@
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/windows/scale-to-one-az.yml
+  value: git-kubo-deployment/manifests/ops-files/windows/version.yml
+
+- type: replace
+  path: /jobs/name=claim-lock/plan/-
+  value:
+    get: kubo-release-windows
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: kubo-release-windows
+    passed: ['claim-lock']
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  value:
+    get: windows-stemcell
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=upload-stemcell/input_mapping/alternate-stemcell?
+  value:
+    windows-stemcell
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/windows/use-hostgw.yml
+  value: git-kubo-deployment/manifests/ops-files/windows/scale-to-one-az.yml
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
@@ -51,3 +71,11 @@
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows-rdp-password?
   value: ((windows-rdp-password))
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/kubo-windows-version?
+  value: latest
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/releases/-
+  value: kubo-release-windows/*.tgz

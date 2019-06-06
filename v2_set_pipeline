@@ -96,7 +96,7 @@ main() {
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_ops_file}")
   fi
   if [ -f "${testcase_ops_file}" ]; then
-    pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${testcase_ops_file}")
+    pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${testcase_ops_file}" -v iaas="${iaas_name}")
   fi
   if [ -f "${iaas_deployment_configuration_ops_file}" ]; then
     pipeline_config=$(bosh int <(echo "${pipeline_config}") --ops-file "${iaas_deployment_configuration_ops_file}")

@@ -126,7 +126,7 @@
     - task: upload-stemcell
       file: git-kubo-ci/tasks/upload-stemcell.yml
       params:
-        IAAS: ((iaas))
+        IAAS: vsphere
       input_mapping:
         git-kubo-deployment: unpacked-kubo-deployment
         source-json: merged-kubo-lock
@@ -257,6 +257,18 @@
 - type: replace
   path: /jobs/name=destroy-k8s/plan/0/aggregate/-
   value:
+    get: gcs-bosh-creds
+    passed: ['deploy-k8s']
+
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/0/aggregate/-
+  value:
+    get: gcs-bosh-state
+    passed: ['deploy-k8s']
+
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/0/aggregate/-
+  value:
     get: source-json
     passed: [ 'deploy-k8s' ]
 
@@ -268,6 +280,18 @@
       source-json: source-json
       kubo-lock: kubo-lock
     file: git-kubo-ci/tasks/merge-metadata.yml
+
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/task=destroy-k8s/file
+  value: git-kubo-ci/tasks/destroy-k8s-instance.yml
+
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/task=destroy-k8s/input_mapping?
+  value:
+    kubo-lock: merged-kubo-lock
+
+- type: remove
+  path: /jobs/name=destroy-k8s/plan/put=kubo-lock
 
 ###########################################################
 # Destroy Bosh Job
@@ -290,6 +314,19 @@
         passed: [ 'destroy-k8s' ]
       - get: kubo-deployment
         passed: [ 'destroy-k8s' ]
+      - get: gcs-bosh-creds
+        passed: [ 'destroy-k8s' ]
+      - get: gcs-bosh-state
+        passed: [ 'destroy-k8s']
+    - task: unpack-tgz
+      file: git-kubo-ci/tasks/unpack-tgz.yml
+      input_mapping:
+        source_tarball: kubo-deployment
+      output_mapping:
+        unpacked_dir: unpacked-kubo-deployment
+      params:
+        SOURCE_TARBALL_REGEX: kubo-deployment-*.tgz
+        COLLAPSE_DIR: kubo-deployment
     - task: merge-metadata
       input_mapping:
         source-json: source-json
@@ -298,7 +335,9 @@
     - task: destroy
       tags: [ 'vsphere-lb' ]
       file: git-kubo-ci/tasks/destroy-bosh.yml
-      input_mapping: {kubo-lock: kubo-lock}
+      input_mapping:
+        kubo-lock: merged-kubo-lock
+        git-kubo-deployment: unpacked-kubo-deployment
     - put: kubo-lock
       params: { release: kubo-lock }
 

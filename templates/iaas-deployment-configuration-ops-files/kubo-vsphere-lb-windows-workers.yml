@@ -5,11 +5,32 @@
     tags: ['vsphere-lb']
 
 - type: replace
+  path: /jobs/name=install-bosh/plan/0/aggregate/-
+  value:
+    get: kubo-release-windows
+    passed: ['claim-lock']
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/aggregate/get=kubo-release-windows/passed?
+  value: ['install-bosh']
+
+- type: replace
   path: /jobs/name=install-bosh/plan/task=install/params/USE_TURBULENCE
   value: 0
 
 - type: remove
   path: /jobs/name=install-bosh/plan/task=configure-bosh-for-turbulence?
+
+- type: replace
+  path: /resources/name=windows-stemcell/type?
+  value: pivnet
+
+- type: replace
+  path: /resources/name=windows-stemcell/source?
+  value:
+    api_token: ((pivnet-api-token))
+    product_slug: stemcells-windows-server-internal
+    product_version: "2019.4"
 
 - type: replace
   path: /jobs/name=install-bosh/plan/task=upload-stemcell/input_mapping/alternate-stemcell?
@@ -22,3 +43,19 @@
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/iaas/vsphere/windows/use-vm-extensions.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/use-hostgw.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/windows/use-hostgw.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows_worker_vm_type?
+  value: worker
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-ci/manifests/ops-files/windows/windows-stemcell-upgrade.yml

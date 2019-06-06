@@ -37,6 +37,6 @@ else
 fi
 
 if [[ -d alternate-stemcell ]]; then
-  files=( alternate-stemcell/bosh-stemcell-*.tgz )
+  files=( alternate-stemcell/*stemcell*.tgz )
   bosh upload-stemcell "${files[0]}"
 fi
