@@ -30,7 +30,7 @@
   value:
     api_token: ((pivnet-api-token))
     product_slug: stemcells-windows-server-internal
-    product_version: "2019.4"
+    product_version: "2019.5"
 
 - type: replace
   path: /jobs/name=install-bosh/plan/task=upload-stemcell/input_mapping/alternate-stemcell?
