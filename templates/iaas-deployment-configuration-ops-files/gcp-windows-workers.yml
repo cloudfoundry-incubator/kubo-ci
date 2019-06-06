@@ -6,6 +6,7 @@
   path: /resources/name=windows-stemcell/source?
   value:
     name: bosh-google-kvm-windows2019-go_agent
+    version: latest
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
@@ -22,3 +23,7 @@
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/iaas/gcp/windows/add-subnetwork-for-internal-load-balancer.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-ci/manifests/ops-files/windows/windows-stemcell-upgrade.yml

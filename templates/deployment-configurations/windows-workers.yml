@@ -55,8 +55,7 @@
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/windows/version.yml
-
+  value: git-kubo-deployment/manifests/ops-files/windows/scale-to-one-az.yml
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/windows/enable-rdp.yml
