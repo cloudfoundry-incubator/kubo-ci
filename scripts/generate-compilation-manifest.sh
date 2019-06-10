@@ -2,21 +2,22 @@
 
 set -eu
 
+stemcell_alias=${stemcell_alias:-default}
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../" && pwd)
 #
 # stemcell metadata/upload
 #
 
-STEMCELL_OS=$(bosh int ${ROOT}/git-kubo-deployment/manifests/cfcr.yml --path /stemcells/0/os)
-STEMCELL_VERSION=$(bosh int ${ROOT}/git-kubo-deployment/manifests/cfcr.yml --path /stemcells/0/version)
+pushd ${ROOT}/git-kubo-deployment/manifests
+STEMCELL_OS=$(bosh int cfcr.yml -o ops-files/windows/add-worker.yml --path /stemcells/alias=${stemcell_alias}/os)
+STEMCELL_VERSION=$(bosh int cfcr.yml -o ops-files/windows/add-worker.yml --path /stemcells/alias=${stemcell_alias}/version)
 
 # KUBO_VERSION="$(cat kubo-version/version)"
-pushd ${ROOT}/git-kubo-deployment/manifests
 export RELEASES=""
 for rel in $RELEASE_LIST
 do
-  release_url=$(bosh int cfcr.yml -o ops-files/non-precompiled-releases.yml --path=/releases/name=$rel/url)
-  release_version=$(bosh int cfcr.yml -o ops-files/non-precompiled-releases.yml --path=/releases/name=$rel/version)
+  release_url=$(bosh int cfcr.yml -o ops-files/non-precompiled-releases.yml -o ops-files/windows/add-worker.yml --path=/releases/name=$rel/url)
+  release_version=$(bosh int cfcr.yml -o ops-files/non-precompiled-releases.yml -o ops-files/windows/add-worker.yml --path=/releases/name=$rel/version)
   RELEASES="$RELEASES- name: $rel\n  url: ${release_url}\n  version: ${release_version}\n"
 done
 popd
@@ -31,7 +32,7 @@ popd
 
 cat > compilation-manifest/manifest.yml <<EOF
 ---
-name: compilation
+name: compilation-${stemcell_alias}
 releases:
 $(echo -e "${RELEASES}")
 stemcells:
