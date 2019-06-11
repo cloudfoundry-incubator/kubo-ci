@@ -15,9 +15,6 @@
 groups:
 - name: all
   jobs:
-  - run-unit-tests
-  - build-kubo-release
-  - package-kubo-deployment-tarball
 <% conformance_test_envs.each do |env| %>
   - run-k8s-conformance-tests-<%= env %>
 <% end %>
@@ -56,11 +53,6 @@ groups:
 <% end %>
   - upload-kubo-deployment
   - upload-kubo-release
-- name: build
-  jobs:
-  - run-unit-tests
-  - build-kubo-release
-  - package-kubo-deployment-tarball
 <% env_list.each do |env| %>
 - name: <%= env %>
   jobs:
@@ -372,130 +364,18 @@ resources:
     repository: bosh-backup-and-restore
     access_token: ((github-kubo-gitbot-access-token))
 
-# precompiling
-- name: gaffer-source-json
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
-    versioned_file: gaffer-env/source.json
-
-- name: compilation-deployment
-  type: bosh-deployment
-  source:
-    deployment: compilation
-    skip_check: true
-
 jobs:
-- name: run-unit-tests
-  plan:
-  - get: slackers
-  - get: git-kubo-ci
-  - get: git-kubo-deployment
-    trigger: true
-  - get: git-kubo-release
-    trigger: true
-  - task: run-release-unit-tests
-    file: git-kubo-ci/tasks/run-release-unit-tests.yml
-    <% if enable_failure_alert %>
-    on_failure: &on_failure_alert
-      do:
-      - task: configure-slack-notification
-        file: git-kubo-ci/tasks/configure-slack-notification.yml
-      - put: slack-alert
-        params:
-          attachments_file: slack-notification/attachments
-          text: |
-            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-    <% else %>
-    on_failure: &on_failure_alert
-    <% end %>
-  - task: run-deployment-unit-tests
-    file: git-kubo-ci/tasks/run-deployment-unit-tests.yml
-    on_failure: *on_failure_alert
-
-- name: build-kubo-release
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: gaffer-source-json
-    - get: git-kubo-deployment
-      passed: [ 'run-unit-tests' ]
-      trigger: true
-    - get: kubo-version
-      params:
-        pre: dev
-    - get: git-kubo-release
-      passed: [ 'run-unit-tests' ]
-      trigger: true
-  - task: build-kubo-release
-    file: git-kubo-ci/tasks/build-kubo-release.yml
-    on_failure: *on_failure_alert
-  - task: generate-compilation-manifest
-    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
-    params:
-      RELEASE_LIST: "kubo"
-  - put: compilation-deployment
-    params:
-      manifest: compilation-manifest/manifest.yml
-      source_file: gaffer-source-json/source.json
-      releases:
-      - kubo-release/kubo-release-*.tgz
-    tags: ['gaffer']
-  - task: export
-    tags: ['gaffer']
-    file: git-kubo-ci/tasks/export-release.yml
-    params:
-      RELEASE_LIST: "kubo"
-    input_mapping:
-      gcs-source-json: gaffer-source-json
-  - put: kubo-version
-    attempts: 10
-    params:
-      pre: dev
-  - put: gcs-kubo-release-tarball-untested
-    attempts: 10
-    params:
-      file: compiled-releases/kubo-*.tgz
-
-- name: package-kubo-deployment-tarball
-  plan:
-  - aggregate:
-    - get: slackers
-    - get: git-kubo-ci
-    - get: git-kubo-deployment
-      passed: [ 'build-kubo-release' ]
-    - get: kubo-version
-      passed: [ 'build-kubo-release' ]
-    - get: gcs-kubo-release-tarball-untested
-      passed: [ 'build-kubo-release' ]
-      trigger: true
-    - get: git-kubo-release
-      passed: [ 'build-kubo-release' ]
-  - task: build-kubo-deployment-tarball
-    file: git-kubo-ci/tasks/build-kubo-deployment-tarball.yml
-    on_failure: *on_failure_alert
-  - put: gcs-kubo-deployment-tarball-untested
-    params:
-      file: kubo-deployment-tarball/kubo-deployment*.tgz
-
 <% env_list.each do |env| %>
 - name: claim-lock-<%= env %>
   max_in_flight: 1
   plan:
   - aggregate:
     - get: kubo-version
-      passed: [ 'package-kubo-deployment-tarball' ]
       trigger: true
     - get: git-kubo-release
-      passed: [ 'package-kubo-deployment-tarball' ]
     - get: git-kubo-deployment
-      passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'package-kubo-deployment-tarball' ]
   - put: kubo-lock-<%= env %>
     params: { acquire: true }
 
@@ -530,7 +410,15 @@ jobs:
       <% elsif env.include? 'aws-lb' %>
       CLOUD_CONFIG_OPS_FILE: aws-k8s-cloud-config-multiaz.yml
       <% end %>
-    on_failure: *on_failure_alert
+    on_failure: &on_failure_alert
+      do:
+      - task: configure-slack-notification
+        file: git-kubo-ci/tasks/configure-slack-notification.yml
+      - put: slack-alert
+        params:
+          attachments_file: slack-notification/attachments
+          text: |
+            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - aggregate:
     - put: gcs-bosh-creds
       attempts: 10
@@ -911,16 +799,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   plan:
   - aggregate:
     - get: kubo-version
-      passed: [ 'package-kubo-deployment-tarball' ]
       trigger: true
     - get: git-kubo-release
-      passed: [ 'package-kubo-deployment-tarball' ]
     - get: git-kubo-deployment
-      passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'package-kubo-deployment-tarball' ]
   - put: kubo-lock
     resource: kubo-lock-<%= env %>
     params: { acquire: true }
@@ -1260,16 +1143,11 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   plan:
   - aggregate:
     - get: kubo-version
-      passed: [ 'package-kubo-deployment-tarball' ]
       trigger: true
     - get: git-kubo-release
-      passed: [ 'package-kubo-deployment-tarball' ]
     - get: git-kubo-deployment
-      passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'package-kubo-deployment-tarball' ]
   - put: kubo-lock-<%= env %>
     params: { acquire: true }
 
@@ -1577,19 +1455,14 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
   plan:
   - aggregate:
     - get: kubo-version
-      passed: [ 'package-kubo-deployment-tarball' ]
       trigger: true
     - get: github-etcd-release
       trigger: true
     - get: git-kubo-drats
     - get: git-kubo-release
-      passed: [ 'package-kubo-deployment-tarball' ]
     - get: git-kubo-deployment
-      passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-release-tarball-untested
-      passed: [ 'package-kubo-deployment-tarball' ]
     - get: gcs-kubo-deployment-tarball-untested
-      passed: [ 'package-kubo-deployment-tarball' ]
   - put: kubo-lock-<%= env %>
     params: { acquire: true }
 
