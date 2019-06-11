@@ -81,7 +81,7 @@ var _ = Describe("NFS", func() {
 		})
 
 		It("should mount an NFS PV to a workload", func() {
-			WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*3)
+			WaitForPodsToRun(kubectl, kubectl.TimeoutInSeconds*10)
 		})
 	})
 })

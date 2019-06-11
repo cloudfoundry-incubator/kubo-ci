@@ -65,7 +65,7 @@ var _ = Describe("Guestbook storage", func() {
 
 			Eventually(func() error {
 				return PostToGuestBook(appAddress, testValue)
-			}, kubectl.TimeoutInSeconds*2, "5s").Should(Succeed())
+			}, kubectl.TimeoutInSeconds*5, "5s").Should(Succeed())
 
 			Eventually(func() string {
 				return GetValueFromGuestBook(appAddress)
