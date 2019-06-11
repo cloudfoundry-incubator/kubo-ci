@@ -1,0 +1,15 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: pcfkubo/kubo-ci
+    tag: stable
+run:
+  path: git-kubo-ci/scripts/build-kubernetes-windows-release.sh
+
+inputs:
+  - name: git-kubo-ci
+  - name: git-kubernetes-windows-release
+  - name: kubernetes-windows-version
+outputs:
+  - name: kubernetes-windows-release
