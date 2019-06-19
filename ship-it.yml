@@ -89,7 +89,7 @@ resources:
 - name: compilation-deployment
   type: bosh-deployment
   source:
-    deployment: compilation
+    deployment: compilation-default
     skip_check: true
 
 - name: gcs-precompiled-kubo-untested

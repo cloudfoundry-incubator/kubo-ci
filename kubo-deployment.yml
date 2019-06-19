@@ -296,7 +296,7 @@ resources:
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    regexp: dev-builds/kubo-release-(.*).tgz
+    regexp: dev-builds/kubo-(\d+\.\d+\.\d+(-dev\.\d+)*).*\.tgz
 
 - name: gcs-kubo-deployment-tarball-untested
   type: gcs
