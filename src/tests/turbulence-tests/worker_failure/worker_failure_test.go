@@ -70,7 +70,7 @@ var _ = Describe("Worker failure scenarios", func() {
 		Eventually(GetReadyNodes, "240s", "5s").Should(HaveLen(2))
 
 		By("Verifying that the Worker VM has joined the K8s cluster")
-		Eventually(GetReadyNodes, "450s", "5s").Should(HaveLen(3))
+		Eventually(GetReadyNodes, "600s", "5s").Should(HaveLen(3))
 
 		By("Ensuring a new worker VM has joined the bosh deployment")
 		var runningWorkerVms []director.VMInfo
