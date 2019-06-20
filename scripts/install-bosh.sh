@@ -51,6 +51,16 @@ elif [[ -f "$iaas_cc_opsfile" ]]; then
 fi
 export CLOUD_CONFIG_OPS_FILES
 
+copy_env_to_output() {
+  # for Concourse outputs
+  if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
+    cp "${KUBO_ENVIRONMENT_DIR}/creds.yml" "${ROOT}/bosh-creds/"
+    cp "${KUBO_ENVIRONMENT_DIR}/state.json" "${ROOT}/bosh-state/"
+  fi
+}
+
+trap "copy_env_to_output" ERR
+
 echo "Deploying BOSH"
 
 if [ "$iaas" = "gcp" ]; then
@@ -72,8 +82,4 @@ fi
 
 "${ROOT}/git-kubo-ci/scripts/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
 
-# for Concourse outputs
-if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
-  cp "${KUBO_ENVIRONMENT_DIR}/creds.yml" "${ROOT}/bosh-creds/"
-  cp "${KUBO_ENVIRONMENT_DIR}/state.json" "${ROOT}/bosh-state/"
-fi
+copy_env_to_output

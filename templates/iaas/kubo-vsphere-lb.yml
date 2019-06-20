@@ -88,6 +88,18 @@
       params:
         USE_TURBULENCE: 1
         CLOUD_CONFIG_OPS_FILE: vsphere-lb-k8s-cloud-config-multiaz.yml
+      on_failure: &on_failure
+        aggregate:
+        - do:
+          - task: bosh-destroy
+            tags: [ 'vsphere-lb' ]
+            file: git-kubo-ci/tasks/destroy-bosh.yml
+            input_mapping:
+              unpacked-kubo-deployment: git-kubo-deployment
+              gcs-bosh-state: bosh-state
+              gcs-bosh-creds: bosh-creds
+          - put: kubo-lock
+            params: { release: kubo-lock }
     - aggregate:
       - put: gcs-bosh-creds
         attempts: 10
@@ -184,6 +196,7 @@
       source-json: source-json
       kubo-lock: kubo-lock
     file: git-kubo-ci/tasks/merge-metadata.yml
+    tags: [ 'vsphere-lb' ]
 
 # Add necessary vsphere iaas ops-files
 - type: replace
