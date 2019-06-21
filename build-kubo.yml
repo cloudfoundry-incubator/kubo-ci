@@ -148,6 +148,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
+      passed: [ 'run-unit-tests-release' ]
     - get: gaffer-source-json
     - get: git-kubo-deployment
     - get: kubo-version
@@ -238,6 +239,8 @@ jobs:
       passed: [ 'run-unit-tests-deployment' ]
       trigger: true
     - get: kubo-version
+      params:
+        pre: dev
   - task: build-kubo-deployment-tarball
     file: git-kubo-ci/tasks/build-kubo-deployment-tarball.yml
     on_failure: *on_failure_alert

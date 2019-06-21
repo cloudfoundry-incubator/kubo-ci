@@ -95,11 +95,9 @@
             tags: [ 'vsphere-lb' ]
             file: git-kubo-ci/tasks/destroy-bosh.yml
             input_mapping:
-              unpacked-kubo-deployment: git-kubo-deployment
+              git-kubo-deployment: unpacked-kubo-deployment
               gcs-bosh-state: bosh-state
               gcs-bosh-creds: bosh-creds
-          - put: kubo-lock
-            params: { release: kubo-lock }
     - aggregate:
       - put: gcs-bosh-creds
         attempts: 10
