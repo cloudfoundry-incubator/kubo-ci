@@ -10,6 +10,7 @@ print_usage(){
 
 BOSH_DEPLOYMENT="$1"
 IAAS="vsphere"
+BOSH_LOG_LEVEL="debug"
 
 if [ -z "$BOSH_DEPLOYMENT" ]; then
   print_usage
