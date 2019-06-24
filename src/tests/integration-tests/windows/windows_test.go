@@ -58,7 +58,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 				"-o", "jsonpath='{.spec.clusterIP}'")
 			url := fmt.Sprintf("http://%s", clusterIP)
 
-			Eventually(curl(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
+			Eventually(curl(url), "60s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
 		})
 	})
 })
