@@ -110,7 +110,7 @@ jobs:
 
 - name: deploy-k8s
   plan:
-  - aggregate:
+  - in_parallel:
     - get: slackers
     - get: kubo-release
       passed: [ 'claim-lock' ]
@@ -184,7 +184,7 @@ jobs:
 
 - name: run-tests
   plan:
-  - aggregate:
+  - in_parallel:
     - get: slackers
     - get: git-kubo-ci
     - get: kubo-lock
@@ -215,7 +215,7 @@ jobs:
 
 - name: destroy-k8s
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: kubo-lock
       passed: [ 'run-tests' ]
@@ -233,7 +233,7 @@ jobs:
 
 - name: publish-version
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: gcs-shipable-version
     - get: kubo-deployment

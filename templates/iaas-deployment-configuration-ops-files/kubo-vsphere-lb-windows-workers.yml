@@ -1,17 +1,17 @@
 - type: replace
-  path: /jobs/name=install-bosh/plan/0/aggregate/-
+  path: /jobs/name=install-bosh/plan/0/in_parallel/-
   value:
     get: windows-stemcell
     tags: ['vsphere-lb']
 
 - type: replace
-  path: /jobs/name=install-bosh/plan/0/aggregate/-
+  path: /jobs/name=install-bosh/plan/0/in_parallel/-
   value:
     get: kubo-release-windows
     passed: ['claim-lock']
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/get=kubo-release-windows/passed?
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/get=kubo-release-windows/passed?
   value: ['install-bosh']
 
 - type: replace
