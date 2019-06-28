@@ -15,12 +15,11 @@ spec:
     effect: "NoSchedule"
   restartPolicy: Always
   containers:
-  - image: mcr.microsoft.com/windows/servercore:ltsc2019
+  - image: stefanscherer/webserver-windows:latest
     name: webserver
+    env:
+    - name: PORT
+      value: "80"
     ports:
     - name: http
       containerPort: 80
-    command:
-    - powershell.exe
-    - -command
-    - "<#code used from https://gist.github.com/wagnerandrade/5424431#> ; $$listener = New-Object System.Net.HttpListener ; $$listener.Prefixes.Add('http://*:80/') ; $$listener.Start() ; $$callCount = 0; Write-Host('Listening at http://*:80/') ; while ($$listener.IsListening) { ;$$context = $$listener.GetContext() ;$$requestUrl = $$context.Request.Url ;$$response = $$context.Response ;Write-Host '' ;Write-Host('> {0}' -f $$requestUrl) ; $$content='Windows Container Web Server\n'; Write-Output $$content ;$$buffer = [System.Text.Encoding]::UTF8.GetBytes($$content) ;$$response.ContentLength64 = $$buffer.Length ;$$response.OutputStream.Write($$buffer, 0, $$buffer.Length) ;$$response.Close() ;$$responseStatus = $$response.StatusCode ;Write-Host('< {0}' -f $$responseStatus)  } ; "
