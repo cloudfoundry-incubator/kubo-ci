@@ -1,18 +1,38 @@
 package windows_test
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"os"
 	"tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	kubectl       *test_helpers.KubectlRunner
-	webServerSpec = test_helpers.PathFromRoot("specs/windows/webserver.yml")
+	kubectl         *test_helpers.KubectlRunner
+	webServerSpec   = test_helpers.PathFromRoot("specs/windows/webserver.yml")
+	curlWindowsSpec = test_helpers.PathFromRoot("specs/windows/curl.yml")
+	curlPod         = v1.Pod{
+		TypeMeta: metav1.TypeMeta{Kind: "Pod", APIVersion: "v1"},
+		Spec: v1.PodSpec{
+			NodeSelector: map[string]string{"beta.kubernetes.io/os": "windows"},
+			Tolerations: []v1.Toleration{
+				{Key: "windows", Operator: "Equal", Effect: "NoSchedule", Value: "2019"},
+			},
+			RestartPolicy: v1.RestartPolicyNever,
+			Containers: []v1.Container{
+				{Name: "curl", Image: "mcr.microsoft.com/windows/servercore:ltsc2019", Command: []string{"curl.exe"}},
+			},
+		},
+	}
 )
 
 var _ = Describe("When deploying to a Windows worker", func() {
@@ -42,7 +62,8 @@ var _ = Describe("When deploying to a Windows worker", func() {
 				"-o", "jsonpath='{.spec.ports[0].nodePort}'")
 			url := fmt.Sprintf("http://%s:%s", hostIP, nodePort)
 
-			Eventually(curl(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
+			Eventually(curlLinux(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
+			Eventually(curlWindows(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
 		})
 
 		By("should be able to reach it via Cluster IP", func() {
@@ -50,25 +71,50 @@ var _ = Describe("When deploying to a Windows worker", func() {
 				"-o", "jsonpath='{.spec.clusterIP}'")
 			url := fmt.Sprintf("http://%s", clusterIP)
 
-			Eventually(curl(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
+			Eventually(curlLinux(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
+			Eventually(curlWindows(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
 		})
 	})
 })
 
-func curl(url string) func() ([]string, error) {
+func curlLinux(url string) func() ([]string, error) {
 	name := fmt.Sprintf("curl-%d", rand.Int())
-	job := fmt.Sprintf("job-name=%s", name)
 	Eventually(
-		kubectl.StartKubectlCommand("run", name, "--image=tutum/curl", "--restart=OnFailure",
+		kubectl.StartKubectlCommand("run", name, "--image=tutum/curl", "--restart=Never",
 			"--", "curl", "-s", url),
 	).Should(gexec.Exit(0))
 
 	Eventually(func() ([]string, error) {
-		return kubectl.GetOutput("get", "pod", "-l", job, "-o", "jsonpath='{.items[0].status.phase}'")
+		return kubectl.GetOutput("get", "pod", name, "-o", "jsonpath='{.status.phase}'")
 	}, "30s").Should(ConsistOf("Succeeded"))
 
 	return func() ([]string, error) {
-		return kubectl.GetOutput("logs", "-l", job)
+		return kubectl.GetOutput("logs", name)
+	}
+}
+
+func curlWindows(url string) func() ([]string, error) {
+	name := fmt.Sprintf("curl-windows-%d", rand.Int())
+
+	curlPod.Spec.Containers[0].Args = []string{"-s", url}
+	curlPod.Name = name
+
+	outSpec, err := ioutil.TempFile("", "curl")
+	Expect(err).To(BeNil())
+	defer os.Remove(outSpec.Name())
+
+	Expect(json.NewEncoder(outSpec).Encode(&curlPod)).To(Succeed())
+
+	Eventually(
+		kubectl.StartKubectlCommand("create", "-f", outSpec.Name()),
+	).Should(gexec.Exit(0))
+
+	Eventually(func() ([]string, error) {
+		return kubectl.GetOutput("get", "pod", name, "-o", "jsonpath='{.status.phase}'")
+	}, "30s").Should(ConsistOf("Succeeded"))
+
+	return func() ([]string, error) {
+		return kubectl.GetOutput("logs", name)
 	}
 }
 
