@@ -29,7 +29,7 @@ var (
 			},
 			RestartPolicy: v1.RestartPolicyNever,
 			Containers: []v1.Container{
-				{Name: "curl", Image: "mcr.microsoft.com/windows/servercore:ltsc2019", Command: []string{"curl.exe"}},
+				{Name: "curl", Image: "mcr.microsoft.com/windows/nanoserver:1809", Command: []string{"curl.exe"}},
 			},
 		},
 	}
@@ -49,7 +49,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 		By("should be able to fetch logs from a pod", func() {
 			Eventually(func() ([]string, error) {
 				return kubectl.GetOutput("logs", "windows-webserver")
-			}, "30s").Should(Equal([]string{"Listening", "at", "http://*:80/"}))
+			}, "30s").Should(Equal([]string{"Proudly", "serving", "content", "on", "port", "80"}))
 		})
 
 		expose := kubectl.StartKubectlCommand("expose", "pod", "windows-webserver", "--type", "NodePort")
@@ -62,8 +62,8 @@ var _ = Describe("When deploying to a Windows worker", func() {
 				"-o", "jsonpath='{.spec.ports[0].nodePort}'")
 			url := fmt.Sprintf("http://%s:%s", hostIP, nodePort)
 
-			Eventually(curlLinux(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
-			Eventually(curlWindows(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
+			Eventually(curlLinux(url), "30s").Should(ContainElement(ContainSubstring("webserver.exe")))
+			Eventually(curlWindows(url), "30s").Should(ContainElement(ContainSubstring("webserver.exe")))
 		})
 
 		By("should be able to reach it via Cluster IP", func() {
@@ -71,8 +71,8 @@ var _ = Describe("When deploying to a Windows worker", func() {
 				"-o", "jsonpath='{.spec.clusterIP}'")
 			url := fmt.Sprintf("http://%s", clusterIP)
 
-			Eventually(curlLinux(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
-			Eventually(curlWindows(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
+			Eventually(curlLinux(url), "30s").Should(ContainElement(ContainSubstring("webserver.exe")))
+			Eventually(curlWindows(url), "30s").Should(ContainElement(ContainSubstring("webserver.exe")))
 		})
 	})
 })
