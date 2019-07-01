@@ -14,7 +14,7 @@ stemcell_version="$(cat stemcell/version)"
 
 bosh int "${ROOT}/git-kubo-deployment/manifests/cfcr.yml" \
   -o replace-stemcell-version.yml \
-  -v stemcell_version="${stemcell_version}" \
+  -v stemcell_version="\"${stemcell_version}\"" \
   > git-kubo-deployment-output/manifests/cfcr.yml
 
 git config --global user.name "cfcr"
