@@ -38,13 +38,13 @@
     get: kubo-release-windows
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/-
   value:
     get: kubo-release-windows
     passed: ['claim-lock']
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/-
   value:
     get: windows-stemcell
 
