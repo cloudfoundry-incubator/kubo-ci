@@ -1,6 +1,6 @@
 <%
   old_pools = %w(vsphere-lb vsphere-proxy)
-  pools = %w(gcp azure aws)
+  pools = %w(gcp azure aws vsphere)
 %>
 
 resource_types:
@@ -80,7 +80,7 @@ jobs:
     params: { acquire: true }
 - name: cleanup-<%= pool %>
   plan:
-  - aggregate:
+  - in_parallel:
     - get: kubo-lock-<%= pool %>-lifecycle
       version: every
       trigger: true
@@ -110,7 +110,7 @@ jobs:
 
 - name: cleanup-<%= pool %>
   plan:
-  - aggregate:
+  - in_parallel:
     - get: <%= pool %>-lifecycle
       passed: [ claim-lock-<%= pool %> ]
       version: every
