@@ -58,7 +58,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 				"-o", "jsonpath='{.spec.clusterIP}'")
 			url := fmt.Sprintf("http://%s", clusterIP)
 
-			Eventually(curl(url), "60s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
+			Eventually(curl(url), "30s").Should(ConsistOf("Windows", "Container", "Web", "Server"))
 		})
 	})
 })
@@ -71,7 +71,7 @@ func curl(url string) func() ([]string, error) {
 
 	Eventually(func() ([]string, error) {
 		return kubectl.GetOutput("get", "pod", "-l", "job-name=curl", "-o", "jsonpath='{.items[0].status.phase}")
-	}, "30s").Should(ConsistOf("Succeeded"))
+	}, "60s").Should(ConsistOf("Succeeded"))
 
 	return func() ([]string, error) {
 		return kubectl.GetOutput("logs", "-l", "job-name=curl")
