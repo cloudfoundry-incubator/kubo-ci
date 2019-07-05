@@ -120,6 +120,9 @@ jobs:
     file: git-kubo-ci/tasks/destroy-k8s-instance-long-lived-director.yml
     input_mapping:
       kubo-lock: <%= pool %>-lifecycle
+    <% if pool == 'vsphere' %>
+    tags: [ 'vsphere-lb' ]
+    <% end %>
   - put: <%= pool %>-pool
     params: { add: <%= pool %>-lifecycle }
   - put: <%= pool %>-lifecycle
