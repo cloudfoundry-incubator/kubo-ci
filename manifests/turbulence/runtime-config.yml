@@ -21,3 +21,6 @@ addons:
           agent_listen_port: 8081
           cert:
             ca: ((turbulence_api_ca.ca))
+  exclude:
+    stemcell:
+    - os: windows2019
