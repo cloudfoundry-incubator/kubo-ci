@@ -12,7 +12,9 @@ main() {
     echo "Did not find kubeconfig at gcs-kubeconfig/config!"
     exit 1
   fi
-  if bosh int kubo-lock/metadata --path=/jumpbox_ssh_key &>/dev/null ; then
+  if bosh int kubo-lock/metadata --path /vcenter_ip &>/dev/null; then
+    : #skip setting up the shuttle when testing against vpshere
+  elif bosh int kubo-lock/metadata --path=/jumpbox_ssh_key &>/dev/null ; then
     bosh int kubo-lock/metadata --path=/jumpbox_ssh_key > ssh.key
     chmod 0600 ssh.key
     cidr="$(bosh int kubo-lock/metadata --path=/internal_cidr)"

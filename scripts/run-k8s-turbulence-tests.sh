@@ -51,7 +51,9 @@ main() {
   mkdir -p ~/.kube/
   cp "${KUBECONFIG_PATH}" ~/.kube/config
 
-  if bosh int kubo-lock/metadata --path=/jumpbox_ssh_key &>/dev/null ; then
+  if bosh int kubo-lock/metadata --path /vcenter_ip &>/dev/null; then
+    : #skip setting up the shuttle when testing against vpshere
+  elif bosh int kubo-lock/metadata --path=/jumpbox_ssh_key &>/dev/null ; then
     create_shuttle
     trap 'kill -9 $(cat sshuttle.pid)' EXIT
   fi
