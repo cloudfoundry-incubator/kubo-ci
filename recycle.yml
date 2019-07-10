@@ -1,6 +1,6 @@
 <%
   old_pools = %w(vsphere-lb vsphere-proxy)
-  pools = %w(gcp azure aws vsphere)
+  pools = %w(gcp azure aws vsphere vsphere-proxy)
 %>
 
 resource_types:
@@ -122,6 +122,9 @@ jobs:
       kubo-lock: <%= pool %>-lifecycle
     <% if pool == 'vsphere' %>
     tags: [ 'vsphere-lb' ]
+    <% end %>
+    <% if pool == 'vsphere-proxy' %>
+    tags: [ 'vsphere-proxy' ]
     <% end %>
   - put: <%= pool %>-pool
     params: { add: <%= pool %>-lifecycle }
