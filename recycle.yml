@@ -1,5 +1,5 @@
 <%
-  old_pools = %w(vsphere-lb vsphere-proxy)
+  old_pools = %w(vsphere-lb)
   pools = %w(gcp azure aws vsphere vsphere-proxy)
 %>
 
