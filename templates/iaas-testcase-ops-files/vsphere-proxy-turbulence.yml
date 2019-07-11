@@ -1,0 +1,7 @@
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_MULTI_AZ_TESTS?
+  value: false
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/params?/IAAS?
+  value: vsphere
