@@ -35,7 +35,7 @@ resources:
   source:
     owner: coredns
     repository: coredns
-    tag_filter: v?(1.*)
+    tag_filter: v?(1\..*)
     access_token: ((github-token-key))
 
 - name: git-kubernetes
