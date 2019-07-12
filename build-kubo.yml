@@ -56,6 +56,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-release-windows.git
+    branch: develop
     private_key: ((git-ssh-key.private_key))
     ignore_paths:
     - '*.md'
@@ -146,7 +147,7 @@ jobs:
 
 - name: build-kubo-release
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
       passed: [ 'run-unit-tests-release' ]
     - get: gaffer-source-json
@@ -190,7 +191,7 @@ jobs:
 
 - name: build-kubo-windows-release
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
       passed: [ 'run-unit-tests-release' ]
       trigger: true
@@ -233,7 +234,7 @@ jobs:
 
 - name: build-kubo-deployment-tarball
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: git-kubo-deployment
       passed: [ 'run-unit-tests-deployment' ]
@@ -250,7 +251,7 @@ jobs:
 
 - name: bump-version
   plan:
-  - aggregate:
+  - in_parallel:
     - get: kubo-version
       passed:
       - 'build-kubo-release'
