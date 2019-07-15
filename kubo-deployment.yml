@@ -1056,6 +1056,7 @@ destroy_bosh_passed_reqs = [ "destroy-k8s-#{env}" ]
       passed: [ 'deploy-old-k8s-<%= env %>' ]
     - get: gcs-kubo-deployment-tarball-untested
       passed: [ 'deploy-old-k8s-<%= env %>' ]
+    - get: gcs-kubernetes-release-tarball-untested
     - get: kubo-version
       passed: [ 'deploy-old-k8s-<%= env %>' ]
     - get: git-kubo-release
