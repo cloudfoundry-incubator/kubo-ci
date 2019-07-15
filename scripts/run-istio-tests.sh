@@ -3,7 +3,7 @@ set -euox pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
 export KUBECONFIG=$ROOT/gcs-kubeconfig/config
-ISTIO_VERSION=1.1.0.snapshot.0
+ISTIO_VERSION=1.1.11
 
 git clone --depth 50 --branch $ISTIO_VERSION https://github.com/istio/istio $GOPATH/src/istio.io/istio
 
