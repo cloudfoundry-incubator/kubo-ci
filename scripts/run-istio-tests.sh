@@ -16,8 +16,7 @@ helm init --service-account tiller
 kubectl rollout status -w -n kube-system deployment.apps/tiller-deploy
 
 # install Istio
-kubectl apply -f install/kubernetes/helm/istio/templates/crds.yaml
-kubectl apply -f install/kubernetes/helm/istio/charts/certmanager/templates/crds.yaml
+helm install install/kubernetes/helm/istio-init --name istio-init --namespace istio-system
 trap "helm del --purge istio-system; kubectl delete namespace istio-system" 0 1 2 3 15
 helm install install/kubernetes/helm/istio --name istio-system --namespace istio-system --set global.mtls.enabled=true \
   --set sidecarInjectorWebhook.enabled=true --set global.hub=istio --set global.tag=$ISTIO_VERSION --set global.crds=false --debug
