@@ -7,6 +7,9 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/build-kubernetes-release.sh
 
+params:
+  RELEASE:
+
 inputs:
   - name: git-kubo-ci
   - name: git-kubernetes-release

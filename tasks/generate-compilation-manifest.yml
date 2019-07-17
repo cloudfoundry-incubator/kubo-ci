@@ -9,8 +9,7 @@ image_resource:
 inputs:
 - name: git-kubo-deployment
 - name: git-kubo-ci
-- name: kubo-version
-  optional: true
+- name: version
 
 outputs:
 - name: compilation-manifest

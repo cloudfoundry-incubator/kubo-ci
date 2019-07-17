@@ -5,11 +5,14 @@ image_resource:
     repository: pcfkubo/kubo-ci
     tag: stable
 run:
-  path: git-kubo-ci/scripts/build-kubernetes-windows-release.sh
+  path: git-kubo-ci/scripts/build-kubernetes-release.sh
+
+params:
+  RELEASE:
 
 inputs:
   - name: git-kubo-ci
   - name: git-kubernetes-windows-release
-  - name: kubernetes-windows-version
+  - name: kubernetes-version
 outputs:
   - name: kubernetes-windows-release
