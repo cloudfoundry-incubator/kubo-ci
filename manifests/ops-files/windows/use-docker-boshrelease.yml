@@ -1,0 +1,11 @@
+- type: remove
+  path: /releases/name=windows-tools
+
+- type: remove
+  path: /instance_groups/name=windows-worker/jobs/name=docker
+
+- type: replace
+  path: /instance_groups/name=windows-worker/jobs/-
+  value: 
+    name: docker-windows
+    release: docker

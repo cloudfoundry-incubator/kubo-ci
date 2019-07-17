@@ -1,0 +1,8 @@
+- type: remove
+  path: /releases/name=docker
+
+- type: replace
+  path: /releases/-
+  value:
+    name: docker
+    version: latest
