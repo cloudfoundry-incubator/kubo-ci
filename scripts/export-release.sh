@@ -14,7 +14,7 @@ for release in $RELEASE_LIST
 do
   if [[ $release == kubo* ]]; then
     RELEASE_VERSION="$(cat kubo-version/version)"
-  elif [[ "$release" == "kubernetes" ]]; then
+  elif [[ "$release" == "kubernetes*" ]]; then
     RELEASE_VERSION="$(cat kubernetes-version/version)"
   else
     RELEASE_VERSION="$(bosh int git-kubo-deployment/manifests/cfcr.yml -o git-kubo-deployment/manifests/ops-files/non-precompiled-releases.yml --path=/releases/name=${release}/version)"
