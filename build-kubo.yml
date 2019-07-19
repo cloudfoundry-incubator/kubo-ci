@@ -22,20 +22,20 @@ resources:
     driver: gcs
     key: versions/kubo-version
     json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
+    bucket: kubo-pipeline-store-test
 
 - name: git-kubo-ci
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-ci
-    branch: build-kubo-pipeline
+    branch: docker_bosh_tests
     private_key: ((git-ssh-key.private_key))
 
 - name: git-kubo-deployment
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
-    branch: docker_bosh_tests
+    branch: develop
     private_key: ((git-ssh-key.private_key))
     ignore_paths:
     - 'LICENSE'
@@ -76,11 +76,11 @@ resources:
     deployment: compilation-default
     skip_check: true
 
-# - name: compilation-deployment-windows
-#   type: bosh-deployment
-#   source:
-#     deployment: compilation-windows
-#     skip_check: true
+- name: compilation-deployment-windows
+  type: bosh-deployment
+  source:
+    deployment: compilation-windows
+    skip_check: true
 
 - name: gcs-kubo-deployment-tarball-untested
   type: gcs
@@ -94,14 +94,14 @@ resources:
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store-test
-    regexp: dev-builds/kubo-.*-ubuntu(.*).tgz
+    regexp: dev-builds/kubo-.*-ubuntu-xenial-.*-(.*).tgz
 
 - name: gcs-kubo-windows-release-tarball-untested
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store-test
-    regexp: dev-windows-builds/kubo-.*-windows(.*).tgz
+    regexp: dev-windows-builds/kubo-.*-windows2019-.*-(.*).tgz
 
 - name: slack-alert
   type: slack-notification
@@ -149,7 +149,6 @@ jobs:
   plan:
   - in_parallel:
     - get: git-kubo-ci
-      passed: [ 'run-unit-tests-release' ]
     - get: gaffer-source-json
     - get: git-kubo-deployment
     - get: kubo-version
@@ -163,65 +162,76 @@ jobs:
     on_failure: *on_failure_alert
     params:
       release: kubo
-  in_parallel:
-    - task: generate-compilation-manifest
-      file: git-kubo-ci/tasks/generate-compilation-manifest.yml
-      params:
-        RELEASE_LIST: "kubo"
-        stemcell_alias: default
-    - task: generate-compilation-manifest-windows
-      file: git-kubo-ci/tasks/generate-compilation-manifest.yml
-      params:
-        RELEASE_LIST: "kubo"
-        stemcell_alias: windows
-  in_parallel:
-    - put: compilation-deployment-default
-      params:
-        manifest: compilation-manifest/manifest.yml
-        source_file: gaffer-source-json/source.json
-        releases:
-        - kubo-release/kubo-release-*.tgz
-      tags: ['gaffer']
-    - put: compilation-deployment-windows
-      params:
-        manifest: compilation-manifest/manifest.yml
-        source_file: gaffer-source-json/source.json
-        releases:
-        - kubo-release/kubo-release-*.tgz
-      tags: ['gaffer']
+  - task: generate-compilation-manifest
+    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+    params:
+      RELEASE_LIST: "kubo"
+      stemcell_alias: default
+  - put: compilation-deployment-default
+    params:
+      manifest: compilation-manifest/manifest-default.yml
+      source_file: gaffer-source-json/source.json
+      releases:
+      - kubo-release/kubo-release-*.tgz
+    tags: ['gaffer']
+  - task: export
+    tags: ['gaffer']
+    file: git-kubo-ci/tasks/export-release.yml
+    params:
+      RELEASE_LIST: "kubo"
+      JOBS_LIST: "apply-specs bbr-kube-apiserver cifs-utils cloud-provider flanneld kube-apiserver kube-controller-manager kube-proxy kubelet kube-scheduler kubernetes-dependencies kubernetes-roles kubo-dns-aliases smoke-tests"
+      stemcell_alias: default
+    input_mapping:
+      gcs-source-json: gaffer-source-json
+      compilation-deployment: compilation-deployment-default
+  - put: gcs-kubo-release-tarball-untested
+    attempts: 10
+    params:
+      file: compiled-releases/kubo-*.tgz
 
-  in_parallel:
-    - task: export
-      tags: ['gaffer']
-      file: git-kubo-ci/tasks/export-release.yml
+- name: build-kubo-release-windows
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: gaffer-source-json
+    - get: git-kubo-deployment
+    - get: kubo-version
       params:
-        RELEASE_LIST: "kubo"
-        JOBS_LIST: "apply-specs bbr-kube-apiserver cifs-utils cloud-provider flanneld kube-apiserver kube-controller-manager kube-proxy kubelet kube-scheduler kubernetes-dependencies kubernetes-roles kubo-dns-aliases smoke-tests"
-        stemcell_alias: default
-      input_mapping:
-        gcs-source-json: gaffer-source-json
-        compilation-deployment: compilation-deployment-default
-    - task: export
-      tags: ['gaffer']
-      file: git-kubo-ci/tasks/export-release.yml
-      params:
-        RELEASE_LIST: "kubo"
-        JOBS_LIST: "flanneld-windows kube-proxy-windows kubelet-windows kubo-dns-aliases-windows"
-        stemcell_alias: windows
-      input_mapping:
-        gcs-source-json: gaffer-source-json
-        compilation-deployment: compilation-deployment-windows
-
-  in_parallel:
-    - put: gcs-kubo-release-tarball-untested
-      attempts: 10
-      params:
-        file: compiled-releases/kubo-*.tgz
-    - put: gcs-kubo-release-tarball-untested
-      attempts: 10
-      params:
-        file: compiled-releases/kubo-*.tgz
-
+        pre: dev
+    - get: git-kubo-release
+      passed: [ 'run-unit-tests-release' ]
+      trigger: true
+  - task: build-kubo-release
+    file: git-kubo-ci/tasks/build-kubo-release.yml
+    on_failure: *on_failure_alert
+    params:
+      release: kubo
+  - task: generate-compilation-manifest-windows
+    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+    params:
+      RELEASE_LIST: "kubo"
+      stemcell_alias: windows
+  - put: compilation-deployment-windows
+    params:
+      manifest: compilation-manifest/manifest-windows.yml
+      source_file: gaffer-source-json/source.json
+      releases:
+      - kubo-release/kubo-release-*.tgz
+    tags: ['gaffer']
+  - task: export
+    tags: ['gaffer']
+    file: git-kubo-ci/tasks/export-release.yml
+    params:
+      RELEASE_LIST: "kubo"
+      JOBS_LIST: "flanneld-windows kube-proxy-windows kubelet-windows kubo-dns-aliases-windows"
+      stemcell_alias: windows
+    input_mapping:
+      gcs-source-json: gaffer-source-json
+      compilation-deployment: compilation-deployment-windows
+  - put: gcs-kubo-windows-release-tarball-untested
+    attempts: 10
+    params:
+      file: compiled-releases/kubo-*.tgz
 # - name: build-kubo-release-windows
 #   plan:
 #   - in_parallel:
@@ -289,7 +299,7 @@ jobs:
     - get: kubo-version
       passed:
       - 'build-kubo-release'
-      - 'build-kubo-windows-release'
+      # - 'build-kubo-windows-release'
       - 'build-kubo-deployment-tarball'
       trigger: true
   - put: kubo-version
