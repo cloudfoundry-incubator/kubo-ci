@@ -30,7 +30,7 @@ popd
 #     version: "${KUBO_VERSION}"
 # EOF
 
-cat > compilation-manifest/manifest.yml <<EOF
+cat > compilation-manifest/manifest-${stemcell_alias}.yml <<EOF
 ---
 name: compilation-${stemcell_alias}
 releases:
