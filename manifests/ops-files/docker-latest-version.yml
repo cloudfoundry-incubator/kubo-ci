@@ -5,20 +5,13 @@
   path: /releases/-
   value:
     name: docker
-    sha1: e8782196b114b12367aa75b96e56fdc684695aa0
-    url: https://storage.googleapis.com/kubo-public/docker-35.2.3-ubuntu-xenial-315.36-20190716-163114-008878.tgz
-    stemcell:
-      os: ubuntu-xenial
-      version: 315.36
     version: 35.2.3
+
+- type: remove
+  path: /releases/name=kubo
 
 - type: replace
   path: /releases/-
   value:
-    name: docker
-    sha1: 5348291515112d3010abbd230c373f4c16c88d20
-    url: https://storage.googleapis.com/kubo-public/docker-35.2.3-windows2019-2019.7-20190716-161813-432556.tgz
-    stemcell:
-      os: windows2019
-      version: 2019.7
-    version: 35.2.3
+    name: kubo
+    version: 1.0.0-dev.5
