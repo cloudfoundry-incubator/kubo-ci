@@ -35,7 +35,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
-    branch: develop
+    branch: docker_bosh_tests
     private_key: ((git-ssh-key.private_key))
     ignore_paths:
     - 'LICENSE'
@@ -45,23 +45,23 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-release.git
-    branch: develop
+    branch: merge_repos
     private_key: ((git-ssh-key.private_key))
     ignore_paths:
     - '*.md'
     - 'LICENSE'
     - 'NOTICE'
 
-- name: git-kubo-windows-release
-  type: git
-  source:
-    uri: git@github.com:cloudfoundry-incubator/kubo-release-windows.git
-    branch: develop
-    private_key: ((git-ssh-key.private_key))
-    ignore_paths:
-    - '*.md'
-    - 'LICENSE'
-    - 'NOTICE'
+# - name: git-kubo-windows-release
+#   type: git
+#   source:
+#     uri: git@github.com:cloudfoundry-incubator/kubo-release-windows.git
+#     branch: develop
+#     private_key: ((git-ssh-key.private_key))
+#     ignore_paths:
+#     - '*.md'
+#     - 'LICENSE'
+#     - 'NOTICE'
 
 - name: gaffer-source-json
   type: gcs
@@ -76,32 +76,32 @@ resources:
     deployment: compilation-default
     skip_check: true
 
-- name: compilation-deployment-windows
-  type: bosh-deployment
-  source:
-    deployment: compilation-windows
-    skip_check: true
+# - name: compilation-deployment-windows
+#   type: bosh-deployment
+#   source:
+#     deployment: compilation-windows
+#     skip_check: true
 
 - name: gcs-kubo-deployment-tarball-untested
   type: gcs
   source:
     json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
+    bucket: kubo-pipeline-store-test
     regexp: dev-builds/kubo-deployment-(.*).tgz
 
 - name: gcs-kubo-release-tarball-untested
   type: gcs
   source:
     json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
-    regexp: dev-builds/kubo-release-(.*).tgz
+    bucket: kubo-pipeline-store-test
+    regexp: dev-builds/kubo-.*-ubuntu(.*).tgz
 
 - name: gcs-kubo-windows-release-tarball-untested
   type: gcs
   source:
     json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
-    regexp: dev-windows-builds/kubo-windows-release-(.*).tgz
+    bucket: kubo-pipeline-store-test
+    regexp: dev-windows-builds/kubo-.*-windows(.*).tgz
 
 - name: slack-alert
   type: slack-notification
@@ -163,74 +163,108 @@ jobs:
     on_failure: *on_failure_alert
     params:
       release: kubo
-  - task: generate-compilation-manifest
-    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
-    params:
-      RELEASE_LIST: "kubo"
-      stemcell_alias: default
-  - put: compilation-deployment-default
-    params:
-      manifest: compilation-manifest/manifest.yml
-      source_file: gaffer-source-json/source.json
-      releases:
-      - kubo-release/kubo-release-*.tgz
-    tags: ['gaffer']
-  - task: export
-    tags: ['gaffer']
-    file: git-kubo-ci/tasks/export-release.yml
-    params:
-      RELEASE_LIST: "kubo"
-      stemcell_alias: default
-    input_mapping:
-      gcs-source-json: gaffer-source-json
-      compilation-deployment: compilation-deployment-default
-  - put: gcs-kubo-release-tarball-untested
-    attempts: 10
-    params:
-      file: compiled-releases/kubo-*.tgz
-
-- name: build-kubo-windows-release
-  plan:
-  - in_parallel:
-    - get: git-kubo-ci
-      passed: [ 'run-unit-tests-release' ]
-      trigger: true
-    - get: gaffer-source-json
-    - get: git-kubo-deployment
-    - get: kubo-version
+  in_parallel:
+    - task: generate-compilation-manifest
+      file: git-kubo-ci/tasks/generate-compilation-manifest.yml
       params:
-        pre: dev
-    - get: git-kubo-windows-release
-  - task: build-kubo-windows-release
-    file: git-kubo-ci/tasks/build-kubo-windows-release.yml
-    on_failure: *on_failure_alert
-    params:
-      release: kubo-windows
-  - task: generate-compilation-manifest
-    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
-    params:
-      RELEASE_LIST: "kubo-windows"
-      stemcell_alias: windows
-  - put: compilation-deployment-windows
-    params:
-      manifest: compilation-manifest/manifest.yml
-      source_file: gaffer-source-json/source.json
-      releases:
-      - kubo-windows-release/kubo-windows-release-*.tgz
-    tags: [ 'gaffer' ]
-  - task: export
-    tags: [ 'gaffer' ]
-    file: git-kubo-ci/tasks/export-release.yml
-    params:
-      RELEASE_LIST: kubo-windows
-      stemcell_alias: windows
-    input_mapping:
-      gcs-source-json: gaffer-source-json
-      compilation-deployment: compilation-deployment-windows
-  - put: gcs-kubo-windows-release-tarball-untested
-    attempts: 10
-    params:
-      file: compiled-releases/kubo-windows-*.tgz
+        RELEASE_LIST: "kubo"
+        stemcell_alias: default
+    - task: generate-compilation-manifest-windows
+      file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+      params:
+        RELEASE_LIST: "kubo"
+        stemcell_alias: windows
+  in_parallel:
+    - put: compilation-deployment-default
+      params:
+        manifest: compilation-manifest/manifest.yml
+        source_file: gaffer-source-json/source.json
+        releases:
+        - kubo-release/kubo-release-*.tgz
+      tags: ['gaffer']
+    - put: compilation-deployment-windows
+      params:
+        manifest: compilation-manifest/manifest.yml
+        source_file: gaffer-source-json/source.json
+        releases:
+        - kubo-release/kubo-release-*.tgz
+      tags: ['gaffer']
+
+  in_parallel:
+    - task: export
+      tags: ['gaffer']
+      file: git-kubo-ci/tasks/export-release.yml
+      params:
+        RELEASE_LIST: "kubo"
+        JOBS_LIST: "apply-specs bbr-kube-apiserver cifs-utils cloud-provider flanneld kube-apiserver kube-controller-manager kube-proxy kubelet kube-scheduler kubernetes-dependencies kubernetes-roles kubo-dns-aliases smoke-tests"
+        stemcell_alias: default
+      input_mapping:
+        gcs-source-json: gaffer-source-json
+        compilation-deployment: compilation-deployment-default
+    - task: export
+      tags: ['gaffer']
+      file: git-kubo-ci/tasks/export-release.yml
+      params:
+        RELEASE_LIST: "kubo"
+        JOBS_LIST: "flanneld-windows kube-proxy-windows kubelet-windows kubo-dns-aliases-windows"
+        stemcell_alias: windows
+      input_mapping:
+        gcs-source-json: gaffer-source-json
+        compilation-deployment: compilation-deployment-windows
+
+  in_parallel:
+    - put: gcs-kubo-release-tarball-untested
+      attempts: 10
+      params:
+        file: compiled-releases/kubo-*.tgz
+    - put: gcs-kubo-release-tarball-untested
+      attempts: 10
+      params:
+        file: compiled-releases/kubo-*.tgz
+
+# - name: build-kubo-release-windows
+#   plan:
+#   - in_parallel:
+#     - get: git-kubo-ci
+#       passed: [ 'run-unit-tests-release' ]
+#       trigger: true
+#     - get: gaffer-source-json
+#     - get: git-kubo-deployment
+#     - get: kubo-version
+#       params:
+#         pre: dev
+#     - get: git-kubo-release
+#   - task: build-kubo-release-windows
+#     file: git-kubo-ci/tasks/build-kubo-windows-release.yml
+#     on_failure: *on_failure_alert
+#     params:
+#       release: kubo-windows
+#   - task: generate-compilation-manifest
+#     file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+#     params:
+#       RELEASE_LIST: "kubo-windows"
+#       stemcell_alias: windows
+#   - put: compilation-deployment-windows
+#     params:
+#       manifest: compilation-manifest/manifest.yml
+#       source_file: gaffer-source-json/source.json
+#       releases:
+#       - kubo-windows-release/kubo-windows-release-*.tgz
+#     tags: [ 'gaffer' ]
+#   - task: export
+#     tags: [ 'gaffer' ]
+#     file: git-kubo-ci/tasks/export-release.yml
+#     params:
+#       RELEASE_LIST: kubo-windows
+#       JOBS_LIST: ""
+#       stemcell_alias: windows
+#     input_mapping:
+#       gcs-source-json: gaffer-source-json
+#       compilation-deployment: compilation-deployment-windows
+#   - put: gcs-kubo-windows-release-tarball-untested
+#     attempts: 10
+#     params:
+#       file: compiled-releases/kubo-windows-*.tgz
 
 - name: build-kubo-deployment-tarball
   plan:
