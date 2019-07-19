@@ -65,11 +65,11 @@ resources:
     deployment: compilation-default
     skip_check: true
 
-# - name: compilation-deployment-windows
-#   type: bosh-deployment
-#   source:
-#     deployment: compilation-windows
-#     skip_check: true
+- name: compilation-deployment-windows
+  type: bosh-deployment
+  source:
+    deployment: compilation-windows
+    skip_check: true
 
 - name: gcs-kubo-deployment-tarball-untested
   type: gcs

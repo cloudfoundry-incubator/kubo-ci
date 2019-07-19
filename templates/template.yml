@@ -27,7 +27,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/kubo-ci
-    branch: master
+    branch: docker_bosh_tests
 
 - name: gcs-shipable-version
   type: gcs
