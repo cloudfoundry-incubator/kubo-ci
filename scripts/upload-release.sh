@@ -19,3 +19,4 @@ main() {
   bosh upload-release https://storage.googleapis.com/kubo-public/kubo-1.0.0-dev.101-windows2019-2019.4-20190719-231442-026390434.tgz
 }
 
+main
