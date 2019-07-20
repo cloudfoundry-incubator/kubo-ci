@@ -10,6 +10,9 @@
 - type: remove
   path: /releases/name=kubo
 
+- type: remove
+  path: /releases/name=kubo-windows
+
 - type: replace
   path: /releases/-
   value:
