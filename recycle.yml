@@ -1,5 +1,4 @@
 <%
-  old_pools = %w(vsphere-lb)
   pools = %w(gcp azure aws vsphere vsphere-proxy)
 %>
 
@@ -42,63 +41,7 @@ resources:
     pool: <%= pool %>
 <% end %>
 
-<% old_pools.each do |pool| %>
-- name: kubo-lock-<%= pool %>-lifecycle-trigger
-  type: pool-trigger
-  source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-    branch: master
-    pool: kubo-<%= pool %>-lifecycle
-    private_key: ((git-ssh-key.private_key))
-
-- name: kubo-lock-<%= pool %>-lifecycle
-  type: pool
-  source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-    branch: master
-    private_key: ((git-ssh-key.private_key))
-    pool: kubo-<%= pool %>-lifecycle
-
-- name: kubo-lock-<%= pool %>
-  type: pool
-  source:
-    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-    branch: master
-    private_key: ((git-ssh-key.private_key))
-    pool: kubo-<%= pool %>
-<% end %>
-
 jobs:
-<% old_pools.each do |pool| %>
-<% env = pool.gsub(/-.*/, '') %>
-- name: claim-lock-<%= pool %>
-  plan:
-  - get: kubo-lock-<%= pool %>-lifecycle-trigger
-    trigger: true
-    version: every
-  - put: kubo-lock-<%= pool %>-lifecycle
-    params: { acquire: true }
-- name: cleanup-<%= pool %>
-  plan:
-  - in_parallel:
-    - get: kubo-lock-<%= pool %>-lifecycle
-      version: every
-      trigger: true
-      passed: [ 'claim-lock-<%= pool %>' ]
-    - get: git-kubo-ci
-  - task: cleanup-<%= pool %>
-    file: git-kubo-ci/tasks/cleanup-<%= env %>-environment.yml
-    params: { ENV_FILE: 'kubo-lock/metadata' }
-    tags:
-    - <%= pool %>
-    input_mapping:
-      kubo-lock: kubo-lock-<%= pool %>-lifecycle
-  - put: kubo-lock-<%= pool %>
-    params: { add: kubo-lock-<%= pool %>-lifecycle }
-  - put: kubo-lock-<%= pool %>-lifecycle
-    params: { remove: kubo-lock-<%= pool %>-lifecycle }
-<% end %>
-
 <% pools.each do |pool| %>
 - name: claim-lock-<%= pool %>
   plan:
