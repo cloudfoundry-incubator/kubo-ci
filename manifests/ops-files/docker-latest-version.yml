@@ -32,20 +32,16 @@
 
 - type: replace
   path: /addons/name=bosh-dns-aliases-windows/jobs/name=kubo-dns-aliases-windows/release
-  value:
-    release: kubo
+  value: kubo
 
 - type: replace
   path: /instance_groups/name=windows-worker/jobs/name=kubelet-windows/release
-  value:
-    release: kubo
+  value: kubo
 
 - type: replace
   path: /instance_groups/name=windows-worker/jobs/name=flanneld-windows/release
-  value:
-    release: kubo
+  value: kubo
 
 - type: replace
   path: /instance_groups/name=windows-worker/jobs/name=kube-proxy-windows/release
-  value:
-    release: kubo
+  value: kubo
