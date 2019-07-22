@@ -18,3 +18,24 @@
   value:
     name: kubo
     version: 1.0.0-dev.101
+
+- type: replace
+  path: /addons/name=bosh-dns-aliases-windows/jobs/name=kubo-dns-aliases-windows/release
+  value:
+    release: kubo
+
+
+- type: replace
+  path: /instance_groups/name=windows-worker/jobs=kubelet-windows/release
+  value:
+    release: kubo
+
+- type: replace
+  path: /instance_groups/name=windows-worker/jobs=flanneld-windows/release
+  value:
+    release: kubo
+
+- type: replace
+  path: /instance_groups/name=windows-worker/jobs=kube-proxy-windows/release
+  value:
+    release: kubo
