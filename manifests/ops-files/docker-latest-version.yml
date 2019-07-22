@@ -36,16 +36,16 @@
     release: kubo
 
 - type: replace
-  path: /instance_groups/name=windows-worker/jobs=kubelet-windows/release
+  path: /instance_groups/name=windows-worker/jobs/name=kubelet-windows/release
   value:
     release: kubo
 
 - type: replace
-  path: /instance_groups/name=windows-worker/jobs=flanneld-windows/release
+  path: /instance_groups/name=windows-worker/jobs/name=flanneld-windows/release
   value:
     release: kubo
 
 - type: replace
-  path: /instance_groups/name=windows-worker/jobs=kube-proxy-windows/release
+  path: /instance_groups/name=windows-worker/jobs/name=kube-proxy-windows/release
   value:
     release: kubo
