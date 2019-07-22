@@ -31,11 +31,12 @@ resources:
     access_token: ((github-token-key))
 
 - name: coredns-release
-  type: github-release
+  type: github-release-with-version-filtering
   source:
     owner: coredns
     repository: coredns
-    tag_filter: v?(1\..*)
+    # version 1.5.0 removes a feature we rely on.
+    version_filter: "< 1.5.0"
     access_token: ((github-token-key))
 
 - name: git-kubernetes
