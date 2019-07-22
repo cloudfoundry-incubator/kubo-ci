@@ -20,10 +20,20 @@
     version: 1.0.0-dev.101
 
 - type: replace
+  path: /addons/name=bosh-dns-aliases-windows
+  value:
+    name: bosh-dns-aliases-windows
+    jobs:
+    - name: kubo-dns-aliases-windows
+      release: kubo
+    include:
+      stemcell:
+      - os: windows2019
+
+- type: replace
   path: /addons/name=bosh-dns-aliases-windows/jobs/name=kubo-dns-aliases-windows/release
   value:
     release: kubo
-
 
 - type: replace
   path: /instance_groups/name=windows-worker/jobs=kubelet-windows/release
