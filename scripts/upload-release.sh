@@ -17,7 +17,7 @@ upload_releases(){
   releases="$RELEASE_LIST"
   for release in $RELEASE_LIST
   do
-    bosh upload-release "${release}/*"
+    bosh upload-release $(find "${release}" -name *.tgz)
   done
 }
 

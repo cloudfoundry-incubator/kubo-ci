@@ -27,7 +27,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/kubo-ci
-    branch: docker_bosh_tests
+    branch: docker_bosh_tests_lubron
 
 - name: gcs-shipable-version
   type: gcs
@@ -40,14 +40,14 @@ resources:
   type: gcs
   source:
     json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
+    bucket: kubo-pipeline-store-test
     regexp: dev-builds/kubo-(\d+\.\d+\.\d+(-dev\.\d+)*).*\.tgz
 
 - name: kubo-deployment
   type: gcs
   source:
     json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
+    bucket: kubo-pipeline-store-test
     regexp: dev-builds/kubo-deployment-(.*).tgz
 
 - name: kubo-lock
@@ -125,6 +125,12 @@ jobs:
     file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
     input_mapping:
       gcs-kubo-deployment-pre: kubo-deployment
+  - task: upload-releases
+    file: git-kubo-ci/tasks/upload-release.yml
+    params:
+      RELEASE_LIST: "kubo-release"
+    input_mapping:
+      source-json: kubo-lock
   - task: upload-stemcell
     file: git-kubo-ci/tasks/upload-stemcell.yml
     params:
