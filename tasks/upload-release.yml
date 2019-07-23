@@ -7,7 +7,10 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/upload-release.sh
 
+params:
+  RELEASE_LIST:
+
 inputs:
   - name: git-kubo-ci
-  - name: release
+  - name: kubo-release
   - name: source-json
