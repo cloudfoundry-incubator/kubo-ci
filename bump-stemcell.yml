@@ -69,7 +69,7 @@ resources:
 jobs:
 - name: bump-stemcell
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: git-kubo-deployment
     - get: gcs-source-json
@@ -99,7 +99,7 @@ jobs:
       git-kubo-deployment: git-kubo-deployment-output
     params:
       RELEASE_LIST: "docker cfcr-etcd bpm"
-  - aggregate:
+  - in_parallel:
     - put: gcs-precompiled-cfcr-etcd-untested
       params:
         file: compiled-releases/cfcr-etcd-*.tgz

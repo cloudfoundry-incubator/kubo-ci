@@ -76,7 +76,7 @@ resources:
 jobs:
 - name: bump-bpm-release
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: git-kubo-deployment
     - get: gcs-source-json
@@ -121,7 +121,7 @@ jobs:
 
 - name: bump-etcd-release
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: git-kubo-deployment
     - get: gcs-source-json
@@ -166,7 +166,7 @@ jobs:
 
 - name: bump-docker-boshrelease
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: git-kubo-deployment
     - get: gcs-source-json

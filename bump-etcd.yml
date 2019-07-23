@@ -31,7 +31,7 @@ resources:
 jobs:
 - name: bump-etcd
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: git-cfcr-etcd
     - get: etcd-release

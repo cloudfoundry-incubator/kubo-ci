@@ -67,7 +67,7 @@ jobs:
 - name: update-component-golang-version
   #disable_manual_trigger: true
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: golang-release
       trigger: true
@@ -94,7 +94,7 @@ jobs:
 
 - name: bump-docker-boshrelease-golang
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: git-docker-boshrelease
     - get: golang-release
@@ -116,7 +116,7 @@ jobs:
 
 - name: bump-kubo-release-golang
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: git-kubo-release
     - get: golang-release
@@ -138,7 +138,7 @@ jobs:
 
 - name: bump-cfcr-etcd-release-golang
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: git-cfcr-etcd-release
     - get: golang-release
@@ -160,7 +160,7 @@ jobs:
 
 - name: bump-docker-image-golang
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: golang-version
       trigger: true

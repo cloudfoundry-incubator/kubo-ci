@@ -77,14 +77,14 @@ groups:
 jobs:
 - name: bump-k8s
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: git-kubo-release
     - get: git-kubo-release-windows
     - get: git-kubernetes
     - get: k8s-release
       trigger: true
-  - aggregate:
+  - in_parallel:
     - task: bump-k8s
       config: &config
         platform: linux
@@ -141,7 +141,7 @@ jobs:
             ((git-ssh-key.private_key))
 - name: bump-images-dependencies
   plan:
-  - aggregate:
+  - in_parallel:
     - get: kubernetes-dashboard-release
       trigger: true
     - get: metrics-server-release
