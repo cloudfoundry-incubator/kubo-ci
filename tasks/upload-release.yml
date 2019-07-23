@@ -13,4 +13,6 @@ params:
 inputs:
   - name: git-kubo-ci
   - name: kubo-release
+  - name: kubo-release-windows
+    optional: true
   - name: source-json
