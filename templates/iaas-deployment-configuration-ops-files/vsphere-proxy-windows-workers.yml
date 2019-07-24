@@ -35,9 +35,5 @@
   value: large
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-ci/manifests/ops-files/windows/windows-stemcell-upgrade.yml
-
-- type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows-stemcell-version?
   value: 2019.7
