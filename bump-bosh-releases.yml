@@ -15,13 +15,13 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/kubo-ci
-    branch: master
+    branch: ((kubo-ci-branch))
 
 - name: git-kubo-deployment
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-deployment.git
-    branch: develop
+    branch: ((kubo-deployment.branch))
     private_key: ((git-ssh-key.private_key))
 
 - name: cfcr-etcd-release
@@ -51,7 +51,14 @@ resources:
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-precompiled-releases
-    regexp: docker-(.*).tgz
+    regexp: docker-.*-ubuntu-.*-(.*-.*-.*)
+
+- name: gcs-precompiled-docker-windows-untested
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-precompiled-releases
+    regexp: docker-.*-windows2019-.*-(.*-.*-.*)
 
 - name: gcs-precompiled-bpm-untested
   type: gcs
@@ -63,7 +70,13 @@ resources:
 - name: compilation-deployment
   type: bosh-deployment
   source:
-    deployment: compilation
+    deployment: compilation-default
+    skip_check: true
+
+- name: compilation-deployment-windows
+  type: bosh-deployment
+  source:
+    deployment: compilation-windows
     skip_check: true
 
 - name: gcs-source-json
@@ -178,33 +191,69 @@ jobs:
       boshrelease: docker-boshrelease
     params:
       RELEASE_NAME: docker
-  - task: generate-compilation-manifest
-    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+  - task: bump-kubo-docker-windows # bump non-compiled release in BASE_OPS_FILE below
+    file: git-kubo-ci/tasks/bump-boshrelease.yml
     input_mapping:
-      git-kubo-deployment: git-kubo-deployment-output
+      boshrelease: docker-boshrelease
     params:
-      RELEASE_LIST: "docker"
-  - put: compilation-deployment
-    params:
-      manifest: compilation-manifest/manifest.yml
-      source_file: gcs-source-json/source.json
-    tags: ['gaffer']
-  - task: export
-    tags: ['gaffer']
-    file: git-kubo-ci/tasks/export-release.yml
-    input_mapping:
-      git-kubo-deployment: git-kubo-deployment-output
-    params:
-      RELEASE_LIST: "docker"
-  - put: gcs-precompiled-docker-untested
-    params:
-      file: compiled-releases/docker-*.tgz
-  - task: bump-precompiled-releases-in-manifest
-    file: git-kubo-ci/tasks/bump-precompiled-releases-in-manifest.yml
-    input_mapping:
-      git-kubo-deployment: git-kubo-deployment-output
-    params:
-      RELEASE_LIST: "docker"
-  - put: git-kubo-deployment
-    params:
-      repository: git-kubo-deployment-output
+      RELEASE_NAME: docker
+      BASE_OPS_FILE: manifests/ops-files/windows/add-worker.yml
+      ARRAY_POS: 1
+  - in_parallel:
+    - do:
+      - task: generate-compilation-manifest
+        file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+        input_mapping:
+          git-kubo-deployment: git-kubo-deployment-output
+        params:
+          RELEASE_LIST: "docker"
+      - put: compilation-deployment
+        params:
+          manifest: compilation-manifest/manifest.yml
+          source_file: gcs-source-json/source.json
+        tags: ['gaffer']
+      - task: export
+        tags: ['gaffer']
+        file: git-kubo-ci/tasks/export-release.yml
+        input_mapping:
+          git-kubo-deployment: git-kubo-deployment-output
+        params:
+          RELEASE_LIST: "docker"
+          JOBS_LIST: containers docker flannel sanity-tests swarm-agent swarm-manager
+      - put: gcs-precompiled-docker-untested
+        params:
+          file: compiled-releases/docker-*.tgz
+      - task: bump-precompiled-releases-in-manifest
+        file: git-kubo-ci/tasks/bump-precompiled-releases-in-manifest.yml
+        input_mapping:
+          git-kubo-deployment: git-kubo-deployment-output
+        params:
+          RELEASE_LIST: "docker"
+      - put: git-kubo-deployment
+        params:
+          repository: git-kubo-deployment-output
+    - do:
+      - task: generate-compilation-manifest
+        file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+        input_mapping:
+          git-kubo-deployment: git-kubo-deployment-output
+        params:
+          RELEASE_LIST: "docker"
+          stemcell_alias: windows
+      - put: compilation-deployment-windows
+        params:
+          manifest: compilation-manifest/manifest.yml
+          source_file: gcs-source-json/source.json
+        tags: ['gaffer']
+      - task: export
+        tags: ['gaffer']
+        file: git-kubo-ci/tasks/export-release.yml
+        input_mapping:
+          git-kubo-deployment: git-kubo-deployment-output
+        params:
+          RELEASE_LIST: "docker"
+          JOBS_LIST: docker-windows
+          stemcell_alias: windows
+      - put: gcs-precompiled-docker-windows-untested
+        params:
+          file: compiled-releases/docker-*.tgz
