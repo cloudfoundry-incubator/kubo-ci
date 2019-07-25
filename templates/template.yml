@@ -103,8 +103,8 @@ jobs:
   - get: kubo-release
   - get: git-kubo-ci
   # Update this to match kubo-deployment kubo and kubo-windows
-  # - task: check-version-match
-  #   file: git-kubo-ci/tasks/check-version-match.yml
+  - task: check-version-match
+    file: git-kubo-ci/tasks/check-version-match.yml
   - put: kubo-lock
     params: { acquire: true }
 

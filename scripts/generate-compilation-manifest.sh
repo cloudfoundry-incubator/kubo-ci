@@ -16,8 +16,8 @@ STEMCELL_VERSION=$(bosh int cfcr.yml -o ops-files/windows/add-worker.yml --path 
 export RELEASES=""
 for rel in $RELEASE_LIST
 do
-  release_url=$(bosh int cfcr.yml -o ops-files/non-precompiled-releases.yml -o ops-files/windows/add-worker.yml --path=/releases/name=$rel/url)
-  release_version=$(bosh int cfcr.yml -o ops-files/non-precompiled-releases.yml -o ops-files/windows/add-worker.yml --path=/releases/name=$rel/version)
+  release_url=$(bosh int cfcr.yml -o ops-files/non-precompiled-releases.yml --path=/releases/name=$rel/url)
+  release_version=$(bosh int cfcr.yml -o ops-files/non-precompiled-releases.yml --path=/releases/name=$rel/version)
   RELEASES="$RELEASES- name: $rel\n  url: ${release_url}\n  version: ${release_version}\n"
 done
 popd

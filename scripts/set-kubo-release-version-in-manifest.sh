@@ -6,7 +6,7 @@ cp -r git-kubo-deployment/. git-kubo-deployment-output
 
 cat << EOF > replace-kubo-version.yml
 - type: replace
-  path: /0/value/name=kubo
+  path: /0/value((name_selector))
   value:
     name: kubo
     version: ((release_version))
@@ -22,7 +22,16 @@ bosh int git-kubo-deployment/manifests/ops-files/non-precompiled-releases.yml \
   -v release_version="$release_version" \
   -v sha="$sha" \
   -v url="$url" \
+  -v name_selector="/name=kubo" \
   > git-kubo-deployment-output/manifests/ops-files/non-precompiled-releases.yml
+
+bosh int git-kubo-deployment/manifests/ops-files/windows/add-worker.yml \
+  -o replace-kubo-version.yml \
+  -v release_version="$release_version" \
+  -v sha="$sha" \
+  -v url="$url" \
+  -v name_selector="" \
+  > git-kubo-deployment-output/manifests/ops-files/windows/add-worker.yml
 
 git config --global user.name "cfcr"
 git config --global user.email "cfcr@pivotal.io"
