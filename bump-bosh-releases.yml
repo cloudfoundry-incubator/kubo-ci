@@ -233,7 +233,7 @@ jobs:
         params:
           repository: git-kubo-deployment-output
     - do:
-      - task: generate-compilation-manifest
+      - task: generate-compilation-manifest-windows
         file: git-kubo-ci/tasks/generate-compilation-manifest.yml
         input_mapping:
           git-kubo-deployment: git-kubo-deployment-output
@@ -245,7 +245,7 @@ jobs:
           manifest: compilation-manifest/manifest.yml
           source_file: gcs-source-json/source.json
         tags: ['gaffer']
-      - task: export
+      - task: export-windows
         tags: ['gaffer']
         file: git-kubo-ci/tasks/export-release.yml
         input_mapping:
