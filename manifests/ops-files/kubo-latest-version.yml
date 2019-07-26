@@ -2,5 +2,5 @@
   path: /releases/name=kubo
   value:
     name: kubo
-    version: 1.0.0-dev.104
+    version: latest
 
