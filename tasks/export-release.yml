@@ -22,4 +22,5 @@ run:
 
 params:
   RELEASE_LIST:
+  JOBS_LIST:
   stemcell_alias: default
