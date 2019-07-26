@@ -9,13 +9,18 @@ version="$(cat boshrelease/version)"
 array_pos="${ARRAY_POS}"
 base_ops_file="${BASE_OPS_FILE}"
 
+name_selector="/name=$release"
+if [[ $(basename $base_ops_file .yml) == "add-worker" ]]; then
+  name_selector=""
+fi
+
 url="$(cat boshrelease/url)"
 
 sha1="$(cat boshrelease/sha1)"
 
 cat > update-$release-release.yml <<EOF
 - type: replace
-  path: /$array_pos/value/name=$release
+  path: /$array_pos/value$name_selector
   value:
     name: $release
     version: $version
