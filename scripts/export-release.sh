@@ -7,7 +7,7 @@ source git-kubo-ci/scripts/set-bosh-env gcs-source-json/source.json
 
 pushd git-kubo-deployment/manifests
 STEMCELL_OS=$(bosh int cfcr.yml --ops-file ops-files/windows/add-worker.yml --path=/stemcells/alias=${stemcell_alias}/os)
-STEMCELL_VERSION=$(bosh stemcells --json | jq .Tables[0].Rows | jq -r "map(select(.os | contains(\"${STEMCELL_OS}\"))) | max_by(.version) | .version | sub(\"\\\*\"; \"\")")
+STEMCELL_VERSION=$(bosh int cfcr.yml --ops-file ops-files/windows/add-worker.yml --path=/stemcells/alias=${stemcell_alias}/version )
 popd
 
 jobs=""
