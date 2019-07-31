@@ -8,11 +8,11 @@ run:
   path: git-kubo-ci/scripts/build-kubo-release.sh
 
 params:
-  release: kubo
+  release: kubo-windows
 
 inputs:
   - name: git-kubo-ci
-  - name: git-kubo-release
+  - name: git-kubo-windows-release
   - name: kubo-version
 outputs:
-  - name: kubo-release-windows
+  - name: kubo-windows-release
