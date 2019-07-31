@@ -1,23 +1,9 @@
-# - type: remove
-#   path: /releases/name=docker
-
-# - type: replace
-#   path: /releases/-
-#   value:
-#     name: docker
-#     version: 35.2.3
 
 - type: remove
   path: /releases/name=kubo
 
 - type: remove
   path: /releases/name=kubo-windows
-
-- type: replace
-  path: /releases/-
-  value:
-    name: kubo
-    version: 1.0.0-dev.101
 
 - type: replace
   path: /addons/name=bosh-dns-aliases-windows
