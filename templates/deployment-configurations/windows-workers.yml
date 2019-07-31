@@ -79,3 +79,7 @@
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/releases/-
   value: kubo-release-windows/*.tgz
+
+- type: relace
+  path: /jobs/name=deploy-k8s/plan/task=upload-releases/params/RELEASE_LIST
+  value: "kubo-release kubo-release-windows"
