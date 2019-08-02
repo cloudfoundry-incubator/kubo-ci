@@ -103,14 +103,14 @@ resources:
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-precompiled-releases
-    regexp: kubo-.*-ubuntu-.*-(.*-.*-.*).tgz
+    regexp: kubo-(\d+\.\d+\.\d+(-dev\.\d+)*)-ubuntu-xenial-.*\.tgz
 
 - name: gcs-precompiled-kubo-windows-untested
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-precompiled-releases
-    regexp: kubo-.*-windows2019-.*-(.*-.*-.*).tgz
+    regexp: kubo-(\d+\.\d+\.\d+(-dev\.\d+)*)-windows2019-.*\.tgz
 
 jobs:
 - name: ship-it
