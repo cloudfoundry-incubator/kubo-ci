@@ -86,6 +86,13 @@ resources:
     bucket: kubo-pipeline-store
     versioned_file: gaffer-env/source.json
 
+- name: gcs-compilation-source-json
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-pipeline-store
+    versioned_file: gcp-compilation-env/source.json
+
 jobs:
 - name: bump-bpm-release
   plan:
@@ -183,6 +190,7 @@ jobs:
     - get: git-kubo-ci
     - get: git-kubo-deployment
     - get: gcs-source-json
+    - get: gcs-compilation-source-json
     - get: docker-boshrelease
       trigger: true
   - task: bump-kubo-docker
@@ -211,13 +219,12 @@ jobs:
       - put: compilation-deployment
         params:
           manifest: compilation-manifest/manifest.yml
-          source_file: gcs-source-json/source.json
-        tags: ['gaffer']
+          source_file: gcs-compilation-source-json/source.json
       - task: export
-        tags: ['gaffer']
         file: git-kubo-ci/tasks/export-release.yml
         input_mapping:
           git-kubo-deployment: git-kubo-deployment-output
+          gcs-source-json: gcs-compilation-source-json
         params:
           RELEASE_LIST: "docker"
           JOBS_LIST: containers docker flannel sanity-tests swarm-agent swarm-manager
@@ -244,14 +251,13 @@ jobs:
       - put: compilation-deployment-windows
         params:
           manifest: compilation-manifest/manifest.yml
-          source_file: gcs-source-json/source.json
-        tags: ['gaffer']
+          source_file: gcs-compilation-source-json/source.json
       - task: export-windows
-        tags: ['gaffer']
         file: git-kubo-ci/tasks/export-release.yml
         input_mapping:
           git-kubo-deployment: git-kubo-deployment-output
           compilation-deployment: compilation-deployment-windows
+          gcs-source-json: gcs-compilation-source-json
         params:
           RELEASE_LIST: "docker"
           JOBS_LIST: docker-windows
