@@ -1,0 +1,15 @@
+roles:
+- name: "owner"
+  github:
+    teams: [
+      "pivotal-cf-experimental:pcf-kubo",
+      "cloudfoundry-incubator:cfcr",
+      "cloudfoundry-incubator:cfcr core",
+      "pivotal-cf:vmware-kubo",
+      "pivotal-cf:pks-releng",
+      "pivotal-cf:pks-kubo"
+    ]
+- name: "viewer"
+  github:
+    users: ["benmoss", "gab-satchi"]
+
