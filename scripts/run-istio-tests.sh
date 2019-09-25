@@ -17,6 +17,7 @@ kubectl rollout status -w -n kube-system deployment.apps/tiller-deploy
 
 # install Istio
 trap "helm del --purge istio-init; kubectl delete namespace istio-system" 0 1 2 3 15
+kubectl apply -f install/kubernetes/helm/istio/templates/crds.yaml
 helm install install/kubernetes/helm/istio-init --name istio-init --namespace istio-system
 trap "helm del --purge istio-system; kubectl delete namespace istio-system" 0 1 2 3 15
 helm install install/kubernetes/helm/istio --name istio-system --namespace istio-system --set global.mtls.enabled=true \
