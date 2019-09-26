@@ -131,6 +131,29 @@ jobs:
       IAAS: ((iaas))
     input_mapping:
       source-json: kubo-lock
+  - task: download-dep-releases
+# put all dep releases inside directory dep-releases/ , then
+# next task will auto upload them, ensuring that the remote URL "failures" are inconsequential
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pkstelemetrybot/integration-ci
+      inputs:
+        - name: git-kubo-deployment
+
+      outputs:
+        - name: dep-releases
+
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            set -euo pipefail
+            cd dep-releases
+            yq read ../git-kubo-deployment/manifests/cfcr.yml releases.*.url | grep -v null | grep -v kubo-[0-9] | sed 's|^-\ ||g' | xargs -n 1 curl -SLJO
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -154,6 +177,7 @@ jobs:
         disk_size: 10240
       releases:
       - kubo-release/*.tgz
+      - dep-releases/*.tgz
       source_file: kubo-lock/metadata
     on_failure: &on_failure_alert
     #  do:
