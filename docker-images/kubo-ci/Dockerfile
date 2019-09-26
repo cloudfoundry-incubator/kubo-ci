@@ -28,7 +28,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
 WORKDIR /tmp/docker-build
 
 # Golang
-ENV GOLANG_VERSION=1.12.9
+ENV GOLANG_VERSION=1.13.1
 RUN wget -q https://storage.googleapis.com/golang/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
   tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz && rm go${GOLANG_VERSION}.linux-amd64.tar.gz
 ENV GOPATH /root/go
