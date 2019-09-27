@@ -62,3 +62,4 @@
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/releases
   value:
   - old-kubo-release-tarball/*.tgz
+  - dep-releases/*.tgz
