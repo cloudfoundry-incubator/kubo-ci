@@ -8,4 +8,4 @@ inputs:
 - name: git-kubo-ci
 - name: gcs-kubeconfig
 run:
-  path: ./git-kubo-ci/scripts/run-istio-tests.sh
+  path: ./git-kubo-ci/tasks/run-istio-tests/task.sh
