@@ -154,6 +154,7 @@ jobs:
             set -euo pipefail
             cd dep-releases
             yq read ../git-kubo-deployment/manifests/cfcr.yml releases.*.url | grep -v null | grep -v kubo-[0-9] | sed 's|^-\ ||g' | xargs -n 1 curl -SLJO
+            ls -alh
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
