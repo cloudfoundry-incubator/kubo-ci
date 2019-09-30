@@ -14,15 +14,17 @@ cd $GOPATH/src/istio.io/istio
 kubectl create namespace istio-system
 
 helm template install/kubernetes/helm/istio-init --name istio-init --namespace istio-system > istio-init.yml
-trap "kubectl delete -f istio-init.yml; kubectl delete namespace istio-system" 0 1 2 3 15
+trap "kubectl delete -f istio-init.yml --ignore-not-found=true; kubectl delete namespace istio-system" 0 1 2 3 15
 kubectl apply -f istio-init.yml
 
-timeout 60s ruby "$ROOT/git-kubo-ci/tasks/run-istio-tests/wait_for_apply_to_finish.rb" 23
+# timeout 60s ruby "$ROOT/git-kubo-ci/tasks/run-istio-tests/wait_for_apply_to_finish.rb" 23
+kubectl wait --for condition=complete --timeout=60s --all job -n istio-system
+kubectl wait --for condition=established --timeout=60s --all crd
 
 helm template install/kubernetes/helm/istio --name istio-system --namespace istio-system --set global.mtls.enabled=true \
   --set sidecarInjectorWebhook.enabled=true --set global.hub=istio --set global.tag=$ISTIO_VERSION \
   --set global.crds=false > istio.yml
-trap "kubectl delete -f istio.yml; kubectl delete -f istio-init.yml; kubectl delete namespace istio-system" 0 1 2 3 15
+trap "kubectl delete -f istio.yml --ignore-not-found=true; kubectl delete -f istio-init.yml --ignore-not-found=true; kubectl delete namespace istio-system" 0 1 2 3 15
 kubectl apply -f istio.yml
 
 make e2e_simple TAG=${ISTIO_VERSION} E2E_ARGS='--installer=helm --skip_setup'
