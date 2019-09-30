@@ -1,0 +1,13 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: pkstelemetrybot/integration-ci
+run:
+  path: git-kubo-ci/scripts/download-dep-releases.sh
+
+inputs:
+- name: git-kubo-deployment
+
+outputs:
+- name: dep-releases
