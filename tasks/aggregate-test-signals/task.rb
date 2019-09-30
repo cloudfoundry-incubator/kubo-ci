@@ -2,8 +2,17 @@
 # frozen_string_literal: true
 
 files = Dir.glob('gcs-*-shipables').flat_map { |d| Dir.glob(d + '/*shipable') }
-overlap = File.read(files.first).split("\n")
 
+puts "Printing highest green build for each pipeline..."
+files.each do |f|
+  builds = File.read(f).split("\n")
+  pipeline = f.split("/")[1].split("-shipable")[0]
+  release_sha, deployment_sha, build_number = builds.last.split
+  puts "#{build_number} is the highest green for pipeline #{pipeline}"
+end
+
+puts "Looking for highest common green build..."
+overlap = File.read(files.first).split("\n")
 files.each do |f|
   overlap = File.read(f).split("\n") & overlap
   puts "After checking #{f} good versions are: #{overlap.last}"
