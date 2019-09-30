@@ -92,7 +92,7 @@ jobs:
       - name: gcs-<%= pipeline %>-shipables
       <% end %>
       run:
-        path: git-kubo-ci/scripts/aggregate-test-signals.rb
+        path: git-kubo-ci/aggregate-test-signals/task.rb
     on_success:
       put: gcs-shipables
       params:
