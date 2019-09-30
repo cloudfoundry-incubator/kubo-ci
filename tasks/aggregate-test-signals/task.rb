@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require 'terminal-table'
+require 'rainbow'
 
 files = Dir.glob('gcs-*-shipables').flat_map { |d| Dir.glob(d + '/*shipable') }
 
