@@ -17,7 +17,7 @@ helm template install/kubernetes/helm/istio-init --name istio-init --namespace i
 trap "kubectl delete -f istio-init.yml; kubectl delete namespace istio-system" 0 1 2 3 15
 kubectl apply -f istio-init.yml
 
-timeout 15s ruby "$ROOT/git-kubo-ci/tasks/run-istio-tests/wait_for_apply_to_finish.rb" 23
+timeout 60s ruby "$ROOT/git-kubo-ci/tasks/run-istio-tests/wait_for_apply_to_finish.rb" 23
 
 helm template install/kubernetes/helm/istio --name istio-system --namespace istio-system --set global.mtls.enabled=true \
   --set sidecarInjectorWebhook.enabled=true --set global.hub=istio --set global.tag=$ISTIO_VERSION \
