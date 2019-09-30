@@ -8,3 +8,4 @@ main() {
   ls -alh
 }
 
+main

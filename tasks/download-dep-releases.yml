@@ -7,6 +7,7 @@ run:
   path: git-kubo-ci/scripts/download-dep-releases.sh
 
 inputs:
+- name: git-kubo-ci
 - name: git-kubo-deployment
 
 outputs:
