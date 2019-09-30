@@ -3,15 +3,19 @@
 set -euo pipefail
 
 target_bosh_director() {
-  BOSH_ENVIRONMENT=$(bosh int source-json/source.json --path '/target')
-  BOSH_CLIENT=$(bosh int source-json/source.json --path '/client')
-  BOSH_CLIENT_SECRET=$(bosh int source-json/source.json --path '/client_secret')
-  BOSH_CA_CERT=$(bosh int source-json/source.json --path '/ca_cert')
-  export BOSH_ENVIRONMENT BOSH_CLIENT BOSH_CLIENT_SECRET BOSH_CA_CERT
+  if [[ -f source-json/source.json ]]; then
+    source="source-json/source.json"
+  else
+    source="kubo-lock/metadata"
+    DEPLOYMENT_NAME="$(bosh int kubo-lock/metadata --path=/deployment_name)"
+  fi
+  export BOSH_DEPLOYMENT="${DEPLOYMENT_NAME}"
+  source "${ROOT}/git-kubo-ci/scripts/set-bosh-env" ${source}
 }
 
 main() {
   target_bosh_director
-  bosh upload-release ${PWD}/release/*.tgz
+
+  bosh upload-release "$RELEASES_PATH"
 }
 
