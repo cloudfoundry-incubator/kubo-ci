@@ -24,8 +24,8 @@ else
   File.write(ENV['SLACK_MESSAGE_FILE'], 'No shippable version found')
   exit 1
 end
-puts Rainbow.green("Good versions are: #{release_sha}, #{deployment_sha}. Build number is #{build_number}"
-         
+puts Rainbow.green("Good versions are: #{release_sha}, #{deployment_sha}. Build number is #{build_number}")
+
 puts
 puts "Highest green build for each pipeline..."
 rows = []
