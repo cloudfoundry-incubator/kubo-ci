@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euox pipefail
-ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
 export KUBECONFIG=$ROOT/gcs-kubeconfig/config
 ISTIO_VERSION=1.2.2
@@ -17,7 +17,6 @@ helm template install/kubernetes/helm/istio-init --name istio-init --namespace i
 trap "kubectl delete -f istio-init.yml --ignore-not-found=true; kubectl delete namespace istio-system" 0 1 2 3 15
 kubectl apply -f istio-init.yml
 
-# timeout 60s ruby "$ROOT/git-kubo-ci/tasks/run-istio-tests/wait_for_apply_to_finish.rb" 23
 kubectl wait --for condition=complete --timeout=60s --all job -n istio-system
 kubectl wait --for condition=established --timeout=60s --all crd
 
