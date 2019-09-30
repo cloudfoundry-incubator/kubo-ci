@@ -3,13 +3,17 @@
 
 files = Dir.glob('gcs-*-shipables').flat_map { |d| Dir.glob(d + '/*shipable') }
 
-puts "Printing highest green build for each pipeline..."
+puts "Highest green build for each pipeline..."
+rows = []
 files.each do |f|
   builds = File.read(f).split("\n")
   pipeline = f.split("/")[1].split("-shipable")[0]
   release_sha, deployment_sha, build_number = builds.last.split
-  puts "#{build_number} is the highest green for pipeline #{pipeline}"
+  rows << [pipeline, build_number]
 end
+table = Terminal::Table.new :headings => ['Pipeline', 'Build Number'], :rows => rows
+puts table
+puts
 
 puts "Looking for highest common green build..."
 overlap = File.read(files.first).split("\n")
