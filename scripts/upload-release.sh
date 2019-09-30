@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+export ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+
 target_bosh_director() {
   if [[ -f source-json/source.json ]]; then
     source="source-json/source.json"
@@ -16,7 +18,7 @@ target_bosh_director() {
 main() {
   target_bosh_director
 
-  bosh upload-release "$RELEASES_PATH"
+  bosh upload-release "$RELEASE_PATH"
 }
 
 main
