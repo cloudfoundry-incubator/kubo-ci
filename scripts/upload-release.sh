@@ -19,3 +19,4 @@ main() {
   bosh upload-release "$RELEASES_PATH"
 }
 
+main
