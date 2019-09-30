@@ -5,18 +5,7 @@ require 'terminal-table'
 
 files = Dir.glob('gcs-*-shipables').flat_map { |d| Dir.glob(d + '/*shipable') }
 
-puts "Highest green build for each pipeline..."
-rows = []
-files.each do |f|
-  builds = File.read(f).split("\n")
-  pipeline = f.split("/")[1].split("-shipable")[0]
-  release_sha, deployment_sha, build_number = builds.last.split
-  rows << [pipeline, build_number]
-end
-table = Terminal::Table.new :headings => ['Pipeline', 'Build Number'], :rows => rows
-puts table
 puts
-
 puts "Looking for highest common green build..."
 overlap = File.read(files.first).split("\n")
 files.each do |f|
@@ -35,4 +24,16 @@ else
   File.write(ENV['SLACK_MESSAGE_FILE'], 'No shippable version found')
   exit 1
 end
-puts "Good versions are: #{release_sha}, #{deployment_sha}. Build number is #{build_number}"
+puts Rainbow.green("Good versions are: #{release_sha}, #{deployment_sha}. Build number is #{build_number}"
+         
+puts
+puts "Highest green build for each pipeline..."
+rows = []
+files.each do |f|
+  builds = File.read(f).split("\n")
+  pipeline = f.split("/")[1].split("-shipable")[0]
+  release_sha, deployment_sha, build_number = builds.last.split
+  rows << [pipeline, build_number]
+end
+table = Terminal::Table.new :headings => ['Pipeline', 'Build Number'], :rows => rows
+puts table
