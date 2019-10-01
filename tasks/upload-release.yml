@@ -13,3 +13,4 @@ params:
 inputs:
   - name: git-kubo-ci
   - name: kubo-lock
+  - name: release
