@@ -78,12 +78,12 @@ resources:
     drafts: true
     pre_release: true
 
-- name: gaffer-source-json
+- name: gcs-compilation-source-json
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    versioned_file: gaffer-env/source.json
+    versioned_file: gcp-compilation-env/source.json
 
 # precompiling
 - name: compilation-deployment
@@ -117,7 +117,7 @@ jobs:
   plan:
   - aggregate:
     - get: git-kubo-ci
-    - get: gaffer-source-json
+    - get: gcs-compilation-source-json
     - get: kubo-version
       params:
         bump: final
@@ -181,7 +181,7 @@ jobs:
       - put: compilation-deployment
         params:
           manifest: compilation-manifest/manifest.yml
-          source_file: gaffer-source-json/source.json
+          source_file: gcs-compilation-source-json/source.json
           releases:
           - kubo-release-tarball/*.tgz
         tags: ['gaffer']
@@ -190,7 +190,7 @@ jobs:
         file: git-kubo-ci/tasks/export-release.yml
         input_mapping:
           git-kubo-deployment: git-kubo-deployment-master
-          gcs-source-json: gaffer-source-json
+          gcs-source-json: gcs-compilation-source-json
         params:
           RELEASE_LIST: "kubo"
           JOBS_LIST: "apply-specs bbr-kube-apiserver cifs-utils cloud-provider flanneld kube-apiserver kube-controller-manager kube-proxy kubelet kube-scheduler kubernetes-dependencies kubernetes-roles kubo-dns-aliases smoke-tests"
@@ -218,7 +218,7 @@ jobs:
       - put: compilation-deployment-windows
         params:
           manifest: compilation-manifest/manifest.yml
-          source_file: gaffer-source-json/source.json
+          source_file: gcs-compilation-source-json/source.json
           releases:
           - kubo-release-tarball/*.tgz
         tags: ['gaffer']
@@ -227,7 +227,7 @@ jobs:
         file: git-kubo-ci/tasks/export-release.yml
         input_mapping:
           git-kubo-deployment: git-kubo-deployment-master
-          gcs-source-json: gaffer-source-json
+          gcs-source-json: gcs-compilation-source-json
         params:
           RELEASE_LIST: "kubo"
           JOBS_LIST: "flanneld-windows kube-proxy-windows kubelet-windows kubo-dns-aliases-windows"
