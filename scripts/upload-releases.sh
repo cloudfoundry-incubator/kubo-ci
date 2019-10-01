@@ -18,7 +18,7 @@ target_bosh_director() {
 main() {
   target_bosh_director
 
-  bosh upload-release "$RELEASE_PATH"
+  ls $RELEASE_PATH | xargs -n 1 bosh upload-release
 }
 
 main
