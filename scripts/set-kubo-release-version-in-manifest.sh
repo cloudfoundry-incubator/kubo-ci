@@ -4,33 +4,42 @@ set -eux -o pipefail
 
 cp -r git-kubo-deployment/. git-kubo-deployment-output
 
+release_version="$(cat kubo-version/version)"
+sha="$(shasum kubo-release-tarball/kubo-release-${release_version}.tgz | cut -d ' ' -f 1)"
+url="https://github.com/cloudfoundry-incubator/kubo-release/releases/download/v${release_version}/kubo-release-${release_version}.tgz"
+
 cat << EOF > replace-kubo-version.yml
 - type: replace
-  path: /0/value((name_selector))
+  path: /0/value/name=kubo
   value:
     name: kubo
     version: ((release_version))
     sha1: ((sha))
     url: ((url))
 EOF
-release_version="$(cat kubo-version/version)"
-sha="$(shasum kubo-release-tarball/kubo-release-${release_version}.tgz | cut -d ' ' -f 1)"
-url="https://github.com/cloudfoundry-incubator/kubo-release/releases/download/v${release_version}/kubo-release-${release_version}.tgz"
 
 bosh int git-kubo-deployment/manifests/ops-files/non-precompiled-releases.yml \
   -o replace-kubo-version.yml \
   -v release_version="$release_version" \
   -v sha="$sha" \
   -v url="$url" \
-  -v name_selector="/name=kubo" \
   > git-kubo-deployment-output/manifests/ops-files/non-precompiled-releases.yml
 
+cat << EOF > windows-replace-kubo-version.yml
+- type: replace
+  path: /0/value
+  value:
+    name: kubo
+    version: ((release_version))
+    sha1: ((sha))
+    url: ((url))
+EOF
+
 bosh int git-kubo-deployment/manifests/ops-files/windows/add-worker.yml \
-  -o replace-kubo-version.yml \
+  -o windows-replace-kubo-version.yml \
   -v release_version="$release_version" \
   -v sha="$sha" \
   -v url="$url" \
-  -v name_selector="" \
   > git-kubo-deployment-output/manifests/ops-files/windows/add-worker.yml
 
 git config --global user.name "cfcr"
