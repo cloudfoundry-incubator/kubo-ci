@@ -187,7 +187,7 @@ jobs:
         file: git-kubo-ci/tasks/export-release.yml
         params:
           RELEASE_LIST: "kubo"
-          JOBS_LIST: "flanneld-windows kube-proxy-windows kubelet-windows kubo-dns-aliases-windows"
+          JOBS_LIST: "flanneld-windows kube-proxy-windows kubelet-windows kubo-dns-aliases-windows docker-windows"
           stemcell_alias: windows
         input_mapping:
           gcs-source-json: gaffer-source-json
