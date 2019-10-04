@@ -52,12 +52,12 @@ resources:
     - 'LICENSE'
     - 'NOTICE'
 
-- name: gaffer-source-json
+- name: director-source-json
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    versioned_file: gaffer-env/source.json
+    versioned_file: gcp-compilation-env/source.json
 
 - name: compilation-deployment-default
   type: bosh-deployment
@@ -128,7 +128,7 @@ jobs:
   plan:
   - in_parallel:
     - get: git-kubo-ci
-    - get: gaffer-source-json
+    - get: director-source-json
     - get: git-kubo-deployment
     - get: kubo-version
       params:
@@ -151,19 +151,17 @@ jobs:
       - put: compilation-deployment-default
         params:
           manifest: compilation-manifest/manifest.yml
-          source_file: gaffer-source-json/source.json
+          source_file: director-source-json/source.json
           releases:
           - kubo-release/kubo-release-*.tgz
-        tags: ['gaffer']
       - task: export
-        tags: ['gaffer']
         file: git-kubo-ci/tasks/export-release.yml
         params:
           RELEASE_LIST: "kubo"
           JOBS_LIST: "apply-specs bbr-kube-apiserver cifs-utils cloud-provider flanneld kube-apiserver kube-controller-manager kube-proxy kubelet kube-scheduler kubernetes-dependencies kubernetes-roles kubo-dns-aliases smoke-tests"
           stemcell_alias: default
         input_mapping:
-          gcs-source-json: gaffer-source-json
+          gcs-source-json: director-source-json
           compilation-deployment: compilation-deployment-default
       - put: gcs-kubo-release-tarball-untested
         attempts: 10
@@ -178,19 +176,17 @@ jobs:
       - put: compilation-deployment-windows
         params:
           manifest: compilation-manifest/manifest.yml
-          source_file: gaffer-source-json/source.json
+          source_file: director-source-json/source.json
           releases:
           - kubo-release/kubo-release-*.tgz
-        tags: ['gaffer']
       - task: export
-        tags: ['gaffer']
         file: git-kubo-ci/tasks/export-release.yml
         params:
           RELEASE_LIST: "kubo"
           JOBS_LIST: "flanneld-windows kube-proxy-windows kubelet-windows kubo-dns-aliases-windows"
           stemcell_alias: windows
         input_mapping:
-          gcs-source-json: gaffer-source-json
+          gcs-source-json: director-source-json
           compilation-deployment: compilation-deployment-windows
       - put: gcs-kubo-windows-release-tarball-untested
         attempts: 10
