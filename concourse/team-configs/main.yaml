@@ -10,7 +10,8 @@ roles:
       "pivotal-cf:pks-kubo",
       "pivotal-cf:pks-bosh-lifecycle"
     ]
-- name: "viewer"
-  github:
     users: ["benmoss", "gab-satchi"]
+#- name: "viewer"
+#  github:
+#    users: ["benmoss", "gab-satchi"]
 
