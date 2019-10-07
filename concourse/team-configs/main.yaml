@@ -12,9 +12,11 @@ roles:
       "pivotal-cf:pks-bosh-lifecycle"
     ]
     users: ["benmoss", "gab-satchi"]
-#- name: "viewer"
-#  github:
-#    users: ["benmoss", "gab-satchi"]
+- name: "viewer"
+  github:
+    teams: [
+      "pivotal-cf:pks"
+    ]
 
 # To apply this file, run this command:
 # fly -t kubo set-team -n main -c main.yaml
