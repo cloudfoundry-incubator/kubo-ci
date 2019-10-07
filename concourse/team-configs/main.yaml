@@ -16,3 +16,5 @@ roles:
 #  github:
 #    users: ["benmoss", "gab-satchi"]
 
+# To apply this file, run this command:
+# fly -t kubo set-team -n main -c main.yaml
