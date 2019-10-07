@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"tests/test_helpers"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -102,6 +103,11 @@ var _ = Describe("When using a NodePort service", func() {
 		It("shows a different source client IPs", func() {
 			if iaas != "vsphere" && iaas != "openstack" {
 				Skip("Test only valid for vSphere and Openstack")
+			}
+			if hasWindowsWorkers, _ := test_helpers.HasWindowsWorkers(); hasWindowsWorkers {
+				// Windows nodes don't respect this flag and will cause this test to fail if a Windows node is chosen
+				// https://github.com/kubernetes/kubernetes/issues/62046
+				Skip("Test not valid on Windows")
 			}
 			deployEchoserver := kubectl.StartKubectlCommand("create", "-f", echoserverNodePortSpec)
 			Eventually(deployEchoserver, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
