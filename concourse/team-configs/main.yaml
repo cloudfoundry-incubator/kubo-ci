@@ -11,7 +11,6 @@ roles:
       "pivotal-cf:pks-core",
       "pivotal-cf:pks-bosh-lifecycle"
     ]
-    users: ["benmoss", "gab-satchi"]
 - name: "viewer"
   github:
     teams: [

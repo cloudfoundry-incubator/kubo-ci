@@ -7,8 +7,15 @@ roles:
       "cloudfoundry-incubator:cfcr core",
       "pivotal-cf:vmware-kubo",
       "pivotal-cf:pks-releng",
-      "pivotal-cf:pks-kubo",
+      "pivotal-cf:pcf-kubo",
+      "pivotal-cf:pks-core",
       "pivotal-cf:pks-bosh-lifecycle"
     ]
-    users: ["benmoss", "gab-satchi"]
+- name: "viewer"
+  github:
+    teams: [
+      "pivotal-cf:pks"
+    ]
 
+# To apply this file, run this command:
+# fly -t kubo set-team -n dev -c dev.yaml
