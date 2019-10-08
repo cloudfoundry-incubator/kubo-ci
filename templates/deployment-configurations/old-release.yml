@@ -35,19 +35,19 @@
       - "kubo-release*"
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/0:before
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/0:before
   value:
     get: old-kubo-deployment-tarball
     passed: [ 'claim-lock' ]
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/0:before
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/0:before
   value:
     get: old-kubo-release-tarball
     passed: [ 'claim-lock' ]
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/get=kubo-deployment
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/get=kubo-deployment
   value:
     get: git-kubo-deployment
     resource: kubo-deployment
@@ -62,3 +62,4 @@
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/releases
   value:
   - old-kubo-release-tarball/*.tgz
+  - dep-releases/*.tgz

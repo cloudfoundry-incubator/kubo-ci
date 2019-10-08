@@ -34,7 +34,7 @@ end
 if ENV['IAAS'] =~ /^vsphere/
   ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml '
   ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml '
-  vars_files << '-l director_uuid/var.yml '
+  vars_file << '-l director_uuid/var.yml '
 end
 
 

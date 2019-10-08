@@ -38,7 +38,7 @@ $(echo -e "${RELEASES}")
 stemcells:
 - alias: default
   os: ${STEMCELL_OS}
-  version: ${STEMCELL_VERSION}
+  version: "${STEMCELL_VERSION}"
 update:
   canaries: 1
   max_in_flight: 1

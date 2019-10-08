@@ -18,3 +18,14 @@
 ./v2_set_pipeline gcp old-release upgrade
 ./v2_set_pipeline gcp pod-security-policy integration
 ./v2_set_pipeline gcp two-cas no-test
+
+./v2_set_pipeline vsphere vanilla conformance
+./v2_set_pipeline vsphere vanilla integration
+./v2_set_pipeline vsphere vanilla turbulence
+./v2_set_pipeline vsphere old-release upgrade
+./v2_set_pipeline vsphere vanilla security
+
+./v2_set_pipeline vsphere-proxy vanilla conformance
+./v2_set_pipeline vsphere-proxy vanilla integration
+./v2_set_pipeline vsphere-proxy vanilla turbulence
+./v2_set_pipeline vsphere-proxy vanilla security

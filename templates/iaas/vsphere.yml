@@ -1,0 +1,44 @@
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value:  git-kubo-deployment/manifests/ops-files/iaas/vsphere/set-working-dir-no-rp.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-ci/manifests/ops-files/iaas/azure/use-environment-subnet.yml
+
+# Tag all tasks
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=upload-stemcell/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=update-kubeconfig/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=run-apply-addons-errand/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=run-smoke-tests-errand/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/task=destroy-k8s/tags?
+  value: [ 'vsphere-lb' ]

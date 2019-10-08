@@ -1,0 +1,7 @@
+- type: replace
+  path: /jobs/name=run-tests/plan/task=upload-stemcell/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=run-tests/plan/put=run-smoke-tests-errand/tags?
+  value: [ 'vsphere-lb' ]

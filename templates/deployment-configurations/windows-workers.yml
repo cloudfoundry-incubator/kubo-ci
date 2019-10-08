@@ -27,9 +27,9 @@
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/windows/add-worker.yml
 
-# - type: replace
-#   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-#   value: git-kubo-deployment/manifests/ops-files/windows/version.yml
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-ci/manifests/ops-files/windows/version.yml
 
 - type: replace
   path: /jobs/name=claim-lock/plan/-
@@ -37,13 +37,13 @@
     get: kubo-release-windows
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/-
   value:
     get: kubo-release-windows
     passed: ['claim-lock']
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/-
   value:
     get: windows-stemcell
 
@@ -54,11 +54,7 @@
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/windows/scale-to-one-az.yml
-
-- type: replace
-  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/windows/enable-rdp.yml
+  value: git-kubo-deployment/manifests/ops-files/misc/scale-to-one-az.yml
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
@@ -67,10 +63,6 @@
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows_worker_vm_type?
   value: worker
-
-- type: replace
-  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows-rdp-password?
-  value: ((windows-rdp-password))
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/kubo-windows-version?

@@ -7,6 +7,6 @@ export BOSH_LOG_LEVEL=debug
 export BOSH_LOG_PATH="$PWD/bosh.log"
 version=$(cat kubo-version/version)
 
-cd git-${release}-release
+cd git-kubo-release
 
-bosh create-release --name ${release} --sha2 --tarball="../${release}-release/${release}-release-${version}.tgz" --version=${version}
+bosh create-release --name ${release} --sha2 --tarball="../kubo-release/${release}-release-${version}.tgz" --version=${version}

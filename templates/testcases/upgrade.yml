@@ -22,6 +22,20 @@
     file: git-kubo-ci/tasks/create-bosh-deploy-command-for-long-lived-director.yml
 
 - type: replace
+  path: /jobs/name=run-tests/plan/1:after
+  value:
+    task: upload-releases
+    file: git-kubo-ci/tasks/upload-releases.yml
+    input_mapping:
+      releases: dep-releases
+
+- type: replace
+  path: /jobs/name=run-tests/plan/1:after
+  value:
+    task: download-dep-releases
+    file: git-kubo-ci/tasks/download-dep-releases.yml
+
+- type: replace
   path: /jobs/name=run-tests/plan/task=run-tests/file?
   value:
     git-kubo-ci/tasks/run-k8s-upgrade-tests-for-long-lived-director.yml

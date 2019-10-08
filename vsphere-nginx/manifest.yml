@@ -37,9 +37,9 @@ instance_groups:
         stream {
           server {
             listen 2000;
-            proxy_pass airbus_backend;
+            proxy_pass stone_backend;
           }
-          upstream airbus_backend {
+          upstream stone_backend {
             server 10.85.96.45:8443;
             server 10.85.96.46:8443;
             server 10.85.96.47:8443;
@@ -47,9 +47,9 @@ instance_groups:
 
           server {
             listen 3000;
-            proxy_pass boeing_backend;
+            proxy_pass iron_backend;
           }
-          upstream boeing_backend {
+          upstream iron_backend {
             server 10.85.96.73:8443;
             server 10.85.96.74:8443;
             server 10.85.96.75:8443;
@@ -57,17 +57,47 @@ instance_groups:
 
           server {
             listen 4000;
-            proxy_pass khaleesi_backend;
+            proxy_pass clay_backend;
           }
-          upstream khaleesi_backend {
-            server 10.87.35.101:8443;
-            server 10.87.35.102:8443;
-            server 10.87.35.103:8443;
+          upstream clay_backend {
+            server 10.85.96.17:8443;
+            server 10.85.96.18:8443;
+            server 10.85.96.19:8443;
+          }
+
+          server {
+            listen 5000;
+            proxy_pass drogon_backend;
+          }
+          upstream drogon_backend {
+            server 10.87.35.17:8443;
+            server 10.87.35.18:8443;
+            server 10.87.35.19:8443;
+          }
+
+          server {
+            listen 6000;
+            proxy_pass viserion_backend;
+          }
+          upstream viserion_backend {
+            server 10.87.35.45:8443;
+            server 10.87.35.46:8443;
+            server 10.87.35.47:8443;
+          }
+
+          server {
+            listen 7000;
+            proxy_pass rhaegal_backend;
+          }
+          upstream rhaegal_backend {
+            server 10.87.35.73:8443;
+            server 10.87.35.74:8443;
+            server 10.87.35.75:8443;
           }
         }
 stemcells:
 - alias: ubuntu
-  os: ubuntu-trusty
+  os: ubuntu-xenial
   version: latest
 
 update:

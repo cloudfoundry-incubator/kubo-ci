@@ -60,7 +60,7 @@
   value:
     name: install-bosh
     plan:
-    - aggregate:
+    - in_parallel:
       - get: slackers
       - get: git-kubo-ci
       - get: git-bosh-deployment
@@ -88,7 +88,17 @@
       params:
         USE_TURBULENCE: 1
         CLOUD_CONFIG_OPS_FILE: vsphere-lb-k8s-cloud-config-multiaz.yml
-    - aggregate:
+      on_failure: &on_failure
+        in_parallel:
+        - do:
+          - task: bosh-destroy
+            tags: [ 'vsphere-lb' ]
+            file: git-kubo-ci/tasks/destroy-bosh.yml
+            input_mapping:
+              git-kubo-deployment: unpacked-kubo-deployment
+              gcs-bosh-state: bosh-state
+              gcs-bosh-creds: bosh-creds
+    - in_parallel:
       - put: gcs-bosh-creds
         attempts: 10
         params:
@@ -104,7 +114,7 @@
       file: git-kubo-ci/tasks/generate-load-balancer-vars.yml
     - task: generate-source-json
       file: git-kubo-ci/tasks/generate-source-json.yml
-    - aggregate:
+    - in_parallel:
       - put: gcs-load-balancer-vars
         attempts: 10
         params:
@@ -137,37 +147,37 @@
 # and load-balancer-vars from gcs
 ###########################################################
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/1/passed
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/1/passed
   value: [ 'install-bosh' ]
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/3/passed
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/3/passed
   value: [ 'install-bosh' ]
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/4/passed
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/4/passed
   value: [ 'install-bosh' ]
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/-
   value:
     get: source-json
     passed: [ 'install-bosh' ]
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/-
   value:
     get: gcs-bosh-state
     passed: [ 'install-bosh' ]
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/-
   value:
     get: gcs-bosh-creds
     passed: [ 'install-bosh' ]
 
 - type: replace
-  path: /jobs/name=deploy-k8s/plan/0/aggregate/-
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/-
   value:
     get: gcs-load-balancer-vars
     passed: [ 'install-bosh' ]
@@ -184,6 +194,7 @@
       source-json: source-json
       kubo-lock: kubo-lock
     file: git-kubo-ci/tasks/merge-metadata.yml
+    tags: [ 'vsphere-lb' ]
 
 # Add necessary vsphere iaas ops-files
 - type: replace
@@ -255,19 +266,19 @@
   value: merged-kubo-lock/metadata
 
 - type: replace
-  path: /jobs/name=destroy-k8s/plan/0/aggregate/-
+  path: /jobs/name=destroy-k8s/plan/0/in_parallel/-
   value:
     get: gcs-bosh-creds
     passed: ['deploy-k8s']
 
 - type: replace
-  path: /jobs/name=destroy-k8s/plan/0/aggregate/-
+  path: /jobs/name=destroy-k8s/plan/0/in_parallel/-
   value:
     get: gcs-bosh-state
     passed: ['deploy-k8s']
 
 - type: replace
-  path: /jobs/name=destroy-k8s/plan/0/aggregate/-
+  path: /jobs/name=destroy-k8s/plan/0/in_parallel/-
   value:
     get: source-json
     passed: [ 'deploy-k8s' ]
@@ -301,7 +312,7 @@
   value:
     name: destroy-bosh
     plan:
-    - aggregate:
+    - in_parallel:
       - get: slackers
       - get: git-kubo-ci
       - get: git-bosh-deployment

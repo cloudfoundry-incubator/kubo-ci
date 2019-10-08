@@ -23,7 +23,7 @@ resources:
 jobs:
 - name: check-and-upgrade-flannel
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: git-kubo-release
     - get: flannel-release

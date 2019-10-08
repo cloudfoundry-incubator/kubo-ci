@@ -1,0 +1,39 @@
+
+- type: replace
+  path: /resources/name=windows-stemcell/type?
+  value: pivnet
+
+- type: replace
+  path: /resources/name=windows-stemcell/source?
+  value:
+    api_token: ((pivnet-api-token))
+    product_slug: stemcells-windows-server-internal
+    product_version: "2019.7"
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/iaas/vsphere/windows/cloud-provider.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/iaas/vsphere/windows/use-vm-extensions.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/use-hostgw.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-deployment/manifests/ops-files/windows/use-hostgw.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
+  value: git-kubo-ci/manifests/ops-files/windows/use-environment-subnet.yml
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows_worker_vm_type?
+  value: large
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows-stemcell-version?
+  value: 2019.7

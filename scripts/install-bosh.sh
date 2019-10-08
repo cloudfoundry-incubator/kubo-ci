@@ -33,6 +33,7 @@ if [[ ! -z ${USE_TURBULENCE+x} ]] && [[ ! -z "${USE_TURBULENCE}" ]]; then
 fi
 
 BOSH_EXTRA_OPS="${BOSH_EXTRA_OPS} --ops-file \"${ROOT}/git-bosh-deployment/jumpbox-user.yml\""
+BOSH_EXTRA_OPS="${BOSH_EXTRA_OPS} --ops-file \"${ROOT}/git-kubo-ci/concourse/gcp/change-bosh-disk-size.yml\""
 
 if [[ -f "$KUBO_CI_DIR/manifests/ops-files/${iaas}-cpi.yml" ]]; then
   BOSH_EXTRA_OPS="${BOSH_EXTRA_OPS} --ops-file $KUBO_CI_DIR/manifests/ops-files/${iaas}-cpi.yml"
@@ -50,6 +51,16 @@ elif [[ -f "$iaas_cc_opsfile" ]]; then
   CLOUD_CONFIG_OPS_FILES="${iaas_cc_opsfile}"
 fi
 export CLOUD_CONFIG_OPS_FILES
+
+copy_env_to_output() {
+  # for Concourse outputs
+  if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
+    cp "${KUBO_ENVIRONMENT_DIR}/creds.yml" "${ROOT}/bosh-creds/"
+    cp "${KUBO_ENVIRONMENT_DIR}/state.json" "${ROOT}/bosh-state/"
+  fi
+}
+
+trap "copy_env_to_output" ERR
 
 echo "Deploying BOSH"
 
@@ -72,8 +83,4 @@ fi
 
 "${ROOT}/git-kubo-ci/scripts/set_bosh_alias" "${KUBO_ENVIRONMENT_DIR}"
 
-# for Concourse outputs
-if [ -z ${LOCAL_DEV+x} ] || [ "$LOCAL_DEV" != "1" ]; then
-  cp "${KUBO_ENVIRONMENT_DIR}/creds.yml" "${ROOT}/bosh-creds/"
-  cp "${KUBO_ENVIRONMENT_DIR}/state.json" "${ROOT}/bosh-state/"
-fi
+copy_env_to_output

@@ -7,8 +7,6 @@ image_resource:
 run:
   path: git-kubo-ci/scripts/bump-stemcell.sh
 
-params: []
-
 inputs:
   - name: git-kubo-ci
   - name: git-kubo-deployment

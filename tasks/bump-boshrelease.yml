@@ -9,6 +9,8 @@ run:
 params:
   REPO_URL:
   RELEASE_NAME:
+  ARRAY_POS: 0
+  BASE_OPS_FILE: manifests/ops-files/non-precompiled-releases.yml
 inputs:
   - name: git-kubo-ci
   - name: git-kubo-deployment

@@ -1,0 +1,10 @@
+kubo-version-bucket: &release-bucket kubo-pipeline-store
+kubo-ci-branch: master
+kubo-deployment:
+  branch: &develop develop
+  build-bucket: *release-bucket
+kubo-release:
+  branch: *develop
+  ubuntu-build-bucket: *release-bucket
+  windows-build-bucket: *release-bucket
+precompiled-release-bucket: kubo-precompiled-releases

@@ -29,7 +29,6 @@ resources:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
     versioned_file: shipables/shipable_version
-#azure_vanilla_turbulence
 <% arr = %w(
 aws_vanilla_integration
 aws_old-release_upgrade
@@ -46,6 +45,13 @@ gcp_vanilla_conformance
 gcp_vanilla_integration
 gcp_vanilla_istio
 gcp_vanilla_turbulence
+vsphere_vanilla_integration
+vsphere_vanilla_conformance
+vsphere_vanilla_security
+vsphere_windows-workers_integration
+vsphere-proxy_vanilla_integration
+vsphere-proxy_vanilla_conformance
+vsphere-proxy_vanilla_security
 ) %>
 <% arr.each do |pipeline| %>
 - name: gcs-<%= pipeline %>-shipables
@@ -59,7 +65,7 @@ gcp_vanilla_turbulence
 jobs:
 - name: signal-aggregator
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     <% arr.each do |pipeline|%>
     - get: gcs-<%= pipeline %>-shipables
@@ -86,7 +92,7 @@ jobs:
       - name: gcs-<%= pipeline %>-shipables
       <% end %>
       run:
-        path: git-kubo-ci/scripts/aggregate-test-signals.rb
+        path: git-kubo-ci/tasks/aggregate-test-signals/task.sh
     on_success:
       put: gcs-shipables
       params:

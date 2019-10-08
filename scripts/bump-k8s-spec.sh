@@ -134,8 +134,10 @@ main() {
   message="No new versions found to update."
   changed=""
   for i in "${!blob_names[@]}"; do
+      set -x
       existing_spec_version=$(bosh blobs --column path | grep "${blob_names[i]}" | grep -o -E 'v?([0-9]+\.)+[0-9]+')
       fetched_spec_version=$(cat "$base_dir/${releases[i]}/tag")
+      set +x
       if [[ "$existing_spec_version" != "$fetched_spec_version" ]] \
           && [[ "v$existing_spec_version" != "$fetched_spec_version" ]]; then
           export SPEC_RELEASE_DIR=${releases[i]}

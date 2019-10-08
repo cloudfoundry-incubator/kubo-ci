@@ -103,14 +103,14 @@ jobs:
   - get: kubo-release
   - get: git-kubo-ci
   # Update this to match kubo-deployment kubo and kubo-windows
-  # - task: check-version-match
-  #   file: git-kubo-ci/tasks/check-version-match.yml
+  - task: check-version-match
+    file: git-kubo-ci/tasks/check-version-match.yml
   - put: kubo-lock
     params: { acquire: true }
 
 - name: deploy-k8s
   plan:
-  - aggregate:
+  - in_parallel:
     - get: slackers
     - get: kubo-release
       passed: [ 'claim-lock' ]
@@ -131,6 +131,10 @@ jobs:
       IAAS: ((iaas))
     input_mapping:
       source-json: kubo-lock
+  # put all dep releases inside directory dep-releases/ , then
+  # next task will auto upload them, ensuring that the remote URL "failures" are inconsequential
+  - task: download-dep-releases
+    file: git-kubo-ci/tasks/download-dep-releases.yml
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
@@ -154,6 +158,7 @@ jobs:
         disk_size: 10240
       releases:
       - kubo-release/*.tgz
+      - dep-releases/*.tgz
       source_file: kubo-lock/metadata
     on_failure: &on_failure_alert
     #  do:
@@ -184,7 +189,7 @@ jobs:
 
 - name: run-tests
   plan:
-  - aggregate:
+  - in_parallel:
     - get: slackers
     - get: git-kubo-ci
     - get: kubo-lock
@@ -215,7 +220,7 @@ jobs:
 
 - name: destroy-k8s
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: kubo-lock
       passed: [ 'run-tests' ]
@@ -233,7 +238,7 @@ jobs:
 
 - name: publish-version
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: gcs-shipable-version
     - get: kubo-deployment

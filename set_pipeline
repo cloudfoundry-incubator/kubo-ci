@@ -46,6 +46,36 @@ extract_pipeline_name() {
 }
 
 main() {
+  PARAMS=""
+  VAR_PATH=""
+  PIPELINE_NAME=""
+  while (( "$#" )); do
+    case "$1" in
+      -v|--variables)
+        VAR_PATH=$2
+        shift 2
+        ;;
+      -p|--pipeline)
+        PIPELINE_NAME=$2
+        shift 2
+        ;;
+      --) # end argument parsing
+        shift
+        break
+        ;;
+      -*|--*=) # unsupported flags
+        echo "Error: Unsupported flag $1" >&2
+        exit 1
+        ;;
+      *) # preserve positional arguments
+        PARAMS="$PARAMS $1"
+        shift
+        ;;
+    esac
+  done
+  # set positional arguments in their proper place
+  eval set -- "$PARAMS"
+
   local pipeline_name
   if [ "$#" == "0" ]; then
     print_usage
@@ -69,12 +99,21 @@ main() {
     fi
   fi
 
+  if [[ -z $VAR_PATH ]]; then
+    VAR_PATH=configurations/pipeline/variables.yml
+  fi
+
+  if [[ ! -z $PIPELINE_NAME ]]; then
+    pipeline_name=$PIPELINE_NAME
+  fi
+
   fly --target kubo sync > /dev/null
   erb "${pipeline_filename}" > /dev/null
 
   fly --target kubo set-pipeline --pipeline "${pipeline_name}" \
     --config <(erb "${pipeline_filename}") \
-    --var branch-name="${branch_name}"
+    --var branch-name="${branch_name}" \
+    --load-vars-from="${VAR_PATH}"
 }
 
 pushd "${ci_dir}" > /dev/null
