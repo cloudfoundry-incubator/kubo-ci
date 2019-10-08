@@ -40,3 +40,7 @@
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows-stemcell-version?
   value: 2019.7
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/get=windows-stemcell/tags?
+  value: ['vsphere-lb']
