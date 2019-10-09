@@ -52,6 +52,20 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
 
+- name: git-kubo-release-windows-develop
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-release-windows.git
+    branch: develop
+    private_key: ((git-ssh-key.private_key))
+
+- name: git-kubo-release-windows-master
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/kubo-release-windows.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
 - name: kubo-version
   type: semver
   source:
@@ -78,6 +92,15 @@ resources:
     drafts: true
     pre_release: true
 
+- name: gh-release-kubo-release-windows
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: kubo-release-windows
+    access_token: ((github-token-key))
+    drafts: true
+    pre_release: true
+
 - name: gcs-compilation-source-json
   type: gcs
   source:
@@ -92,12 +115,25 @@ resources:
     deployment: compilation-default
     skip_check: true
 
+- name: compilation-deployment-windows
+  type: bosh-deployment
+  source:
+    deployment: compilation-windows
+    skip_check: true
+
 - name: gcs-precompiled-kubo-untested
   type: gcs
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-precompiled-releases
     regexp: kubo-(\d+\.\d+\.\d+(-dev\.\d+)*)-ubuntu-xenial-.*\.tgz
+
+- name: gcs-precompiled-kubo-windows-untested
+  type: gcs
+  source:
+    json_key: ((gcs-json-key))
+    bucket: kubo-precompiled-releases
+    regexp: kubo-windows-(\d+\.\d+\.\d+(-dev\.\d+)*)-windows2019-.*\.tgz
 
 jobs:
 - name: ship-it
@@ -109,8 +145,10 @@ jobs:
       params:
         bump: final
     - get: git-kubo-release-master
+    - get: git-kubo-release-windows-master
     - get: git-kubo-deployment-master
     - get: git-kubo-release-develop
+    - get: git-kubo-release-windows-develop
     - get: git-kubo-deployment-develop
     - get: release-candidate-signal
   - task: checkout-to-commit
@@ -123,10 +161,12 @@ jobs:
           tag: stable
       outputs:
       - name: git-kubo-release-output
+      - name: git-kubo-release-windows-output
       - name: git-kubo-deployment-output
       inputs:
       - name: git-kubo-ci
       - name: git-kubo-release-develop
+      - name: git-kubo-release-windows-develop
       - name: git-kubo-deployment-develop
       - name: release-candidate-signal
       run:
@@ -136,15 +176,25 @@ jobs:
         - -c
         - |
           release_sha="$(awk -F' ' '{print $1}' release-candidate-signal/shipable_version)"
-          deployment_sha="$(awk -F' ' '{print $2}' release-candidate-signal/shipable_version)"
-          git --git-dir="git-kubo-release-develop/.git" checkout $release_sha
+          release_windows_sha="$(awk -F' ' '{print $2}' release-candidate-signal/shipable_version)"
+          deployment_sha="$(awk -F' ' '{print $3}' release-candidate-signal/shipable_version)"
           shopt -s dotglob
+
+          git --git-dir="git-kubo-release-develop/.git" checkout $release_sha
           cp -R git-kubo-release-develop/* git-kubo-release-output
+
+          git --git-dir="git-kubo-release-windows-develop/.git" checkout $release_windows_sha
+          cp -R git-kubo-release-windows-develop/* git-kubo-release-windows-output
+
           git --git-dir="git-kubo-deployment-develop/.git" checkout $deployment_sha
           cp -R git-kubo-deployment-develop/* git-kubo-deployment-output
   - put: git-kubo-release-master
     params:
       repository: git-kubo-release-output
+      merge: true
+  - put: git-kubo-release-windows-master
+    params:
+      repository: git-kubo-release-windows-output
       merge: true
   - put: git-kubo-deployment-master # merge to master
     params:
@@ -157,18 +207,46 @@ jobs:
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
-  - task: generate-compilation-manifest
+  - task: create-final-release-windows # TODO: Double check create final would work with windows
+    file: git-kubo-ci/tasks/create-final-release.yml
+    input_mapping:
+      git-kubo-release: git-kubo-release-windows-master
+    output_mapping:
+      git-kubo-release-output: git-kubo-release-windows-output
+      kubo-release-tarball: kubo-release-windows-tarball
+      kubo-release-tarball-notes: kubo-release-windows-tarball-notes
+    params:
+      ACCESS_KEY_ID: ((gcs-access-key-id))
+      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+      release_name: "kubo-release-windows"
+  - task: generate-compilation-manifest # TODO: generate could go in parallel
     file: git-kubo-ci/tasks/generate-compilation-manifest.yml
     input_mapping:
       git-kubo-deployment: git-kubo-deployment-master
     params:
       RELEASE_LIST: kubo
+  - task: generate-compilation-manifest-windows
+    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-master
+    output_mapping:
+      compilation-manifest: compilation-manifest-windows
+    params:
+      RELEASE_LIST: kubo-windows
+      stemcell_alias: windows
   - put: compilation-deployment
     params:
       manifest: compilation-manifest/manifest.yml
       source_file: gcs-compilation-source-json/source.json
       releases:
       - kubo-release-tarball/*.tgz
+    tags: ['gaffer']
+  - put: compilation-deployment-windows
+    params:
+      manifest: compilation-manifest-windows/manifest.yml
+      source_file: gcs-compilation-source-json/source.json
+      releases:
+        - kubo-release-windows-tarball/*.tgz
     tags: ['gaffer']
   - task: export
     tags: ['gaffer']
@@ -178,15 +256,31 @@ jobs:
       gcs-source-json: gcs-compilation-source-json
     params:
       RELEASE_LIST: kubo
+  - task: export-windows
+    tags: ['gaffer']
+    file: git-kubo-ci/tasks/export-release.yml
+    params:
+      RELEASE_LIST: kubo-windows
+      stemcell_alias: windows
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-master
+      gcs-source-json: gcs-compilation-source-json
+      compilation-deployment: compilation-deployment-windows
+    output_mapping:
+      compiled-releases: compiled-releases-windows
   - put: gcs-precompiled-kubo-untested
     params:
       file: compiled-releases/kubo-*.tgz
+  - put: gcs-precompiled-kubo-windows-untested
+    params:
+      file: compiled-releases-windows/kubo-*.tgz
   - task: bump-precompiled-releases-in-manifest
     file: git-kubo-ci/tasks/bump-precompiled-releases-in-manifest.yml
     input_mapping:
       git-kubo-deployment: git-kubo-deployment-master
     params:
       RELEASE_LIST: kubo
+
   - task: set-kubo-release-version-in-manifest
     file: git-kubo-ci/tasks/set-kubo-release-version-in-manifest.yml
     input_mapping:
@@ -211,6 +305,19 @@ jobs:
           tag: kubo-version/version
           tag_prefix: v
     - do:
+        - put: git-kubo-release-windows-master
+          params:
+            repository: git-kubo-release-windows-output
+        - put: gh-release-kubo-release-windows
+          params:
+            body: kubo-release-windows-tarball-notes/body
+            globs:
+              - "kubo-release-windows-tarball/*.tgz"
+              - compiled-releases-windows/kubo-windows-*.tgz
+            name: kubo-release-windows-tarball-notes/name
+            tag: kubo-version/version
+            tag_prefix: v
+    - do:
       - put: git-kubo-deployment-master
         params:
           repository: git-kubo-deployment-output
@@ -231,6 +338,10 @@ jobs:
   - put: git-kubo-release-develop
     params:
       repository: git-kubo-release-master
+      merge: true
+  - put: git-kubo-release-windows-develop
+    params:
+      repository: git-kubo-release-windows-master
       merge: true
   - put: git-kubo-deployment-develop
     params:
