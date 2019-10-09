@@ -15,5 +15,6 @@ inputs:
   - name: git-kubo-deployment
   - name: kubo-version
   - name: kubo-release-tarball
+  - name: kubo-release-windows-tarball
 outputs:
   - name: git-kubo-deployment-output

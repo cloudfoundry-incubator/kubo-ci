@@ -35,11 +35,14 @@ cat << EOF > windows-replace-kubo-version.yml
     url: ((url))
 EOF
 
+sha_windows="$(shasum kubo-release-windows-tarball/kubo-release-windows-${release_version}.tgz | cut -d ' ' -f 1)"
+url_windows="https://github.com/cloudfoundry-incubator/kubo-release-windows/releases/download/v${release_version}/kubo-release-windows-${release_version}.tgz"
+
 bosh int git-kubo-deployment/manifests/ops-files/windows/add-worker.yml \
   -o windows-replace-kubo-version.yml \
   -v release_version="$release_version" \
-  -v sha="$sha" \
-  -v url="$url" \
+  -v sha="$sha_windows" \
+  -v url="$url_windows" \
   > git-kubo-deployment-output/manifests/ops-files/windows/add-worker.yml
 
 git config --global user.name "cfcr"

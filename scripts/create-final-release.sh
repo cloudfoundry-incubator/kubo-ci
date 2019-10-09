@@ -22,7 +22,9 @@ blobstore:
     secret_access_key: ${SECRET_ACCESS_KEY}
 EOF
 
-bosh create-release --final --version="${version}" --sha2 --tarball "../kubo-release-tarball/kubo-release-${version}.tgz"
+release_name=${release_name:-kubo-release}
+
+bosh create-release --final --version="${version}" --sha2 --tarball "../kubo-release-tarball/${release_name}-${version}.tgz"
 
 git add .
 git commit -m "Final release for v${version}"
