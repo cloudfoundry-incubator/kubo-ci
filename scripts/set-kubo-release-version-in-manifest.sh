@@ -29,7 +29,7 @@ cat << EOF > windows-replace-kubo-version.yml
 - type: replace
   path: /0/value
   value:
-    name: kubo
+    name: kubo-windows
     version: ((release_version))
     sha1: ((sha))
     url: ((url))
