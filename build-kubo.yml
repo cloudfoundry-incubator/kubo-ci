@@ -147,69 +147,76 @@ jobs:
     - get: git-kubo-release
       passed: [ 'run-unit-tests-release' ]
       trigger: true
+  - task: build-kubo-release
+    file: git-kubo-ci/tasks/build-kubo-release.yml
+    on_failure: *on_failure_alert
+    params:
+      release: kubo
+  - task: generate-compilation-manifest
+    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+    params:
+      RELEASE_LIST: "kubo"
+      stemcell_alias: default
+  - put: compilation-deployment-default
+    params:
+      manifest: compilation-manifest/manifest.yml
+      source_file: director-source-json/source.json
+      releases:
+      - kubo-release/kubo-release-*.tgz
+  - task: export
+    file: git-kubo-ci/tasks/export-release.yml
+    params:
+      RELEASE_LIST: kubo
+      stemcell_alias: default
+    input_mapping:
+      gcs-source-json: director-source-json
+      compilation-deployment: compilation-deployment-default
+  - put: gcs-kubo-release-tarball-untested
+    attempts: 10
+    params:
+      file: compiled-releases/kubo-*.tgz
+
+- name: build-kubo-windows
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: director-source-json
+    - get: git-kubo-deployment
+    - get: kubo-version
+      params:
+        pre: dev
     - get: git-kubo-windows-release
       trigger: true
-  - in_parallel:
-    - do:
-      - task: build-kubo-release
-        file: git-kubo-ci/tasks/build-kubo-release.yml
-        on_failure: *on_failure_alert
-        params:
-          release: kubo
-      - task: generate-compilation-manifest
-        file: git-kubo-ci/tasks/generate-compilation-manifest.yml
-        params:
-          RELEASE_LIST: "kubo"
-          stemcell_alias: default
-      - put: compilation-deployment-default
-        params:
-          manifest: compilation-manifest/manifest.yml
-          source_file: director-source-json/source.json
-          releases:
-          - kubo-release/kubo-release-*.tgz
-      - task: export
-        file: git-kubo-ci/tasks/export-release.yml
-        params:
-          RELEASE_LIST: kubo
-          stemcell_alias: default
-        input_mapping:
-          gcs-source-json: director-source-json
-          compilation-deployment: compilation-deployment-default
-      - put: gcs-kubo-release-tarball-untested
-        attempts: 10
-        params:
-          file: compiled-releases/kubo-*.tgz
-    - do:
-      - task: build-kubo-windows-release
-        file: git-kubo-ci/tasks/build-kubo-release.yml
-        on_failure: *on_failure_alert
-        input_mapping: {git-kubo-release: git-kubo-windows-release}
-        output_mapping: {kubo-release: kubo-windows-release}
-        params:
-          release: kubo-windows
-      - task: generate-compilation-manifest-windows
-        file: git-kubo-ci/tasks/generate-compilation-manifest.yml
-        params:
-          RELEASE_LIST: kubo-windows
-          stemcell_alias: windows
-      - put: compilation-deployment-windows
-        params:
-          manifest: compilation-manifest/manifest.yml
-          source_file: director-source-json/source.json
-          releases:
-          - kubo-windows-release/*.tgz
-      - task: export
-        file: git-kubo-ci/tasks/export-release.yml
-        params:
-          RELEASE_LIST: kubo-windows
-          stemcell_alias: windows
-        input_mapping:
-          gcs-source-json: director-source-json
-          compilation-deployment: compilation-deployment-windows
-      - put: gcs-kubo-windows-release-tarball-untested
-        attempts: 10
-        params:
-          file: compiled-releases/kubo-*.tgz
+  - task: build-kubo-windows-release
+    file: git-kubo-ci/tasks/build-kubo-release.yml
+    on_failure: *on_failure_alert
+    input_mapping: {git-kubo-release: git-kubo-windows-release}
+    output_mapping: {kubo-release: kubo-windows-release}
+    params:
+      release: kubo-windows
+  - task: generate-compilation-manifest-windows
+    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+    params:
+      RELEASE_LIST: kubo-windows
+      stemcell_alias: windows
+  - put: compilation-deployment-windows
+    params:
+      manifest: compilation-manifest/manifest.yml
+      source_file: director-source-json/source.json
+      releases:
+      - kubo-windows-release/*.tgz
+  - task: export
+    file: git-kubo-ci/tasks/export-release.yml
+    params:
+      RELEASE_LIST: kubo-windows
+      stemcell_alias: windows
+    input_mapping:
+      gcs-source-json: director-source-json
+      compilation-deployment: compilation-deployment-windows
+  - put: gcs-kubo-windows-release-tarball-untested
+    attempts: 10
+    params:
+      file: compiled-releases/kubo-*.tgz
 
 - name: build-kubo-deployment-tarball
   plan:
