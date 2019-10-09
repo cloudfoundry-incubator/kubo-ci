@@ -92,12 +92,6 @@ resources:
     deployment: compilation-default
     skip_check: true
 
-- name: compilation-deployment-windows
-  type: bosh-deployment
-  source:
-    deployment: compilation-windows
-    skip_check: true
-
 - name: gcs-precompiled-kubo-untested
   type: gcs
   source:
@@ -105,17 +99,10 @@ resources:
     bucket: kubo-precompiled-releases
     regexp: kubo-(\d+\.\d+\.\d+(-dev\.\d+)*)-ubuntu-xenial-.*\.tgz
 
-- name: gcs-precompiled-kubo-windows-untested
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-precompiled-releases
-    regexp: kubo-(\d+\.\d+\.\d+(-dev\.\d+)*)-windows2019-.*\.tgz
-
 jobs:
 - name: ship-it
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-kubo-ci
     - get: gcs-compilation-source-json
     - get: kubo-version
@@ -170,77 +157,46 @@ jobs:
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
-  - in_parallel:
-    - do:
-      - task: generate-compilation-manifest
-        file: git-kubo-ci/tasks/generate-compilation-manifest.yml
-        input_mapping:
-          git-kubo-deployment: git-kubo-deployment-master
-        params:
-          RELEASE_LIST: "kubo"
-      - put: compilation-deployment
-        params:
-          manifest: compilation-manifest/manifest.yml
-          source_file: gcs-compilation-source-json/source.json
-          releases:
-          - kubo-release-tarball/*.tgz
-        tags: ['gaffer']
-      - task: export
-        tags: ['gaffer']
-        file: git-kubo-ci/tasks/export-release.yml
-        input_mapping:
-          git-kubo-deployment: git-kubo-deployment-master
-          gcs-source-json: gcs-compilation-source-json
-        params:
-          RELEASE_LIST: "kubo"
-          JOBS_LIST: "apply-specs bbr-kube-apiserver cifs-utils cloud-provider flanneld kube-apiserver kube-controller-manager kube-proxy kubelet kube-scheduler kubernetes-dependencies kubernetes-roles kubo-dns-aliases smoke-tests"
-      - put: gcs-precompiled-kubo-untested
-        params:
-          file: compiled-releases/kubo-*.tgz
-      - task: bump-precompiled-releases-in-manifest
-        file: git-kubo-ci/tasks/bump-precompiled-releases-in-manifest.yml
-        input_mapping:
-          git-kubo-deployment: git-kubo-deployment-master
-        params:
-          RELEASE_LIST: "kubo"
-      - task: set-kubo-release-version-in-manifest
-        file: git-kubo-ci/tasks/set-kubo-release-version-in-manifest.yml
-        input_mapping:
-          git-kubo-deployment: git-kubo-deployment-output
-    - do:
-      - task: generate-compilation-manifest
-        file: git-kubo-ci/tasks/generate-compilation-manifest.yml
-        input_mapping:
-          git-kubo-deployment: git-kubo-deployment-master
-        params:
-          RELEASE_LIST: "kubo"
-          stemcell_alias: "windows"
-      - put: compilation-deployment-windows
-        params:
-          manifest: compilation-manifest/manifest.yml
-          source_file: gcs-compilation-source-json/source.json
-          releases:
-          - kubo-release-tarball/*.tgz
-        tags: ['gaffer']
-      - task: export
-        tags: ['gaffer']
-        file: git-kubo-ci/tasks/export-release.yml
-        input_mapping:
-          git-kubo-deployment: git-kubo-deployment-master
-          gcs-source-json: gcs-compilation-source-json
-        params:
-          RELEASE_LIST: "kubo"
-          JOBS_LIST: "flanneld-windows kube-proxy-windows kubelet-windows kubo-dns-aliases-windows"
-          stemcell_alias: windows
-      - put: gcs-precompiled-kubo-windows-untested
-        params:
-          file: compiled-releases/kubo-*.tgz
+  - task: generate-compilation-manifest
+    file: git-kubo-ci/tasks/generate-compilation-manifest.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-master
+    params:
+      RELEASE_LIST: kubo
+  - put: compilation-deployment
+    params:
+      manifest: compilation-manifest/manifest.yml
+      source_file: gcs-compilation-source-json/source.json
+      releases:
+      - kubo-release-tarball/*.tgz
+    tags: ['gaffer']
+  - task: export
+    tags: ['gaffer']
+    file: git-kubo-ci/tasks/export-release.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-master
+      gcs-source-json: gcs-compilation-source-json
+    params:
+      RELEASE_LIST: kubo
+  - put: gcs-precompiled-kubo-untested
+    params:
+      file: compiled-releases/kubo-*.tgz
+  - task: bump-precompiled-releases-in-manifest
+    file: git-kubo-ci/tasks/bump-precompiled-releases-in-manifest.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-master
+    params:
+      RELEASE_LIST: kubo
+  - task: set-kubo-release-version-in-manifest
+    file: git-kubo-ci/tasks/set-kubo-release-version-in-manifest.yml
+    input_mapping:
+      git-kubo-deployment: git-kubo-deployment-output
   - task: create-kubo-deployment-tarball
     file: git-kubo-ci/tasks/create-kubo-deployment-tarball.yml
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
-  - aggregate:
+  - in_parallel:
     - do:
       - put: git-kubo-release-master
         params:
