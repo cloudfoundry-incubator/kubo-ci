@@ -61,7 +61,7 @@ puts
 if linux_build_number == windows_build_number
   File.write(ENV['SHIPABLE_VERSION_FILE'], [linux_release_sha, windows_release_sha, deployment_sha, linux_build_number])
   puts "#{ENV['SHIPABLE_VERSION_FILE']} contains..."
-  `cat #{ENV['SHIPABLE_VERSION_FILE']}`
+  puts File.read(ENV['SHIPABLE_VERSION_FILE'])
 else
   puts Rainbow("linux_build_number #{linux_build_number} does not match the windows_build_number #{windows_build_number} ").red
 end
