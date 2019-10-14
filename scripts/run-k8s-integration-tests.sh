@@ -47,6 +47,10 @@ main() {
     skipped_packages="$(echo $skipped_packages | cut -c 2-)"
   fi
 
+  if [[ "${ENABLE_WINDOWS_TESTS:-false}" == "false" ]]; then
+    skipped_packages="$skipped_packages,windows"
+  fi
+
   ginkgo -keepGoing -r -progress -flakeAttempts=2 -skipPackage "${skipped_packages}" "${ROOT}/git-kubo-ci/src/tests/integration-tests/"
 }
 

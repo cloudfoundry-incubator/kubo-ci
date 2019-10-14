@@ -119,9 +119,6 @@ func curlWindows(url string) func() ([]string, error) {
 }
 
 func setupNS() {
-	if !hasWindowsWorkers {
-		Skip("skipping Windows tests since no Windows nodes were detected")
-	}
 	kubectl = test_helpers.NewKubectlRunner()
 	kubectl.Setup()
 }

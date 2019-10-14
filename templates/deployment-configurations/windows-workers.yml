@@ -71,3 +71,7 @@
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/releases/-
   value: kubo-release-windows/*.tgz
+
+- type: replace
+  path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_WINDOWS_TESTS?
+  value: true
