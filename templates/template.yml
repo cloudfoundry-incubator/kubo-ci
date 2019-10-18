@@ -238,7 +238,8 @@ jobs:
 
 - name: publish-version
   plan:
-  - in_parallel:
+  - metadata: in_parallel
+    in_parallel:
     - get: git-kubo-ci
     - get: gcs-shipable-version
     - get: kubo-deployment

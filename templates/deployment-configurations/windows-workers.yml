@@ -75,3 +75,12 @@
 - type: replace
   path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_WINDOWS_TESTS?
   value: true
+
+- type: replace
+  path: /jobs/name=publish-version/plan/metadata=in_parallel/in_parallel/get=kubo-release/get
+  value: kubo-release-windows
+
+- type: replace
+  path: /jobs/name=publish-version/plan/task=publish-version/input_mapping?
+  value:
+    kubo-release-windows: kubo-release
