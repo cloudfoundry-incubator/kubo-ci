@@ -3,7 +3,7 @@ image_resource:
   type: docker-image
   source:
     repository: pcfkubo/kubo-ci
-    tag: fd0eeb4494b4e316cfadbb40ab54cab24efebbf93a9d0125c5d766e192279f29
+    tag: stable
 inputs:
 - name: git-kubo-ci
 - name: gcs-kubeconfig
