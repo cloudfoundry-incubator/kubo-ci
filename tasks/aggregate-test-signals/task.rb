@@ -3,24 +3,60 @@
 
 require 'terminal-table'
 require 'rainbow'
+require 'set'
 
 linux_files = Dir.glob('gcs-*-shipables').flat_map { |d| Dir.glob(d + '/*shipable') }
 linux_files.delete_if { |f| /windows/.match(f) }
 windows_files = Dir.glob('gcs-*windows*-shipables').flat_map { |d| Dir.glob(d + '/*shipable') }
 
-def find_overlap(files)
-  overlap = File.read(files.first).split("\n")
+def print_version_matrix(files)
+  passed_matrix = {}
+  version_overlap = File.read(files.first).split("\n")
+  highest_versions = Set[]
   files.each do |f|
-    overlap = File.read(f).split("\n") & overlap
-    puts "After checking #{f} good versions are: #{overlap.last}"
+    version_overlap, passed_versions = find_overlap(f, version_overlap)
+    build_name = f.split("/")[1].split("-shipable")[0]
+    highest_version = version_overlap.last
+    passed_matrix[build_name] = passed_versions
+    highest_versions.add(highest_version)
   end
-  overlap
+
+  rows = []
+  passed_matrix.keys.each do |build|
+    row = [build]
+    highest_versions.each do |highest_version|
+      if passed_matrix[build].include? highest_version
+        row << "X"
+      else
+        row << ""
+      end
+    end
+    rows << row
+  end
+
+  headers = ["build"]
+  highest_versions.each do |highest_version|
+    headers << highest_version
+  end
+
+  table = Terminal::Table.new :headings => headers, :rows => rows
+  puts table
+  puts
+
+  version_overlap
+end
+
+def find_overlap(file, overlap)
+  passed_versions = File.read(file).split("\n")
+  overlap = passed_versions & overlap
+  puts "After checking #{file} good versions are: #{overlap.last}"
+  [ overlap, passed_versions ]
 end
 
 puts
 puts "Looking for highest common green build..."
 puts "....linux"
-linux_overlap = find_overlap(linux_files)
+linux_overlap = print_version_matrix(linux_files)
 
 if linux_overlap.any?
   linux_release_sha, deployment_sha, linux_build_number = linux_overlap.last.split
@@ -36,7 +72,7 @@ puts Rainbow("Good versions are: #{linux_release_sha}, #{deployment_sha}. Build 
 
 puts
 puts "....windows"
-windows_overlap = find_overlap(windows_files)
+windows_overlap = print_version_matrix(windows_files)
 
 if windows_overlap.any?
   windows_release_sha, windows_deployment_sha, windows_build_number = windows_overlap.last.split
