@@ -64,7 +64,7 @@ rows << ["windows release sha", windows_release_sha]
 rows << ["deployment sha", deployment_sha]
 rows << ["linux build number", linux_build_number]
 rows << ["windows build number", windows_build_number]
-table = Terminal::Table.new :headings => ['Pipeline', 'Build Number'], :rows => rows
+table = Terminal::Table.new :headings => ['Key', 'Value'], :rows => rows
 puts table
 puts
 
