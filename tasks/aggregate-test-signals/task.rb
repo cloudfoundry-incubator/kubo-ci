@@ -58,6 +58,16 @@ table = Terminal::Table.new :headings => ['Pipeline', 'Build Number'], :rows => 
 puts table
 puts
 
+rows = []
+rows << ["linux release sha", linux_release_sha]
+rows << ["windows release sha", windows_release_sha]
+rows << ["deployment sha", deployment_sha]
+rows << ["linux build number", linux_build_number]
+rows << ["windows build number", windows_build_number]
+table = Terminal::Table.new :headings => ['Pipeline', 'Build Number'], :rows => rows
+puts table
+puts
+
 if linux_build_number == windows_build_number
   File.write(ENV['SHIPABLE_VERSION_FILE'], [linux_release_sha, windows_release_sha, deployment_sha, linux_build_number])
   puts "#{ENV['SHIPABLE_VERSION_FILE']} contains..."
