@@ -51,8 +51,8 @@ files = linux_files + windows_files
 files.each do |f|
   builds = File.read(f).split("\n")
   pipeline = f.split("/")[1].split("-shipable")[0]
-  linux_release_sha, deployment_sha, linux_build_number = builds.last.split
-  rows << [pipeline, linux_build_number]
+  _, _, table_build_number = builds.last.split
+  rows << [pipeline, table_build_number]
 end
 table = Terminal::Table.new :headings => ['Pipeline', 'Build Number'], :rows => rows
 puts table
