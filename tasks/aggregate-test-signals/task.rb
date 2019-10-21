@@ -64,4 +64,5 @@ if linux_build_number == windows_build_number
   puts File.read(ENV['SHIPABLE_VERSION_FILE'])
 else
   puts Rainbow("linux_build_number #{linux_build_number} does not match the windows_build_number #{windows_build_number} ").red
+  puts Rainbow("would have shipped: #{linux_release_sha}, #{windows_release_sha}, #{deployment_sha}, #{linux_build_number}]")
 end
