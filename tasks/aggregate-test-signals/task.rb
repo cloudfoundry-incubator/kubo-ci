@@ -51,10 +51,10 @@ files = linux_files + windows_files
 files.each do |f|
   builds = File.read(f).split("\n")
   pipeline = f.split("/")[1].split("-shipable")[0]
-  _, _, table_build_number = builds.last.split
-  rows << [pipeline, table_build_number]
+  kubo_release_sha, kubo_deployment_sha, table_build_number = builds.last.split
+  rows << [pipeline, kubo_release_sha, kubo_deployment_sha, table_build_number]
 end
-table = Terminal::Table.new :headings => ['Pipeline', 'Build Number'], :rows => rows
+table = Terminal::Table.new :headings => ['Pipeline', 'Kubo Release Sha (Linux or Windows)', 'Kubo Deployment Sha', 'Build Number'], :rows => rows
 puts table
 puts
 
