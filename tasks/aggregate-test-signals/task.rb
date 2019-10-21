@@ -36,7 +36,7 @@ def print_version_matrix(files)
 
   headers = ["build"]
   highest_versions.each do |highest_version|
-    headers << highest_version
+    headers << highest_version.split.last
   end
 
   table = Terminal::Table.new :headings => headers, :rows => rows
