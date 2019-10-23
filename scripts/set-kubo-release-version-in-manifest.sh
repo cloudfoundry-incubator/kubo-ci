@@ -27,7 +27,7 @@ bosh int git-kubo-deployment/manifests/ops-files/non-precompiled-releases.yml \
 
 cat << EOF > windows-replace-kubo-version.yml
 - type: replace
-  path: /label=kubo-windows/value
+  path: /0/value
   value:
     name: kubo-windows
     version: ((release_version))
