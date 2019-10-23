@@ -105,7 +105,7 @@ puts table
 puts
 
 if linux_build_number == windows_build_number
-  File.write(ENV['SHIPABLE_VERSION_FILE'], [linux_release_sha, windows_release_sha, deployment_sha, linux_build_number])
+  File.write(ENV['SHIPABLE_VERSION_FILE'], "#{linux_release_sha}, #{windows_release_sha}, #{deployment_sha}, #{linux_build_number}")
   puts "#{ENV['SHIPABLE_VERSION_FILE']} contains..."
   puts File.read(ENV['SHIPABLE_VERSION_FILE'])
 else
