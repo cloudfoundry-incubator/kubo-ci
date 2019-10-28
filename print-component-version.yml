@@ -1,0 +1,147 @@
+---
+resource_types:
+- name: github-release-with-version-filtering
+  type: docker-image
+  source:
+    repository: pcfkubo/github-release-resource
+    tag: filter-version
+
+- name: bosh-errand
+  type: docker-image
+  source:
+    repository: pcfkubo/bosh2-errand-resource
+    tag: v0.1.3-dev
+
+resources:
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/kubo-ci
+    branch: feature/print-version
+
+- name: kubo-lock
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+    pool: gcp
+
+- name: git-pks-kubo-release
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pks-kubo-release.git
+    #TODO: check out correct branch temporarily
+    branch: feature/print-version
+    private_key: ((git-ssh-key.private_key))
+
+- name: git-pks-kubo-deployment
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pks-kubo-deployment.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
+#- name: run-version-errand
+#  type: bosh-errand
+#  source:
+#    skip_check: true
+
+
+jobs:
+- name: claim-lock
+  max_in_flight: 1
+  plan:
+    - get: git-pks-kubo-release
+      trigger: true
+    - get: git-pks-kubo-deployment
+      trigger: true
+    - get: git-kubo-ci
+    - put: kubo-lock
+      params: { acquire: true }
+- name: deploy-kubo
+  plan:
+  - in_parallel:
+    - get: git-pks-kubo-release
+      passed: [ 'claim-lock' ]
+    - get: git-pks-kubo-deployment
+      passed: [ 'claim-lock' ]
+    - get: kubo-lock
+      passed: [ 'claim-lock' ]
+      version: every
+      trigger: true
+    - get: git-kubo-ci
+  - task: upload-stemcell
+    file: git-kubo-ci/tasks/upload-stemcell.yml
+    params:
+      IAAS: gcp
+    input_mapping:
+      source-json: kubo-lock
+      git-kubo-deployment: git-pks-kubo-deployment
+  - task: download-dep-releases
+    file: git-kubo-ci/tasks/download-dep-releases.yml
+    input_mapping:
+      git-kubo-deployment: git-pks-kubo-deployment
+  - task: create-and-upload-release
+    config:
+      inputs:
+        - name: git-kubo-ci
+        - name: git-pks-kubo-release
+        - name: kubo-lock
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      run:
+        path: /bin/bash
+        args:
+          - -eux
+          - -c
+          - |
+            source git-kubo-ci/scripts/set-bosh-env kubo-lock/metadata
+            cd git-pks-kubo-release
+            bosh create-release --version=print-component-pipeline
+            bosh upload-release
+            bosh deploy -d print-version-test-deployment ../git-kubo-ci/manifests/print-component-version/manifest.yml --non-interactive
+
+- name: print-component-version
+  plan:
+  - in_parallel:
+    - get: kubo-lock
+      passed: [ 'deploy-kubo' ]
+      version: every
+      trigger: true
+    - get: git-kubo-ci
+  - task: print-component-version
+    config:
+      inputs:
+        - name: git-kubo-ci
+        - name: kubo-lock
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+      run:
+        path: /bin/bash
+        args:
+          - -eux
+          - -c
+          - |
+            source git-kubo-ci/scripts/set-bosh-env kubo-lock/metadata
+            bosh -d print-version-test-deployment run-errand print-component-version
+
+  # TODO: delete deployment if release-lock doesn't do that for us
+- name: release-lock
+  plan:
+    - in_parallel:
+      - get: kubo-lock
+        passed: [ 'print-component-version' ]
+        version: every
+        trigger: true
+    - put: kubo-lock
+      params:
+        release: kubo-lock

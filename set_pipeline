@@ -15,7 +15,7 @@ echo ""
 
 print_usage() {
   echo "Usage:"
-  echo "    $0 <pipeline name> [branch name] "
+  echo "    $0 <pipeline name> [branch name] [-t <fly target>]"
   echo ""
   echo "    valid pipeline names:"
   for name in ${ci_dir}/*.yml; do
@@ -46,9 +46,11 @@ extract_pipeline_name() {
 }
 
 main() {
+  local TARGET
   PARAMS=""
   VAR_PATH=""
   PIPELINE_NAME=""
+  TARGET="kubo"
   while (( "$#" )); do
     case "$1" in
       -v|--variables)
@@ -57,6 +59,10 @@ main() {
         ;;
       -p|--pipeline)
         PIPELINE_NAME=$2
+        shift 2
+        ;;
+      -t|--target)
+        TARGET=$2
         shift 2
         ;;
       --) # end argument parsing
@@ -107,10 +113,10 @@ main() {
     pipeline_name=$PIPELINE_NAME
   fi
 
-  fly --target kubo sync > /dev/null
+  fly --target "$TARGET" sync > /dev/null
   erb "${pipeline_filename}" > /dev/null
 
-  fly --target kubo set-pipeline --pipeline "${pipeline_name}" \
+  fly --target "$TARGET" set-pipeline --pipeline "${pipeline_name}" \
     --config <(erb "${pipeline_filename}") \
     --var branch-name="${branch_name}" \
     --load-vars-from="${VAR_PATH}"
