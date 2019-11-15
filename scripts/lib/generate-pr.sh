@@ -37,5 +37,5 @@ EOF
 
   # create a PR here
   payload=$(create_pr_payload "$component" "$tag" "$branch_name" "$base_branch")
-  curl -u "cfcr:${CFCR_USER_TOKEN}" -H "Content-Type: application/json" -X POST -d "$payload" "https://api.github.com/repos/cloudfoundry-incubator/${repo}/pulls" --fail
+  curl -u "cfcr:${CFCR_USER_TOKEN}" -H "Content-Type: application/json" -X POST -d "$payload" "https://api.github.com/repos/pivotal-cf/${repo}/pulls" --fail
 }

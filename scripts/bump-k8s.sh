@@ -65,7 +65,7 @@ version=$(cat "$PWD/k8s-release/version")
 if [ "${REPO:-}" == "ci" ]; then
   pr_kubo_ci "$version" "$tag"
 elif [ "${REPO:-}" == "windows" ]; then
-  pr_release "$version" "$tag" "kubo-release-windows"
+  pr_release "$version" "$tag" "pks-kubo-release-windows"
 else
-  pr_release "$version" "$tag" "kubo-release"
+  pr_release "$version" "$tag" "pks-kubo-release"
 fi

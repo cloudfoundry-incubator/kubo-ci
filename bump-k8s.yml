@@ -13,7 +13,7 @@ resources:
     owner: kubernetes
     repository: kubernetes
     # only patches get updated
-    version_filter: "< 1.16.0"
+    version_filter: "< 1.15.0"
     access_token: ((github-token-key))
 
 - name: kubernetes-dashboard-release
@@ -49,21 +49,21 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/kubo-ci.git
-    branch: master
+    branch: bump-1.14-k8s-pks-kubo-release
     private_key: ((git-ssh-key.private_key))
 
-- name: git-kubo-release
+- name: git-pks-kubo-release
   type: git
   source:
-    uri: git@github.com:cloudfoundry-incubator/kubo-release.git
-    branch: develop
+    uri: git@github.com:pivotal-cf/pks-kubo-release.git
+    branch: 1.5.x
     private_key: ((git-ssh-key.private_key))
 
-- name: git-kubo-release-windows
+- name: git-pks-kubo-release-windows
   type: git
   source:
-    uri: git@github.com:cloudfoundry-incubator/kubo-release-windows.git
-    branch: develop
+    uri: git@github.com:pivotal-cf/pks-kubo-release-windows.git
+    branch: 1.5.x
     private_key: ((git-ssh-key.private_key))
 
 groups:
@@ -79,8 +79,8 @@ jobs:
   plan:
   - in_parallel:
     - get: git-kubo-ci
-    - get: git-kubo-release
-    - get: git-kubo-release-windows
+    - get: git-pks-kubo-release
+    - get: git-pks-kubo-release-windows
     - get: git-kubernetes
     - get: k8s-release
       trigger: true
@@ -97,7 +97,7 @@ jobs:
           path: git-kubo-ci/scripts/bump-k8s.sh
         inputs:
           - name: git-kubo-ci
-          - name: git-kubo-release
+          - name: git-pks-kubo-release
           - name: k8s-release
           - name: git-kubernetes
         params:
@@ -113,7 +113,7 @@ jobs:
           path: git-kubo-ci/scripts/bump-k8s.sh
         inputs:
           - name: git-kubo-ci
-          - name: git-kubo-release-windows
+          - name: git-pks-kubo-release-windows
           - name: k8s-release
           - name: git-kubernetes
         params:
@@ -149,13 +149,13 @@ jobs:
     - get: coredns-release
       trigger: true
     - get: git-kubo-ci
-    - get: git-kubo-release
+    - get: git-pks-kubo-release
   - task: bump-spec
     privileged: true
     file: git-kubo-ci/tasks/bump/bump-k8s-spec.yml
     params:
       ACCESS_KEY_ID: ((gcs-access-key-id))
       SECRET_ACCESS_KEY: ((gcs-secret-access-key))
-  - put: git-kubo-release
+  - put: git-pks-kubo-release
     params:
-      repository: git-kubo-release-output
+      repository: git-pks-kubo-release-output
