@@ -31,7 +31,7 @@ jobs:
 
 - name: deploy-k8s
   plan:
-  - aggregate:
+  - in_parallel:
     - get: git-pks-kubo-release
       trigger: true
   - task: cat-self
