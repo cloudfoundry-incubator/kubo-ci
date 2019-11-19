@@ -1,0 +1,48 @@
+#!/bin/bash
+
+TARGET="kubo-pks"
+TEAM_NAME="pks"
+
+function login {
+  fly --target $TARGET login \
+    --concourse-url=https://ci.kubo.sh \
+    --team-name=$TEAM_NAME \
+    --open-browser
+}
+
+function update-permissions {
+  fly --target $TARGET set-team \
+    --team-name=$TEAM_NAME \
+    --config concourse/team-configs/pks.yaml
+}
+
+function get-credhub-credentials {
+  pushd ~/workspace/kubo-locks/concourse/gcp || return
+    eval "$(bbl print-env)"
+  popd || return
+}
+
+function set-credhub {
+  get-credhub-credentials
+  # TODO: find the real source of this val in lastpass or something
+  EXISTING_VAL=$(credhub get -n /concourse/main/git-ssh-key -j)
+  credhub set \
+    --name /concourse/"$TEAM_NAME"/git-ssh-key \
+    --private "$(echo "$EXISTING_VAL" | jq .value.private_key)" \
+    --type ssh
+}
+
+function set-pipelines {
+  fly --target $TARGET set-pipeline \
+    --pipeline=deploy-k8s \
+    --config=pks-pipelines/deploy-k8s.yml
+}
+
+function main {
+#  login
+#  update-permissions
+  set-credhub
+  set-pipelines
+}
+
+main

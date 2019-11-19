@@ -1,0 +1,58 @@
+resources:
+#- name: kubo-lock
+#  type: pool
+#  source:
+#    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+#    branch: master
+#    private_key: ((git-ssh-key.private_key))
+#    pool: kubo
+
+- name: git-pks-kubo-release
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pks-kubo-release.git
+    branch: feature/new-concourse
+    private_key: ((git-ssh-key.private_key))
+    ignore_paths:
+      - '*.md'
+      - 'LICENSE'
+      - 'NOTICE'
+
+jobs:
+#- name: claim-lock
+#  max_in_flight: 1
+#  plan:
+#  - aggregate:
+#    - get: git-pks-kubo-release
+#      trigger: true
+#  - put: kubo-lcok
+#    params:
+#      acquire: true
+
+- name: deploy-k8s
+  plan:
+  - aggregate:
+    - get: git-pks-kubo-release
+      trigger: true
+  - task: cat-self
+    config:
+      platform: linux
+
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+
+      params:
+
+      inputs:
+        - name: git-pks-kubo-release
+
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            set -eu
+            cat git-pks-kubo-release/pks-pipelines/deploy-k8s.yml
