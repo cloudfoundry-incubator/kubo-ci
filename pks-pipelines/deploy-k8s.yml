@@ -88,6 +88,8 @@ jobs:
       params:
 
       inputs:
+        - name: kubo-lock
+        - name: git-kubo-ci
         - name: git-pks-kubo-release
 
       run:
