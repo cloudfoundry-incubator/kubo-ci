@@ -35,6 +35,7 @@ jobs:
   - in_parallel:
     - get: git-kubo-ci
     - get: git-pks-cfcr-etcd-release
+      trigger: true
     - get: git-pks-kubo-release
       trigger: true
     - get: kubo-lock
