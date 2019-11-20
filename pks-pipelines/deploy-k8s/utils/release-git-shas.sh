@@ -11,7 +11,7 @@ else
   KUBO_GIT_SHA=""
 fi
 
-if [ -d "git-pks-kubo-release" ]
+if [ -d "git-pks-cfcr-etcd-release" ]
 then
   pushd git-pks-cfcr-etcd-release
     ETCD_GIT_SHA="$(git log -1 --format='%H')"
