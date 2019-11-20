@@ -2,13 +2,23 @@
 
 set -eux pipefail
 
-pushd git-pks-kubo-release
-  KUBO_GIT_SHA="$(git log -1 --format='%H')"
-popd
+if [ -d "git-pks-kubo-release" ]
+then
+  pushd git-pks-kubo-release
+    KUBO_GIT_SHA="$(git log -1 --format='%H')"
+  popd
+else
+  KUBO_GIT_SHA=""
+fi
 
-pushd git-pks-cfcr-etcd-release
-  ETCD_GIT_SHA="$(git log -1 --format='%H')"
-popd
+if [ -d "git-pks-kubo-release" ]
+then
+  pushd git-pks-cfcr-etcd-release
+    ETCD_GIT_SHA="$(git log -1 --format='%H')"
+  popd
+else
+  ETCD_GIT_SHA=""
+fi
 
 #TODO: get these from git repos
 DOCKER_GIT_SHA="35.3.4"

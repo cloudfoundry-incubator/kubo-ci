@@ -9,7 +9,6 @@ inputs:
   - name: kubo-lock
   - name: git-kubo-ci
   - name: git-pks-cfcr-etcd-release
-  - name: git-pks-kubo-release
 
 run:
-  path: git-kubo-ci/pks-pipelines/deploy-k8s/upload-release/task.sh
+  path: git-kubo-ci/pks-pipelines/deploy-k8s/upload-etcd-release/task.sh
