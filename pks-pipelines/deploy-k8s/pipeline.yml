@@ -26,9 +26,9 @@ jobs:
   max_in_flight: 1
   plan:
   - in_parallel:
+    - get: git-kubo-ci
     - get: git-pks-kubo-release
       trigger: true
-    - get: git-kubo-ci
     - get: kubo-lock
   - put: kubo-lock
     params:
@@ -37,10 +37,9 @@ jobs:
 - name: deploy-k8s
   plan:
   - in_parallel:
+    - get: git-kubo-ci
     - get: kubo-lock
       trigger: true
-      passed: [ 'claim-lock' ]
-    - get: git-kubo-ci
       passed: [ 'claim-lock' ]
     - get: git-pks-kubo-release
       passed: [ 'claim-lock' ]
@@ -51,10 +50,9 @@ jobs:
 - name: destroy-k8s
   plan:
   - in_parallel:
+    - get: git-kubo-ci
     - get: kubo-lock
       trigger: true
-      passed: [ 'deploy-k8s' ]
-    - get: git-kubo-ci
       passed: [ 'deploy-k8s' ]
     - get: git-pks-kubo-release
       passed: [ 'deploy-k8s' ]
