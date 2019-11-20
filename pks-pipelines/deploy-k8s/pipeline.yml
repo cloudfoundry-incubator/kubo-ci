@@ -1,0 +1,65 @@
+resources:
+- name: kubo-lock
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+    pool: gcp
+
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/kubo-ci
+    branch: feature/new-concourse
+    private_key: ((git-ssh-key.private_key))
+
+- name: git-pks-kubo-release
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pks-kubo-release.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
+jobs:
+- name: claim-lock
+  max_in_flight: 1
+  plan:
+  - in_parallel:
+    - get: git-pks-kubo-release
+      trigger: true
+    - get: git-kubo-ci
+    - get: kubo-lock
+  - put: kubo-lock
+    params:
+      acquire: true
+
+- name: deploy-k8s
+  plan:
+  - in_parallel:
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'claim-lock' ]
+    - get: git-kubo-ci
+      passed: [ 'claim-lock' ]
+    - get: git-pks-kubo-release
+      passed: [ 'claim-lock' ]
+  - task: upload-release
+    file: git-kubo-ci/pks-pipelines/deploy-k8s/upload-release/task.yml
+  - task: deploy-release
+    file: git-kubo-ci/pks-pipelines/deploy-k8s/deploy-release/task.yml
+- name: destroy-k8s
+  plan:
+  - in_parallel:
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'deploy-k8s' ]
+    - get: git-kubo-ci
+      passed: [ 'deploy-k8s' ]
+    - get: git-pks-kubo-release
+      passed: [ 'deploy-k8s' ]
+  - task: delete-release
+    file: git-kubo-ci/pks-pipelines/deploy-k8s/delete-release/task.yml
+  - put: kubo-lock
+    params:
+      release: kubo-lock
