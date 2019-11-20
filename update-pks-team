@@ -41,7 +41,7 @@ function set-pipelines {
 function main {
 #  login
 #  update-permissions
-  set-credhub
+#  set-credhub
   set-pipelines
 }
 

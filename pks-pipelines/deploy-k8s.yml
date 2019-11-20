@@ -1,40 +1,81 @@
 resources:
-#- name: kubo-lock
-#  type: pool
-#  source:
-#    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
-#    branch: master
-#    private_key: ((git-ssh-key.private_key))
-#    pool: kubo
+- name: kubo-lock
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+    pool: gcp
+
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/kubo-ci
+    branch: feautre/new-concourse
+    private_key: ((git-ssh-key.private_key))
 
 - name: git-pks-kubo-release
   type: git
   source:
     uri: git@github.com:pivotal-cf/pks-kubo-release.git
-    branch: feature/new-concourse
+    branch: master
     private_key: ((git-ssh-key.private_key))
-    ignore_paths:
-      - '*.md'
-      - 'LICENSE'
-      - 'NOTICE'
 
 jobs:
-#- name: claim-lock
-#  max_in_flight: 1
-#  plan:
-#  - aggregate:
-#    - get: git-pks-kubo-release
-#      trigger: true
-#  - put: kubo-lcok
-#    params:
-#      acquire: true
-
-- name: deploy-k8s
+- name: claim-lock
+  max_in_flight: 1
   plan:
   - in_parallel:
     - get: git-pks-kubo-release
       trigger: true
-  - task: cat-self
+    - get: git-kubo-ci
+    - get: kubo-lock
+  - put: kubo-lock
+    params:
+      acquire: true
+
+- name: deploy-k8s
+  plan:
+  - in_parallel:
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'claim-lock' ]
+    - get: git-kubo-ci
+      passed: [ 'claim-lock' ]
+    - get: git-pks-kubo-release
+      passed: [ 'claim-lock' ]
+  - task: upload-release
+    config:
+      platform: linux
+
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfkubo/kubo-ci
+          tag: stable
+
+      params:
+
+      inputs:
+        - name: kubo-lock
+        - name: git-kubo-ci
+        - name: git-pks-kubo-release
+
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            set -eu
+
+            source git-kubo-ci/scripts/set-bosh-env kubo-lock/metadata
+
+            pushd git-pks-kubo-release
+              KUBO_GIT_SHA="$(git log -1 --format='%H')"
+              bosh create-release --version="${KUBO_GIT_SHA}"
+              bosh upload-release
+            popd
+  - task: deploy-release
     config:
       platform: linux
 
@@ -55,4 +96,70 @@ jobs:
           - -c
           - |
             set -eu
-            cat git-pks-kubo-release/pks-pipelines/deploy-k8s.yml
+
+            source git-kubo-ci/scripts/set-bosh-env kubo-lock/metadata
+
+            pushd git-pks-kubo-release
+              KUBO_GIT_SHA="$(git log -1 --format='%H')"
+            popd
+
+            DEPLOYMENT_NAME="$(cat kubo-lock/metadata | jq ./deployment_name)"
+            #TODO: get these from git repos
+            ETCD_GIT_SHA="1.11.1"
+            DOCKER_GIT_SHA="35.3.4"
+
+            bosh deploy -d "${DEPLOYMENT_NAME}" \
+              --var=deployment-name="${DEPLOYMENT_NAME}" \
+              --var=kubo-version="${KUBO_GIT_SHA}" \
+              --var=etcd-version="${ETCD_GIT_SHA}" \
+              --var=docker-version="${DOCKER_GIT_SHA}" \
+              git-kubo-ci/pks-pipelines/manifest.yml
+
+- name: destroy-k8s
+  plan:
+    - in_parallel:
+        - get: kubo-lock
+          trigger: true
+          passed: [ 'deploy-k8s' ]
+        - get: git-kubo-ci
+          passed: [ 'deploy-k8s' ]
+        - get: git-pks-kubo-release
+          passed: [ 'deploy-k8s' ]
+#    - task: destroy-k8s
+#      file: git-kubo-ci/tasks/destroy-k8s-instance-long-lived-director.yml
+    - task: delete-release
+      config:
+        platform: linux
+
+        image_resource:
+          type: docker-image
+          source:
+            repository: pcfkubo/kubo-ci
+            tag: stable
+
+        params:
+
+        inputs:
+          - name: kubo-lock
+          - name: git-kubo-ci
+          - name: git-pks-kubo-release
+
+        run:
+          path: bash
+          args:
+            - -c
+            - |
+              set -eu
+
+              source git-kubo-ci/scripts/set-bosh-env kubo-lock/metadata
+
+              pushd git-pks-kubo-release
+                KUBO_GIT_SHA="$(git log -1 --format='%H')"
+              popd
+
+              DEPLOYMENT_NAME="$(cat kubo-lock/metadata | jq ./deployment_name)"
+              bosh delete-release --non-interactive kubo/"${KUBO_GIT_SHA}"
+              bosh delete-deployment -d "${DEPLOYMENT_NAME}"
+    - put: kubo-lock
+      params:
+        release: kubo-lock
