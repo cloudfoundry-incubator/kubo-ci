@@ -11,7 +11,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/kubo-ci
-    branch: feautre/new-concourse
+    branch: feature/new-concourse
     private_key: ((git-ssh-key.private_key))
 
 - name: git-pks-kubo-release
