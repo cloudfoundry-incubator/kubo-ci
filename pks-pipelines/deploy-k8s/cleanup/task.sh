@@ -13,3 +13,6 @@ bosh delete-release \
 bosh delete-release \
   --non-interactive \
   cfcr-etcd/"${ETCD_GIT_SHA}"
+bosh delete-release \
+  --non-interactive \
+  docker/"${DOCKER_GIT_SHA}"

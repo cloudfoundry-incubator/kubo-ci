@@ -21,6 +21,13 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
 
+- name: git-pks-docker-bosh-release
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pks-docker-boshrelease.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
 - name: git-pks-kubo-release
   type: git
   source:
@@ -37,6 +44,8 @@ jobs:
     - get: git-pks-cfcr-etcd-release
       trigger: true
     - get: git-pks-kubo-release
+      trigger: true
+    - get: git-pks-docker-bosh-release
       trigger: true
     - get: kubo-lock
   - put: kubo-lock
@@ -64,8 +73,20 @@ jobs:
       passed: [ 'claim-lock' ]
     - get: git-pks-cfcr-etcd-release
       passed: [ 'claim-lock' ]
-  - task: upload-kubo-release
+  - task: upload-etcd-release
     file: git-kubo-ci/pks-pipelines/deploy-k8s/upload-etcd-release/task.yml
+
+- name: upload-docker-release
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'claim-lock' ]
+    - get: git-pks-docker-bosh-release
+      passed: [ 'claim-lock' ]
+  - task: upload-docker-release
+    file: git-kubo-ci/pks-pipelines/deploy-k8s/upload-docker-release/task.yml
 
 - name: deploy-manifest
   plan:
@@ -76,11 +97,14 @@ jobs:
       passed: [ 'upload-kubo-release', 'upload-etcd-release' ]
     - get: git-pks-cfcr-etcd-release
       passed: [ 'upload-etcd-release' ]
+    - get: git-pks-docker-bosh-release
+      passed: [ 'upload-docker-release' ]
     - get: git-pks-kubo-release
       passed: [ 'upload-kubo-release' ]
   - task: deploy-release
     file: git-kubo-ci/pks-pipelines/deploy-k8s/deploy-manifest/task.yml
-- name: destroy-k8s
+
+- name: cleanup
   plan:
   - in_parallel:
     - get: git-kubo-ci
@@ -89,10 +113,12 @@ jobs:
       passed: [ 'deploy-manifest' ]
     - get: git-pks-cfcr-etcd-release
       passed: [ 'deploy-manifest' ]
+    - get: git-pks-docker-bosh-release
+      passed: [ 'deploy-manifest' ]
     - get: git-pks-kubo-release
       passed: [ 'deploy-manifest' ]
   - task: delete-release
-    file: git-kubo-ci/pks-pipelines/deploy-k8s/delete-release/task.yml
+    file: git-kubo-ci/pks-pipelines/deploy-k8s/cleanup/task.yml
   - put: kubo-lock
     params:
       release: kubo-lock

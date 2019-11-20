@@ -20,7 +20,13 @@ else
   ETCD_GIT_SHA=""
 fi
 
-#TODO: get these from git repos
-DOCKER_GIT_SHA="35.3.4"
+if [ -d "git-pks-docker-bosh-release" ]
+then
+  pushd git-pks-docker-bosh-release
+    DOCKER_GIT_SHA="$(git log -1 --format='%H')"
+  popd
+else
+  DOCKER_GIT_SHA=""
+fi
 
 export KUBO_GIT_SHA ETCD_GIT_SHA DOCKER_GIT_SHA

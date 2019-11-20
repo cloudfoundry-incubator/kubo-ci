@@ -13,4 +13,4 @@ inputs:
   - name: git-pks-kubo-release
 
 run:
-  path: git-kubo-ci/pks-pipelines/deploy-k8s/deploy-manifest/task.sh
+  path: git-kubo-ci/pks-pipelines/deploy-k8s/cleanup/task.sh
