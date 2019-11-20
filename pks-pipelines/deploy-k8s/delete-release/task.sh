@@ -10,3 +10,6 @@ bosh delete-deployment \
 bosh delete-release \
   --non-interactive \
   kubo/"${KUBO_GIT_SHA}"
+bosh delete-release \
+  --non-interactive \
+  cfcr-etcd/"${ETCD_GIT_SHA}"

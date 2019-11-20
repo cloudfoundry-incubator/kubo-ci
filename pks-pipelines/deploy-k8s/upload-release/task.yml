@@ -8,6 +8,7 @@ image_resource:
 inputs:
   - name: kubo-lock
   - name: git-kubo-ci
+  - name: git-pks-cfcr-etcd-release
   - name: git-pks-kubo-release
 
 run:

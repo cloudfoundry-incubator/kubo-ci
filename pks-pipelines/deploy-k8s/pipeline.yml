@@ -14,6 +14,13 @@ resources:
     branch: feature/new-concourse
     private_key: ((git-ssh-key.private_key))
 
+- name: git-pks-cfcr-etcd-release
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pks-cfcr-etcd-release.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
 - name: git-pks-kubo-release
   type: git
   source:
@@ -27,6 +34,7 @@ jobs:
   plan:
   - in_parallel:
     - get: git-kubo-ci
+    - get: git-pks-cfcr-etcd-release
     - get: git-pks-kubo-release
       trigger: true
     - get: kubo-lock
@@ -41,6 +49,8 @@ jobs:
     - get: kubo-lock
       trigger: true
       passed: [ 'claim-lock' ]
+    - get: git-pks-cfcr-etcd-release
+      passed: [ 'claim-lock' ]
     - get: git-pks-kubo-release
       passed: [ 'claim-lock' ]
   - task: upload-release
@@ -53,6 +63,8 @@ jobs:
     - get: git-kubo-ci
     - get: kubo-lock
       trigger: true
+      passed: [ 'deploy-k8s' ]
+    - get: git-pks-cfcr-etcd-release
       passed: [ 'deploy-k8s' ]
     - get: git-pks-kubo-release
       passed: [ 'deploy-k8s' ]

@@ -8,3 +8,8 @@ pushd git-pks-kubo-release
   bosh create-release --version="${KUBO_GIT_SHA}"
   bosh upload-release
 popd
+
+pushd git-pks-cfcr-etcd-release
+  bosh create-release --version="${ETCD_GIT_SHA}"
+  bosh upload-release
+popd
