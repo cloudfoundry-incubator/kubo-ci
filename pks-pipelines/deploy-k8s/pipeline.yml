@@ -39,7 +39,7 @@ resources:
   type: git
   source:
     uri: git@github.com:pivotal-cf/pks-kubo-release-windows.git
-    branch: master
+    branch: feature/print-version
     private_key: ((git-ssh-key.private_key))
 
 
