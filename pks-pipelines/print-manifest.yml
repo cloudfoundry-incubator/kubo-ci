@@ -7,11 +7,16 @@ releases:
     version: ((docker-version))
 #  - name: cfcr-etcd
 #    version: ((etcd-version))
+  - name: kubo-windows
+    version: ((kubo-windows-version))
 
 stemcells:
-  - alias: default
+  - alias: linux
     os: ubuntu-xenial
     version: "456.30"
+  - alias: windows
+    os: windows2019
+    version: "2019.12"
 
 update:
   canaries: 1
@@ -21,7 +26,7 @@ update:
   update_watch_time: 1000-30000
 
 instance_groups:
-  - name: print-version-test-ig
+  - name: print-version-linux-ig
     azs:
       - z1
     instances: 1
@@ -37,10 +42,24 @@ instance_groups:
 #      - name: print-etcd-component-version
 #        release: cfcr-etcd
     vm_type: minimal
-    stemcell: default
+    stemcell: linux
     # in megabytes
     persistent_disk: 5120
     networks:
       - name: default
+  - name: print-version-windows-ig
+    azs:
+      - z1
+    instances: 1
 
+    jobs:
+      - name: print-kubo-windows-component-version
+        release: kubo-windows
+    # we need a root disk size of at least 32gigs or else we will not be able to start
+    # see other options via:
+    # bosh int <(bosh cloud-config) --path /vm_types
+    vm_type: small-highmem
+    stemcell: windows
+    networks:
+      - name: default
 addons: []

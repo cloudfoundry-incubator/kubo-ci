@@ -35,6 +35,14 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
 
+- name: git-pks-kubo-release-windows
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pks-kubo-release-windows.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
+
 jobs:
 - name: claim-lock
   max_in_flight: 1
@@ -44,6 +52,8 @@ jobs:
     - get: git-pks-cfcr-etcd-release
       trigger: true
     - get: git-pks-kubo-release
+      trigger: true
+    - get: git-pks-kubo-release-windows
       trigger: true
     - get: git-pks-docker-bosh-release
       trigger: true
@@ -63,6 +73,18 @@ jobs:
       passed: [ 'claim-lock' ]
   - task: upload-kubo-release
     file: git-kubo-ci/pks-pipelines/deploy-k8s/upload-kubo-release/task.yml
+
+- name: upload-kubo-release-windows
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'claim-lock' ]
+    - get: git-pks-kubo-release-windows
+      passed: [ 'claim-lock' ]
+  - task: upload-kubo-release
+    file: git-kubo-ci/pks-pipelines/deploy-k8s/upload-kubo-release-windows/task.yml
 
 - name: upload-etcd-release
   plan:
@@ -94,17 +116,23 @@ jobs:
     - get: git-kubo-ci
     - get: kubo-lock
       trigger: true
-      passed: [ 'upload-kubo-release', 'upload-etcd-release' ]
+      passed:
+        - 'upload-kubo-release'
+        - 'upload-etcd-release'
+        - 'upload-docker-release'
+        - 'upload-kubo-release-windows'
     - get: git-pks-cfcr-etcd-release
       passed: [ 'upload-etcd-release' ]
     - get: git-pks-docker-bosh-release
       passed: [ 'upload-docker-release' ]
     - get: git-pks-kubo-release
       passed: [ 'upload-kubo-release' ]
+    - get: git-pks-kubo-release-windows
+      passed: [ 'upload-kubo-release-windows' ]
   - task: deploy-release
     file: git-kubo-ci/pks-pipelines/deploy-k8s/deploy-manifest/task.yml
 
-- name: cleanup
+- name: run-tests
   plan:
   - in_parallel:
     - get: git-kubo-ci
@@ -117,6 +145,26 @@ jobs:
       passed: [ 'deploy-manifest' ]
     - get: git-pks-kubo-release
       passed: [ 'deploy-manifest' ]
+    - get: git-pks-kubo-release-windows
+      passed: [ 'deploy-manifest' ]
+  - task: run-tests
+    file: git-kubo-ci/pks-pipelines/deploy-k8s/run-tests/task.yml
+
+- name: cleanup
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'run-tests' ]
+    - get: git-pks-cfcr-etcd-release
+      passed: [ 'run-tests' ]
+    - get: git-pks-docker-bosh-release
+      passed: [ 'run-tests' ]
+    - get: git-pks-kubo-release
+      passed: [ 'run-tests' ]
+    - get: git-pks-kubo-release-windows
+      passed: [ 'run-tests' ]
   - task: delete-release
     file: git-kubo-ci/pks-pipelines/deploy-k8s/cleanup/task.yml
   - put: kubo-lock
