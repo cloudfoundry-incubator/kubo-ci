@@ -8,7 +8,7 @@ image_resource:
 inputs:
   - name: kubo-lock
   - name: git-kubo-ci
-  - name: git-pks-kubo-release-windows
+  - name: git-pks-cfcr-etcd-release
 
 run:
-  path: git-kubo-ci/pks-pipelines/deploy-k8s/upload-kubo-release-windows/task.sh
+  path: git-kubo-ci/pks-pipelines/minimum-release-verification/upload-etcd-release/task.sh

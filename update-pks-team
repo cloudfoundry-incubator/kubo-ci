@@ -34,8 +34,8 @@ function set-credhub {
 
 function set-pipelines {
   fly --target $TARGET set-pipeline \
-    --pipeline=deploy-k8s \
-    --config=pks-pipelines/deploy-k8s/pipeline.yml
+    --pipeline=minimum-release-verification \
+    --config=pks-pipelines/minimum-release-verification/pipeline.yml
 }
 
 function main {

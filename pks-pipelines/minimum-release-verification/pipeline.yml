@@ -72,7 +72,7 @@ jobs:
     - get: git-pks-kubo-release
       passed: [ 'claim-lock' ]
   - task: upload-kubo-release
-    file: git-kubo-ci/pks-pipelines/deploy-k8s/upload-kubo-release/task.yml
+    file: git-kubo-ci/pks-pipelines/minimum-release-verification/upload-kubo-release/task.yml
 
 - name: upload-kubo-release-windows
   plan:
@@ -84,7 +84,7 @@ jobs:
     - get: git-pks-kubo-release-windows
       passed: [ 'claim-lock' ]
   - task: upload-kubo-release
-    file: git-kubo-ci/pks-pipelines/deploy-k8s/upload-kubo-release-windows/task.yml
+    file: git-kubo-ci/pks-pipelines/minimum-release-verification/upload-kubo-release-windows/task.yml
 
 - name: upload-etcd-release
   plan:
@@ -96,7 +96,7 @@ jobs:
     - get: git-pks-cfcr-etcd-release
       passed: [ 'claim-lock' ]
   - task: upload-etcd-release
-    file: git-kubo-ci/pks-pipelines/deploy-k8s/upload-etcd-release/task.yml
+    file: git-kubo-ci/pks-pipelines/minimum-release-verification/upload-etcd-release/task.yml
 
 - name: upload-docker-release
   plan:
@@ -108,7 +108,7 @@ jobs:
     - get: git-pks-docker-bosh-release
       passed: [ 'claim-lock' ]
   - task: upload-docker-release
-    file: git-kubo-ci/pks-pipelines/deploy-k8s/upload-docker-release/task.yml
+    file: git-kubo-ci/pks-pipelines/minimum-release-verification/upload-docker-release/task.yml
 
 - name: deploy-manifest
   plan:
@@ -130,7 +130,7 @@ jobs:
     - get: git-pks-kubo-release-windows
       passed: [ 'upload-kubo-release-windows' ]
   - task: deploy-release
-    file: git-kubo-ci/pks-pipelines/deploy-k8s/deploy-manifest/task.yml
+    file: git-kubo-ci/pks-pipelines/minimum-release-verification/deploy-manifest/task.yml
 
 - name: run-tests
   plan:
@@ -148,7 +148,7 @@ jobs:
     - get: git-pks-kubo-release-windows
       passed: [ 'deploy-manifest' ]
   - task: run-tests
-    file: git-kubo-ci/pks-pipelines/deploy-k8s/run-tests/task.yml
+    file: git-kubo-ci/pks-pipelines/minimum-release-verification/run-tests/task.yml
 
 - name: cleanup
   plan:
@@ -166,7 +166,7 @@ jobs:
     - get: git-pks-kubo-release-windows
       passed: [ 'run-tests' ]
   - task: delete-release
-    file: git-kubo-ci/pks-pipelines/deploy-k8s/cleanup/task.yml
+    file: git-kubo-ci/pks-pipelines/minimum-release-verification/cleanup/task.yml
   - put: kubo-lock
     params:
       release: kubo-lock

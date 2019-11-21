@@ -8,7 +8,7 @@ image_resource:
 inputs:
   - name: kubo-lock
   - name: git-kubo-ci
-  - name: git-pks-kubo-release
+  - name: git-pks-docker-bosh-release
 
 run:
-  path: git-kubo-ci/pks-pipelines/deploy-k8s/upload-kubo-release/task.sh
+  path: git-kubo-ci/pks-pipelines/minimum-release-verification/upload-docker-release/task.sh
