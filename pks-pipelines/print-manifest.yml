@@ -5,8 +5,8 @@ releases:
     version: ((kubo-version))
   - name: docker
     version: ((docker-version))
-  - name: cfcr-etcd
-    version: ((etcd-version))
+#  - name: cfcr-etcd
+#    version: ((etcd-version))
 
 stemcells:
   - alias: default
@@ -34,8 +34,8 @@ instance_groups:
         release: kubo
       - name: print-docker-component-version
         release: docker
-      - name: print-etcd-component-version
-        release: cfcr-etcd
+#      - name: print-etcd-component-version
+#        release: cfcr-etcd
     vm_type: minimal
     stemcell: default
     # in megabytes
