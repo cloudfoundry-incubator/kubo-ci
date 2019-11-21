@@ -11,6 +11,7 @@ inputs:
   - name: git-pks-cfcr-etcd-release
   - name: git-pks-docker-bosh-release
   - name: git-pks-kubo-release
+  - name: git-pks-kubo-release-windows
 
 run:
   path: git-kubo-ci/pks-pipelines/deploy-k8s/deploy-manifest/task.sh
