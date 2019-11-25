@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux pipefail
+set -euxo pipefail
 
 source git-kubo-ci/pks-pipelines/minimum-release-verification/utils/all-env.sh
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux pipefail
+set -euxo pipefail
 
 source git-kubo-ci/scripts/set-bosh-env kubo-lock/metadata
 

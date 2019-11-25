@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux pipefail
+set -euxo pipefail
 
 gitHeadSha() {
   local result
