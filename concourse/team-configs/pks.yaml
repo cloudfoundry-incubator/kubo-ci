@@ -2,12 +2,7 @@ roles:
 - name: "owner"
   github:
     teams: [
-      "pivotal-cf-experimental:pcf-kubo",
-      "cloudfoundry-incubator:cfcr",
-      "cloudfoundry-incubator:cfcr core",
-      "pivotal-cf:vmware-kubo",
       "pivotal-cf:pks-releng",
-      "pivotal-cf:pcf-kubo",
       "pivotal-cf:pks-core",
       "pivotal-cf:pks-bosh-lifecycle"
     ]
