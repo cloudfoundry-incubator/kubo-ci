@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# source this file to provide bash Utilities for updating pks-related pipelines
+
 TARGET="kubo-pks"
 TEAM_NAME="pks"
 
@@ -10,7 +12,7 @@ function login {
     --open-browser
 }
 
-function update-permissions {
+function update-team-permissions {
   fly --target $TARGET set-team \
     --team-name=$TEAM_NAME \
     --config concourse/team-configs/pks.yaml
@@ -22,7 +24,7 @@ function get-credhub-credentials {
   popd || return
 }
 
-function set-credhub {
+function copy-sshkey {
   get-credhub-credentials
   # TODO: find the real source of this val in lastpass or something
   EXISTING_VAL=$(credhub get -n /concourse/main/git-ssh-key -j)
@@ -32,17 +34,17 @@ function set-credhub {
     --type ssh
 }
 
-function set-pipelines {
+function fly-verification-pipeline {
   fly --target $TARGET set-pipeline \
     --pipeline=minimum-release-verification \
     --config=pks-pipelines/minimum-release-verification/pipeline.yml
 }
 
-function main {
+#function main {
 #  login
-#  update-permissions
-#  set-credhub
-  set-pipelines
-}
+#  update-team-permissions
+#  copy-sshkey
+#  fly-verification-pipeline
+#}
 
-main
+#main
