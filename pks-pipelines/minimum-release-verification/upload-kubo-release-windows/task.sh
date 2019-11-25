@@ -2,6 +2,7 @@
 
 set -euxo pipefail
 
+# define KUBO_WINDOWS_GIT_SHA as latest commit
 source git-kubo-ci/pks-pipelines/minimum-release-verification/utils/all-env.sh
 
 pushd git-pks-kubo-release-windows
