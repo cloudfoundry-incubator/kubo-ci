@@ -4,7 +4,9 @@ set -euxo pipefail
 
 source git-kubo-ci/pks-pipelines/minimum-release-verification/utils/all-env.sh
 
-bosh --non-interactive deploy -d "${DEPLOYMENT_NAME}" \
+bosh deploy \
+  --non-interactive \
+  --deployment="${DEPLOYMENT_NAME}" \
   --var=deployment-name="${DEPLOYMENT_NAME}" \
   --var=kubo-version="${KUBO_GIT_SHA}" \
   --var=kubo-windows-version="${KUBO_WINDOWS_GIT_SHA}" \
