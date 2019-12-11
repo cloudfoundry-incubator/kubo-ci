@@ -10,6 +10,10 @@ bosh run-errand \
   --json \
   > linux_versions.txt
 
+echo "Linux version output:"
+cat linux_versions.txt
+echo ""
+
 bosh run-errand \
   -d "${DEPLOYMENT_NAME}" \
   print-kubo-windows-component-version \
