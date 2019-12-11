@@ -11,7 +11,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/kubo-ci
-    branch: feature/new-concourse
+    branch: master
     private_key: ((git-ssh-key.private_key))
 
 - name: git-pks-cfcr-etcd-release
@@ -39,7 +39,7 @@ resources:
   type: git
   source:
     uri: git@github.com:pivotal-cf/pks-kubo-release-windows.git
-    branch: feature/print-version
+    branch: master
     private_key: ((git-ssh-key.private_key))
 
 
