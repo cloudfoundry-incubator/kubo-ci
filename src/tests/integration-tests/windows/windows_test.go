@@ -63,7 +63,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 			url := fmt.Sprintf("http://%s:%s", hostIP, nodePort)
 
 			Eventually(curlLinux(url), "30s").Should(ContainElement(ContainSubstring("webserver.exe")))
-			Eventually(curlWindows(url), "30s").Should(ContainElement(ContainSubstring("webserver.exe")))
+			Eventually(curlWindows(url), "180s").Should(ContainElement(ContainSubstring("webserver.exe")))
 		})
 
 		By("should be able to reach it via Cluster IP", func() {
@@ -72,7 +72,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 			url := fmt.Sprintf("http://%s", clusterIP)
 
 			Eventually(curlLinux(url), "100s").Should(ContainElement(ContainSubstring("webserver.exe")))
-			Eventually(curlWindows(url), "100s").Should(ContainElement(ContainSubstring("webserver.exe")))
+			Eventually(curlWindows(url), "180s").Should(ContainElement(ContainSubstring("webserver.exe")))
 		})
 	})
 })
@@ -111,7 +111,7 @@ func curlWindows(url string) func() ([]string, error) {
 
 	Eventually(func() ([]string, error) {
 		return kubectl.GetOutput("get", "pod", name, "-o", "jsonpath='{.status.phase}'")
-	}, "60s").Should(ConsistOf("Succeeded"))
+	}, "100s").Should(ConsistOf("Succeeded"))
 
 	return func() ([]string, error) {
 		return kubectl.GetOutput("logs", name)
