@@ -43,8 +43,8 @@ var _ = Describe("When deploying to a Windows worker", func() {
 
 		deploy := kubectl.StartKubectlCommand("create", "-f", webServerSpec)
 		Eventually(deploy, "60s").Should(gexec.Exit(0))
-		Eventually(kubectl.StartKubectlCommand("wait", "--timeout=120s",
-			"--for=condition=ready", "pod/windows-webserver"), "120s").Should(gexec.Exit(0))
+		Eventually(kubectl.StartKubectlCommand("wait", "--timeout=200s",
+			"--for=condition=ready", "pod/windows-webserver"), "200s").Should(gexec.Exit(0))
 
 		By("should be able to fetch logs from a pod", func() {
 			Eventually(func() ([]string, error) {
