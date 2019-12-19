@@ -42,6 +42,17 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
 
+- name: gcp-linux-stemcell
+  source:
+    name: bosh-google-kvm-ubuntu-xenial-go_agent
+    version_family: "456.30"
+  type: bosh-io-stemcell
+
+- name: gcp-windows-stemcell
+  source:
+    name: bosh-google-kvm-windows2019-go_agent
+    version_family: "2019.12"
+  type: bosh-io-stemcell
 
 jobs:
 - name: claim-lock
@@ -110,6 +121,30 @@ jobs:
   - task: upload-docker-release
     file: git-kubo-ci/pks-pipelines/minimum-release-verification/upload-docker-release/task.yml
 
+- name: upload-linux-stemcell
+  plan:
+  - in_parallel:
+    - get: gcp-linux-stemcell
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'claim-lock' ]
+  - task: upload-linux-stemcell
+    input_mapping:
+      stemcell: gcp-linux-stemcell
+    file: git-kubo-ci/pks-pipelines/minimum-release-verification/upload-stemcell/task.yml
+
+- name: upload-windows-stemcell
+  plan:
+  - in_parallel:
+    - get: gcp-windows-stemcell
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'claim-lock' ]
+  - task: upload-windows-stemcell
+    input_mapping:
+      stemcell: gcp-windows-stemcell
+    file: git-kubo-ci/pks-pipelines/minimum-release-verification/upload-stemcell/task.yml
+
 - name: deploy-manifest
   plan:
   - in_parallel:
@@ -121,6 +156,8 @@ jobs:
         - 'upload-etcd-release'
         - 'upload-docker-release'
         - 'upload-kubo-release-windows'
+        - 'upload-linux-stemcell'
+        - 'upload-windows-stemcell'
     - get: git-pks-cfcr-etcd-release
       passed: [ 'upload-etcd-release' ]
     - get: git-pks-docker-bosh-release
