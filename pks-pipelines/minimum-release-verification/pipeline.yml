@@ -124,6 +124,7 @@ jobs:
 - name: upload-linux-stemcell
   plan:
   - in_parallel:
+    - get: git-kubo-ci
     - get: gcp-linux-stemcell
     - get: kubo-lock
       trigger: true
@@ -136,6 +137,7 @@ jobs:
 - name: upload-windows-stemcell
   plan:
   - in_parallel:
+    - get: git-kubo-ci
     - get: gcp-windows-stemcell
     - get: kubo-lock
       trigger: true
