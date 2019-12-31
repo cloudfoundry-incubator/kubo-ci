@@ -129,6 +129,7 @@ jobs:
     - get: kubo-lock
       trigger: true
       passed: [ 'claim-lock' ]
+      version: every
   - task: upload-linux-stemcell
     input_mapping:
       stemcell: gcp-linux-stemcell
@@ -142,6 +143,7 @@ jobs:
     - get: kubo-lock
       trigger: true
       passed: [ 'claim-lock' ]
+      version: every
   - task: upload-windows-stemcell
     input_mapping:
       stemcell: gcp-windows-stemcell
