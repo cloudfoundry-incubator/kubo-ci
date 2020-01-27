@@ -45,6 +45,6 @@ var _ = Describe("Deploy workload", func() {
 	})
 
 	AfterEach(func() {
-		kubectl.StartKubectlCommand("delete", "-f", nginxLBSpec).Wait(kubectl.TimeoutInSeconds)
+		kubectl.StartKubectlCommand("delete", "-f", nginxLBSpec).Wait(kubectl.TimeoutInSeconds*3)
 	})
 })
