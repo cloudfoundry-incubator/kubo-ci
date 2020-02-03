@@ -18,8 +18,7 @@ gitHeadSha() {
 }
 
 KUBO_GIT_SHA="$(gitHeadSha "git-pks-kubo-release")"
-KUBO_WINDOWS_GIT_SHA="$(gitHeadSha "git-pks-kubo-release-windows")"
 ETCD_GIT_SHA="$(gitHeadSha "git-pks-cfcr-etcd-release")"
 DOCKER_GIT_SHA="$(gitHeadSha "git-pks-docker-bosh-release")"
 
-export KUBO_GIT_SHA KUBO_WINDOWS_GIT_SHA ETCD_GIT_SHA DOCKER_GIT_SHA
+export KUBO_GIT_SHA ETCD_GIT_SHA DOCKER_GIT_SHA

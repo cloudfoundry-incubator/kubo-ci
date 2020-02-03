@@ -35,24 +35,12 @@ resources:
     branch: master
     private_key: ((git-ssh-key.private_key))
 
-- name: git-pks-kubo-release-windows
-  type: git
+- name: aws-linux-stemcell
   source:
-    uri: git@github.com:pivotal-cf/pks-kubo-release-windows.git
-    branch: master
-    private_key: ((git-ssh-key.private_key))
-
-- name: gcp-linux-stemcell
-  source:
-    name: bosh-google-kvm-ubuntu-xenial-go_agent
-    version_family: "456.30"
+    name: bosh-aws-xen-hvm-ubuntu-xenial-go_agent
+    version_family: "621.51"
   type: bosh-io-stemcell
 
-- name: gcp-windows-stemcell
-  source:
-    name: bosh-google-kvm-windows2019-go_agent
-    version_family: "2019.12"
-  type: bosh-io-stemcell
 
 jobs:
 - name: claim-lock
@@ -62,7 +50,6 @@ jobs:
     - get: git-kubo-ci
     - get: git-pks-cfcr-etcd-release
     - get: git-pks-kubo-release
-    - get: git-pks-kubo-release-windows
     - get: git-pks-docker-bosh-release
     - get: kubo-lock
   - put: kubo-lock
@@ -80,18 +67,6 @@ jobs:
       passed: [ 'claim-lock' ]
   - task: upload-kubo-release
     file: git-kubo-ci/pks-pipelines/osl/upload-kubo-release/task.yml
-
-- name: upload-kubo-release-windows
-  plan:
-  - in_parallel:
-    - get: git-kubo-ci
-    - get: kubo-lock
-      trigger: true
-      passed: [ 'claim-lock' ]
-    - get: git-pks-kubo-release-windows
-      passed: [ 'claim-lock' ]
-  - task: upload-kubo-release
-    file: git-kubo-ci/pks-pipelines/osl/upload-kubo-release-windows/task.yml
 
 - name: upload-etcd-release
   plan:
@@ -121,26 +96,13 @@ jobs:
   plan:
   - in_parallel:
     - get: git-kubo-ci
-    - get: gcp-linux-stemcell
+    - get: aws-linux-stemcell
     - get: kubo-lock
       trigger: true
       passed: [ 'claim-lock' ]
   - task: upload-linux-stemcell
     input_mapping:
-      stemcell: gcp-linux-stemcell
-    file: git-kubo-ci/pks-pipelines/osl/upload-stemcell/task.yml
-
-- name: upload-windows-stemcell
-  plan:
-  - in_parallel:
-    - get: git-kubo-ci
-    - get: gcp-windows-stemcell
-    - get: kubo-lock
-      trigger: true
-      passed: [ 'claim-lock' ]
-  - task: upload-windows-stemcell
-    input_mapping:
-      stemcell: gcp-windows-stemcell
+      stemcell: aws-linux-stemcell
     file: git-kubo-ci/pks-pipelines/osl/upload-stemcell/task.yml
 
 - name: deploy-manifest
@@ -153,17 +115,13 @@ jobs:
         - 'upload-kubo-release'
         - 'upload-etcd-release'
         - 'upload-docker-release'
-        - 'upload-kubo-release-windows'
         - 'upload-linux-stemcell'
-        - 'upload-windows-stemcell'
     - get: git-pks-cfcr-etcd-release
       passed: [ 'upload-etcd-release' ]
     - get: git-pks-docker-bosh-release
       passed: [ 'upload-docker-release' ]
     - get: git-pks-kubo-release
       passed: [ 'upload-kubo-release' ]
-    - get: git-pks-kubo-release-windows
-      passed: [ 'upload-kubo-release-windows' ]
   - task: deploy-release
     file: git-kubo-ci/pks-pipelines/osl/deploy-manifest/task.yml
 
@@ -180,8 +138,6 @@ jobs:
       passed: [ 'deploy-manifest' ]
     - get: git-pks-kubo-release
       passed: [ 'deploy-manifest' ]
-    - get: git-pks-kubo-release-windows
-      passed: [ 'deploy-manifest' ]
   - task: run-tests
     file: git-kubo-ci/pks-pipelines/osl/generate-osl-manifest/task.yml
 
@@ -197,8 +153,6 @@ jobs:
     - get: git-pks-docker-bosh-release
       passed: [ 'generate-osl-manifest' ]
     - get: git-pks-kubo-release
-      passed: [ 'generate-osl-manifest' ]
-    - get: git-pks-kubo-release-windows
       passed: [ 'generate-osl-manifest' ]
   - task: delete-release
     file: git-kubo-ci/pks-pipelines/osl/cleanup/task.yml
