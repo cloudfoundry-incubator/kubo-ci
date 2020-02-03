@@ -40,6 +40,12 @@ function fly-verification-pipeline {
     --config=pks-pipelines/minimum-release-verification/pipeline.yml
 }
 
+function fly-osl-pipeline {
+  fly --target $TARGET set-pipeline \
+    --pipeline=osl \
+    --config=pks-pipelines/osl/pipeline.yml
+}
+
 #function main {
 #  login
 #  update-team-permissions
