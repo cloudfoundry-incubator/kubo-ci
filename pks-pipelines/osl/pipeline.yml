@@ -1,0 +1,207 @@
+resources:
+- name: kubo-lock
+  type: pool
+  source:
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+    pool: gcp
+
+- name: git-kubo-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/kubo-ci
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
+- name: git-pks-cfcr-etcd-release
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pks-cfcr-etcd-release.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
+- name: git-pks-docker-bosh-release
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pks-docker-boshrelease.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
+- name: git-pks-kubo-release
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pks-kubo-release.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
+- name: git-pks-kubo-release-windows
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pks-kubo-release-windows.git
+    branch: master
+    private_key: ((git-ssh-key.private_key))
+
+- name: gcp-linux-stemcell
+  source:
+    name: bosh-google-kvm-ubuntu-xenial-go_agent
+    version_family: "456.30"
+  type: bosh-io-stemcell
+
+- name: gcp-windows-stemcell
+  source:
+    name: bosh-google-kvm-windows2019-go_agent
+    version_family: "2019.12"
+  type: bosh-io-stemcell
+
+jobs:
+- name: claim-lock
+  max_in_flight: 1
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: git-pks-cfcr-etcd-release
+    - get: git-pks-kubo-release
+    - get: git-pks-kubo-release-windows
+    - get: git-pks-docker-bosh-release
+    - get: kubo-lock
+  - put: kubo-lock
+    params:
+      acquire: true
+
+- name: upload-kubo-release
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'claim-lock' ]
+    - get: git-pks-kubo-release
+      passed: [ 'claim-lock' ]
+  - task: upload-kubo-release
+    file: git-kubo-ci/pks-pipelines/osl/upload-kubo-release/task.yml
+
+- name: upload-kubo-release-windows
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'claim-lock' ]
+    - get: git-pks-kubo-release-windows
+      passed: [ 'claim-lock' ]
+  - task: upload-kubo-release
+    file: git-kubo-ci/pks-pipelines/osl/upload-kubo-release-windows/task.yml
+
+- name: upload-etcd-release
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'claim-lock' ]
+    - get: git-pks-cfcr-etcd-release
+      passed: [ 'claim-lock' ]
+  - task: upload-etcd-release
+    file: git-kubo-ci/pks-pipelines/osl/upload-etcd-release/task.yml
+
+- name: upload-docker-release
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'claim-lock' ]
+    - get: git-pks-docker-bosh-release
+      passed: [ 'claim-lock' ]
+  - task: upload-docker-release
+    file: git-kubo-ci/pks-pipelines/osl/upload-docker-release/task.yml
+
+- name: upload-linux-stemcell
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: gcp-linux-stemcell
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'claim-lock' ]
+  - task: upload-linux-stemcell
+    input_mapping:
+      stemcell: gcp-linux-stemcell
+    file: git-kubo-ci/pks-pipelines/osl/upload-stemcell/task.yml
+
+- name: upload-windows-stemcell
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: gcp-windows-stemcell
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'claim-lock' ]
+  - task: upload-windows-stemcell
+    input_mapping:
+      stemcell: gcp-windows-stemcell
+    file: git-kubo-ci/pks-pipelines/osl/upload-stemcell/task.yml
+
+- name: deploy-manifest
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      trigger: true
+      passed:
+        - 'upload-kubo-release'
+        - 'upload-etcd-release'
+        - 'upload-docker-release'
+        - 'upload-kubo-release-windows'
+        - 'upload-linux-stemcell'
+        - 'upload-windows-stemcell'
+    - get: git-pks-cfcr-etcd-release
+      passed: [ 'upload-etcd-release' ]
+    - get: git-pks-docker-bosh-release
+      passed: [ 'upload-docker-release' ]
+    - get: git-pks-kubo-release
+      passed: [ 'upload-kubo-release' ]
+    - get: git-pks-kubo-release-windows
+      passed: [ 'upload-kubo-release-windows' ]
+  - task: deploy-release
+    file: git-kubo-ci/pks-pipelines/osl/deploy-manifest/task.yml
+
+- name: generate-osl-manifest
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'deploy-manifest' ]
+    - get: git-pks-cfcr-etcd-release
+      passed: [ 'deploy-manifest' ]
+    - get: git-pks-docker-bosh-release
+      passed: [ 'deploy-manifest' ]
+    - get: git-pks-kubo-release
+      passed: [ 'deploy-manifest' ]
+    - get: git-pks-kubo-release-windows
+      passed: [ 'deploy-manifest' ]
+  - task: run-tests
+    file: git-kubo-ci/pks-pipelines/osl/generate-osl-manifest/task.yml
+
+- name: cleanup
+  plan:
+  - in_parallel:
+    - get: git-kubo-ci
+    - get: kubo-lock
+      trigger: true
+      passed: [ 'generate-osl-manifest' ]
+    - get: git-pks-cfcr-etcd-release
+      passed: [ 'generate-osl-manifest' ]
+    - get: git-pks-docker-bosh-release
+      passed: [ 'generate-osl-manifest' ]
+    - get: git-pks-kubo-release
+      passed: [ 'generate-osl-manifest' ]
+    - get: git-pks-kubo-release-windows
+      passed: [ 'generate-osl-manifest' ]
+  - task: delete-release
+    file: git-kubo-ci/pks-pipelines/osl/cleanup/task.yml
+  - put: kubo-lock
+    params:
+      release: kubo-lock
