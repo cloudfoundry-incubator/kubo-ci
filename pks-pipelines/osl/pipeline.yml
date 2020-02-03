@@ -5,7 +5,7 @@ resources:
     uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
     branch: master
     private_key: ((git-ssh-key.private_key))
-    pool: gcp
+    pool: aws
 
 - name: git-kubo-ci
   type: git
