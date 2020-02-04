@@ -38,7 +38,8 @@ resources:
 - name: aws-linux-stemcell
   source:
     name: bosh-aws-xen-hvm-ubuntu-xenial-go_agent
-    version_family: "621.51"
+    version_family: "456.30"
+  force_regular: true
   type: bosh-io-stemcell
 
 

@@ -11,7 +11,7 @@ releases:
 stemcells:
   - alias: linux
     os: ubuntu-xenial
-    version: "621.51"
+    version: "456.30"
 
 update:
   canaries: 1
