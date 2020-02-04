@@ -41,22 +41,22 @@ instance_groups:
     networks:
       - name: default
 
-  - name: print-version-linux-etcd-ig
-    azs:
-      - z1
-    instances: 1
-# IMPORTANT: for a VM with a single job, that job needs to be a default "service" rather than an errand,
-# since only a service implies that the VM needs to persist. So if we uncomment "lifecycle: errand", the VM gets destroyed by BOSH right after it is created.
-# lifecycle: errand
-    jobs:
-      - name: print-component-version
-        release: kubo
-      - name: print-etcd-component-version
-        release: cfcr-etcd
-    vm_type: minimal
-    stemcell: linux
-# in megabytes
-    persistent_disk: 5120
-    networks:
-      - name: default
+#  - name: print-version-linux-etcd-ig
+#    azs:
+#      - z1
+#    instances: 1
+## IMPORTANT: for a VM with a single job, that job needs to be a default "service" rather than an errand,
+## since only a service implies that the VM needs to persist. So if we uncomment "lifecycle: errand", the VM gets destroyed by BOSH right after it is created.
+## lifecycle: errand
+#    jobs:
+#      - name: print-component-version
+#        release: kubo
+#      - name: print-etcd-component-version
+#        release: cfcr-etcd
+#    vm_type: minimal
+#    stemcell: linux
+## in megabytes
+#    persistent_disk: 5120
+#    networks:
+#      - name: default
 addons: []
