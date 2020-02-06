@@ -44,7 +44,7 @@ var _ = Describe("When deploying a loadbalancer", func() {
 
 	Context("with externalTrafficPolicy to local", func() {
 		It("shows a different source client IPs", func() {
-			if iaas != "gce" && iaas != "azure" && iaas != "aws" {
+			if iaas != "gcp" && iaas != "azure" && iaas != "aws" {
 				Skip("Test only valid for public clouds")
 			}
 
