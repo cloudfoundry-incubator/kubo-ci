@@ -6,6 +6,7 @@ roles:
       "pivotal-cf:pks-core",
       "pivotal-cf:pks-bosh-lifecycle"
     ]
+    users: ["jaimegag", "svrc-pivotal"]
 - name: "viewer"
   github:
     teams: [
