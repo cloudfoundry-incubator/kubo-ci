@@ -118,6 +118,7 @@ func curlWindows(url string) func() ([]string, error) {
 
 	Eventually(
 		kubectl.StartKubectlCommand("create", "-f", outSpec.Name()),
+		"5s",
 	).Should(gexec.Exit(0))
 
 	Eventually(func() ([]string, error) {
