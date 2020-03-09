@@ -30,7 +30,7 @@ var _ = Describe("Kubernetes DNS", func() {
 			return kubectl.GetPodStatus("kube-system", "busybox")
 		}, kubectl.TimeoutInSeconds).Should(Equal("Running"))
 
-		session := kubectl.StartKubectlCommandInNamespace("kube-system", "exec", "busybox", "--", "nslookup", "kubernetes-dashboard.kube-system.svc.cluster.local")
+		session := kubectl.StartKubectlCommandInNamespace("kube-system", "exec", "busybox", "--", "nslookup", "metrics-server.kube-system.svc.cluster.local")
 		Eventually(session, kubectl.TimeoutInSeconds*2).Should(gexec.Exit(0))
 	})
 })

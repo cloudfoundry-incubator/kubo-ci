@@ -51,56 +51,6 @@ var _ = Describe("Kubectl", func() {
 		}, "300s", "10s").Should(Equal(0))
 	})
 
-	Context("Dashboard", func() {
-		It("Should provide access to the dashboard via kubectl proxy", func() {
-			session := kubectl.StartKubectlCommand("proxy")
-			Eventually(session).Should(gbytes.Say("Starting to serve on"))
-
-			timeout := time.Duration(5 * time.Second)
-			httpClient := http.Client{
-				Timeout: timeout,
-			}
-
-			// For more details, see: https://github.com/kubernetes/dashboard/wiki/Accessing-Dashboard---1.7.X-and-above#kubectl-proxy
-			appUrl := "http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/"
-
-			Eventually(func() int {
-				result, err := httpClient.Get(appUrl)
-				if err != nil {
-					return -1
-				}
-				return result.StatusCode
-			}, kubectl.TimeoutInSeconds*2, "5s").Should(Equal(200))
-
-			session.Terminate()
-		})
-
-		It("Should provide access to the dashboard via a node port", func() {
-
-			timeout := time.Duration(5 * time.Second)
-			transport := &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true,
-				},
-			}
-			httpClient := http.Client{
-				Timeout:   timeout,
-				Transport: transport,
-			}
-
-			appAddress := kubectl.GetAppAddressInNamespace("svc/kubernetes-dashboard", "kube-system")
-			appUrl := fmt.Sprintf("https://%s", appAddress)
-
-			Eventually(func() int {
-				result, err := httpClient.Get(appUrl)
-				if err != nil {
-					return -1
-				}
-				return result.StatusCode
-			}, kubectl.TimeoutInSeconds*2, "5s").Should(Equal(200))
-		})
-	})
-
 	Context("When unauthorized service account", func() {
 		var serviceAccount string
 
