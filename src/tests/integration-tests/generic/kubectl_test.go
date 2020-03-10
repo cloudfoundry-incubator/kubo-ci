@@ -1,11 +1,8 @@
 package generic_test
 
 import (
-	"crypto/tls"
-	"fmt"
 	. "tests/test_helpers"
 
-	"net/http"
 	"time"
 
 	. "github.com/onsi/ginkgo"
