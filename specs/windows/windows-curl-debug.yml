@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: curl-windows
+spec:
+  nodeSelector:
+    beta.kubernetes.io/os: windows
+  tolerations:
+    - key: "windows"
+      operator: "Equal"
+      value: "2019"
+      effect: "NoSchedule"
+  restartPolicy: Never
+  containers:
+    - name: curl-windows
+      image: mcr.microsoft.com/windows/nanoserver:1809
+      command: ["curl.exe"]
+      args: ["http://google.com"]
+      imagePullPolicy: IfNotPresent
