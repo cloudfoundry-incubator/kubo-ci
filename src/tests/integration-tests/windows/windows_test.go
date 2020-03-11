@@ -123,7 +123,7 @@ func curlWindows(url string) func() ([]string, error) {
 
 	Eventually(func() ([]string, error) {
 		return kubectl.GetOutput("get", "pod", name, "-o", "jsonpath='{.status.phase}'")
-		# todo need to get log output in case of failure
+		// todo need to get log output in case of failure
 	}, "180s").Should(ConsistOf("Succeeded"))
 
 	return func() ([]string, error) {
