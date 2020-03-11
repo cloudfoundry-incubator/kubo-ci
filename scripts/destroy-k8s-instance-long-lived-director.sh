@@ -13,7 +13,7 @@ main() {
       ${ROOT}/git-kubo-ci/scripts/set_kubeconfig_long_lived_director
 
       # don't delete leading & trailing slash. This is to scope to the deployment creds we want to delete
-      credhub find -n "/${deployment_name}/" --output-json | jq -r .credentials[].name | xargs -L 1 credhub delete -n
+      credhub find -n "/${deployment_name}/" --output-json | jq -r .credentials[].name | grep -v managed_identity | xargs -L 1 credhub delete -n
       set +e
       kubectl delete ns --all
       kubectl delete pvc --all

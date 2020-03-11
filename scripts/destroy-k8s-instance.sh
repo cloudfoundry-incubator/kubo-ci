@@ -29,4 +29,4 @@ bosh int "gcs-bosh-creds/creds.yml" --path="/credhub_tls/ca" > "${tmp_credhub_ca
 credhub login --ca-cert "${tmp_credhub_ca_file}" --ca-cert "${tmp_uaa_ca_file}"
 
 # don't delete leading & trailing slash. This is to scope to the deployment creds we want to delete
-credhub find -n "/${DEPLOYMENT_NAME}/" --output-json | jq -r .credentials[].name | xargs -L 1 credhub delete -n
+credhub find -n "/${DEPLOYMENT_NAME}/" --output-json | jq -r .credentials[].name | grep -v managed_identity | xargs -L 1 credhub delete -n
