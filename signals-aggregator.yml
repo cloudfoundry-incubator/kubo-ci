@@ -30,13 +30,7 @@ resources:
     bucket: kubo-pipeline-store
     versioned_file: shipables/shipable_version
 <% arr = %w(
-aws_vanilla_integration
-aws_old-release_upgrade
-aws_vanilla_conformance
-aws_vanilla_turbulence
-aws_vanilla_security
 azure_vanilla_conformance
-azure_vanilla_integration
 gcp_old-release_upgrade
 gcp_custom-cidrs_integration
 gcp_pod-security-policy_integration
