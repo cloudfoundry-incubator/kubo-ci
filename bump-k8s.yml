@@ -13,7 +13,7 @@ resources:
     owner: kubernetes
     repository: kubernetes
     # only patches get updated
-    version_filter: "< 1.16.0"
+    version_filter: "< 1.17.0"
     access_token: ((github-token-key))
 
 - name: kubernetes-dashboard-release
@@ -36,7 +36,7 @@ resources:
     owner: coredns
     repository: coredns
     # version 1.5.0 removes a feature we rely on.
-    version_filter: "< 1.5.0"
+    version_filter: "< 1.7.0"
     access_token: ((github-token-key))
 
 - name: git-kubernetes
