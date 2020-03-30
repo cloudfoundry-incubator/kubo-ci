@@ -54,8 +54,7 @@ jobs:
       outputs:
         - name: git-cfcr-etcd-output
       params:
-        ACCESS_KEY_ID: ((gcs-access-key-id))
-        SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+        GCS_JSON_KEY: ((gcs-json-key))
   - put: git-cfcr-etcd
     params:
       repository: git-cfcr-etcd-output

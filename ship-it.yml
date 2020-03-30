@@ -205,8 +205,7 @@ jobs:
     input_mapping:
       git-kubo-release: git-kubo-release-master
     params:
-      ACCESS_KEY_ID: ((gcs-access-key-id))
-      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+      GCS_JSON_KEY: ((gcs-json-key))
   - task: create-final-release-windows # TODO: Double check create final would work with windows
     file: git-kubo-ci/tasks/create-final-release.yml
     input_mapping:
@@ -216,8 +215,7 @@ jobs:
       kubo-release-tarball: kubo-release-windows-tarball
       kubo-release-tarball-notes: kubo-release-windows-tarball-notes
     params:
-      ACCESS_KEY_ID: ((gcs-access-key-id))
-      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+      GCS_JSON_KEY: ((gcs-json-key))
       release_name: "kubo-release-windows"
   - task: generate-compilation-manifest # TODO: generate could go in parallel
     file: git-kubo-ci/tasks/generate-compilation-manifest.yml
@@ -288,8 +286,7 @@ jobs:
   - task: create-kubo-deployment-tarball
     file: git-kubo-ci/tasks/create-kubo-deployment-tarball.yml
     params:
-      ACCESS_KEY_ID: ((gcs-access-key-id))
-      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+      GCS_JSON_KEY: ((gcs-jsno-key))
   - in_parallel:
     - do:
       - put: git-kubo-release-master

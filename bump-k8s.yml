@@ -101,8 +101,7 @@ jobs:
           - name: k8s-release
           - name: git-kubernetes
         params:
-          ACCESS_KEY_ID: ((gcs-access-key-id))
-          SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+          GCS_JSON_KEY: ((gcs-json-key)
           CFCR_USER_TOKEN: ((cfcr-git-user-token))
           GIT_SSH_KEY: |
             ((git-ssh-key.private_key))
@@ -118,8 +117,7 @@ jobs:
           - name: git-kubernetes
         params:
           REPO: windows
-          ACCESS_KEY_ID: ((gcs-access-key-id))
-          SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+          GCS_JSON_KEY: ((gcs-json-key))
           CFCR_USER_TOKEN: ((cfcr-git-user-token))
           GIT_SSH_KEY: |
             ((git-ssh-key.private_key))
@@ -134,8 +132,7 @@ jobs:
           - name: git-kubernetes
         params:
           REPO: ci
-          ACCESS_KEY_ID: ((gcs-access-key-id))
-          SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+          GCS_JSON_KEY: ((gcs-json-key))
           CFCR_USER_TOKEN: ((cfcr-git-user-token))
           GIT_SSH_KEY: |
             ((git-ssh-key.private_key))
@@ -154,8 +151,7 @@ jobs:
     privileged: true
     file: git-kubo-ci/tasks/bump/bump-k8s-spec.yml
     params:
-      ACCESS_KEY_ID: ((gcs-access-key-id))
-      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+      GCS_JSON_KEY: ((gcs-json-key))
   - put: git-kubo-release
     params:
       repository: git-kubo-release-output

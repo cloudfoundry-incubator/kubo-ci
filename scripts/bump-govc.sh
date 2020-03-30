@@ -14,8 +14,7 @@ cd git-kubo-release-output
 cat <<EOF > "config/private.yml"
 blobstore:
   options:
-    access_key_id: ${ACCESS_KEY_ID}
-    secret_access_key: ${SECRET_ACCESS_KEY}
+    json_key: ${GCS_JSON_KEY}
 EOF
 
 existing_govc_spec=$(bosh blobs | grep govc | awk '{print $1}')

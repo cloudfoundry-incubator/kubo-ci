@@ -8,8 +8,7 @@ run:
   path: git-kubo-ci/scripts/create-kubo-deployment-tarball.sh
 
 params:
-  ACCESS_KEY_ID: ""
-  SECRET_ACCESS_KEY: ""
+  GCS_JSON_KEY: ""
   BRANCH: "master"
 
 inputs:

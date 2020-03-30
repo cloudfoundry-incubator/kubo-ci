@@ -105,8 +105,7 @@ jobs:
     file: git-kubo-ci/tasks/bump-release-golang.yml
     input_mapping: { release: git-docker-boshrelease }
     params:
-      ACCESS_KEY_ID: ((gcs-access-key-id))
-      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+      GCS_JSON_KEY: ((gcs-json-key))
   - task: check-create-release
     file: git-kubo-ci/tasks/bump/check-create-release.yml
   - put: git-docker-boshrelease
@@ -127,8 +126,7 @@ jobs:
     file: git-kubo-ci/tasks/bump-release-golang.yml
     input_mapping: { release: git-kubo-release }
     params:
-      ACCESS_KEY_ID: ((gcs-access-key-id))
-      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+      GCS_JSON_KEY: ((gcs-json-key))
   - task: check-create-release
     file: git-kubo-ci/tasks/bump/check-create-release.yml
   - put: git-kubo-release
@@ -149,8 +147,7 @@ jobs:
     file: git-kubo-ci/tasks/bump-release-golang.yml
     input_mapping: { release: git-cfcr-etcd-release }
     params:
-      ACCESS_KEY_ID: ((gcs-access-key-id))
-      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+      GCS_JSON_KEY: ((gcs-json-key))
   - task: check-create-release
     file: git-kubo-ci/tasks/bump/check-create-release.yml
   - put: git-cfcr-etcd-release

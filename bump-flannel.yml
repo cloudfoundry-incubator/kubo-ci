@@ -32,8 +32,7 @@ jobs:
   - task: update-flannel-blob
     file: git-kubo-ci/tasks/bump-flannel.yml
     params:
-      ACCESS_KEY_ID: ((gcs-access-key-id))
-      SECRET_ACCESS_KEY: ((gcs-secret-access-key))
+      GCS_JSON_KEY: ((gcs-json-key))
   - task: generate-flannel-pr
     file: git-kubo-ci/tasks/create-flannel-pr.yml
     params:
