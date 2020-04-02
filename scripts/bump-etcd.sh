@@ -14,7 +14,8 @@ pushd git-cfcr-etcd-output
 cat <<EOF > "config/private.yml"
 blobstore:
   options:
-    json_key: "${GCS_JSON_KEY}"
+    credentials_source: static
+    json_key: '${GCS_JSON_KEY}'
 EOF
 
 existing_etcd_spec=$(bosh blobs | grep etcd | awk '{print $1}')
