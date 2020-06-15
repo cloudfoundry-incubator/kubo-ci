@@ -22,7 +22,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 		kubectl.Setup()
 		Eventually(kubectl.StartKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 		Eventually(kubectl.StartKubectlCommand("create", "-f", statefulSetSpec), "60s").Should(gexec.Exit(0))
-		Eventually(kubectl.StartKubectlCommand("rollout", "status", "statefulesets/windows-pv"), "600s").Should(gexec.Exit(0))
+		Eventually(kubectl.StartKubectlCommand("rollout", "status", "statefulset/windows-pv"), "600s").Should(gexec.Exit(0))
 	})
 
 	AfterEach(func() {
@@ -43,10 +43,10 @@ var _ = Describe("When deploying to a Windows worker", func() {
 
 				By("recreate pod")
 				Eventually(kubectl.StartKubectlCommand("delete", "po", "windows-pv-0"), "60s").Should(gexec.Exit(0))
-				Eventually(kubectl.StartKubectlCommand("rollout", "status", "statefulesets/windows-pv"), "60s").Should(gexec.Exit(0))
+				Eventually(kubectl.StartKubectlCommand("rollout", "status", "statefulset/windows-pv"), "60s").Should(gexec.Exit(0))
 
 				By("check file")
-				Eventually(kubectl.StartKubectlCommand("kubectl", "exec", "windows-pv-0", "powershell",
+				Eventually(kubectl.StartKubectlCommand("exec", "windows-pv-0", "powershell",
 					"dir c:\\var\\run\\testfile1.txt"), "60s").Should(gexec.Exit(0))
 			})
 		})
