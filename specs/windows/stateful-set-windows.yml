@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: windows-pv
+spec:
+  selector:
+    matchLabels:
+      app: windows-pv
+  serviceName: "windows-pv-svc"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: windows-pv
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: windows-pv
+        image: mcr.microsoft.com/windows/servercore:1809
+        command: ["ping", "-t", "localhost"]
+        volumeMounts:
+        - name: www
+          mountPath: "c:\\var\\run"
+      nodeSelector:
+        beta.kubernetes.io/os: windows
+      tolerations:
+      - key: "windows"
+        operator: "Equal"
+        value: "2019"
+        effect: "NoSchedule"
+      restartPolicy: Always
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: ci-storage
+      resources:
+        requests:
+          storage: 1Gi
