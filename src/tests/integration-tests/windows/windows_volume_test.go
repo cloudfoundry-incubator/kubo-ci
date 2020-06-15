@@ -43,7 +43,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 
 				By("recreate pod")
 				Eventually(kubectl.StartKubectlCommand("delete", "po", "windows-pv-0"), "60s").Should(gexec.Exit(0))
-				Eventually(kubectl.StartKubectlCommand("rollout", "status", "statefulset/windows-pv"), "60s").Should(gexec.Exit(0))
+				Eventually(kubectl.StartKubectlCommand("rollout", "status", "statefulset/windows-pv"), "120s").Should(gexec.Exit(0))
 
 				By("check file")
 				Eventually(kubectl.StartKubectlCommand("exec", "windows-pv-0", "powershell",
