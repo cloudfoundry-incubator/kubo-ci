@@ -26,6 +26,10 @@ var _ = Describe("When deploying to a Windows worker", func() {
 	})
 
 	AfterEach(func() {
+		Eventually(kubectl.StartKubectlCommand("delete", "-f", statefulSetSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit())
+		Eventually(kubectl.StartKubectlCommand("delete", "pvc", "--all"), kubectl.TimeoutInSeconds).Should(gexec.Exit())
+		Eventually(kubectl.StartKubectlCommand("delete", "pv", "--all"), kubectl.TimeoutInSeconds).Should(gexec.Exit())
+		Eventually(kubectl.StartKubectlCommand("delete", "-f", storageClassSpec), kubectl.TimeoutInSeconds).Should(gexec.Exit())
 		kubectl.Teardown()
 	})
 
