@@ -104,7 +104,7 @@ jobs:
   - put: compilation-deployment
     params:
       manifest: compilation-manifest/manifest.yml
-      source_file: gcs-source-json/source.json
+      source_file: gcs-compilation-source-json/source.json
     tags: ['gaffer']
   - task: export
     tags: ['gaffer']
@@ -147,10 +147,10 @@ jobs:
     params:
       RELEASE_LIST: "cfcr-etcd"
   - put: compilation-deployment
+    tags: ['gaffer']
     params:
       manifest: compilation-manifest/manifest.yml
-      source_file: gcs-source-json/source.json
-    tags: ['gaffer']
+      source_file: gcs-compilation-source-json/source.json
   - task: export
     tags: ['gaffer']
     file: git-kubo-ci/tasks/export-release.yml
