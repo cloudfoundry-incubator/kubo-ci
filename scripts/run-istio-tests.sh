@@ -75,6 +75,8 @@ if [ ! -f "${ISTIO_OUT}/version.helm.${HELM_VER}" ] ; then
         touch "${ISTIO_OUT}/version.helm.${HELM_VER}"
 fi
 
+cd $GOPATH/src/istio.io/istio
+
 kubectl create namespace istio-system
 
 helm template install/kubernetes/helm/istio-init --name istio-init --namespace istio-system > istio-init.yml
