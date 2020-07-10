@@ -11,9 +11,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   netcat-openbsd  \
   libcurl3  \
   make \
-  python-pip \
-  python-dev \
-  python-software-properties \
+  python3-pip \
+  python3-dev \
+  python3-software-properties \
   software-properties-common \
   wget \
   ipcalc \
@@ -71,17 +71,17 @@ RUN wget -q https://github.com/cloudfoundry/bosh-cli/releases/download/v5.4.0/bo
   install bosh /usr/local/bin
 
 # Openstack CLI
-RUN pip install -U setuptools
-RUN pip install cryptography==2.0.3
-RUN pip install pyOpenSSL==17.3.0
-RUN pip install python-glanceclient==2.8.0
-RUN pip install python-openstackclient==3.13.0
+RUN pip3 install -U setuptools
+RUN pip3 install cryptography==2.9.2
+RUN pip3 install pyOpenSSL==19.1.0
+RUN pip3 install python-glanceclient==3.2.0
+RUN pip3 install python-openstackclient==5.3.0
 
 # AWS CLI
-RUN pip install awscli
+RUN pip3 install awscli
 
 # sshuttle
-RUN pip install sshuttle
+RUN pip3 install sshuttle
 
 # GOVC CLI
 RUN wget -q -O - -o /dev/null https://github.com/vmware/govmomi/releases/download/v0.17.1/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc && \
