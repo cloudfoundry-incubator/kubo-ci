@@ -80,8 +80,9 @@ RUN pip3 install python-openstackclient==5.3.0
 # AWS CLI
 RUN pip3 install awscli
 
-# sshuttle
-RUN pip3 install sshuttle
+# sshuttle requires trunk due to a bug with Python 3 recently fixed
+#RUN pip3 install sshuttle
+RUN git clone https://github.com/sshuttle/sshuttle.git && cd sshuttle && python3 setup.py install
 
 # GOVC CLI
 RUN wget -q -O - -o /dev/null https://github.com/vmware/govmomi/releases/download/v0.17.1/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc && \
