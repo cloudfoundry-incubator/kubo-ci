@@ -88,7 +88,7 @@ RUN git clone https://github.com/sshuttle/sshuttle.git && cd sshuttle && python3
 RUN wget -q -O - -o /dev/null https://github.com/vmware/govmomi/releases/download/v0.17.1/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc && \
   chmod +x /usr/local/bin/govc
 
-RUN gem install bundler --no-ri --no-rdoc
+RUN gem install bundler --no-ri --no-rdoc && gem update --system
 
 ARG SPRUCE_VERSION=v1.16.2
 RUN wget -q https://github.com/geofffranks/spruce/releases/download/${SPRUCE_VERSION}/spruce-linux-amd64 -O /usr/bin/spruce && \
