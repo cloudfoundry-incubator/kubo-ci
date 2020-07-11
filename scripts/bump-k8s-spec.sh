@@ -111,7 +111,7 @@ bump_spec() {
   cat <<EOF > "config/private.yml"
 blobstore:
   options:
-    json_key: ${GCS_JSON_KEY}
+    json_key: '${GCS_JSON_KEY}'
 EOF
   set -x
 

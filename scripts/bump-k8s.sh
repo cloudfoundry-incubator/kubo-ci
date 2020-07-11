@@ -47,7 +47,7 @@ pr_release() {
     cat <<EOF > "config/private.yml"
 blobstore:
   options:
-    json_key: ${GCS_JSON_KEY}
+    json_key: '${GCS_JSON_KEY}'
 EOF
     bosh upload-blobs
     generate_pull_request "kubernetes" "$tag" "${release_name}" "develop"

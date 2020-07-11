@@ -238,16 +238,13 @@ jobs:
       source_file: gcs-compilation-source-json/source.json
       releases:
       - kubo-release-tarball/*.tgz
-    tags: ['gaffer']
   - put: compilation-deployment-windows
     params:
       manifest: compilation-manifest-windows/manifest.yml
       source_file: gcs-compilation-source-json/source.json
       releases:
         - kubo-release-windows-tarball/*.tgz
-    tags: ['gaffer']
   - task: export
-    tags: ['gaffer']
     file: git-kubo-ci/tasks/export-release.yml
     input_mapping:
       git-kubo-deployment: git-kubo-deployment-master
@@ -255,7 +252,6 @@ jobs:
     params:
       RELEASE_LIST: kubo
   - task: export-windows
-    tags: ['gaffer']
     file: git-kubo-ci/tasks/export-release.yml
     params:
       RELEASE_LIST: kubo-windows

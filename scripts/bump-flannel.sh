@@ -15,7 +15,7 @@ cd git-kubo-release-output
 cat <<EOF > "config/private.yml"
 blobstore:
   options:
-    json_key: ${GCS_JSON_KEY}
+    json_key: '${GCS_JSON_KEY}'
 EOF
 
 existing_flannel_spec=$(bosh blobs | grep flannel | awk '{print $1}')

@@ -19,7 +19,7 @@ cd git-kubo-release-output
 cat <<EOF > "config/private.yml"
 blobstore:
   options:
-    json_key: ${GCS_JSON_KEY}
+    json_key: '${GCS_JSON_KEY}'
 EOF
 
 bosh create-release --final --version="${version}" --sha2 --tarball "../kubo-release-tarball/${release_name}-${version}.tgz"

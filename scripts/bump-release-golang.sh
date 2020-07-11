@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/bin/bash 
 set -exu -o pipefail
 
 source git-kubo-ci/scripts/lib/semver.sh
@@ -33,7 +32,7 @@ vendor_golang() {
     cat <<EOF > "config/private.yml"
 blobstore:
   options:
-    json_key: ${GCS_JSON_KEY}
+    json_key: '${GCS_JSON_KEY}'
 EOF
     set -x
     local GO_VERSION_PARTS PACKAGE_GOLANG_VERSION
