@@ -47,6 +47,7 @@ pr_release() {
     cat <<EOF > "config/private.yml"
 blobstore:
   options:
+    credentials_source: static
     json_key: '${GCS_JSON_KEY}'
 EOF
     bosh upload-blobs
