@@ -282,7 +282,7 @@ jobs:
   - task: create-kubo-deployment-tarball
     file: git-kubo-ci/tasks/create-kubo-deployment-tarball.yml
     params:
-      GCS_JSON_KEY: ((gcs-jsno-key))
+      GCS_JSON_KEY: ((gcs-json-key))
   - in_parallel:
     - do:
       - put: git-kubo-release-master
