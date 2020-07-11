@@ -7,7 +7,7 @@
   value:
     api_token: ((pivnet-api-token))
     product_slug: stemcells-windows-server-internal
-    product_version: "2019.7"
+    product_version: "2019.17"
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
@@ -39,7 +39,7 @@
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/vars/windows-stemcell-version?
-  value: 2019.7
+  value: 2019.17
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/0/in_parallel/get=windows-stemcell/tags?

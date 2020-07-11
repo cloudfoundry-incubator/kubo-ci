@@ -22,6 +22,12 @@ resource_types:
     repository: pcfkubo/bosh2-errand-resource
     tag: v0.1.3-dev
 
+- name: pool
+  type: docker-image
+  source:
+    repository: concourse/pool-resource
+    tag: '1.1.3'
+
 resources:
 - name: git-kubo-ci
   type: git
@@ -134,7 +140,26 @@ jobs:
   # put all dep releases inside directory dep-releases/ , then
   # next task will auto upload them, ensuring that the remote URL "failures" are inconsequential
   - task: download-dep-releases
-    file: git-kubo-ci/tasks/download-dep-releases.yml
+    config:
+      container_limits: {}
+      image_resource:
+        source:
+          repository: pkstelemetrybot/integration-ci
+        type: docker-image
+      inputs:
+      - name: git-kubo-deployment
+      outputs:
+      - name: dep-releases
+      platform: linux
+      run:
+        args:
+        - -c
+        - |
+          set -euo pipefail
+          cd dep-releases
+          yq read ../git-kubo-deployment/manifests/cfcr.yml releases.*.url | grep -v null | grep -v kubo-[0-9] | sed 's|^-\ ||g' | xargs -n 1 curl -SLJO
+          ls -alh
+        path: bash
   - put: cfcr-deployment
     params:
       manifest: git-kubo-deployment/manifests/cfcr.yml
