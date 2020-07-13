@@ -1,0 +1,8 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ci-storage
+provisioner: kubernetes.io/vsphere-volume
+parameters:
+  diskformat: thin
+  fstype: NTFS
