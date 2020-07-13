@@ -40,13 +40,6 @@ resources:
     json_key: ((gcs-json-key))
     regexp: docker-(.*).tgz
 
-- name: gcs-compilation-source-json
-  type: gcs
-  source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
-    versioned_file: gcp-compilation-env/source.json
-
 - name: slack-notification
   type: slack-notification
   source: {}

@@ -10,6 +10,18 @@
     product_version: "2019.17"
 
 - type: replace
+  path: /jobs/name=claim-lock/plan/get=kubo-release-windows/tags?
+  value: ['vsphere-lb']
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/get=kubo-release-windows/tags?
+  value: ['vsphere-lb']
+- type: replace
+  path: /jobs/name=run-tests/plan/0/in_parallel/get=kubo-release-windows/tags?
+  value: ['vsphere-lb']
+- type: replace
+  path: /jobs/name=publish-version/plan/0/in_parallel/get=kubo-release-windows/tags?
+  value: ['vsphere-lb']
+- type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
   value: git-kubo-deployment/manifests/ops-files/iaas/vsphere/windows/cloud-provider.yml
 

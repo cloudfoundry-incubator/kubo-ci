@@ -16,6 +16,33 @@
 
 # Tag all tasks
 - type: replace
+  path: /jobs/name=claim-lock/plan/get=kubo-release/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=claim-lock/plan/get=kubo-deployment/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=claim-lock/plan/get=git-kubo-ci/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=claim-lock/plan/task=check-version-match/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/get=kubo-release/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/get=git-kubo-ci/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/0/in_parallel/get=kubo-deployment/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=deploy-k8s/plan/task=unpack-kubo-deployment/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
   path: /jobs/name=deploy-k8s/plan/task=upload-stemcell/tags?
   value: [ 'vsphere-lb' ]
 
@@ -40,5 +67,47 @@
   value: [ 'vsphere-lb' ]
 
 - type: replace
+  path: /jobs/name=run-tests/plan/0/in_parallel/get=kubo-release/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=run-tests/plan/0/in_parallel/get=git-kubo-ci/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=run-tests/plan/0/in_parallel/get=kubo-deployment/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=run-tests/plan/task=unpack-kubo-deployment/tags?
+  value: [ 'vsphere-lb' ]
+
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/0/in_parallel/get=kubo-release/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/0/in_parallel/get=git-kubo-ci/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=destroy-k8s/plan/0/in_parallel/get=kubo-deployment/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
   path: /jobs/name=destroy-k8s/plan/task=destroy-k8s/tags?
+  value: [ 'vsphere-lb' ]
+
+
+- type: replace
+  path: /jobs/name=publish-version/plan/0/in_parallel/get=git-kubo-ci/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=publish-version/plan/0/in_parallel/get=kubo-deployment/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=publish-version/plan/0/in_parallel/get=gcs-shipable-version/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=publish-version/plan/task=unpack-kubo-deployment/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=publish-version/plan/task=publish-version/tags?
+  value: [ 'vsphere-lb' ]
+- type: replace
+  path: /jobs/name=publish-version/plan/put=gcs-shipable-version/tags?
   value: [ 'vsphere-lb' ]

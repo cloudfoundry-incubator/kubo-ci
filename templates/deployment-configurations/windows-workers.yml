@@ -35,6 +35,11 @@
   path: /jobs/name=claim-lock/plan/-
   value:
     get: kubo-release-windows
+    trigger: true
+
+- type: replace
+  path: /jobs/name=claim-lock/plan/get=kubo-deployment/trigger
+  value: false
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/0/in_parallel/-
@@ -73,5 +78,28 @@
   value: kubo-release-windows/*.tgz
 
 - type: replace
+  path: /jobs/name=run-tests/plan/0/in_parallel/-
+  value:
+    get: kubo-release-windows
+    passed: ['deploy-k8s']
+
+- type: replace
   path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_WINDOWS_TESTS?
   value: true
+
+- type: remove
+  path: /jobs/name=publish-version/plan/0/in_parallel/get=kubo-release
+
+- type: replace
+  path: /jobs/name=publish-version/plan/0/in_parallel/-
+  value:
+    get: kubo-release-windows
+    passed: ['run-tests']
+    version: every
+    trigger: true
+
+- type: replace
+  path: /jobs/name=publish-version/plan/task=publish-version/input_mapping?
+  value:
+    kubo-release: kubo-release-windows
+
