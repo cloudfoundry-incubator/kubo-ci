@@ -101,7 +101,7 @@ jobs:
           - name: k8s-release
           - name: git-kubernetes
         params:
-          GCS_JSON_KEY: ((gcs-json-key)
+          GCS_JSON_KEY: ((gcs-json-key))
           CFCR_USER_TOKEN: ((cfcr-git-user-token))
           GIT_SSH_KEY: |
             ((git-ssh-key.private_key))
