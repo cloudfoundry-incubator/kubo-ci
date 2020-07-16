@@ -6,7 +6,7 @@ RUN apt-get update \
 			rsync \
 			&& rm -rf /var/lib/apt/lists/*
 
-ENV KUBE_VERSION="v1.17.8"
+ENV KUBE_VERSION="v1.17.9"
 
 RUN git clone --depth 50 --branch $KUBE_VERSION \
     https://github.com/kubernetes/kubernetes.git /go/src/k8s.io/kubernetes
