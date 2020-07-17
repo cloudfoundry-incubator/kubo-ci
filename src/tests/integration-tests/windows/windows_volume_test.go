@@ -15,8 +15,10 @@ var (
 
 var _ = Describe("When deploying to a Windows worker", func() {
 	BeforeEach(func() {
-		if !hasWindowsWorkers {
-			Skip("skipping Windows tests since no Windows nodes were detected")
+		if hasWindowsWorkers, _ := test_helpers.HasWindowsWorkers(); hasWindowsWorkers {
+			// Windows nodes don't respect this flag and will cause this test to fail if a Windows node is chosen
+			// https://github.com/kubernetes/kubernetes/issues/62046
+			Skip("Test not valid on Windows")
 		}
 		kubectl = test_helpers.NewKubectlRunner()
 		kubectl.Setup()
