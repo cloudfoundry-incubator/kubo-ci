@@ -15,9 +15,6 @@ var (
 
 var _ = Describe("When deploying to a Windows worker", func() {
 	BeforeEach(func() {
-		if hasWindowsWorkers, _ := test_helpers.HasWindowsWorkers(); !hasWindowsWorkers {
-			Skip("skipping Windows tests since no Windows nodes were detected")
-		}
 		kubectl = test_helpers.NewKubectlRunner()
 		kubectl.Setup()
 		Eventually(kubectl.StartKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
