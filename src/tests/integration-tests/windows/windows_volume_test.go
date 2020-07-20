@@ -19,7 +19,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 		kubectl.Setup()
 		Eventually(kubectl.StartKubectlCommand("create", "-f", storageClassSpec), "60s").Should(gexec.Exit(0))
 		Eventually(kubectl.StartKubectlCommand("create", "-f", statefulSetSpec), "60s").Should(gexec.Exit(0))
-		Eventually(kubectl.StartKubectlCommand("rollout", "status", "statefulset/windows-pv"), "600s").Should(gexec.Exit(0))
+		Eventually(kubectl.StartKubectlCommand("rollout", "status", "statefulset/windows-pv"), "1200s").Should(gexec.Exit(0))
 	})
 
 	AfterEach(func() {
