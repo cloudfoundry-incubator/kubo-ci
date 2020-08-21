@@ -15,7 +15,7 @@ spec:
     effect: "NoSchedule"
   restartPolicy: Always
   containers:
-  - image: stefanscherer/webserver-windows:latest
+  - image: stefanscherer/webserver-windows:0.4.0
     name: webserver
     env:
     - name: PORT
