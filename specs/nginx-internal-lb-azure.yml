@@ -9,7 +9,7 @@ kind: PodSecurityPolicy
 metadata:
   name: nginx-internal-lb-psp
   annotations:
-    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default'
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'runtime/default,docker/default'
     apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
     seccomp.security.alpha.kubernetes.io/defaultProfileName:  'docker/default'
     apparmor.security.beta.kubernetes.io/defaultProfileName:  'runtime/default'
