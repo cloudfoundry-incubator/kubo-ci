@@ -59,7 +59,7 @@ var _ = Describe("When deploying a loadbalancer", func() {
 			Eventually(func() string {
 				loadbalancerAddress = kubectl.GetLBAddress("echoserver", iaas)
 				return loadbalancerAddress
-			}, 8*kubectl.TimeoutInSeconds, kubectl.TimeoutInSeconds).Should(Not(Equal("")))
+			}, 28*kubectl.TimeoutInSeconds, kubectl.TimeoutInSeconds).Should(Not(Equal(""))) // increase this time in case other tests is creating or deleting LB at the same time
 
 			By("getting the source IP from echoserver")
 			appURL := fmt.Sprintf("http://%s", loadbalancerAddress)
@@ -94,7 +94,7 @@ var _ = Describe("When deploying a loadbalancer", func() {
 	AfterEach(func() {
 		if iaas == "gce" || iaas == "azure" || iaas == "aws" {
 			// on aws, we saw the load balancer take 10-16 minutes to delete
-			kubectl.StartKubectlCommand("delete", "-f", echoserverLBSpec).Wait(kubectl.TimeoutInSeconds*20)
+			kubectl.StartKubectlCommand("delete", "-f", echoserverLBSpec).Wait(kubectl.TimeoutInSeconds * 20)
 		}
 	})
 })
