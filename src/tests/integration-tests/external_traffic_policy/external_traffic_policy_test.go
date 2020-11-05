@@ -93,8 +93,8 @@ var _ = Describe("When deploying a loadbalancer", func() {
 
 	AfterEach(func() {
 		if iaas == "gce" || iaas == "azure" || iaas == "aws" {
-			// on aws, we saw the load balancer take 10-16 minutes to delete
-			kubectl.StartKubectlCommand("delete", "-f", echoserverLBSpec).Wait(kubectl.TimeoutInSeconds * 20)
+			// on aws, we saw the load balancer take 10-20 minutes to delete
+			kubectl.StartKubectlCommand("delete", "-f", echoserverLBSpec).Wait(kubectl.TimeoutInSeconds * 30)
 		}
 	})
 })
