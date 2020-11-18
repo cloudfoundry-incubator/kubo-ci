@@ -59,7 +59,7 @@ spec:
   serviceAccountName: hostpath-mount-cloudprovider
   containers:
   - name: busybox
-    image: busybox
+    image: gcr.io/cf-pks-golf/busybox
     command:
       - sh
       - -c

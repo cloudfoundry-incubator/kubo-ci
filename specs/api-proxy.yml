@@ -104,7 +104,7 @@ spec:
       serviceAccountName: api-proxy-sa
       containers:
       - name: api-proxy
-        image: pcfkubo/api-proxy:stable
+        image: gcr.io/cf-pks-golf/pcfkubo/api-proxy:stable
         ports:
         - containerPort: 8443
         volumeMounts:

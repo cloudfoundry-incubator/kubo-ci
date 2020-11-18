@@ -94,7 +94,7 @@ spec:
     spec:
       serviceAccountName: nfs-busybox-sa
       containers:
-      - image: busybox
+      - image: gcr.io/cf-pks-golf/busybox
         command:
         - sh
         - -c

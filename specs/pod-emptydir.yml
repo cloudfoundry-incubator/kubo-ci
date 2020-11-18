@@ -85,7 +85,7 @@ spec:
     - name: simple-vol
       mountPath: /var/simple
 
-    image: alpine
+    image: gcr.io/cf-pks-golf/alpine
     command: ["/bin/sh"]
     args: ["-c", "touch /var/simple/find_me.txt"]
 
@@ -96,7 +96,7 @@ spec:
       mountPath: /var/simple
     - name: search-vol
       mountPath: /var/search
-    image: alpine
+    image: gcr.io/cf-pks-golf/alpine
     tty: true
     stdin: true
     command: ["/bin/sh"]

@@ -90,7 +90,7 @@ spec:
     spec:
       serviceAccountName: nginx-hostport-sa
       containers:
-      - image: nginx:1.15-alpine
+      - image: gcr.io/cf-pks-golf/nginx:1.15-alpine
         imagePullPolicy: Always
         name: nginx
         ports:
