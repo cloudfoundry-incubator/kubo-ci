@@ -5,15 +5,16 @@ import (
 
 	. "tests/test_helpers"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	"os"
+
 	"github.com/bosh-turbulence/turbulence/incident"
 	"github.com/bosh-turbulence/turbulence/incident/selector"
 	"github.com/bosh-turbulence/turbulence/tasks"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"os"
 )
 
 var (
@@ -50,7 +51,7 @@ var _ = Describe("A dockerd failure", func() {
 
 		By("Deploying a workload on the k8s cluster")
 		remoteCommand := "while true; do sleep 30; done;"
-		Eventually(kubectl.StartKubectlCommand("run", "busybox", "--image=busybox", "--", "/bin/sh", "-c", remoteCommand))
+		Eventually(kubectl.StartKubectlCommand("run", "busybox", "--image=gcr.io/cf-pks-golf/busybox", "--", "/bin/sh", "-c", remoteCommand))
 		Eventually(func() string {
 			return kubectl.GetPodStatusBySelector(kubectl.Namespace(), "run=busybox")
 		}, "120s").Should(Equal("Running"))

@@ -31,7 +31,7 @@ var _ = Describe("Kubectl", func() {
 		Eventually(s, "15s").Should(gexec.Exit(0))
 
 		podName := GenerateRandomUUID()
-		session := kubectl.StartKubectlCommand("run", podName, "--image", "pcfkubo/alpine:stable", "--restart=Never", "--image-pull-policy=Always", "-ti", "--rm", "--", "kubectl", "get", "services")
+		session := kubectl.StartKubectlCommand("run", podName, "--image", "gcr.io/cf-pks-golf/pcfkubo/alpine:stable", "--restart=Never", "--image-pull-policy=Always", "-ti", "--rm", "--", "kubectl", "get", "services")
 		session.Wait(120)
 		Expect(session).To(gexec.Exit(0))
 	})

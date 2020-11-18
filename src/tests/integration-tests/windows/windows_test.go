@@ -91,7 +91,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 func curlLinux(url string) func() ([]string, error) {
 	name := fmt.Sprintf("curl-%d", rand.Int())
 	Eventually(
-		kubectl.StartKubectlCommand("run", name, "--image=tutum/curl", "--restart=Never",
+		kubectl.StartKubectlCommand("run", name, "--image=gcr.io/cf-pks-golf/tutum/curl", "--restart=Never",
 			"--", "curl", "-s", url),
 	).Should(gexec.Exit(0))
 

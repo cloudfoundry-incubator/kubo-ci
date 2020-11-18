@@ -17,7 +17,7 @@ spec:
       serviceAccountName: apiserver
       containers:
       - name: {{.Namespace}}-server
-        image: glestarispivotal/kube-sample-apiserver:latest
+        image: gcr.io/cf-pks-golf/glestarispivotal/kube-sample-apiserver:latest
         args:
         - "--etcd-servers=http://localhost:2379"
       - name: etcd
