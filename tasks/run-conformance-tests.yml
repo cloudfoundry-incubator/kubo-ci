@@ -2,7 +2,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: pcfkubo/conformance
+    repository: gcr.io/cf-pks-golf/pcfkubo/conformance
     tag: stable
 run:
   path: git-kubo-ci/scripts/run-conformance-tests.sh

@@ -69,7 +69,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfkubo/kubo-ci
+          repository: gcr.io/cf-pks-golf/pcfkubo/kubo-ci
           tag: latest
 
       inputs:
@@ -82,7 +82,7 @@ jobs:
   - put: kubo-ci-stable
     params:
       cache: true
-      pull_repository: pcfkubo/kubo-ci
+      pull_repository: gcr.io/cf-pks-golf/pcfkubo/kubo-ci
       pull_tag: latest
 
 - name: build-vsphere-cleaner
@@ -100,7 +100,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfkubo/vsphere-cleaner
+          repository: gcr.io/cf-pks-golf/pcfkubo/vsphere-cleaner
           tag: latest
       inputs:
       - name: git-kubo-ci-vsphere-cleaner
@@ -109,7 +109,7 @@ jobs:
   - put: vsphere-cleaner-stable
     params:
       cache: true
-      pull_repository: pcfkubo/vsphere-cleaner
+      pull_repository: gcr.io/cf-pks-golf/pcfkubo/vsphere-cleaner
       pull_tag: latest
 
 - name: build-ulimit
@@ -133,7 +133,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfkubo/test-runner
+          repository: gcr.io/cf-pks-golf/pcfkubo/test-runner
           tag: latest
       inputs:
       - name: git-kubo-ci-test-runner
@@ -145,7 +145,7 @@ jobs:
   - put: test-runner-stable
     params:
       cache: true
-      pull_repository: pcfkubo/test-runner
+      pull_repository: gcr.io/cf-pks-golf/pcfkubo/test-runner
       pull_tag: latest
 
 - name: build-git-bosh
@@ -169,7 +169,7 @@ jobs:
        image_resource:
          type: docker-image
          source:
-           repository: pcfkubo/aws-maintenance
+           repository: gcr.io/cf-pks-golf/pcfkubo/aws-maintenance
            tag: latest
        inputs:
        - name: git-kubo-ci-aws-maintenance
@@ -178,7 +178,7 @@ jobs:
    - put: aws-maintenance-stable
      params:
        cache: true
-       pull_repository: pcfkubo/aws-maintenance
+       pull_repository: gcr.io/cf-pks-golf/pcfkubo/aws-maintenance
        pull_tag: latest
 
 - name: build-nginx-bionic
@@ -197,7 +197,7 @@ jobs:
        image_resource:
          type: docker-image
          source:
-           repository: pcfkubo/nginx-bionic
+           repository: gcr.io/cf-pks-golf/pcfkubo/nginx-bionic
            tag: latest
        inputs:
        - name: git-kubo-ci-nginx-bionic
@@ -214,7 +214,7 @@ jobs:
    - put: nginx-bionic-stable
      params:
        cache: true
-       pull_repository: pcfkubo/nginx-bionic
+       pull_repository: gcr.io/cf-pks-golf/pcfkubo/nginx-bionic
        pull_tag: latest
        tag_file: nginx-bionic-version/version
    - put: nginx-bionic-version

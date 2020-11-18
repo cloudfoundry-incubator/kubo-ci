@@ -2,7 +2,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: pcfkubo/kubo-ci
+    repository: gcr.io/cf-pks-golf/pcfkubo/kubo-ci
     tag: stable
 run:
   path: git-kubo-ci/scripts/run-kubo-drats-tests.sh

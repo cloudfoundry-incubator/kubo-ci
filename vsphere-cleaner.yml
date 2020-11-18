@@ -31,7 +31,7 @@ jobs:
       image_resource: &image_resource
         type: docker-image
         source:
-          repository: pcfkubo/test-runner
+          repository: gcr.io/cf-pks-golf/pcfkubo/test-runner
           tag: stable
       inputs:
       - name: git-kubo-ci

@@ -24,7 +24,7 @@ var _ = Describe("Ulimit", func() {
 
 	It("Should have a ulimit at least of 1048576", func() {
 		podName := test_helpers.GenerateRandomUUID()
-		output, err := kubectl.GetOutput("run", podName, "--image", "pcfkubo/ulimit", "--restart=Never", "-i", "--rm")
+		output, err := kubectl.GetOutput("run", podName, "--image", "gcr.io/cf-pks-golf/pcfkubo/ulimit", "--restart=Never", "-i", "--rm")
 		Expect(err).NotTo(HaveOccurred())
 		Expect(strconv.Atoi(output[0])).To(BeNumerically(">=", 1048576))
 	})
