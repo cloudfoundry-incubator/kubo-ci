@@ -13,7 +13,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: curl-windows
-      image: mcr.microsoft.com/windows/nanoserver:1809
+      image: gcr.io/cf-pks-golf/mcr.microsoft.com/windows/nanoserver:1809
       command: ["curl.exe"]
       args: ["http://google.com"]
       imagePullPolicy: IfNotPresent

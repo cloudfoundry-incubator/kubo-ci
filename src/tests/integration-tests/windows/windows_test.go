@@ -31,7 +31,7 @@ var (
 			},
 			RestartPolicy: v1.RestartPolicyNever,
 			Containers: []v1.Container{
-				{Name: "curl", Image: "mcr.microsoft.com/windows/nanoserver:1809", Command: []string{"curl.exe"}},
+				{Name: "curl", Image: "gcr.io/cf-pks-golf/mcr.microsoft.com/windows/nanoserver:1809", Command: []string{"curl.exe"}},
 			},
 		},
 	}
@@ -39,10 +39,10 @@ var (
 
 var _ = Describe("When deploying to a Windows worker", func() {
 
-	BeforeSuite(func()  {
+	BeforeSuite(func() {
 		fmt.Println("Checking for at least 1 Windows nodes...")
 		cmd := "kubectl get nodes -o json | jq '[.items[].status.nodeInfo.osImage] | map(select(. == \"Windows Server 2019 Datacenter\")) | any'"
-		out, err := exec.Command("bash","-c", cmd).CombinedOutput()
+		out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
 		fmt.Println(fmt.Sprintf("Found any windows node(s): %s", string(out)))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(strings.TrimSpace(string(out))).To(Equal("true"))
