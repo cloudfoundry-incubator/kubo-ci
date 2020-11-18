@@ -16,20 +16,18 @@ resources:
 - name: <%= image_name %>-stable
   type: docker-image
   source:
-    repository: pcfkubo/<%= image_name %>
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
+    repository: gcr.io/cf-pks-golf/pcfkubo/<%= image_name %>
+    username: _json_key
+    password: ((gcs-json-key))
     tag: stable
 
   <% if tested_images.include? image_name %>
 - name: <%= image_name %>-latest
   type: docker-image
   source:
-    repository: pcfkubo/<%= image_name %>
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
+    repository: gcr.io/cf-pks-golf/pcfkubo/<%= image_name %>
+    username: _json_key
+    password: ((gcs-json-key))
     tag: latest
   <% end %>
 <% end %>
