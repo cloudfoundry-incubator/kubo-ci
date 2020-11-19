@@ -34,8 +34,8 @@ var _ = Describe("When deploying to a Windows worker", func() {
 		Context("when a pod is recreated", func() {
 			It("should be able to read the previous created file from PV", func() {
 				By("Save file to pv")
-				Eventually(kubectl.StartKubectlCommand("exec", "windows-pv-0", "powershell",
-					"New-Item -Path 'c:\\var\\run\\' -Name 'testfile1.txt' -ItemType 'file' -Value 'This is a text string.'"),
+				Eventually(kubectl.StartKubectlCommand("exec", "windows-pv-0", "--", "pwsh", "--Command",
+					"{New-Item -Path 'c:\\var\\run\\' -Name 'testfile1.txt' -ItemType 'file' -Value 'This is a text string.'}"),
 					"60s").Should(gexec.Exit(0))
 
 				By("recreate pod")
@@ -43,8 +43,8 @@ var _ = Describe("When deploying to a Windows worker", func() {
 				Eventually(kubectl.StartKubectlCommand("rollout", "status", "statefulset/windows-pv"), "120s").Should(gexec.Exit(0))
 
 				By("check file")
-				Eventually(kubectl.StartKubectlCommand("exec", "windows-pv-0", "powershell",
-					"dir c:\\var\\run\\testfile1.txt"), "60s").Should(gexec.Exit(0))
+				Eventually(kubectl.StartKubectlCommand("exec", "windows-pv-0", "--", "pwsh", "--Command",
+					"{dir c:\\var\\run\\testfile1.txt}"), "60s").Should(gexec.Exit(0))
 			})
 		})
 	})

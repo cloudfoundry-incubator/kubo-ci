@@ -17,7 +17,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: windows-pv
-        image: gcr.io/cf-pks-golf/mcr.microsoft.com/windows/servercore:1809
+        image: gcr.io/cf-pks-golf/mcr.microsoft.com/powershell:lts-nanoserver-1809
         command: ["ping", "-t", "localhost"]
         volumeMounts:
         - name: www
