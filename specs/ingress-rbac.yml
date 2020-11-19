@@ -147,7 +147,7 @@ spec:
     spec:
       containers:
       - name: simple-http-server
-        image: trinitronx/python-simplehttpserver
+        image: gcr.io/cf-pks-golf/trinitronx/python-simplehttpserver
         ports:
         - containerPort: 8080
 

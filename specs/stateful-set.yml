@@ -31,7 +31,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: pv-ex
-        image: pcfkubo/persistent-example
+        image: gcr.io/cf-pks-golf/pcfkubo/persistent-example
         ports:
         - containerPort: 3000
         volumeMounts:

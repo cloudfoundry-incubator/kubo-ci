@@ -42,7 +42,7 @@ var _ = Describe("When deploying a pod with service", func() {
 			Expect(err).NotTo(HaveOccurred())
 			url := fmt.Sprintf("http://%s:40801", hostIP[0])
 			session := kubectl.StartKubectlCommand("run", "curl-hostport",
-				"--image=tutum/curl", "--restart=Never", "--", "curl", url)
+				"--image=gcr.io/cf-pks-golf/tutum/curl", "--restart=Never", "--", "curl", url)
 			Eventually(session, "10s").Should(gexec.Exit(0))
 
 			Eventually(func() ([]string, error) {

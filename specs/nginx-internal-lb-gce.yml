@@ -107,6 +107,6 @@ spec:
       serviceAccountName: nginx-internal-lb-sa
       containers:
       - name: nginx
-        image: nginx
+        image: gcr.io/cf-pks-golf/nginx
         ports:
         - containerPort: 80

@@ -29,7 +29,7 @@ spec:
       containers:
       - name: gaffer
         imagePullPolicy: Always
-        image: pcfkubo/services-gaffer:stable
+        image: gcr.io/cf-pks-golf/pcfkubo/services-gaffer:stable
         ports:
         - containerPort: 8443
         workingDir: /services-gaffer-master

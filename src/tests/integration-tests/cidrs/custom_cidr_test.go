@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	yaml "gopkg.in/yaml.v2"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	client_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -91,7 +91,7 @@ var _ = Describe("Custom CIDRs", func() {
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{{
 						Name:  "nginx",
-						Image: "nginx",
+						Image: "gcr.io/cf-pks-golf/nginx",
 						Ports: []v1.ContainerPort{{ContainerPort: 80}},
 					}},
 				},
