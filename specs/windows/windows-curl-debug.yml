@@ -10,7 +10,7 @@ spec:
       operator: "Equal"
       value: "2019"
       effect: "NoSchedule"
-  restartPolicy: Never
+  restartPolicy: OnFailure
   containers:
     - name: curl-windows
       image: gcr.io/cf-pks-golf/mcr.microsoft.com/windows/nanoserver:1809
