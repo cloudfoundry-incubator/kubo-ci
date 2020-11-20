@@ -127,7 +127,7 @@ func curlWindows(url string) func() ([]string, error) {
 			fmt.Fprintf(GinkgoWriter, "error when getting pod %s status: %s", name, err.Error())
 		}
 		if len(podStatus) > 0 && podStatus[0] == "Failed" {
-			podLog, err := kubectl.GetOutput("get", "logs", name)
+			podLog, err := kubectl.GetOutput("logs", name)
 			if err != nil {
 				fmt.Fprintf(GinkgoWriter, "error when getting pod %s log: %s", name, err.Error())
 			}
