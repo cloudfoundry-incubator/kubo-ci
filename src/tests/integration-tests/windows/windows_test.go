@@ -74,7 +74,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 			url := fmt.Sprintf("http://%s:%s", hostIP, nodePort)
 
 			Eventually(curlLinux(url), "30s").Should(ContainElement(ContainSubstring("webserver.exe")))
-			Eventually(curlWindows(url), "240s").Should(ContainElement(ContainSubstring("webserver.exe")))
+			Eventually(curlWindows(url, "nodePort"), "240s").Should(ContainElement(ContainSubstring("webserver.exe")))
 		})
 
 		By("should be able to reach it via Cluster IP", func() {
@@ -83,7 +83,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 			url := fmt.Sprintf("http://%s", clusterIP)
 
 			Eventually(curlLinux(url), "100s").Should(ContainElement(ContainSubstring("webserver.exe")))
-			Eventually(curlWindows(url), "180s").Should(ContainElement(ContainSubstring("webserver.exe")))
+			Eventually(curlWindows(url, "clusterIP"), "180s").Should(ContainElement(ContainSubstring("webserver.exe")))
 		})
 	})
 })
@@ -104,7 +104,7 @@ func curlLinux(url string) func() ([]string, error) {
 	}
 }
 
-func curlWindows(url string) func() ([]string, error) {
+func curlWindows(url string, urlType string) func() ([]string, error) {
 	name := fmt.Sprintf("curl-windows-%d", rand.Int())
 
 	curlPod.Spec.Containers[0].Args = []string{"-s", url}
@@ -131,18 +131,43 @@ func curlWindows(url string) func() ([]string, error) {
 			if err != nil {
 				fmt.Fprintf(GinkgoWriter, "error when getting pod %s log: %s", name, err.Error())
 			}
-			fmt.Fprintf(GinkgoWriter, "log of pod %s: %s", podLog, podLog)
-			hostIP := kubectl.GetOutputBytes("get", "pod", "-l", "app=windows-webserver",
-				"-o", "jsonpath='{.items[0].status.hostIP}'")
-			nodePort := kubectl.GetOutputBytes("get", "service", "windows-webserver",
-				"-o", "jsonpath='{.spec.ports[0].nodePort}'")
-			fmt.Fprintf(GinkgoWriter, "url: %s. And current url %s:%s", url, hostIP, nodePort)
+			fmt.Fprintf(GinkgoWriter, "log of curl pod %s: %s\n", name, podLog)
+
+			fmt.Fprintf(GinkgoWriter, "url: %s\n.", url)
+			switch urlType {
+			case "nodePort":
+				hostIP := kubectl.GetOutputBytes("get", "pod", "-l", "app=windows-webserver",
+					"-o", "jsonpath='{.items[0].status.hostIP}'")
+				nodePort := kubectl.GetOutputBytes("get", "service", "windows-webserver",
+					"-o", "jsonpath='{.spec.ports[0].nodePort}'")
+				fmt.Fprintf(GinkgoWriter, "node port url: %s:%s\n.", hostIP, nodePort)
+
+				fmt.Fprintf(GinkgoWriter, "manually curl %s", url)
+				nodePortOutput, err := kubectl.GetOutput("exec", "--", name, "curl.exe", url)
+				if err != nil {
+					fmt.Fprintf(GinkgoWriter, "error curl through nodePort %s", err.Error())
+				}
+				fmt.Fprintf(GinkgoWriter, "curling nodePort output: %s", nodePortOutput)
+
+			case "clusterIP":
+				clusterIP := kubectl.GetOutputBytes("get", "service", "windows-webserver",
+					"-o", "jsonpath='{.spec.clusterIP}'")
+				fmt.Fprintf(GinkgoWriter, "clusterIP url: %s\n.", clusterIP)
+
+				fmt.Fprintf(GinkgoWriter, "manually curl %s", url)
+				clusterIPOutput, err := kubectl.GetOutput("exec", "--", name, "curl.exe", url)
+				if err != nil {
+					fmt.Fprintf(GinkgoWriter, "error curl through cluster ip %s", err.Error())
+				}
+				fmt.Fprintf(GinkgoWriter, "curling cluster ip output: %s", clusterIPOutput)
+			}
 
 			serverLog, err := kubectl.GetOutput("logs", "-l", "app=windows-webserver")
 			if err != nil {
 				fmt.Fprintf(GinkgoWriter, "error when getting pod windows-webserver log: %s", err.Error())
 			}
 			fmt.Fprintf(GinkgoWriter, "log of pod windows-webserver: %s", serverLog)
+
 		}
 		return podStatus, err
 	}, "180s").Should(ConsistOf("Succeeded"))
