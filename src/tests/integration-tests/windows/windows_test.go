@@ -122,8 +122,29 @@ func curlWindows(url string) func() ([]string, error) {
 	).Should(gexec.Exit(0))
 
 	Eventually(func() ([]string, error) {
-		return kubectl.GetOutput("get", "pod", name, "-o", "jsonpath='{.status.phase}'")
-		// todo need to get log output in case of failure
+		podStatus, err := kubectl.GetOutput("get", "pod", name, "-o", "jsonpath='{.status.phase}'")
+		if err != nil {
+			fmt.Fprintf(GinkgoWriter, "error when getting pod %s status: %s", name, err.Error())
+		}
+		if len(podStatus) > 0 && podStatus[0] == "Failed" {
+			podLog, err := kubectl.GetOutput("get", "logs", name)
+			if err != nil {
+				fmt.Fprintf(GinkgoWriter, "error when getting pod %s log: %s", name, err.Error())
+			}
+			fmt.Fprintf(GinkgoWriter, "log of pod %s: %s", podLog, podLog)
+			hostIP := kubectl.GetOutputBytes("get", "pod", "-l", "app=windows-webserver",
+				"-o", "jsonpath='{.items[0].status.hostIP}'")
+			nodePort := kubectl.GetOutputBytes("get", "service", "windows-webserver",
+				"-o", "jsonpath='{.spec.ports[0].nodePort}'")
+			fmt.Fprintf(GinkgoWriter, "url: %s. And current url %s:%s", url, hostIP, nodePort)
+
+			serverLog, err := kubectl.GetOutput("logs", "-l", "app=windows-webserver")
+			if err != nil {
+				fmt.Fprintf(GinkgoWriter, "error when getting pod windows-webserver log: %s", err.Error())
+			}
+			fmt.Fprintf(GinkgoWriter, "log of pod windows-webserver: %s", serverLog)
+		}
+		return podStatus, err
 	}, "180s").Should(ConsistOf("Succeeded"))
 
 	return func() ([]string, error) {
