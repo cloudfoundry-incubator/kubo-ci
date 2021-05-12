@@ -64,7 +64,7 @@ resources:
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    versioned_file: gaffer-env/source.json
+    versioned_file: source.json
 
 jobs:
 - name: bump-stemcell
@@ -79,7 +79,6 @@ jobs:
   - task: bump-stemcell
     file: git-kubo-ci/tasks/bump-stemcell.yml
   - task: generate-compilation-manifest
-    tags: ['gaffer']
     file: git-kubo-ci/tasks/generate-compilation-manifest.yml
     input_mapping:
       git-kubo-deployment: git-kubo-deployment-output
@@ -91,9 +90,7 @@ jobs:
       - stemcell/stemcell.tgz
       manifest: compilation-manifest/manifest.yml
       source_file: gcs-source-json/source.json
-    tags: ['gaffer']
   - task: export
-    tags: ['gaffer']
     file: git-kubo-ci/tasks/export-release.yml
     input_mapping:
       git-kubo-deployment: git-kubo-deployment-output
@@ -111,7 +108,6 @@ jobs:
         file: compiled-releases/bpm-*.tgz
   - task: bump-precompiled-releases-in-manifest
     file: git-kubo-ci/tasks/bump-precompiled-releases-in-manifest.yml
-    tags: ['gaffer']
     input_mapping:
       git-kubo-deployment: git-kubo-deployment-output
     params:

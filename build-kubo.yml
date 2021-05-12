@@ -68,7 +68,7 @@ resources:
   source:
     json_key: ((gcs-json-key))
     bucket: kubo-pipeline-store
-    versioned_file: gcp-compilation-env/source.json
+    versioned_file: source.json
 
 - name: compilation-deployment-default
   type: bosh-deployment
