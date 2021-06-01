@@ -68,7 +68,7 @@ func createHPADeployment() {
 func increaseCPULoad() {
 	remoteCommand := "while true; do wget -q -O- http://php-apache; done"
 
-	session := kubectl.StartKubectlCommand("run", "-i", "--tty", "load-generator", "--generator=run-pod/v1", "--image=gcr.io/cf-pks-golf/busybox", "--", "/bin/sh", "-c", remoteCommand)
+	session := kubectl.StartKubectlCommand("run", "-i", "--tty", "load-generator", "--image=gcr.io/cf-pks-golf/busybox", "--", "/bin/sh", "-c", remoteCommand)
 	Eventually(session, "10s").Should(gexec.Exit(0))
 
 	Eventually(func() string {

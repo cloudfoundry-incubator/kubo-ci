@@ -30,7 +30,6 @@ var _ = Describe("Internal load balancers", func() {
 		Eventually(func() int {
 			session := kubectl.StartKubectlCommand("run",
 				"test-master-cert-via-curl",
-				"--generator=run-pod/v1",
 				"--image=gcr.io/cf-pks-golf/tutum/curl",
 				"--restart=Never",
 				"-ti",
