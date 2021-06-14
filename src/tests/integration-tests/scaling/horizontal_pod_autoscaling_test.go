@@ -14,6 +14,7 @@ const defaultHPATimeout = "10m"
 
 var (
 	hpaDeployment = test_helpers.PathFromRoot("specs/hpa-php-apache.yml")
+	loadGenerator = test_helpers.PathFromRoot("specs/load-generator.yml")
 )
 
 var _ = Describe("Horizontal Pod Autoscaling", func() {
@@ -66,9 +67,7 @@ func createHPADeployment() {
 }
 
 func increaseCPULoad() {
-	remoteCommand := "while true; do wget -q -O- http://php-apache; done"
-
-	session := kubectl.StartKubectlCommand("run", "-i", "--tty", "load-generator", "--image=gcr.io/cf-pks-golf/busybox", "--", "/bin/sh", "-c", remoteCommand)
+	session := kubectl.StartKubectlCommand("create", "-f", loadGenerator)
 	Eventually(session, "10s").Should(gexec.Exit(0))
 
 	Eventually(func() string {

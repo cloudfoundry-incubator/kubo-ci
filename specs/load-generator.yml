@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: load-generator
+spec:
+  containers:
+  - name: load-generator
+    image: gcr.io/cf-pks-golf/busybox
+    command: ['sh', '-c', 'while true; do wget -q -O- http://php-apache; done']
+    imagePullPolicy: IfNotPresent
+  restartPolicy: Always
