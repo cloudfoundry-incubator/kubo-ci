@@ -4,12 +4,12 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"time"
 
 	. "tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -97,7 +97,7 @@ var _ = Describe("Kubelet", func() {
 })
 
 func invalidRequest(tr *http.Transport, endpoint string) {
-	client := &http.Client{Transport: tr}
+	client := &http.Client{Timeout: time.Minute * 2, Transport: tr}
 	resp, err := client.Get(endpoint)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(resp.StatusCode).To(Equal(401))
