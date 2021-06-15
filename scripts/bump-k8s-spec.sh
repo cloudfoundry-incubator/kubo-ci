@@ -2,17 +2,13 @@
 
 set -eu -o pipefail
 
-blob_names=("k8s.gcr.io_kubernetes-dashboard-amd64"
-            "k8s.gcr.io_metrics-server-amd64"
+blob_names=("k8s.gcr.io_metrics-server-amd64"
             "coredns_coredns")
-releases=("kubernetes-dashboard-release"
-          "metrics-server-release"
+releases=("metrics-server-release"
           "coredns-release")
-urls=("k8s.gcr.io/kubernetes-dashboard-amd64"
-      "k8s.gcr.io/metrics-server-amd64"
+urls=("k8s.gcr.io/metrics-server-amd64"
       "coredns/coredns")
-names=("kubernetes-dashboard-amd64"
-       "metrics-server-amd64"
+names=("metrics-server-amd64"
        "coredns")
 
 sanitize_cgroups() {
