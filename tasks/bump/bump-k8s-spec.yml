@@ -16,7 +16,6 @@ inputs:
 - name: git-kubo-release
 - name: coredns-release
 - name: metrics-server-release
-- name: kubernetes-dashboard-release
 
 outputs:
 - name: git-kubo-release-output
