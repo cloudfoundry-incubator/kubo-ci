@@ -6,7 +6,7 @@ blob_names=("k8s.gcr.io_metrics-server-amd64"
             "coredns_coredns")
 releases=("metrics-server-release"
           "coredns-release")
-urls=("k8s.gcr.io/metrics-server-amd64"
+urls=("k8s.gcr.io/metrics-server/metrics-server"
       "coredns/coredns")
 names=("metrics-server-amd64"
        "coredns")
