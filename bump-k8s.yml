@@ -16,13 +16,6 @@ resources:
     version_filter: "< 1.18.0"
     access_token: ((github-token-key))
 
-- name: kubernetes-dashboard-release
-  type: github-release
-  source:
-    owner: kubernetes
-    repository: dashboard
-    access_token: ((github-token-key))
-
 - name: metrics-server-release
   type: github-release
   source:
@@ -35,8 +28,6 @@ resources:
   source:
     owner: coredns
     repository: coredns
-    # version 1.5.0 removes a feature we rely on.
-    version_filter: "< 1.7.0"
     access_token: ((github-token-key))
 
 - name: git-kubernetes
@@ -139,8 +130,6 @@ jobs:
 - name: bump-images-dependencies
   plan:
   - in_parallel:
-    - get: kubernetes-dashboard-release
-      trigger: true
     - get: metrics-server-release
       trigger: true
     - get: coredns-release
