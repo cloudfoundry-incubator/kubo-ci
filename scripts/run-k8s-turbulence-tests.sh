@@ -40,7 +40,7 @@ create_shuttle() {
     chmod 0600 ssh.key
     cidr="$(bosh int kubo-lock/metadata --path=/internal_cidr)"
     jumpbox_url="$(bosh int kubo-lock/metadata --path=/jumpbox_url)"
-    sshuttle -r "jumpbox@${jumpbox_url}" "${cidr}" -e "ssh -i ssh.key -o StrictHostKeyChecking=no -o ServerAliveInterval=300 -o ServerAliveCountMax=10" --daemon
+    sshuttle -r "jumpbox@${jumpbox_url}" "${cidr}" -e "ssh -i ssh.key -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=10" --daemon
 }
 
 main() {
