@@ -13,7 +13,7 @@ resources:
     owner: kubernetes
     repository: kubernetes
     # only patches get updated
-    version_filter: "< 1.18.0"
+    version_filter: "< 1.19.0"
     access_token: ((github-token-key))
 
 - name: metrics-server-release

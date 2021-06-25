@@ -48,6 +48,7 @@ resources:
     branch: ((kubo-release.branch))
     private_key: ((git-ssh-key.private_key))
     ignore_paths:
+    - 'ci'
     - '*.md'
     - 'LICENSE'
     - 'NOTICE'
