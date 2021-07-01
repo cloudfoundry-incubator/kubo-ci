@@ -7,7 +7,7 @@ image_resource:
     repository: gcr.io/cf-pks-golf/pcfkubo/kubo-ci
 
 inputs:
-- name: git-kubo-deployment
+- name: git-kubo-release
 - name: git-kubo-ci
 - name: kubo-version
   optional: true

@@ -8,7 +8,7 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../" && pwd)
 # stemcell metadata/upload
 #
 
-pushd ${ROOT}/git-kubo-deployment/manifests
+pushd ${ROOT}/git-kubo-release/manifests
 STEMCELL_OS=$(bosh int cfcr.yml -o ops-files/windows/add-worker.yml --path /stemcells/alias=${stemcell_alias}/os)
 STEMCELL_VERSION=$(bosh int cfcr.yml -o ops-files/windows/add-worker.yml --path /stemcells/alias=${stemcell_alias}/version)
 
