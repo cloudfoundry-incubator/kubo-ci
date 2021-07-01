@@ -10,7 +10,7 @@ run:
   args:
   - -exc
   - |
-    tar -xzf  gcs-kubo-release-pre/kubo-release*.tgz -C git-kubo-release/
+    tar -xzf  gcs-kubo-release-pre/kubo-*.tgz -C git-kubo-release/
     shopt -s dotglob # unpack hidden files, so we can mark version as shipable
     mv git-kubo-release/kubo-release*/* git-kubo-release/
 inputs:
