@@ -25,7 +25,7 @@
 ## This ops-file must come before all of the other windows ops-files
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/windows/add-worker.yml
+  value: git-kubo-release/manifests/ops-files/windows/add-worker.yml
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
@@ -36,10 +36,6 @@
   value:
     get: kubo-release-windows
     trigger: true
-
-- type: replace
-  path: /jobs/name=claim-lock/plan/get=kubo-deployment/trigger
-  value: false
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/0/in_parallel/-

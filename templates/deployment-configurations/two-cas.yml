@@ -4,4 +4,4 @@
 
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/misc/single-master.yml
+  value: git-kubo-release/manifests/ops-files/misc/single-master.yml

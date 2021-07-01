@@ -49,12 +49,11 @@ resources:
     bucket: kubo-pipeline-store
     regexp: dev-builds/kubo-(\d+\.\d+\.\d+(-dev\.\d+)*).*\.tgz
 
-- name: kubo-deployment
-  type: gcs
+- name: git-kubo-release
+  type: git
   source:
-    json_key: ((gcs-json-key))
-    bucket: kubo-pipeline-store
-    regexp: dev-builds/kubo-deployment-(.*).tgz
+    uri: https://github.com/cloudfoundry-incubator/kubo-release
+    branch: merge-kubo-deployment
 
 - name: kubo-lock
   type: pool
@@ -104,13 +103,10 @@ jobs:
 - name: claim-lock
   max_in_flight: 1
   plan:
-  - get: kubo-deployment
-    trigger: true
   - get: kubo-release
+    trigger: true
   - get: git-kubo-ci
-  # Update this to match kubo-deployment kubo and kubo-windows
-  - task: check-version-match
-    file: git-kubo-ci/tasks/check-version-match.yml
+  - get: git-kubo-release
   - put: kubo-lock
     params: { acquire: true }
 
@@ -121,16 +117,12 @@ jobs:
     - get: kubo-release
       passed: [ 'claim-lock' ]
     - get: git-kubo-ci
+    - get: git-kubo-release
+      passed: [ 'claim-lock' ]
     - get: kubo-lock
       passed: [ 'claim-lock' ]
       version: every
       trigger: true
-    - get: kubo-deployment
-      passed: [ 'claim-lock' ]
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: kubo-deployment
   - task: upload-stemcell
     file: git-kubo-ci/tasks/upload-stemcell.yml
     params:
@@ -147,7 +139,7 @@ jobs:
           repository: pkstelemetrybot/integration-ci
         type: docker-image
       inputs:
-      - name: git-kubo-deployment
+      - name: git-kubo-release
       outputs:
       - name: dep-releases
       platform: linux
@@ -157,22 +149,22 @@ jobs:
         - |
           set -euo pipefail
           cd dep-releases
-          yq read ../git-kubo-deployment/manifests/cfcr.yml releases.*.url | grep -v null | grep -v kubo-[0-9] | sed 's|^-\ ||g' | xargs -n 1 curl -SLJO
+          yq read ../git-kubo-release/manifests/cfcr.yml releases.*.url | grep -v null | grep -v kubo-[0-9] | sed 's|^-\ ||g' | xargs -n 1 curl -SLJO
           ls -alh
         path: bash
   - put: cfcr-deployment
     params:
-      manifest: git-kubo-deployment/manifests/cfcr.yml
+      manifest: git-kubo-release/manifests/cfcr.yml
       cleanup: true
       no_redact: true
       ops_files:
       - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
-      - git-kubo-deployment/manifests/ops-files/rename.yml
-      - git-kubo-deployment/manifests/ops-files/add-hostname-to-master-certificate.yml
-      - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
-      - git-kubo-deployment/manifests/ops-files/addons-spec.yml
-      - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
-      - git-kubo-deployment/manifests/ops-files/use-persistent-disk-for-workers.yml
+      - git-kubo-release/manifests/ops-files/rename.yml
+      - git-kubo-release/manifests/ops-files/add-hostname-to-master-certificate.yml
+      - git-kubo-release/manifests/ops-files/allow-privileged-containers.yml
+      - git-kubo-release/manifests/ops-files/addons-spec.yml
+      - git-kubo-release/manifests/ops-files/enable-nfs.yml
+      - git-kubo-release/manifests/ops-files/use-persistent-disk-for-workers.yml
       - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
       - git-kubo-ci/manifests/ops-files/increase-logging-level.yml
       var_files:
@@ -185,15 +177,6 @@ jobs:
       - kubo-release/*.tgz
       - dep-releases/*.tgz
       source_file: kubo-lock/metadata
-    on_failure: &on_failure_alert
-    #  do:
-    #  - task: configure-slack-notification
-    #    file: git-kubo-ci/tasks/configure-slack-notification-without-git-release.yml
-    #  - put: slack-alert
-    #    params:
-    #      attachments_file: slack-notification/attachments
-    #      text: |
-    #        Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
   - task: update-kubeconfig
     file: git-kubo-ci/tasks/update-kubeconfig-long-lived-director.yml
   - put: gcs-kubeconfig
@@ -204,13 +187,11 @@ jobs:
       name: apply-addons
       keep_alive: true
       source_file: kubo-lock/metadata
-    on_failure: *on_failure_alert
   - put: run-smoke-tests-errand
     params:
       name: smoke-tests
       keep_alive: true
       source_file: kubo-lock/metadata
-    on_failure: *on_failure_alert
 
 - name: run-tests
   plan:
@@ -221,27 +202,18 @@ jobs:
       passed: [ 'deploy-k8s' ]
       version: every
       trigger: true
-    - get: kubo-deployment
-      passed: [ 'deploy-k8s' ]
     - get: kubo-release
       passed: [ 'deploy-k8s' ]
     - get: gcs-kubeconfig
       passed: [ "deploy-k8s" ]
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    - get: git-kubo-release
+      passed: [ "deploy-k8s" ]
+  - task: unpack-kubo-release
+    file: git-kubo-ci/tasks/unpack-kubo-release.yml
     input_mapping:
-      gcs-kubo-deployment-pre: kubo-deployment
+      gcs-kubo-release-pre: kubo-release
   - task: run-tests
     privileged: true
-    on_failure: &on_failure_alert
-#      do:
-#      - task: configure-slack-notification
-#        file: git-kubo-ci/tasks/configure-slack-notification-without-git-release.yml
-#      - put: slack-alert
-#        params:
-#          attachments_file: slack-notification/attachments
-#          text: |
-#            Build Failed. https://ci.kubo.sh/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 - name: destroy-k8s
   plan:
@@ -251,8 +223,6 @@ jobs:
       passed: [ 'run-tests' ]
       version: every
       trigger: true
-    - get: kubo-deployment
-      passed: [ 'run-tests' ]
     - get: kubo-release
       passed: [ 'run-tests' ]
   - task: destroy-k8s
@@ -266,18 +236,10 @@ jobs:
   - in_parallel:
     - get: git-kubo-ci
     - get: gcs-shipable-version
-    - get: kubo-deployment
-      passed: [ 'run-tests' ]
-      version: every
-      trigger: true
     - get: kubo-release
       passed: [ 'run-tests' ]
       version: every
       trigger: true
-  - task: unpack-kubo-deployment
-    file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
-    input_mapping:
-      gcs-kubo-deployment-pre: kubo-deployment
   - task: publish-version
     file: git-kubo-ci/tasks/publish-shipable-version.yml
   - put: gcs-shipable-version

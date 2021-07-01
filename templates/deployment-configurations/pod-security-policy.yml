@@ -1,6 +1,6 @@
 - type: replace
   path: /jobs/name=deploy-k8s/plan/put=cfcr-deployment/params/ops_files/-
-  value: git-kubo-deployment/manifests/ops-files/enable-podsecuritypolicy.yml
+  value: git-kubo-release/manifests/ops-files/enable-podsecuritypolicy.yml
 
 - type: replace
   path: /jobs/name=run-tests/plan/task=run-tests/params?/ENABLE_PERSISTENT_VOLUME_TESTS?
