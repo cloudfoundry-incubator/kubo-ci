@@ -22,8 +22,8 @@ elif [ ${IAAS} == "openstack" ]; then
 fi
 
 
-stemcell_version="$(bosh int --path=/stemcells/0/version git-kubo-deployment/manifests/cfcr.yml)"
-stemcell_line="$(bosh int --path=/stemcells/0/os git-kubo-deployment/manifests/cfcr.yml)"
+stemcell_version="$(bosh int --path=/stemcells/0/version git-kubo-release/manifests/cfcr.yml)"
+stemcell_line="$(bosh int --path=/stemcells/0/os git-kubo-release/manifests/cfcr.yml)"
 
 # 250.17 starts using a new directory structure for stemcells...
 function version_gt() {
