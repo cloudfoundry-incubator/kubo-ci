@@ -8,7 +8,7 @@ image_resource:
 
 inputs:
 - name: git-kubo-ci
-- name: git-kubo-deployment
+- name: git-kubo-release
 - name: kubo-version
   optional: true
 - name: gcs-source-json
