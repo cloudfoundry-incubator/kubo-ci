@@ -2,7 +2,7 @@
 
 set -exu -o pipefail
 
-cp -r git-kubo-deployment/. git-kubo-deployment-output
+cp -r git-kubo-release/. git-kubo-release-output
 
 release="${RELEASE_NAME}"
 version="$(cat boshrelease/version)"
@@ -28,10 +28,10 @@ cat > update-$release-release.yml <<EOF
     url: $url
 EOF
 
-bosh int git-kubo-deployment/$base_ops_file \
-  -o update-$release-release.yml > git-kubo-deployment-output/$base_ops_file
+bosh int git-kubo-release/$base_ops_file \
+  -o update-$release-release.yml > git-kubo-release-output/$base_ops_file
 
-pushd git-kubo-deployment-output
+pushd git-kubo-release-output
 git config --global user.name "cfcr"
 git config --global user.email "cfcr@pivotal.io"
 
