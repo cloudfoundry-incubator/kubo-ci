@@ -6,7 +6,7 @@ image_resource:
     tag: stable
 
 inputs:
-- name: git-kubo-deployment
+- name: git-kubo-release
 - name: git-kubo-ci
 - name: gcs-load-balancer-vars
 
@@ -16,7 +16,7 @@ outputs:
 params:
   ADDONS_SPEC: "git-kubo-ci/specs/guestbook.yml"
   DEPLOYMENT_NAME: ci-service
-  CFCR_MANIFEST_PATH: git-kubo-deployment/manifests/cfcr.yml
+  CFCR_MANIFEST_PATH: git-kubo-release/manifests/cfcr.yml
   BOSH_DEPLOY_COMMAND: "bosh-command/bosh-deploy.sh"
   ENABLE_MULTI_AZ_TESTS:
   IAAS:
