@@ -10,7 +10,6 @@ inputs:
 - name: git-kubo-ci
 - name: kubo-release
 - name: gcs-shipable-version
-- name: git-kubo-deployment
 
 outputs:
 - name: gcs-shipable-version-output
