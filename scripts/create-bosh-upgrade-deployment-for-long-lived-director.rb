@@ -5,13 +5,13 @@
 require 'yaml'
 version = YAML.load_file('release.MF')["version"]
 
-ops_files = '-o git-kubo-deployment/manifests/ops-files/rename.yml\
+ops_files = '-o git-kubo-release/manifests/ops-files/rename.yml\
  -o git-kubo-ci/manifests/ops-files/set-kubo-release-version.yml \
- -o git-kubo-deployment/manifests/ops-files/enable-nfs.yml \
- -o git-kubo-deployment/manifests/ops-files/addons-spec.yml \
- -o git-kubo-deployment/manifests/ops-files/add-hostname-to-master-certificate.yml \
- -o git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml \
- -o git-kubo-deployment/manifests/ops-files/use-persistent-disk-for-workers.yml \
+ -o git-kubo-release/manifests/ops-files/enable-nfs.yml \
+ -o git-kubo-release/manifests/ops-files/addons-spec.yml \
+ -o git-kubo-release/manifests/ops-files/add-hostname-to-master-certificate.yml \
+ -o git-kubo-release/manifests/ops-files/allow-privileged-containers.yml \
+ -o git-kubo-release/manifests/ops-files/use-persistent-disk-for-workers.yml \
  -o git-kubo-ci/manifests/ops-files/add-hpa-properties.yml \
  -o git-kubo-ci/manifests/ops-files/increase-logging-level.yml '
 vars_file = '-l kubo-lock/metadata '
@@ -21,39 +21,39 @@ var = "-v kubo_version=#{version} -v disk_size=10240 "
 if ENV['ENABLE_MULTI_AZ_TESTS'] != 'false'
   ops_files << '-o git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml '
 else
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/misc/single-master.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/misc/single-master.yml '
   ops_files << '-o git-kubo-ci/manifests/ops-files/scale-to-one-az.yml '
 end
 
 if ENV['IAAS'] =~ /^gcp/
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml '
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml '
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/iaas/gcp/cloud-provider.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/use-vm-extensions.yml '
 end
 
 if ENV['IAAS'] =~ /^vsphere/
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/vsphere/cloud-provider.yml '
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/iaas/vsphere/cloud-provider.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/iaas/vsphere/use-vm-extensions.yml '
   vars_file << '-l director_uuid/var.yml '
 end
 
 
 if ENV['IAAS'] =~ /^vsphere-proxy/
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/add-proxy.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/add-proxy.yml '
   ops_files << '-o git-kubo-ci/manifests/ops-files/add-master-static-ips.yml '
 end
 
 if ENV['IAAS'] =~ /^aws/
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml '
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/aws/lb.yml '
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/iaas/aws/cloud-provider.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/iaas/aws/lb.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/use-vm-extensions.yml '
 end
 
 if ENV['IAAS'] =~ /^azure/
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/azure/cloud-provider.yml '
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/iaas/azure/use-cifs.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/iaas/azure/cloud-provider.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/iaas/azure/use-cifs.yml '
   ops_files << '-o git-kubo-ci/manifests/ops-files/iaas/azure/use-environment-subnet.yml '
-  ops_files << '-o git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml '
+  ops_files << '-o git-kubo-release/manifests/ops-files/use-vm-extensions.yml '
 end
 
 cmd = ['bosh -n -d',

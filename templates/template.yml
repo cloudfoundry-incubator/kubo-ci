@@ -208,10 +208,6 @@ jobs:
       passed: [ "deploy-k8s" ]
     - get: git-kubo-release
       passed: [ "deploy-k8s" ]
-  - task: unpack-kubo-release
-    file: git-kubo-ci/tasks/unpack-kubo-release.yml
-    input_mapping:
-      gcs-kubo-release-pre: kubo-release
   - task: run-tests
     privileged: true
 
