@@ -23,7 +23,6 @@ inputs:
   - name: gcs-bosh-creds
     optional: true
   - name: kubo-lock
-  - name: git-kubo-deployment
   - name: source-json
     optional: true
   - name: turbulence

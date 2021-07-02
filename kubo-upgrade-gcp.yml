@@ -1,0 +1,313 @@
+jobs:
+- max_in_flight: 1
+  name: claim-lock
+  plan:
+  - get: old-kubo-release-tarball
+    params:
+      globs:
+      - kubo-release*
+  - get: old-kubo-deployment-tarball
+  - get: kubo-deployment
+    trigger: true
+  - get: kubo-release
+    trigger: true
+  - get: git-kubo-ci
+  - get: git-kubo-release
+  - params:
+      acquire: true
+    put: kubo-lock
+- name: deploy-k8s
+  plan:
+  - in_parallel:
+      steps:
+      - get: old-kubo-release-tarball
+        passed:
+        - claim-lock
+      - get: old-kubo-deployment-tarball
+        passed:
+        - claim-lock
+      - get: slackers
+      - get: kubo-release
+        passed:
+        - claim-lock
+      - get: git-kubo-ci
+      - get: kubo-lock
+        passed:
+        - claim-lock
+        trigger: true
+        version: every
+      - get: git-kubo-deployment
+        passed:
+        - claim-lock
+        resource: kubo-deployment
+      - get: git-kubo-release
+        passed:
+        - claim-lock
+  - file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: old-kubo-deployment-tarball
+    task: unpack-kubo-deployment
+  - file: git-kubo-ci/tasks/upload-stemcell.yml
+    input_mapping:
+      source-json: kubo-lock
+    params:
+      IAAS: gcp
+    task: upload-stemcell
+  - config:
+      container_limits: {}
+      image_resource:
+        name: ""
+        source:
+          repository: pkstelemetrybot/integration-ci
+        type: docker-image
+      inputs:
+      - name: git-kubo-deployment
+      outputs:
+      - name: dep-releases
+      platform: linux
+      run:
+        args:
+        - -c
+        - |
+          set -euo pipefail
+          cd dep-releases
+          yq read ../git-kubo-deployment/manifests/cfcr.yml releases.*.url | grep -v null | grep -v kubo-[0-9] | sed 's|^-\ ||g' | xargs -n 1 curl -SLJO
+          ls -alh
+        path: bash
+    task: download-dep-releases
+  - params:
+      cleanup: true
+      manifest: git-kubo-deployment/manifests/cfcr.yml
+      no_redact: true
+      ops_files:
+      - git-kubo-ci/manifests/ops-files/kubo-latest-version.yml
+      - git-kubo-deployment/manifests/ops-files/rename.yml
+      - git-kubo-deployment/manifests/ops-files/add-hostname-to-master-certificate.yml
+      - git-kubo-deployment/manifests/ops-files/allow-privileged-containers.yml
+      - git-kubo-deployment/manifests/ops-files/addons-spec.yml
+      - git-kubo-deployment/manifests/ops-files/enable-nfs.yml
+      - git-kubo-deployment/manifests/ops-files/use-persistent-disk-for-workers.yml
+      - git-kubo-ci/manifests/ops-files/add-hpa-properties.yml
+      - git-kubo-ci/manifests/ops-files/increase-logging-level.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/gcp/cloud-provider.yml
+      - git-kubo-deployment/manifests/ops-files/iaas/gcp/add-subnetwork-for-internal-load-balancer.yml
+      - git-kubo-deployment/manifests/ops-files/use-vm-extensions.yml
+      - git-kubo-ci/manifests/ops-files/enable-multiaz-workers.yml
+      releases:
+      - old-kubo-release-tarball/*.tgz
+      - dep-releases/*.tgz
+      source_file: kubo-lock/metadata
+      var_files:
+        addons-spec: git-kubo-ci/specs/guestbook.yml
+      vars:
+        disk_size: 10240
+      vars_files:
+      - kubo-lock/metadata
+    put: cfcr-deployment
+  - file: git-kubo-ci/tasks/update-kubeconfig-long-lived-director.yml
+    task: update-kubeconfig
+  - params:
+      file: kubeconfig/config
+    put: gcs-kubeconfig
+  - params:
+      keep_alive: true
+      name: apply-addons
+      source_file: kubo-lock/metadata
+    put: run-apply-addons-errand
+  - params:
+      keep_alive: true
+      name: smoke-tests
+      source_file: kubo-lock/metadata
+    put: run-smoke-tests-errand
+- name: run-tests
+  plan:
+  - in_parallel:
+      steps:
+      - get: slackers
+      - get: git-kubo-ci
+      - get: kubo-lock
+        passed:
+        - deploy-k8s
+        trigger: true
+        version: every
+      - get: kubo-deployment
+        passed:
+        - deploy-k8s
+      - get: kubo-release
+        passed:
+        - deploy-k8s
+      - get: gcs-kubeconfig
+        passed:
+        - deploy-k8s
+      - get: git-kubo-release
+        passed:
+        - deploy-k8s
+  - file: git-kubo-ci/tasks/create-bosh-deploy-command-for-long-lived-director.yml
+    params:
+      ENABLE_MULTI_AZ_TESTS: "true"
+      IAAS: gcp
+    task: create-bosh-upgrade-deployment
+  - file: git-kubo-ci/tasks/upload-stemcell.yml
+    input_mapping:
+      source-json: kubo-lock
+    params:
+      IAAS: gcp
+    task: upload-stemcell
+  - file: git-kubo-ci/tasks/run-k8s-upgrade-tests-for-long-lived-director.yml
+    input_mapping:
+      gcs-kubo-release-tarball: kubo-release
+    params:
+      ENABLE_MULTI_AZ_TESTS: "true"
+      IAAS: gcp
+    privileged: true
+    task: run-tests
+  - params:
+      keep_alive: true
+      name: smoke-tests
+      source_file: kubo-lock/metadata
+    put: run-smoke-tests-errand
+- name: destroy-k8s
+  plan:
+  - in_parallel:
+      steps:
+      - get: git-kubo-ci
+      - get: kubo-lock
+        passed:
+        - run-tests
+        trigger: true
+        version: every
+      - get: kubo-deployment
+        passed:
+        - run-tests
+      - get: kubo-release
+        passed:
+        - run-tests
+  - file: git-kubo-ci/tasks/destroy-k8s-instance-long-lived-director.yml
+    task: destroy-k8s
+  - params:
+      release: kubo-lock
+    put: kubo-lock
+- name: publish-version
+  plan:
+  - in_parallel:
+      steps:
+      - get: git-kubo-ci
+      - get: gcs-shipable-version
+      - get: kubo-deployment
+        passed:
+        - run-tests
+        trigger: true
+        version: every
+      - get: kubo-release
+        passed:
+        - run-tests
+        trigger: true
+        version: every
+  - file: git-kubo-ci/tasks/unpack-kubo-deployment.yml
+    input_mapping:
+      gcs-kubo-deployment-pre: kubo-deployment
+    task: unpack-kubo-deployment
+  - file: git-kubo-ci/tasks/publish-shipable-version.yml
+    task: publish-version
+  - params:
+      file: gcs-shipable-version-output/shipable
+    put: gcs-shipable-version
+resource_types:
+- name: bosh-deployment
+  source:
+    repository: cloudfoundry/bosh-deployment-resource
+  type: docker-image
+- name: bosh-errand
+  source:
+    repository: pcfkubo/bosh2-errand-resource
+    tag: v0.1.3-dev
+  type: docker-image
+- name: gcs
+  source:
+    repository: frodenas/gcs-resource
+  type: docker-image
+- name: pool
+  source:
+    repository: concourse/pool-resource
+    tag: 1.1.3
+  type: docker-image
+- name: slack-notification
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+  type: docker-image
+resources:
+- name: cfcr-deployment
+  source:
+    skip_check: true
+  type: bosh-deployment
+- name: gcs-kubeconfig
+  source:
+    bucket: kubo-pipeline-store
+    json_key: ((gcs-json-key))
+    versioned_file: k8s/config
+  type: gcs
+- name: gcs-shipable-version
+  source:
+    bucket: kubo-pipeline-store
+    json_key: ((gcs-json-key))
+    versioned_file: shipables/gcp_old-release_upgrade-shipable
+  type: gcs
+- name: git-kubo-ci
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/kubo-ci
+  type: git
+- name: git-kubo-release
+  source:
+    branch: merge-kubo-deployment
+    uri: https://github.com/cloudfoundry-incubator/kubo-release
+  type: git
+- name: kubo-deployment
+  source:
+    bucket: kubo-pipeline-store
+    json_key: ((gcs-json-key))
+    regexp: dev-builds/kubo-deployment-(.*).tgz
+  type: gcs
+- name: kubo-lock
+  source:
+    branch: master
+    pool: gcp
+    private_key: ((git-ssh-key.private_key))
+    uri: git@github.com:pivotal-cf-experimental/kubo-locks.git
+  type: pool
+- name: kubo-release
+  source:
+    bucket: kubo-pipeline-store
+    json_key: ((gcs-json-key))
+    regexp: dev-builds/kubo-(\d+\.\d+\.\d+(-dev\.\d+)*).*\.tgz
+  type: gcs
+- name: old-kubo-deployment-tarball
+  source:
+    access_token: ((github-kubo-gitbot-access-token))
+    owner: cloudfoundry-incubator
+    pre_release: true
+    repository: kubo-deployment
+  type: github-release
+- name: old-kubo-release-tarball
+  source:
+    access_token: ((github-kubo-gitbot-access-token))
+    owner: cloudfoundry-incubator
+    pre_release: true
+    repository: kubo-release
+  type: github-release
+- name: run-apply-addons-errand
+  source:
+    skip_check: true
+  type: bosh-errand
+- name: run-smoke-tests-errand
+  source:
+    skip_check: true
+  type: bosh-errand
+- name: slackers
+  source:
+    paths:
+    - slackers
+    private_key: ((git-ssh-key.private_key))
+    uri: git@github.com:cloudfoundry-incubator/cfcr-home.git
+  type: git
