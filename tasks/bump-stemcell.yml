@@ -9,7 +9,7 @@ run:
 
 inputs:
   - name: git-kubo-ci
-  - name: git-kubo-deployment
+  - name: git-kubo-release
   - name: stemcell
 outputs:
-  - name: git-kubo-deployment-output
+  - name: git-kubo-release-output
