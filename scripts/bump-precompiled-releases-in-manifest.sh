@@ -2,10 +2,10 @@
 
 set -eu
 
-cp -r git-kubo-deployment/. git-kubo-deployment-output
+cp -r git-kubo-release/. git-kubo-release-output
 
-stemcell_os=$(bosh int git-kubo-deployment/manifests/cfcr.yml --path=/stemcells/0/os)
-stemcell_version=$(bosh int git-kubo-deployment/manifests/cfcr.yml --path=/stemcells/0/version)
+stemcell_os=$(bosh int git-kubo-release/manifests/cfcr.yml --path=/stemcells/0/os)
+stemcell_version=$(bosh int git-kubo-release/manifests/cfcr.yml --path=/stemcells/0/version)
 
 echo > bump-precompiled-release.yml
 
@@ -14,7 +14,7 @@ do
   if [[ "$release" == "kubo" ]]; then
     version="$(cat kubo-version/version)"
   else
-    version=$(bosh int git-kubo-deployment/manifests/cfcr.yml -o git-kubo-deployment/manifests/ops-files/non-precompiled-releases.yml "--path=/releases/name=$release/version")
+    version=$(bosh int git-kubo-release/manifests/cfcr.yml -o git-kubo-release/manifests/ops-files/non-precompiled-releases.yml "--path=/releases/name=$release/version")
   fi
   release_path=$(ls compiled-releases/$release-*.tgz)
   sha1=$(sha1sum ${release_path} | awk '{print $1}')
@@ -35,10 +35,10 @@ EOF
 
 done
 
-bosh int git-kubo-deployment/manifests/cfcr.yml \
-  -o bump-precompiled-releases.yml > git-kubo-deployment-output/manifests/cfcr.yml
+bosh int git-kubo-release/manifests/cfcr.yml \
+  -o bump-precompiled-releases.yml > git-kubo-release-output/manifests/cfcr.yml
 
-pushd git-kubo-deployment-output
+pushd git-kubo-release-output
 git config --global user.name "cfcr"
 git config --global user.email "cfcr@pivotal.io"
 
