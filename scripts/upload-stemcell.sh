@@ -7,10 +7,8 @@ else
     source git-kubo-ci/scripts/set-bosh-env source-json/metadata
 fi
 
-wget -q https://github.com/cloudfoundry/bosh-cli/releases/download/v6.4.4/bosh-cli-6.4.4-linux-amd64
-chmod +x ./bosh
-sudo mv ./bosh /usr/local/bin/bosh
-
+wget --quiet https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-${bosh_cli_version}-linux-amd64 --output-document="/usr/bin/bosh"
+chmod +x /usr/bin/bosh
 
 
 VM=""
