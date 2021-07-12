@@ -7,8 +7,8 @@ else
     source git-kubo-ci/scripts/set-bosh-env source-json/metadata
 fi
 
-wget --quiet https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-6.4.4-linux-amd64 --output-document="/usr/bin/bosh"
-chmod +x /usr/bin/bosh
+wget --quiet https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-6.4.4-linux-amd64 --output-document="/usr/local/bin/bosh"
+chmod +x /usr/local/bin/bosh
 
 
 VM=""
