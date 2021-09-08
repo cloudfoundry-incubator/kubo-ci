@@ -122,7 +122,7 @@ var _ = Describe("Api Extensions", func() {
 		session = kubectl.StartKubectlCommand("proxy", "--port=8000")
 		Eventually(session).Should(gbytes.Say("Starting to serve on"))
 		defer session.Kill()
-		resp, err := http.Get(fmt.Sprintf("http://localhost:8000/apis/apiregistration.k8s.io/v1beta1/apiservices/%s", sampleApiEndpoint))
+		resp, err := http.Get(fmt.Sprintf("http://localhost:8000/apis/apiregistration.k8s.io/v1/apiservices/%s", sampleApiEndpoint))
 		Expect(err).NotTo(HaveOccurred())
 		defer resp.Body.Close()
 		Expect(resp.StatusCode).To(Equal(200))
