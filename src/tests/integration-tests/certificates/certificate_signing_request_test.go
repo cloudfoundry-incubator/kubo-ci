@@ -3,8 +3,10 @@ package certificates_test
 import (
 	"io/ioutil"
 	"os"
+	"context"
+	"github.com/davecgh/go-spew/spew"
 
-	"k8s.io/api/certificates/v1beta1"
+	certificates "k8s.io/api/certificates/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/onsi/ginkgo"
@@ -41,33 +43,35 @@ var _ = Describe("Certificate Signing Requests", func() {
 		}
 	})
 
-	Context("When a user creates a CSR within the 'system:master' group", func() {
+	Context("When a user creates a CSR within the 'system:nodes' group", func() {
 		It("should create a client certificate that can talk to Kube API Server", func() {
 			Eventually(kubectl.StartKubectlCommand("apply", "-f", csrSpec), "30s").Should(gexec.Exit(0))
 
 			k8s, err := NewKubeClient()
 			Expect(err).NotTo(HaveOccurred())
 
-			CSRClient := k8s.CertificatesV1beta1().CertificateSigningRequests()
-			pendingCSR, err := CSRClient.Get("test-csr", v1.GetOptions{})
+			CSRClient := k8s.CertificatesV1().CertificateSigningRequests()
+			pendingCSR, err := CSRClient.Get(context.TODO(), "test-csr", v1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
-			pendingCSR.Status.Conditions = append(pendingCSR.Status.Conditions, v1beta1.CertificateSigningRequestCondition{
-				Type:    v1beta1.CertificateApproved,
+			pendingCSR.Status.Conditions = append(pendingCSR.Status.Conditions, certificates.CertificateSigningRequestCondition{
+				Type:    certificates.CertificateApproved,
 				Reason:  "because I said so",
 				Message: "just do it",
+				Status:  "True",
 			})
-
-			_, err = CSRClient.UpdateApproval(pendingCSR)
+			spew.Dump(pendingCSR)
+			
+			_, err = CSRClient.UpdateApproval(context.TODO(), "test-csr", pendingCSR, v1.UpdateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(func() []byte {
-				clientCert, err := CSRClient.Get("test-csr", v1.GetOptions{})
+				clientCert, err := CSRClient.Get(context.TODO(), "test-csr", v1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				return clientCert.Status.Certificate
 			}, "30s").ShouldNot(BeEmpty())
 
-			clientCert, err := CSRClient.Get("test-csr", v1.GetOptions{})
+			clientCert, err := CSRClient.Get(context.TODO(), "test-csr", v1.GetOptions{})
 			certFile := writeCertToFile(clientCert.Status.Certificate)
 
 			Eventually(kubectl.StartKubectlCommand("config", "set-credentials", csrUsername,
@@ -87,3 +91,5 @@ func writeCertToFile(cert []byte) string {
 
 	return tmpFile.Name()
 }
+
+// ginkgo -r -progress -v -skipPackage cloudfoundry,cidr,k8s_lbs,multiaz,windows,addons,api_extensions,external_traffic_policy,fixtures,generic,volume,scaling,cloud-provider -keepGoing -skip 'Internal load balancers' git-kubo-ci/src/tests/integration-tests/
