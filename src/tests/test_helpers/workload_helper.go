@@ -2,6 +2,7 @@ package test_helpers
 
 import (
 	"fmt"
+	"context"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -34,7 +35,7 @@ func waitForPods(kubectl *KubectlRunner, selector string, timeout float64) {
 			GinkgoWriter.Write([]byte(err.Error()))
 			return false
 		}
-		pods, err := clientset.CoreV1().Pods(kubectl.Namespace()).List(meta_v1.ListOptions{
+		pods, err := clientset.CoreV1().Pods(kubectl.Namespace()).List(context.TODO(), meta_v1.ListOptions{
 			FieldSelector: selector,
 		})
 		if err != nil {
@@ -43,7 +44,7 @@ func waitForPods(kubectl *KubectlRunner, selector string, timeout float64) {
 		}
 		for _, pod := range pods.Items {
 			fmt.Fprintf(GinkgoWriter, "Pod name:%s, pod status: %s, Events:\n", pod.Name, pod.Status.Phase)
-			events, err := clientset.CoreV1().Events(kubectl.Namespace()).List(meta_v1.ListOptions{
+			events, err := clientset.CoreV1().Events(kubectl.Namespace()).List(context.TODO(), meta_v1.ListOptions{
 				FieldSelector: fmt.Sprintf("involvedObject.kind=Pod,involvedObject.name=%s", pod.Name),
 			})
 			if err != nil {

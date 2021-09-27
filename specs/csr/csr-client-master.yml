@@ -1,7 +1,7 @@
 apiVersion: certificates.k8s.io/v1
 kind: CertificateSigningRequest
 metadata:
-  name: test-csr
+  name: test-csr-master
 spec:
   groups:
   - system:masters
@@ -10,6 +10,5 @@ spec:
   usages:
   - digital signature
   - key encipherment
-  - server auth
   - client auth
-  signerName: kubernetes.io/kube-apiserver-client-kubelet
+  signerName: kubernetes.io/kube-apiserver-client

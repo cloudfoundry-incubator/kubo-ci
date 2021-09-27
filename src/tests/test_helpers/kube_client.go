@@ -3,6 +3,7 @@ package test_helpers
 import (
 	"fmt"
 	"strings"
+	"context"
 
 	uuid "github.com/satori/go.uuid"
 	corev1 "k8s.io/api/core/v1"
@@ -78,7 +79,7 @@ func GetNodes() (*corev1.NodeList, error) {
 		return nil, err
 	}
 
-	return kubeclient.CoreV1().Nodes().List(meta_v1.ListOptions{})
+	return kubeclient.CoreV1().Nodes().List(context.TODO(), meta_v1.ListOptions{})
 }
 
 func GetReadyNodes() ([]string, error) {
@@ -104,12 +105,15 @@ func CreateTestNamespace(k8s k8s.Interface, prefix string) (*corev1.Namespace, e
 	name := prefix + "-" + uuid.NewV4().String()
 	labels := make(map[string]string)
 	labels["test"] = prefix
-	namespaceObject := corev1.Namespace{ObjectMeta: meta_v1.ObjectMeta{Name: name, Labels: labels}}
-	return k8s.CoreV1().Namespaces().Create(&namespaceObject)
+	namespace := corev1.Namespace{
+		ObjectMeta: meta_v1.ObjectMeta{Name: name, Labels: labels},
+	}
+	// namespaceObject := meta_v1.CreateOptions{ObjectMeta: meta_v1.ObjectMeta{Name: name, Labels: labels}}
+	return k8s.CoreV1().Namespaces().Create(context.TODO(), &namespace, meta_v1.CreateOptions{})
 }
 
 func DeleteTestNamespace(k8s k8s.Interface, namespace string) error {
-	return k8s.CoreV1().Namespaces().Delete(namespace, &meta_v1.DeleteOptions{})
+	return k8s.CoreV1().Namespaces().Delete(context.TODO(), namespace, meta_v1.DeleteOptions{})
 }
 
 func HasWindowsWorkers() (bool, error) {
