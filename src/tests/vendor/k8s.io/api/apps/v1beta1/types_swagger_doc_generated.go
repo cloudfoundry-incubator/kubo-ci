@@ -29,7 +29,7 @@ package v1beta1
 // AUTO-GENERATED FUNCTIONS START HERE. DO NOT EDIT.
 var map_ControllerRevision = map[string]string{
 	"":         "DEPRECATED - This group version of ControllerRevision is deprecated by apps/v1beta2/ControllerRevision. See the release notes for more information. ControllerRevision implements an immutable snapshot of state data. Clients are responsible for serializing and deserializing the objects that contain their internal state. Once a ControllerRevision has been successfully created, it can not be updated. The API Server will fail validation of all requests that attempt to mutate the Data field. ControllerRevisions may, however, be deleted. Note that, due to its use by both the DaemonSet and StatefulSet controllers for update and rollback, this object is beta. However, it may be subject to name and representation changes in future releases, and clients should not depend on its stability. It is primarily for internal use by controllers.",
-	"metadata": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata",
+	"metadata": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
 	"data":     "Data is the serialized representation of the state.",
 	"revision": "Revision indicates the revision of the state represented by Data.",
 }
@@ -40,7 +40,7 @@ func (ControllerRevision) SwaggerDoc() map[string]string {
 
 var map_ControllerRevisionList = map[string]string{
 	"":         "ControllerRevisionList is a resource containing a list of ControllerRevision objects.",
-	"metadata": "More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata",
+	"metadata": "More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
 	"items":    "Items is the list of ControllerRevisions",
 }
 
@@ -149,7 +149,7 @@ func (RollbackConfig) SwaggerDoc() map[string]string {
 var map_RollingUpdateDeployment = map[string]string{
 	"":               "Spec to control the desired behavior of rolling update.",
 	"maxUnavailable": "The maximum number of pods that can be unavailable during the update. Value can be an absolute number (ex: 5) or a percentage of desired pods (ex: 10%). Absolute number is calculated from percentage by rounding down. This can not be 0 if MaxSurge is 0. Defaults to 25%. Example: when this is set to 30%, the old ReplicaSet can be scaled down to 70% of desired pods immediately when the rolling update starts. Once new pods are ready, old ReplicaSet can be scaled down further, followed by scaling up the new ReplicaSet, ensuring that the total number of pods available at all times during the update is at least 70% of desired pods.",
-	"maxSurge":       "The maximum number of pods that can be scheduled above the desired number of pods. Value can be an absolute number (ex: 5) or a percentage of desired pods (ex: 10%). This can not be 0 if MaxUnavailable is 0. Absolute number is calculated from percentage by rounding up. Defaults to 25%. Example: when this is set to 30%, the new ReplicaSet can be scaled up immediately when the rolling update starts, such that the total number of old and new pods do not exceed 130% of desired pods. Once old pods have been killed, new ReplicaSet can be scaled up further, ensuring that total number of pods running at any time during the update is atmost 130% of desired pods.",
+	"maxSurge":       "The maximum number of pods that can be scheduled above the desired number of pods. Value can be an absolute number (ex: 5) or a percentage of desired pods (ex: 10%). This can not be 0 if MaxUnavailable is 0. Absolute number is calculated from percentage by rounding up. Defaults to 25%. Example: when this is set to 30%, the new ReplicaSet can be scaled up immediately when the rolling update starts, such that the total number of old and new pods do not exceed 130% of desired pods. Once old pods have been killed, new ReplicaSet can be scaled up further, ensuring that total number of pods running at any time during the update is at most 130% of desired pods.",
 }
 
 func (RollingUpdateDeployment) SwaggerDoc() map[string]string {
@@ -167,9 +167,9 @@ func (RollingUpdateStatefulSetStrategy) SwaggerDoc() map[string]string {
 
 var map_Scale = map[string]string{
 	"":         "Scale represents a scaling request for a resource.",
-	"metadata": "Standard object metadata; More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata.",
-	"spec":     "defines the behavior of the scale. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#spec-and-status.",
-	"status":   "current status of the scale. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#spec-and-status. Read-only.",
+	"metadata": "Standard object metadata; More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata.",
+	"spec":     "defines the behavior of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status.",
+	"status":   "current status of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status. Read-only.",
 }
 
 func (Scale) SwaggerDoc() map[string]string {
@@ -237,6 +237,7 @@ var map_StatefulSetSpec = map[string]string{
 	"podManagementPolicy":  "podManagementPolicy controls how pods are created during initial scale up, when replacing pods on nodes, or when scaling down. The default policy is `OrderedReady`, where pods are created in increasing order (pod-0, then pod-1, etc) and the controller will wait until each pod is ready before continuing. When scaling down, the pods are removed in the opposite order. The alternative policy is `Parallel` which will create pods in parallel to match the desired scale without waiting, and on scale down will delete all pods at once.",
 	"updateStrategy":       "updateStrategy indicates the StatefulSetUpdateStrategy that will be employed to update Pods in the StatefulSet when a revision is made to Template.",
 	"revisionHistoryLimit": "revisionHistoryLimit is the maximum number of revisions that will be maintained in the StatefulSet's revision history. The revision history consists of all revisions not represented by a currently applied StatefulSetSpec version. The default value is 10.",
+	"minReadySeconds":      "Minimum number of seconds for which a newly created pod should be ready without any of its container crashing for it to be considered available. Defaults to 0 (pod will be considered available as soon as it is ready) This is an alpha field and requires enabling StatefulSetMinReadySeconds feature gate.",
 }
 
 func (StatefulSetSpec) SwaggerDoc() map[string]string {
@@ -254,6 +255,7 @@ var map_StatefulSetStatus = map[string]string{
 	"updateRevision":     "updateRevision, if not empty, indicates the version of the StatefulSet used to generate Pods in the sequence [replicas-updatedReplicas,replicas)",
 	"collisionCount":     "collisionCount is the count of hash collisions for the StatefulSet. The StatefulSet controller uses this field as a collision avoidance mechanism when it needs to create the name for the newest ControllerRevision.",
 	"conditions":         "Represents the latest available observations of a statefulset's current state.",
+	"availableReplicas":  "Total number of available pods (ready for at least minReadySeconds) targeted by this StatefulSet. This is an alpha field and requires enabling StatefulSetMinReadySeconds feature gate. Remove omitempty when graduating to beta",
 }
 
 func (StatefulSetStatus) SwaggerDoc() map[string]string {
