@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"context"
 
 	. "tests/test_helpers"
 
@@ -54,22 +55,27 @@ var _ = Describe("Kubelet", func() {
 			kubeclient, err = NewKubeClient()
 			Expect(err).NotTo(HaveOccurred())
 
-			sa, err = kubeclient.Core().ServiceAccounts("default").Create(&v1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "robot-beep-bop"}})
+			sa = &v1.ServiceAccount{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "robot-beep-bop",
+				},
+			}
+			sa, err = kubeclient.CoreV1().ServiceAccounts("default").Create(context.TODO(), sa, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			// Wait for kube-controller-manager to create a token
 			Eventually(func() bool {
-				sa, _ = kubeclient.Core().ServiceAccounts("default").Get("robot-beep-bop", metav1.GetOptions{})
+				sa, _ = kubeclient.CoreV1().ServiceAccounts("default").Get(context.TODO(), "robot-beep-bop", metav1.GetOptions{})
 				return len(sa.Secrets) != 0
 			}).Should(BeTrue())
 		})
 
 		AfterEach(func() {
-			kubeclient.Core().ServiceAccounts("default").Delete("robot-beep-bop", &metav1.DeleteOptions{})
+			kubeclient.CoreV1().ServiceAccounts("default").Delete(context.TODO(), "robot-beep-bop", metav1.DeleteOptions{})
 		})
 
 		It("Should reject unauthorized Service Account curl", func() {
-			secret, err := kubeclient.Core().Secrets("default").Get(sa.Secrets[0].Name, metav1.GetOptions{})
+			secret, err := kubeclient.CoreV1().Secrets("default").Get(context.TODO(), sa.Secrets[0].Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			resp, err := CurlInsecureWithToken(endpoint, string(secret.Data["token"]))

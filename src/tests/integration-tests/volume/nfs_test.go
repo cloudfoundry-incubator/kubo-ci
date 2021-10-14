@@ -2,6 +2,7 @@ package volume_test
 
 import (
 	"fmt"
+	"context"
 	"html/template"
 	"io/ioutil"
 	"path/filepath"
@@ -57,7 +58,7 @@ var _ = Describe("NFS", func() {
 			k8s, err := NewKubeClient()
 			Expect(err).NotTo(HaveOccurred())
 
-			NFSService, err := k8s.CoreV1().Services(kubectl.Namespace()).Get("nfs", meta_v1.GetOptions{})
+			NFSService, err := k8s.CoreV1().Services(kubectl.Namespace()).Get(context.TODO(), "nfs", meta_v1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			nfsPvSpec = templateNFSSpec(NFSService.Spec.ClusterIP, PathFromRoot("specs/nfs-pv.yml"))
