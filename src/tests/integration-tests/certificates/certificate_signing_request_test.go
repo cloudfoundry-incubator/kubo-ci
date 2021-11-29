@@ -2,8 +2,12 @@ package certificates_test
 
 import (
 	"context"
+	"encoding/json"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"log"
 	"os"
+	"path/filepath"
 
 	certificates "k8s.io/api/certificates/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,21 +17,21 @@ import (
 
 	. "tests/test_helpers"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("Certificate Signing Requests", func() {
-
 	var (
 		csrWorkerClientSpec string
 		keyWorkerClientFile string
 		csrWorkerServerSpec string
-		csrMasterSpec string
-		keyMasterFile string
-		csrUsername   string
-		certFile      string
-		specsFile     string
-		kubectl       *KubectlRunner
+		csrMasterSpec       string
+		keyMasterFile       string
+		csrUsername         string
+		certFile            string
+		specsFile           string
+		kubectl             *KubectlRunner
 	)
 
 	BeforeEach(func() {
@@ -55,9 +59,14 @@ var _ = Describe("Certificate Signing Requests", func() {
 		// About this test case, we need to disable CertificateSubjectRestriction admission plugin in kube-apiserver side first
 		// Becase CertificateSubjectRestriction is enabled by default, and it restrict signing cert in system:masters group
 		It("should create a client certificate that can talk to Kube API Server", func() {
-			Skip("CertificateSubjectRestriction should be disabled first, we don;t support it now")
-			Eventually(kubectl.StartKubectlCommand("apply", "-f", csrMasterSpec), "30s").Should(gexec.Exit(0))
+			// Disable CertificateSubjectRestriction admission plugin
+			clusterName := getClusterName()
+			profileName := "test-profile-enable"
+			admissionPluginArgument := map[string]string{"disable-admission-plugins": "CertificateSubjectRestriction"}
+			err := updateClusterWithProfile(clusterName, profileName, admissionPluginArgument)
+			Expect(err).NotTo(HaveOccurred())
 
+			Eventually(kubectl.StartKubectlCommand("apply", "-f", csrMasterSpec), "30s").Should(gexec.Exit(0))
 			k8s, err := NewKubeClient()
 			Expect(err).NotTo(HaveOccurred())
 
@@ -88,6 +97,12 @@ var _ = Describe("Certificate Signing Requests", func() {
 				"--client-certificate", certFile, "--client-key", keyMasterFile), "30s").Should(gexec.Exit(0))
 
 			Eventually(kubectl.StartKubectlCommand("--user", csrUsername, "get", "nodes"), "30s").Should(gexec.Exit(0))
+
+			// Enable CertificateSubjectRestriction admission plugin
+			profileName = "test-profile-disable"
+			newAdmissionPluginArgument := map[string]string{"disable-admission-plugins": ""}
+			err = updateClusterWithProfile(clusterName, profileName, newAdmissionPluginArgument)
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 
@@ -157,4 +172,63 @@ func writeCertToFile(cert []byte) string {
 	Expect(err).NotTo(HaveOccurred())
 
 	return tmpFile.Name()
+}
+
+func updateClusterWithProfile(clusterName string, profileName string, admissionPluginArgument map[string]string) error {
+	type Customizations struct {
+		Component string
+		Arguments map[string]string
+	}
+
+	type kubernetesProfile struct {
+		Name                        string
+		Description                 string
+		Experimental_customizations []Customizations
+	}
+
+	k8sProfileData := kubernetesProfile{
+		Name:        profileName,
+		Description: "A kubeneter profile for CertificateSubjectRestriction plugin",
+		Experimental_customizations: []Customizations{
+			Customizations{
+				Component: "kube-apiserver",
+				Arguments: admissionPluginArgument,
+			},
+		},
+	}
+	k8sProfile, _ := json.MarshalIndent(k8sProfileData, "", " ")
+	_ = ioutil.WriteFile("k8sProfileTmp.json", k8sProfile, 0644)
+	// Update cluster with profle
+	pks_cli, err := SetupPksCli()
+	Expect(err).ShouldNot(HaveOccurred())
+	path, _ := os.Getwd()
+	profilePath := path + "/k8sProfileTmp.json"
+	spew.Dump("ProfilePath", profilePath)
+	_, err = pks_cli.CreateKubernetesProfile(profilePath)
+	_, err = pks_cli.UpdateClusterWithProfile(clusterName, profileName)
+	Expect(err).NotTo(HaveOccurred())
+	return err
+}
+
+func getClusterName() string {
+	type EnvInfo struct {
+		Name string `yaml:"name"`
+		Uuid string `yaml:"uuid"`
+		Api  string `yaml:"api"`
+	}
+	currentPath, _ := os.Getwd()
+	rootPath := filepath.Join(currentPath, "../../../../..")
+	envInfoPathDir := rootPath + "/gcs-cluster-info/info.yml"
+	spew.Dump("Environment info path", envInfoPathDir)
+	yamlFile, err := ioutil.ReadFile(envInfoPathDir)
+	if err != nil {
+		log.Printf("yamlFile.Get err #%v ", err)
+	}
+	c := &EnvInfo{}
+	err = yaml.Unmarshal(yamlFile, c)
+	if err != nil {
+		log.Fatalf("Unmarshal: %v", err)
+	}
+	spew.Dump("Environment name", c.Name)
+	return c.Name
 }
