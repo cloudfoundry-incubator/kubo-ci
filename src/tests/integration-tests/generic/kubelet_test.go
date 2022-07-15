@@ -64,10 +64,10 @@ var _ = Describe("Kubelet", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// Wait for kube-controller-manager to create a token
-			Eventually(func() bool {
-				sa, _ = kubeclient.CoreV1().ServiceAccounts("default").Get(context.TODO(), "robot-beep-bop", metav1.GetOptions{})
-				return len(sa.Secrets) != 0
-			}).Should(BeTrue())
+			Eventually(func() error {
+				sa, err = kubeclient.CoreV1().ServiceAccounts("default").Get(context.TODO(), "robot-beep-bop", metav1.GetOptions{})
+				return err
+			}).Should(BeNil())
 		})
 
 		AfterEach(func() {
