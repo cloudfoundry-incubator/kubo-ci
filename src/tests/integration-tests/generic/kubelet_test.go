@@ -1,17 +1,17 @@
 package generic_test
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net/http"
 	"time"
-	"context"
 
 	. "tests/test_helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -63,6 +63,18 @@ var _ = Describe("Kubelet", func() {
 			sa, err = kubeclient.CoreV1().ServiceAccounts("default").Create(context.TODO(), sa, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
+			saSecret := &v1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "robot-beep-bop",
+					Annotations: map[string]string{
+						"kubernetes.io/service-account.name": "robot-beep-bop",
+					},
+				},
+				Type: "kubernetes.io/service-account-token",
+			}
+			saSecret, err = kubeclient.CoreV1().Secrets("default").Create(context.TODO(), saSecret, metav1.CreateOptions{})
+			Expect(err).NotTo(HaveOccurred())
+
 			// Wait for kube-controller-manager to create a token
 			Eventually(func() error {
 				sa, err = kubeclient.CoreV1().ServiceAccounts("default").Get(context.TODO(), "robot-beep-bop", metav1.GetOptions{})
@@ -75,7 +87,7 @@ var _ = Describe("Kubelet", func() {
 		})
 
 		It("Should reject unauthorized Service Account curl", func() {
-			secret, err := kubeclient.CoreV1().Secrets("default").Get(context.TODO(), sa.Secrets[0].Name, metav1.GetOptions{})
+			secret, err := kubeclient.CoreV1().Secrets("default").Get(context.TODO(), sa.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			resp, err := CurlInsecureWithToken(endpoint, string(secret.Data["token"]))
