@@ -29,7 +29,7 @@ var (
 			Tolerations: []v1.Toleration{
 				{Key: "windows", Operator: "Equal", Effect: "NoSchedule", Value: "2019"},
 			},
-			RestartPolicy: v1.RestartPolicyNever,
+			RestartPolicy: v1.RestartPolicyOnFailure,
 			Containers: []v1.Container{
 				{Name: "curl", Image: "gcr.io/cf-pks-golf/mcr.microsoft.com/windows/nanoserver:1809", Command: []string{"curl.exe"}},
 			},
