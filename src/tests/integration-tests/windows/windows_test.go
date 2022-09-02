@@ -78,6 +78,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 		})
 
 		By("should be able to reach it via Cluster IP", func() {
+			Skip("Skip test because issue: https://jira.eng.vmware.com/browse/PKS-5833")
 			clusterIP := kubectl.GetOutputBytes("get", "service", "windows-webserver",
 				"-o", "jsonpath='{.spec.clusterIP}'")
 			url := fmt.Sprintf("http://%s", clusterIP)
