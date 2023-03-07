@@ -41,7 +41,7 @@ var _ = Describe("When deploying to a Windows worker", func() {
 
 	BeforeSuite(func() {
 		fmt.Println("Checking for at least 1 Windows nodes...")
-		cmd := "kubectl get nodes -o json | jq '[.items[].status.nodeInfo.osImage] | map(select(. | contains(\"Windows Server 2019 Datacenter\"))) | any'"
+		cmd := "kubectl get nodes -o json | jq '[.items[].status.nodeInfo.osImage] | map(select(. | contains(\"Windows Server 2019\"))) | any'"
 		out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
 		fmt.Println(fmt.Sprintf("Found any windows node(s): %s", string(out)))
 		Expect(err).NotTo(HaveOccurred())
