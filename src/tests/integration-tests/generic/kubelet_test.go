@@ -1,11 +1,11 @@
 package generic_test
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net/http"
 	"time"
-	"context"
 
 	. "tests/test_helpers"
 
