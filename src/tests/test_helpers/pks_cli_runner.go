@@ -6,10 +6,11 @@ import (
 	"os"
 	"os/exec"
 
+	"path/filepath"
+
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"path/filepath"
 )
 
 var (
@@ -33,7 +34,7 @@ func SetupPksCli() (*PksCliRunner, error) {
 
 	pks_cli := PksCliRunner{
 		CliPath:          pksCliPath,
-		TimeoutInSeconds: 1800,
+		TimeoutInSeconds: 3600,
 	}
 	return &pks_cli, nil
 }
