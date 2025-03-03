@@ -1,4 +1,4 @@
-FROM docker:dind
+FROM docker:20.10-dind
 MAINTAINER pcf-kubo@pivotal.io
 
 RUN apk add --no-cache curl wget bash git ruby ruby-bundler
